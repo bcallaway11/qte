@@ -28,6 +28,9 @@ require(copula)
 # before the sample period begins.
 
 #TODO: accommodate covariates
+#'@title athey.imbens
+#' @inheritParams threeperiod.fanyu
+#' @export
 athey.imbens <- function(formla, t, tmin1, tname, x=NULL,data,y.seq,
                           dropalwaystreated=TRUE, idname, uniqueid, probs) {
   form = as.formula(formla)
@@ -748,7 +751,9 @@ threeperiod.fanyu <- function(formla, t, tmin1, tmin2,
 }
 
 
-
+#'@title bootstrap.threeperiod.fanyu
+#' @inheritParams threeperiod.fanyu
+#' @export
 bootstrap.threeperiod.fanyu <- function(formla, t, tmin1, tmin2,
                                         tname, x=NULL,data, 
                                         dropalwaystreated=TRUE, idname, uniqueid, zname,
@@ -859,6 +864,9 @@ bootstrap.threeperiod.fanyu <- function(formla, t, tmin1, tmin2,
 
 
 ####FIRPO########
+#'@title firpo
+#' @inheritParams threeperiod.fanyu
+#' @export
 firpo = function(formla, x=NULL, data, 
                  y.seq=NULL, dy.seq=NULL, probs=seq(0,1,0.1)) {
   form = as.formula(formla)
@@ -1008,6 +1016,13 @@ getLag <- function(xname, idname, tname, data, withBetweenYears=TRUE) {
 # and make sure that all years are available for 
 # all observations.  If some years are not available,
 # then that observation is dropped.
+#'@title makeBalancedPanel
+#' @description This function drops observations from data.frame
+#' that are not part of balanced panel data set.
+#' @param data data.frame used in function
+#' @param idname unique id
+#' @param tname time period name
+#' @export
 makeBalancedPanel <- function(data, idname, tname) {
   data=droplevels(data)
   allt = unique(data[,tname])
@@ -1145,6 +1160,9 @@ jointCDF.to.jointPDF <- function(jointDistObj) {
 
 #bootstrap.athey.imbens is a function that computes bootstrap
 #standard errors for quantile treatment effects
+#'@title bootstrap.athey.imbens
+#' @inheritParams threeperiod.fanyu
+#' @export
 bootstrap.athey.imbens <- function(formla, t, tmin1, tname, x=NULL,data,
                                   dropalwaystreated=TRUE, idname, 
                                    uniqueid, iters=20) {
