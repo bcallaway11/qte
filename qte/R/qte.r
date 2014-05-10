@@ -151,6 +151,9 @@ athey.imbens <- function(formla, t, tmin1, tname, x=NULL,data,y.seq,
 ##Function to implement the fan-yu procedure
 ##y.seq is the support of y as a sequence
 ##dy.seq is the support of the change in y as a sequence
+#' @title fan.yu
+#' @inheritParams threeperiod.fanyu
+#' @export
 fan.yu <- function(formla, t, tmin1, tname, x=NULL,data,
                    dropalwaystreated=TRUE, idname, uniqueid,
                    y.seq, dy.seq, probs=seq(0,1,0.1)) {
@@ -346,11 +349,33 @@ fan.yu <- function(formla, t, tmin1, tname, x=NULL,data,
 #call plot function, summary function, formula function, etc. later
 #add functionality to pass in pscore
 #' @title Three Period Fan Yu
+#'
+#' @description
+#' \code{threeperiod.fanyu} uses third period of data, combined with Distributional Difference in Differences assumption (Fan and Yu, 2012) to point identify QTET.
+#' 
 #' @param formla outcome variable on treatment
 #' @param t last time period
 #' @param tmin1 middle time period
 #' @param tmin2 initial time period
+#' @param x additional covariates if using propensity score reweighting technique
+#' @param dropalwaystreated boolean indicating whether in true panel data context (when treatment can occur in any period) whether or not previously treated observations should be dropped from the sample.  This functionality is not currently implemented
+#' @param idname an id that identifies individual units over time
+#' @param uniqueid an id that identifies unique 'observations'; i.e. each individual-time observation should have its own uniqueid
+#' @param zname not used / needs to be deleted
+#' @param y.seq the support of y (need to implement functionality so that this is not required)
+#' @param dy.seq the support of the change in y (need to implement functionality so that this is not required)
+#' @param probs the values at which the quantile treatment effects should be computed
+#' @param h the step size used in the simulated integral calculation
+#' @param bootstrap.iter boolean passed that is passed in when this method is used to compute standard errors
+#' @param copBool boolean that indicates whether parametric copula should be used.  Default FALSE indicates that nonparametric copula should be used.
+#'
 #' @return threeperiod object
+#'
+#' @examples
+#' \dontrun{
+#' threeperiod.fanyu(y~d)
+#' }
+#' @export
 threeperiod.fanyu <- function(formla, t, tmin1, tmin2,
                               tname, x=NULL,data, 
                               dropalwaystreated=TRUE, idname, uniqueid, zname,
