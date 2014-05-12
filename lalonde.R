@@ -10,7 +10,7 @@ att = mean(subset(lalonde.exp,treat==1)$re78) - mean(subset(lalonde.exp,treat==0
 
 #parameters used below:
 #h is the step size passed to various function
-h = 0.3
+h = 0.1
 #probs are the values that we compute QTET for
 probs = seq(h,1-h,0.02)
 
@@ -69,7 +69,7 @@ lalonde.fy3 = threeperiod.fanyu(re ~ treat,
                            dy.seq=sort(unique(lalonde.exp$re78-lalonde.exp$re75)),
                            probs=probs,
                            dropalwaystreated=FALSE,
-                           h=h, probevals=200)
+                           h=h, probevals=10)
 #Rprof(NULL)
 #summaryRprof()
 #proc.time()-ptm

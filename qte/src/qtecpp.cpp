@@ -11,6 +11,18 @@
 
 using namespace Rcpp;
 
+/**
+ * @file qtecpp.cpp
+ *
+ * This is the C++ code that extends (mainly improves speed)
+ * for R QTE package.
+ *
+ * @author Brantly Callaway
+ * 
+ * @version 1.0
+ *
+ */
+
 // [[Rcpp::depends(RcppGSL)]]
 /*
 // [[Rcpp::export]]
@@ -43,6 +55,26 @@ NumericVector foo(RcppGSL::vector<double> x, RcppGSL::vector<double> y,
     return 0;
 }
 */
+
+
+
+/**
+ * partial1CopualCPP is the C++ implementation of the partial
+ * derivative of the copula function with respect to its first 
+ * argument.  We need to do this to simulate random draws
+ * from the joint distribution following the procedure 
+ * outlined in Nelson (2005).
+ *
+ * @param[in] u NumericVector of values for the first copula function argument.
+ * Here u should be a scalar (=> probably should change the parameter type to 
+ * double), but need to test that this doesn't break anything.
+ * @param[in] v NumericVector of values for the second copula function argument
+ * @param[in] h double the step size used.  It is the same as used throughout 
+ * the method call
+ * @param[in] copfun R function that is generated in the panelDiD function
+ * @return NumericVector for the derivative of the copula function in the 
+ * direction of the first argument
+ */
 // [[Rcpp::export]]
 NumericVector partial1CopulaCPP(NumericVector u,
   NumericVector v, double h, Function copfun) {
@@ -61,9 +93,21 @@ NumericVector partial1CopulaCPP(NumericVector u,
     return out;
 }
 
-
+/**
+ *getListPartialQuantCPP is a wrapper for partial1.copula.  It takes in a 
+ *NumericVector of u's, and then calls partial1.copulaCPP for each
+ *of those u's individually.
+ *
+ *@param u NumericVector of length = #probevals
+ *@param v NumericVector of grid points to evaluate copula function at
+ *@param h double step size so don't get too close to boundaries
+ *@param copfun points to copula function generated previously
+ *
+ *@return List of partial derivatives of copula function for each of the 
+ *values of u passed in.
+ */
 // [[Rcpp::export]]
-List getFuncValCPP(NumericVector u, NumericVector v, double h,
+List getListPartialQuantCPP(NumericVector u, NumericVector v, double h,
  	Function copfun) {
 
   //RNGScope scope;
@@ -78,6 +122,10 @@ List getFuncValCPP(NumericVector u, NumericVector v, double h,
   return retList;
 }
 
+/**
+ * Not implemented yet, but potential performance gains by 
+ * implementing the joint distribution in C++ rather than R.
+ */
 // [[Rcpp::export]]
 NumericVector getJointCPP(NumericVector x,
   NumericVector y) {
@@ -98,27 +146,46 @@ NumericVector getJointCPP(NumericVector x,
   //return 0;
 }
 
+/**
+ * getJointUVCPP takes in two points and returns the value
+ *
+ * of the empirical joint CDF (of x1 and y1) for those two values
+ * @param u double a point in x
+ * @param v double a point in y
+ * @param x1 NumericVector a set of datapoints of x
+ * @param y1 NumericVector a set of datapoints of y
+ *
+ * @return NumericVector scalar value in joint distribution
+ */
 // [[Rcpp::export]]
 NumericVector getJointUVCPP(double u, NumericVector v,
  NumericVector x1, NumericVector y1) {
 
+  //this part does empirical joint distribution
   NumericVector out = NumericVector(v.size());
   int vsize = v.size();
   int ysize = y1.size();
   double thisout;
   for (int i=0; i<vsize; i++) {
     thisout = 0;
-    //out(i) = sum(1*(x1<u & y1<v[i]))/length(y1)
     for (int j=0; j<ysize; j++) {
       thisout += (x1(j)<u && y1(j)<v(i));
-      //printf("%g",thisout);
     }
-    //printf("\n\n%g",thisout);
     out(i) = thisout/ysize;
   }
+  //add code for computing kernel density estimate.
   return out;
 }
 
+/**
+ * Wrapper for using GSL package to compute quantiles
+ *
+ *@param x RcppGSL vector of function values
+ *@param probs NumericVector of quantiles to compute
+ *
+ *@return NumericVector of quantiles.  Return will be of same length as probs.
+ *
+ */
 // [[Rcpp::export]]
 NumericVector quantileCPP(RcppGSL::vector<double> x,
  NumericVector probs) {
@@ -143,10 +210,16 @@ NumericVector quantileCPP(RcppGSL::vector<double> x,
 }
 
 
-/*Overloads quantileCPP so that is can be 
-called for a NumericVector*/
-
-
+/**
+ * Overloads quantileCPP so that it can be called
+ * for a NumericVector rather than GSL vector.
+ *
+ *@param x NumericVector
+ *@param probs NumericVector to compute quantiles for
+ *
+ *@return NumericVector of same length as probs.
+ *
+ */
 NumericVector quantileCPP(NumericVector x,
  NumericVector probs) {
   
@@ -165,9 +238,19 @@ NumericVector quantileCPP(NumericVector x,
 
 }
 
-//funcvals and t should be of same length 
+/**
+ * getListQuantilesCPP takes the List of 1st partial derivatives
+ * created in the previous steps, and gets (#probevals = length(t))
+ * random quantiles from them.  The purpose is for simulating from
+ * joint distribution of the change and the intial outcomes.
+ * 
+ *@param partialvals List of vectors containing the 1st partial 
+ * derivative of the copula function for the random uniforms 
+ * generated previously
+ *@param t NumericVector for random quantiles between 0 & 1
+ */
 // [[Rcpp::export]]
-List getListQuantilesCPP(List funcvals,
+List getListQuantilesCPP(List partialvals,
  NumericVector t) {
   
   //RNGScope scope;
@@ -183,7 +266,7 @@ List getListQuantilesCPP(List funcvals,
   NumericVector temp2;
   
   for (int i=0; i<n; i++) {
-    temp1 = funcvals(i);
+    temp1 = partialvals(i);
     temp2 = t(i);
     //print(temp);
     out(i) = quantileCPP(temp1, temp2);

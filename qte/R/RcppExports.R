@@ -5,8 +5,8 @@ partial1CopulaCPP <- function(u, v, h, copfun) {
     .Call('qte_partial1CopulaCPP', PACKAGE = 'qte', u, v, h, copfun)
 }
 
-getFuncValCPP <- function(u, v, h, copfun) {
-    .Call('qte_getFuncValCPP', PACKAGE = 'qte', u, v, h, copfun)
+getListParitalQuantCPP <- function(u, v, h, copfun) {
+    .Call('qte_getListParitalQuantCPP', PACKAGE = 'qte', u, v, h, copfun)
 }
 
 getJointCPP <- function(x, y) {
@@ -21,8 +21,8 @@ quantileCPP <- function(x, probs) {
     .Call('qte_quantileCPP', PACKAGE = 'qte', x, probs)
 }
 
-getListQuantilesCPP <- function(funcvals, t) {
-    .Call('qte_getListQuantilesCPP', PACKAGE = 'qte', funcvals, t)
+getListQuantilesCPP <- function(partialvals, t) {
+    .Call('qte_getListQuantilesCPP', PACKAGE = 'qte', partialvals, t)
 }
 
 testy <- function() {

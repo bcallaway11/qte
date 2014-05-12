@@ -24,9 +24,9 @@ BEGIN_RCPP
     return __sexp_result;
 END_RCPP
 }
-// getFuncValCPP
-List getFuncValCPP(NumericVector u, NumericVector v, double h, Function copfun);
-RcppExport SEXP qte_getFuncValCPP(SEXP uSEXP, SEXP vSEXP, SEXP hSEXP, SEXP copfunSEXP) {
+// getListParitalQuantCPP
+List getListParitalQuantCPP(NumericVector u, NumericVector v, double h, Function copfun);
+RcppExport SEXP qte_getListParitalQuantCPP(SEXP uSEXP, SEXP vSEXP, SEXP hSEXP, SEXP copfunSEXP) {
 BEGIN_RCPP
     SEXP __sexp_result;
     {
@@ -35,7 +35,7 @@ BEGIN_RCPP
         Rcpp::traits::input_parameter< NumericVector >::type v(vSEXP );
         Rcpp::traits::input_parameter< double >::type h(hSEXP );
         Rcpp::traits::input_parameter< Function >::type copfun(copfunSEXP );
-        List __result = getFuncValCPP(u, v, h, copfun);
+        List __result = getListParitalQuantCPP(u, v, h, copfun);
         PROTECT(__sexp_result = Rcpp::wrap(__result));
     }
     UNPROTECT(1);
@@ -93,15 +93,15 @@ BEGIN_RCPP
 END_RCPP
 }
 // getListQuantilesCPP
-List getListQuantilesCPP(List funcvals, NumericVector t);
-RcppExport SEXP qte_getListQuantilesCPP(SEXP funcvalsSEXP, SEXP tSEXP) {
+List getListQuantilesCPP(List partialvals, NumericVector t);
+RcppExport SEXP qte_getListQuantilesCPP(SEXP partialvalsSEXP, SEXP tSEXP) {
 BEGIN_RCPP
     SEXP __sexp_result;
     {
         Rcpp::RNGScope __rngScope;
-        Rcpp::traits::input_parameter< List >::type funcvals(funcvalsSEXP );
+        Rcpp::traits::input_parameter< List >::type partialvals(partialvalsSEXP );
         Rcpp::traits::input_parameter< NumericVector >::type t(tSEXP );
-        List __result = getListQuantilesCPP(funcvals, t);
+        List __result = getListQuantilesCPP(partialvals, t);
         PROTECT(__sexp_result = Rcpp::wrap(__result));
     }
     UNPROTECT(1);

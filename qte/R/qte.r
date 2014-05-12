@@ -6,7 +6,9 @@ require(np)
 require(MASS)
 require(Rcpp)
 require(copula)
-#sourceCpp("~/Documents/school/projects/Common App/data/qtecpp.cpp")
+
+#use this line for prototyping; comment for building package
+sourceCpp("~/Documents/school/projects/Common App/data/qte/src/qtecpp.cpp")
 
 #####MAIN FUNCTIONS#####
 
@@ -430,8 +432,9 @@ threeperiod.fanyu <- function(formla, t, tmin1, tmin2,
    ever.treated = "ever.treated"
    treated.t$ever.treated = 1
   
-  #Setup each of the datasets used below
-  
+  #Generate subsets of the panel data based on time period and
+  #whether or not the observation is treated.  These will be used
+  #to calculate distributions below.  
   treated.tmin1 = data[ data[,tname] == tmin1 & 
                            data[,ever.treated] == 1, ]
   #treated at t-2
@@ -446,12 +449,12 @@ threeperiod.fanyu <- function(formla, t, tmin1, tmin2,
                              data[,ever.treated] == 0, ]
   untreated.tmin2 = data[ data[,tname] == tmin2 &
                              data[,ever.treated] == 0, ]
-  #2) Set up grid for obtaining cdfs
-  #y.seq = seq(5,11,0.1) 
-  #dy.seq = seq(-2,2,0.1)
-  #TODO: choose defaults correctly for these, or note if they matter at all
-  
-  #3) Work with first two periods to get copula function nonparametrically
+ 
+  #3) First, generate the copula function using the (t-2) time period.
+  # The copula function will capture the dependence structure between
+  # the untreated level of outcomes in period (t-2) and the change in
+  # untreated outcomes between (t-1) and (t-2) for the eventually treated
+  # observations.
   
    #a) Get distribution of y0.tmin2 | Dt=1
    F.treated.tmin2 = ecdf(treated.tmin2[,yname])
@@ -460,7 +463,8 @@ threeperiod.fanyu <- function(formla, t, tmin1, tmin2,
    F.treated.change.tmin1 = ecdf(treated.tmin1[,yname] -
                                    treated.tmin2[,yname])
   
-   #b.1get correlations:
+   #b.1) Get correlations between level at (t-1) and change between
+   # (t-1) and (t-2).  These are not used, but returned by the function.
    pearsons.cor = cor(treated.tmin1[,yname] - treated.tmin2[,yname],
                       treated.tmin2[,yname])
    spearmans.rho = cor(treated.tmin1[,yname] - treated.tmin2[,yname],
@@ -478,19 +482,19 @@ threeperiod.fanyu <- function(formla, t, tmin1, tmin2,
    #c) Get joint distribution of y0.tmin2 | Dt=1 and
     # y0.tim1 - y0tmin2 | Dt=1
    #this will return the joint distribution as a function
+   #the joint distribution between the change and the initial
+   # is the key piece of informationt that we need to recover the copula
    F.joint.tmin1 = getJoint(as.numeric(treated.tmin1[,yname] - 
                               treated.tmin2[,yname]),
                             as.numeric(treated.tmin2[,yname]))
    
    
   #d) Get the copula function
-  #...Are these used anywhere anymore?
-   u.seq = seq(0,1,0.1)
-   v.seq = seq(0,1,0.2)
-  
-  #internal function returns value of copula for two values (u,v)
+   #internal function returns value of copula for two values (u,v)
   #between 0 & 1
   #account for dependence outside function
+  #this function uses the joint distribution computed just above
+  #and is just and application of Sklar's Theorem.
   copula = function(u,v) {
     #essentially F.joint.tmin1 is fast (approx 1 second used)
     #but quantile is slow (about 15 seconds)
@@ -498,37 +502,17 @@ threeperiod.fanyu <- function(formla, t, tmin1, tmin2,
     #temp2 = quantile(F.treated.tmin2,v)
     
     #c++ method is much faster; it takes about 2 seconds compared to 15
-    #Note: These probably do some interpolating
-    temp1 = quantileCPP(treated.tmin1[,yname]-treated.tmin2[,yname],u)
-    temp2 = quantileCPP(treated.tmin2[,yname],v)
+    #Note: These probably do some interpolating, but interpolation
+    # should not cause boundary problem.
+    change.quant = quantileCPP(treated.tmin1[,yname]-treated.tmin2[,yname],u)
+    initial.quant  = quantileCPP(treated.tmin2[,yname],v)
     #F.joint.tmin1(quantile(F.treated.change.tmin1,u),
     #              quantile(F.treated.tmin2,v))
-    F.joint.tmin1(temp1,temp2)
+    F.joint.tmin1(change.quant,initial.quant)
   }
-  
-  #estimates the partial derivative of the copula with respect to the first
-  #argument numerically; for a given step size h
-  #this function is needed to calculate the function of the joint distribution
-  #noted in the paper.
-  partial1.copula = function(u,v,h) {
-    ##try commenting out below to see if has any effect
-    if (u > 1-h) {
-      return(rep(1,length(v)))
-    } else if (u < h) {
-      return(rep(0,length(v)))
-      ##
-    } else {
-      #first two lines trim values above 1
-      #out = (copula(u+h,v)-copula(u-h,v))/(2*h)
-      #out = 1*(out>1) + out*(out<=1)
-      out = partial1CopulaCPP(u,v,h,copula)
-      return(out)
-    }
-  }
-
-  
-  #4) Get known distributions under D-i-D assumption and apply 
-  #known copula to these two marginal distributions
+    
+  #4) Get known distributions for period t that we will
+  # apply the copula function that we just computed to. 
   
   #a) change for the untreated between t-1 and t
   F.untreated.change = ecdf(untreated.t[,yname]-untreated.tmin1[,yname])
@@ -537,14 +521,17 @@ threeperiod.fanyu <- function(formla, t, tmin1, tmin2,
   att = mean(treated.t[,yname]) - mean(treated.tmin1[,yname]) -
     (mean(untreated.t[,yname]) - mean(untreated.tmin1[,yname]))
   
-  #a.1) this needs to be adjusted by the covariates
-  #need to do some updating here
-  #if there are covariates, then we need to do account for those
-  #using the method presented in the paper
-  #default will be to use probit, but add functionality
-  #to let the user pass in propensity score
-  #if they do, we need to check for pscore here.
-  #one possible issue is how to accommodate this with the bootstrap.
+  #a.1) If there are covariates need to satisfy the Distributional D-i-D
+  #then we will need to modify the distribution of the changes in outcomes
+  #using the method presented in the paper.
+  #This section does this.  For most flexibility, the user should
+  #be able to pass in the propensity score using estimated using any
+  #method that he chooses.  In the case where there are covariates,
+  #but no propensity score passed in, then this section estimates
+  #a propensity score using a simple probit on each of the variables
+  #entered additively.
+  #TODO: add functionality to allow propensity score values to be
+  #passed in.
   if (!(is.null(x))) {
     treated.t$changey = treated.t[,yname] - treated.tmin1[,yname]
     untreated.t$changey = untreated.t[,yname] - untreated.tmin1[,yname]
@@ -554,11 +541,6 @@ threeperiod.fanyu <- function(formla, t, tmin1, tmin2,
                      family=binomial(link="probit"))
     pscore = fitted(pscore.reg)
     pD1 = nrow(treated.t)/nrow(untreated.t)
-    #TODO: around here is where the error is occurring in the bootstrap
-    #method, I think because of the uniqe() that is no longer unique
-    #when you bootstrap... (the commented part below definitely works
-    #before the bootstrap, and appears to work after, but not
-    #positive)
     p.dy.seq = pscore.data$changey #unique(pscore.data$changey)
     #F.untreated.change = rep(0,length(p.dy.seq))
     #TODO: What is this?  Need to come up with better name for this variable
@@ -583,28 +565,52 @@ threeperiod.fanyu <- function(formla, t, tmin1, tmin2,
   
   #b) distribution of outcomes for treated in previous period
   F.treated.tmin1 = ecdf(treated.tmin1[,yname])
-  
+
   #c) use known copula function to get joint distribution
   F.joint.t = function(x,y) {
     copula(F.untreated.change(x),F.treated.tmin1(y))
   }
   
-  #5) Recover the counterfactual distribution
-  #F.treatedcf.t = function(F.joint.t)
-  seed = round(1000*runif(1)) #set the seed for this bootstrap iteration
-  #internal function that computes the value of the counterfactual 
-  #distribution at a particular value of y.
-  F.treatedcf.tfun = function(y) {
-    simchange = quantile(F.untreated.change, probs=randu)
-    siminit = quantile(F.treated.tmin1, probs=randv)
-    return(sum(1*(simchange+siminit<y))/probevals)
+  #5) Recover the counterfactual distribution:  This involves simulating
+  #from the joint distribution of the change and the initial computed in step 4
+  #F.joint.t.  To do this we follow the method given in Nelson (2005) which
+  #involves taking the partial derivative of the copula function with respect
+  #to its first argument, and then simulating.
+
+  #a)#partial1.copula estimates the partial derivative of the
+  #copula with respect to the first
+  #argument numerically; for a given step size h
+  #this function is needed to calculate the function of the joint distribution
+  #noted in the paper.
+  partial1.copula = function(u,v,h) {
+    ##try commenting out below to see if has any effect
+    if (u > 1-h) {
+      return(rep(1,length(v)))
+    } else if (u < h) {
+      return(rep(0,length(v)))
+      ##
+    } else {
+      #first two lines trim values above 1
+      #out = (copula(u+h,v)-copula(u-h,v))/(2*h)
+      #out = 1*(out>1) + out*(out<=1)
+      out = partial1CopulaCPP(u,v,h,copula)
+      return(out)
+    }
   }
-  
+
+  #getPartialQuant is a helper function to simulate from the
+  #copula function.  This follows Nelson (2005)'s method for simulating
+  #from a joint distribution.
+  #@param u vector of random uniforms of length = #probevals
+  #@param t vector of random uniforms of length = #probevals; this is only
+  #used for randomly choosing quantiles of the distribution below.
   #TODO: this function needs to be cleaned up
   getPartialQuant = function(u,t) {
     #v.seq = seq(0.02,0.98,0.02)
-    v.seq = seq(h,1-h,h)
-    #this new way allows u to be passed in as a vector
+    v.seq = seq(h,1-h,0.02) #TODO (def shouldn't have step size h); maybe pass
+    #this as parameter?
+    
+    #this new way all u to be passed in as a vector
     #funcval is a list of returns from partial1.copula
     #with same length as length(u)
     #funcval = lapply(u,FUN=partial1.copula,v=v.seq,h=0.1)
@@ -612,8 +618,7 @@ threeperiod.fanyu <- function(formla, t, tmin1, tmin2,
     #funcval is a list containing the value of copula function
     #for each different value of u vector; holding v.seq 
     #fixed for each u.
-    funcval = getFuncValCPP(u,v.seq,h,copula)
-    
+    funcval = getListPartialQuantCPP(u,v.seq,h,copula)
     
     #this applies approxfun1 to each above list
     #and produces length(u) number of function approximations
@@ -660,9 +665,21 @@ threeperiod.fanyu <- function(formla, t, tmin1, tmin2,
     list.quanties = getListQuantilesCPP(funcval, t)
     return(list.quanties)
   }
+
+  #internal function that computes the value of the counterfactual 
+  #distribution at a particular value of y.
+  F.treatedcf.tfun = function(y) {
+    simchange = quantile(F.untreated.change, probs=randu)
+    siminit = quantile(F.treated.tmin1, probs=randv)
+    return(sum(1*(simchange+siminit<y))/probevals)
+  }
+
+  #This section uses all the above functions to generate some random
+  #numbers simulated from the joint distribution.
   
-  #Idea: Instead, of estimating pdfs and then re-integrating, try to just
-  #simulate the needed probabilities.
+  #seed used for random number generation.  It needs to change
+  #based on every bootstrap iteration.
+  seed = round(1000*runif(1)) 
   set.seed(seed)
   #do the random draws need to incorporate the copula?
   #not sure that I am doing this right...
@@ -677,7 +694,9 @@ threeperiod.fanyu <- function(formla, t, tmin1, tmin2,
   #for (i in 1:probevals) {
   #  randv[i] = getPartialQuant(r.unifu[i],r.unift[i])
   #}
-  #TODO: uncomment this next line for nonparametric
+
+  #this is the call to getPartialQuant that does all of the work
+  #in the nonparametric case.
   if (!copBool) {
     randv = unlist(getPartialQuant(r.unifu, r.unift))
   }
@@ -710,12 +729,13 @@ threeperiod.fanyu <- function(formla, t, tmin1, tmin2,
     return(obj)
   }
   
-  #this is just helper function to change order of arguments
+  #helper function to change order of arguments
   #to approxfun
   approxfun1 = function(y,x,...) {
     return(approxfun(x=x,y=y,...))
   }
-  
+
+  #write the counterfactual distribution as a function that we can call.
   F.treatedcf.t = approxfun(y.seq, 
                            vapply(y.seq,FUN=F.treatedcf.tfun,FUN.VALUE=1),
                            method="constant",
@@ -744,8 +764,8 @@ threeperiod.fanyu <- function(formla, t, tmin1, tmin2,
   retObj = list(F.treatedcf.t = F.treatedcf.t, F.joint.t=F.joint.t,
                 copula=copula, pearsons.cor=pearsons.cor, qte=(q1-q0),
                 spearmans.rho=spearmans.rho, kendalls.tau=kendalls.tau,
-                spearmans.rho2=0, att=att)
-  class(retObj) = "paneldid"
+                spearmans.rho2=0, att=att, randu=randu, randv=randv, h=h)
+  class(retObj) = "panelDiD"
   
   return(retObj)
 }
