@@ -147,18 +147,18 @@ NumericVector getJointCPP(NumericVector x,
 }
 
 /**
- * getJointUVCPP takes in two points and returns the value
+ * getJointUVCPP1 takes in two points and returns the value
  *
  * of the empirical joint CDF (of x1 and y1) for those two values
- * @param u double a point in x
- * @param v double a point in y
+ * @param u double point in x
+ * @param v NumericVector of points in y
  * @param x1 NumericVector a set of datapoints of x
  * @param y1 NumericVector a set of datapoints of y
  *
  * @return NumericVector scalar value in joint distribution
  */
-// [[Rcpp::export]]
-NumericVector getJointUVCPP(double u, NumericVector v,
+/*// [[Rcpp::export]] Don't export this one, maybe...*/
+NumericVector getJointUVCPP1(double u, NumericVector v,
  NumericVector x1, NumericVector y1) {
 
   //this part does empirical joint distribution
@@ -176,6 +176,43 @@ NumericVector getJointUVCPP(double u, NumericVector v,
   //add code for computing kernel density estimate.
   return out;
 }
+
+
+/**
+ * Overloads getJointUVCPP to be able to call with vector arguments
+ *
+ * of the empirical joint CDF (of x1 and y1) for those two values
+ * @param u NumericVector of points in x
+ * @param v NumericVector of points in y
+ * @param x1 NumericVector a set of datapoints of x
+ * @param y1 NumericVector a set of datapoints of y
+ *
+ * @return NumericVector scalar value in joint distribution
+ */
+// [[Rcpp::export]]
+NumericVector getJointUVCPP(NumericVector u, NumericVector v,
+ NumericVector x1, NumericVector y1) {
+
+  if (u.size() == 1) {
+    return getJointUVCPP1(u(0),v,x1,y1);
+  }
+
+  //this part does empirical joint distribution
+  NumericVector out = NumericVector(v.size());
+  int vsize = v.size();
+  int ysize = y1.size();
+  double thisout;
+  for (int i=0; i<vsize; i++) {
+    thisout = 0;
+    for (int j=0; j<ysize; j++) {
+      thisout += (x1(j)<u(i) && y1(j)<v(i));
+    }
+    out(i) = thisout/ysize;
+  }
+  //add code for computing kernel density estimate.
+  return out;
+}
+
 
 /**
  * Wrapper for using GSL package to compute quantiles

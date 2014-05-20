@@ -493,9 +493,21 @@ threeperiod.fanyu <- function(formla, t, tmin1, tmin2,
    #internal function returns value of copula for two values (u,v)
   #between 0 & 1
   #account for dependence outside function
-  #this function uses the joint distribution computed just above
+  #@title copula
+  #@description this function uses the joint distribution computed just above
   #and is just and application of Sklar's Theorem.
+  #@param u NumericVector between 0 and 1
+  #@param v NumericVector between 0 and 1, same length as u (no don't have to be)
+  #@return The value of the copula function (between 0 & 1)
   copula = function(u,v) {
+
+    #if (length(u) != length(v)) {
+    #    stop("copula: u and v must be of the same length")
+    #}
+
+    if ( any(u>1) | any(v>1) | any(u<0) | any(v<0) ) {
+        stop("all arguments must be between 0 and 1")
+    }
     #essentially F.joint.tmin1 is fast (approx 1 second used)
     #but quantile is slow (about 15 seconds)
     #temp1 = quantile(F.treated.change.tmin1,u)
@@ -508,7 +520,15 @@ threeperiod.fanyu <- function(formla, t, tmin1, tmin2,
     initial.quant  = quantileCPP(treated.tmin2[,yname],v)
     #F.joint.tmin1(quantile(F.treated.change.tmin1,u),
     #              quantile(F.treated.tmin2,v))
-    F.joint.tmin1(change.quant,initial.quant)
+
+    # F.joint.tmin1(change.quant,initial.quant) #old, this is the straightforward
+    # way but it was causing some problems
+    #try just putting this between the bounds...
+    Fval <- F.joint.tmin1(change.quant, initial.quant)
+    ub <- apply(data.frame(u=u,v=v), FUN=min, MARGIN=1)
+    lb <- apply(data.frame(u=u,v=v), FUN=function(x) max(x[1] + x[2] - 1, 0),
+                MARGIN=1)
+    lb*(Fval < lb) + ub*(Fval > ub) + Fval*(Fval>=lb & Fval<=ub)
   }
     
   #4) Get known distributions for period t that we will
@@ -666,12 +686,64 @@ threeperiod.fanyu <- function(formla, t, tmin1, tmin2,
     return(list.quanties)
   }
 
+  ##some helper functions for the nonparametric cdf estimation
+
+  #@description the integrated kernel used for esimating
+  #a univariate cdf
+  int.kernel <- function(u) {
+      return(pnorm(u))
+  }
+
+  #@return the kernel density cdf estimate at a particular point y
+  F.smoothed <- function(y,obs,bandwidth=NULL) {
+      #n <- length(obs)
+      #(1/n)*sum(int.kernel((y-obs)/bandwidth))
+  }
+
+  #@title leavoneoutF
+  leaveoneoutF <- function(y, obs, bw) {
+      n <- length(obs)
+      looF <- rep(0,n)
+      for (i in 1:n) {
+          looF[i] <- F.smoothed(y, obs[-i], bw)
+      }
+      return(looF)
+  }
+  
+  #@title cross.validation
+  cv <- function(bw, y, obs) {
+      n <- length(obs)
+      (1/n)*sum((1*(obs<=y) - leaveoneoutF(y, obs, bw))^2)
+  }
+
+  cv.switchargs <- function(y, bw, obs) {
+      cv(bw, y, obs)
+  }
+
+  cv.global <- function(bw, obs) {
+      sum(vapply(y.seq, FUN=cv.switchargs, FUN.VALUE=1, bw=bw, obs=obs))
+  }
+
+  #@return the correct bandwidth using cross validation
+  bwminfun <- function(obs) {
+      return(optimize(f=cv.global, lower=0, upper=max(obs),
+               tol=(max(obs)/length(obs)), obs=obs))
+  }
+  
+  
   #internal function that computes the value of the counterfactual 
   #distribution at a particular value of y.
-  F.treatedcf.tfun = function(y) {
-    simchange = quantile(F.untreated.change, probs=randu)
-    siminit = quantile(F.treated.tmin1, probs=randv)
-    return(sum(1*(simchange+siminit<y))/probevals)
+  F.treatedcf.tfun = function(y, bw=NULL) {
+    #simchange = quantile(F.untreated.change, probs=randu)
+    #siminit = quantile(F.treated.tmin1, probs=randv)
+    #distval = simchange + siminit
+    #return(sum(1*(simchange+siminit<y))/probevals)
+    #instead get a smoothed estimate of this!
+    #browser()
+    #return(vapply(y, FUN=F.smoothed, FUN.VALUE=1,
+    #              obs=simchange+siminit, bandwidth=10000))
+    #npudistbw(~distval)
+    return(fitted(npudist(edat=y, bws=bw)))
   }
 
   #This section uses all the above functions to generate some random
@@ -697,8 +769,14 @@ threeperiod.fanyu <- function(formla, t, tmin1, tmin2,
 
   #this is the call to getPartialQuant that does all of the work
   #in the nonparametric case.
+  numtrims=0 #to count number of trims
   if (!copBool) {
-    randv = unlist(getPartialQuant(r.unifu, r.unift))
+      #browser()
+      randv = unlist(getPartialQuant(r.unifu, r.unift))
+      #for some reason, we get values greater than 1 sometimes;
+      #do some trimming here, but record how many times that it occurs
+      numtrims = sum(1*(randv>1))
+      randv = vapply(randv, FUN=min, FUN.VALUE=1, 1)
   }
   
   #get partial quant takes up about 10 out of 11 seconds
@@ -736,12 +814,19 @@ threeperiod.fanyu <- function(formla, t, tmin1, tmin2,
   }
 
   #write the counterfactual distribution as a function that we can call.
-  F.treatedcf.t = approxfun(y.seq, 
-                           vapply(y.seq,FUN=F.treatedcf.tfun,FUN.VALUE=1),
+  sim.cf <- quantile(F.untreated.change, probs=randu) +
+    quantile(F.treated.tmin1, probs=randv)
+  F.treatedcf.t.bws <- npudistbw(~sim.cf)
+  #note that this is "artificially making the smallest possible value
+  #for the counterfactual = 0 because we never pass it anything smaller
+  F.treatedcf.t = approxfun(y.seq, #old puts y.seq here
+                           vapply(y.seq,FUN=F.treatedcf.tfun,FUN.VALUE=1,
+                                  bw=F.treatedcf.t.bws),
                            method="constant",
                            yleft=0, yright=1, f=0, ties="ordered")
   class(F.treatedcf.t) = c("ecdf", "stepfun", class(F.treatedcf.t))
   assign("nobs", length(y.seq), envir = environment(F.treatedcf.t))
+
   
   #this is the actual distribution of outcomes for the treated
   F.treated.t = ecdf(treated.t[,yname])
@@ -760,11 +845,25 @@ threeperiod.fanyu <- function(formla, t, tmin1, tmin2,
   print("QTE:")
   print(q1-q0)
   print(paste("ATT: ",att))
+
+  browser()
   
   retObj = list(F.treatedcf.t = F.treatedcf.t, F.joint.t=F.joint.t,
+                F.joint.tmin1 = F.joint.tmin1, F.treated.t=F.treated.t,
+      F.treated.tmin1=F.treated.tmin1, F.treated.tmin2=F.treated.tmin2,
+      F.treated.change.tmin1=F.treated.change.tmin1,
+      F.untreated.change=F.untreated.change,
+      treated.t=treated.t[,yname],
+      untreated.t=untreated.t[,yname],
+      treated.tmin1=treated.tmin1[,yname],
+      treated.tmin2=treated.tmin2[,yname],
+      untreated.tmin1=untreated.tmin1[,yname],
+      untreated.tmin2=untreated.tmin2[,yname],
+      untreated.change=untreated.t[,yname]-untreated.tmin1[,yname],
                 copula=copula, pearsons.cor=pearsons.cor, qte=(q1-q0),
                 spearmans.rho=spearmans.rho, kendalls.tau=kendalls.tau,
-                spearmans.rho2=0, att=att, randu=randu, randv=randv, h=h)
+                spearmans.rho2=0, att=att, randu=randu, randv=randv,
+                randt=r.unift, h=h, numtrims=numtrims)
   class(retObj) = "panelDiD"
   
   return(retObj)
@@ -1083,14 +1182,15 @@ getJoint <- function(x1, y1, xrange=NULL, yrange=NULL) {
   #F.joint.tmin1 = npudist(~changey+tmin2y,ckernel="uniform")
   
   #this works, but is slow:
-  #joint = npudist(~x+y, ckernel="uniform")
+  #joint = npudist(~x1+y1, ckernel="uniform")
   return(function(u,v){
     #this is really slow
-    #predict(joint, newdata=data.frame(x=u,y=v))
+    #predict(joint, newdata=data.frame(x1=u,y1=v))
     #out = rep(0,length(v))
     #for (i in 1:length(v)) {
     #  out[i] = sum(1*(x1<u & y1<v[i]))/length(y1)
     #}
+    #for empirical CDF, C++ code is faster
     return(getJointUVCPP(u,v,x1,y1))
     #return(sum(1*(x1<u & y1<v))/length(y1))
   })
@@ -1344,4 +1444,3 @@ simple.quantile <- function(x,Fx,probs=c(0,0.25,0.5,0.75,1)) {
   names(out) = probs
   return(out)
 }
-
