@@ -61,7 +61,7 @@ lalonde.fy = fan.yu(re ~ treat,
 #call panelDid with 3 periods
 lalonde.fy3 = threeperiod.fanyu(re ~ treat,
                            tname="year",t=1978, tmin1=1975, tmin2=1974,
-                           data=employed.subset, idname="id", uniqueid="uniqueid",
+                           data=lalonde.data, idname="id", uniqueid="uniqueid",
                            #x=c("age","education","black","hispanic",
                            #     "married","nodegree","u74","u75"),
                            x=NULL,
@@ -81,7 +81,7 @@ lalonde.fy3 = threeperiod.fanyu(re ~ treat,
 #call panelDid with covariates
 lalonde.fy3.cov = threeperiod.fanyu(re ~ treat,
                                 tname="year",t=1978, tmin1=1975, tmin2=1974,
-                                data=employed.subset, idname="id", uniqueid="uniqueid",
+                                data=lalonde.data, idname="id", uniqueid="uniqueid",
                                 x=c("age","education","black","hispanic",
                                 "married","nodegree","u74","u75"),
                                 #x=NULL,
@@ -315,3 +315,8 @@ ggplot(data.frame(pscore.dw=pscore.dw[186:length(pscore.dw)]),
        aes(x=pscore.dw)) +
     geom_histogram()
 #dev.off()
+
+
+##plot the distribution of outcomes for the treated group in the previous period
+#this plot does not depend on covariates whether or not you include them
+plot(lalonde.fy3$F.treated.tmin1)

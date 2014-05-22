@@ -585,6 +585,12 @@ threeperiod.fanyu <- function(formla, t, tmin1, tmin2,
   
   #b) distribution of outcomes for treated in previous period
   F.treated.tmin1 = ecdf(treated.tmin1[,yname])
+  #first compute the correct bandwidth
+  #browser()
+  #F.treated.tmin1.bw = npudistbw(~treated.tmin1[,yname])
+  #F.treated.tmin1 = function(y, bw=F.treated.tmin1.bw) {
+  #  return(fitted(npudist(edat=y, bws=bw)))
+  #}
 
   #c) use known copula function to get joint distribution
   F.joint.t = function(x,y) {
@@ -739,7 +745,6 @@ threeperiod.fanyu <- function(formla, t, tmin1, tmin2,
     #distval = simchange + siminit
     #return(sum(1*(simchange+siminit<y))/probevals)
     #instead get a smoothed estimate of this!
-    #browser()
     #return(vapply(y, FUN=F.smoothed, FUN.VALUE=1,
     #              obs=simchange+siminit, bandwidth=10000))
     #npudistbw(~distval)
@@ -771,7 +776,6 @@ threeperiod.fanyu <- function(formla, t, tmin1, tmin2,
   #in the nonparametric case.
   numtrims=0 #to count number of trims
   if (!copBool) {
-      #browser()
       randv = unlist(getPartialQuant(r.unifu, r.unift))
       #for some reason, we get values greater than 1 sometimes;
       #do some trimming here, but record how many times that it occurs
@@ -846,8 +850,6 @@ threeperiod.fanyu <- function(formla, t, tmin1, tmin2,
   print(q1-q0)
   print(paste("ATT: ",att))
 
-  browser()
-  
   retObj = list(F.treatedcf.t = F.treatedcf.t, F.joint.t=F.joint.t,
                 F.joint.tmin1 = F.joint.tmin1, F.treated.t=F.treated.t,
       F.treated.tmin1=F.treated.tmin1, F.treated.tmin2=F.treated.tmin2,
@@ -1003,6 +1005,7 @@ firpo = function(formla, x=NULL, data,
   #estimate the propensity score
   pscore=fitted(glm(data[,treat] ~ as.matrix(data[,x]),
                     family=binomial(link="probit")))
+  p = rep(nrow(treated)/(nrow(treated) + nrow(untreated)), n)
   #there are alternatives for how to compute the quantiles of 
   #treated outcomes for the treated group:
   #1) compute quantiles directly
@@ -1018,10 +1021,7 @@ firpo = function(formla, x=NULL, data,
     retval = sum(weights*checkfun(data[,yname]-q, tau))
     return(retval)
   }
-  #minfun = function(qvec, tau, weights) {
-  #  return(lapply(qvec,treated.minfun.inner,tau=tau, weights=weights))
-  #}
-  #check if these are exactly identical
+
   get.firpo.quantiles = function(tau, weights) {
     return(optimize(minfun.inner, 
                     lower=min(data[,yname]),
@@ -1036,7 +1036,26 @@ firpo = function(formla, x=NULL, data,
                                      FUN.VALUE=1, weights=untreated.weights)
   
   firpo.qte = treated.firpo.quantiles - untreated.firpo.quantiles
-  return(list(qte=firpo.qte))
+
+  #just for completeness, calculate the distribution of each potential outcomes
+  #using moment conditions.
+  F.treated <- ecdf(treated[,yname])
+  F.treatedcf.fun <- function(y) {
+      pterm <- pscore/((1-pscore)*p)
+      Dterm <- 1 - data[,treat]
+      yterm <- 1*(data[,yname] < y)
+      mean(pterm*Dterm*yterm)
+  } #something appears to be off here for 0 wages, otherwise, everything good!
+  y.seq <- seq(min(data[,yname]), max(data[,yname]), length.out=500)
+  F.treatedcf = approxfun(y.seq,
+      vapply(y.seq, FUN=F.treatedcf.fun, FUN.VALUE=1)
+      , method="constant", yleft=0, yright=1, f=0, ties="ordered")
+  class(F.treatedcf) = c("ecdf", "stepfun", class(F.treatedcf.fun))
+  assign("nobs", nrow(treated), envir = environment(F.treatedcf))
+  
+  
+  return(list(qte=firpo.qte, F.treated=F.treated, F.treatedcf=F.treatedcf,
+              pscore=pscore, p=p))
   
 }
 

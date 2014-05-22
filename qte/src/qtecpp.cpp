@@ -59,7 +59,7 @@ NumericVector foo(RcppGSL::vector<double> x, RcppGSL::vector<double> y,
 
 
 /**
- * partial1CopualCPP is the C++ implementation of the partial
+ * partial1CopulaCPP is the C++ implementation of the partial
  * derivative of the copula function with respect to its first 
  * argument.  We need to do this to simulate random draws
  * from the joint distribution following the procedure 
