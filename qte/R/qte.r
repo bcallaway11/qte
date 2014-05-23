@@ -499,7 +499,7 @@ threeperiod.fanyu <- function(formla, t, tmin1, tmin2,
   #@param u NumericVector between 0 and 1
   #@param v NumericVector between 0 and 1, same length as u (no don't have to be)
   #@return The value of the copula function (between 0 & 1)
-  copula = function(u,v) {
+  copula1 = function(u,v) {
 
     #if (length(u) != length(v)) {
     #    stop("copula: u and v must be of the same length")
@@ -521,14 +521,66 @@ threeperiod.fanyu <- function(formla, t, tmin1, tmin2,
     #F.joint.tmin1(quantile(F.treated.change.tmin1,u),
     #              quantile(F.treated.tmin2,v))
 
-    # F.joint.tmin1(change.quant,initial.quant) #old, this is the straightforward
+    F.joint.tmin1(change.quant,initial.quant) #old, this is the straightforward
     # way but it was causing some problems
     #try just putting this between the bounds...
-    Fval <- F.joint.tmin1(change.quant, initial.quant)
-    ub <- apply(data.frame(u=u,v=v), FUN=min, MARGIN=1)
-    lb <- apply(data.frame(u=u,v=v), FUN=function(x) max(x[1] + x[2] - 1, 0),
-                MARGIN=1)
-    lb*(Fval < lb) + ub*(Fval > ub) + Fval*(Fval>=lb & Fval<=ub)
+    #Fval <- F.joint.tmin1(change.quant, initial.quant)
+    #ub <- apply(data.frame(u=u,v=v), FUN=min, MARGIN=1)
+    #lb <- apply(data.frame(u=u,v=v), FUN=function(x) max(x[1] + x[2] - 1, 0),
+    #            MARGIN=1)
+    #lb*(Fval < lb) + ub*(Fval > ub) + Fval*(Fval>=lb & Fval<=ub)
+  }
+
+  #alternatively, get the copula function using the np package npcopula function
+  change <- treated.tmin1[,yname]-treated.tmin2[,yname]
+  initial <- treated.tmin2[,yname]
+  copula.bws <- npudistbw(~ change + initial)
+  u.seq = v.seq = seq(0,1,0.02)
+  copula.fun <- npcopula(bws=copula.bws,
+                         data=data.frame(change=change, initial=initial),
+                         u=cbind(u.seq,v.seq))
+
+  #copula should either
+  #(i) take in scalar u and vector v and return vector of length(v)
+  #(ii) take in vector u and vector v (of same length) and return
+  # vector of length(v)
+  copula <- function(u,v) {
+
+      if ( (length(u) != 1) & (length(u) != length(v)) ) {
+          stop("u must either be scalar or same length as v")
+      }
+
+      #when u is scalar will call this function with vapply
+      #call with x=v and z=u
+      copula.inner <- function(x,z) {
+          which.min((z-copula.fun$u1)^2 + (x-copula.fun$u2)^2)
+      }
+
+      #when u is vector will call this function with apply
+      #call with x=matrix(u,v)
+      copula.multiple <- function(x) {
+          which.min((x[1]-copula.fun$u1)^2 + (x[2]-copula.fun$u2)^2)
+      }
+
+      if (length(u) == 1) {
+          
+          whichys <- vapply(v, FUN=copula.inner, FUN.VALUE=1, z=u)
+          
+      } else {
+
+          whichys <- apply(cbind(u,v), FUN=copula.multiple, MARGIN=1)
+
+      }
+      
+       #find the closest point in copula.fun and take its value
+      #whichys <- vapply(v,
+      #                  FUN=function(x) which.min((u-copula.fun$u1)^2 +
+      #                      (x-copula.fun$u2)^2),
+      #                  FUN.VALUE=1)
+      #whichval <- (u-copula.fun$u1)^2 + (v-copula.fun$u2)^2
+      #whichy <- which.min(whichval)
+
+      copula.fun$copula[whichys]
   }
     
   #4) Get known distributions for period t that we will
@@ -586,7 +638,6 @@ threeperiod.fanyu <- function(formla, t, tmin1, tmin2,
   #b) distribution of outcomes for treated in previous period
   F.treated.tmin1 = ecdf(treated.tmin1[,yname])
   #first compute the correct bandwidth
-  #browser()
   #F.treated.tmin1.bw = npudistbw(~treated.tmin1[,yname])
   #F.treated.tmin1 = function(y, bw=F.treated.tmin1.bw) {
   #  return(fitted(npudist(edat=y, bws=bw)))
@@ -1055,7 +1106,7 @@ firpo = function(formla, x=NULL, data,
   
   
   return(list(qte=firpo.qte, F.treated=F.treated, F.treatedcf=F.treatedcf,
-              pscore=pscore, p=p))
+              pscore=pscore, p=p, F.treatedcf.fun=F.treatedcf.fun))
   
 }
 

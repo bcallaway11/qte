@@ -16,6 +16,7 @@ probs = seq(h,1-h,0.02)
 
 #experimental QTE
 actual.qte = quantile(subset(lalonde.exp,treat==1)$re78,probs=probs) - quantile(subset(lalonde.exp,treat==0)$re78,probs=probs)
+actual.qte.employed = quantile(subset(exp.employed.subset,treat==1)$re78,probs=probs) - quantile(subset(exp.employed.subset,treat==0)$re78, probs=probs)
 #plot experimental QTE
 plot(probs,actual.qte,type="l")
 
@@ -34,6 +35,8 @@ lalonde.data = rbind(tempdata3,tempdata2,tempdata1)
 lalonde.data$uniqueid = paste(lalonde.data$id,lalonde.data$year,sep="-")
 
 employed.subset = subset(lalonde.data, !(lalonde.data$id %in% lalonde.data[lalonde.data[,"u75"]==1,"id"]))
+
+exp.employed.subset = subset(lalonde.exp, u75==0)
 
 #call firpo (for cross-sectional case) method
 lalonde.firpo = firpo(re ~ treat, x=c("age","education","black","hispanic",
@@ -61,7 +64,7 @@ lalonde.fy = fan.yu(re ~ treat,
 #call panelDid with 3 periods
 lalonde.fy3 = threeperiod.fanyu(re ~ treat,
                            tname="year",t=1978, tmin1=1975, tmin2=1974,
-                           data=lalonde.data, idname="id", uniqueid="uniqueid",
+                           data=employed.subset, idname="id", uniqueid="uniqueid",
                            #x=c("age","education","black","hispanic",
                            #     "married","nodegree","u74","u75"),
                            x=NULL,
@@ -81,7 +84,7 @@ lalonde.fy3 = threeperiod.fanyu(re ~ treat,
 #call panelDid with covariates
 lalonde.fy3.cov = threeperiod.fanyu(re ~ treat,
                                 tname="year",t=1978, tmin1=1975, tmin2=1974,
-                                data=lalonde.data, idname="id", uniqueid="uniqueid",
+                                data=employed.subset, idname="id", uniqueid="uniqueid",
                                 x=c("age","education","black","hispanic",
                                 "married","nodegree","u74","u75"),
                                 #x=NULL,
@@ -158,7 +161,7 @@ ks = ks.test((subset(lalonde.exp,treat==1)$re75 - subset(lalonde.exp,treat==1)$r
 
 #2.b) QTETs
 par(mfrow=c(1,1)) #reset plot layout
-plot(probs,actual.qte,type="l", ylim=c(-25000,12000), lwd=3, main="Estimated QTETs",
+plot(probs,actual.qte.employed,type="l", ylim=c(-25000,12000), lwd=3, main="Estimated QTETs",
      xlab="quantile", ylab="QTE")
 lines(probs,lalonde.fy3$qte, col="blue", lwd=3)
 #lines(probs,lalonde.fy3.cov$qte, col="purple", lwd=3)
@@ -320,3 +323,39 @@ ggplot(data.frame(pscore.dw=pscore.dw[186:length(pscore.dw)]),
 ##plot the distribution of outcomes for the treated group in the previous period
 #this plot does not depend on covariates whether or not you include them
 plot(lalonde.fy3$F.treated.tmin1)
+
+
+
+##########PLOT THE ESTIMATED OUTCOMES TO COMPARE WITH THE ACTUAL DISTN'S#####
+##plot the estimated copula
+print(copplot1, split=c(1,1,1,1), more=T)
+
+#estimate the actual copula
+actual.change <- subset(exp.employed.subset,treat==0)$re78 -
+    subset(exp.employed.subset,treat==0)$re75
+actual.initial <- subset(exp.employed.subset, treat==0)$re75
+actual.copula.bw <- npudistbw(~ actual.change + actual.initial)
+actual.copula <- npcopula(bws=actual.copula.bw,
+                          data=data.frame(actual.change=actual.change,
+                              actual.initial=actual.initial))
+#still need to write this as a function so that we can call it
+####**************figuring out the actual copula is where to start tomorrow****##
+copplot.actual <- wireframe(pnd.cop ~ u * v, data=copula.plotdata,
+          xlab="Change in outcomes",
+          ylab="Initial Outcome",
+          drape=T,
+          colorkey=T,
+          scales=list(arrows=F))
+
+#untreated change
+actual.F.untreated.change <- ecdf(actual.change)
+plot(actual.F.untreated.change)
+lines(lalonde.fy3.cov$F.untreated.change, col="blue")
+lines(lalonde.fy3$F.untreated.change, col="red")
+
+#untreated initial
+actual.F.untreated.initial <- ecdf(actual.initial)
+plot(actual.F.untreated.initial)
+lines(lalonde.fy3.cov$F.treated.tmin1,col="blue") #they are untreated at t-1
+#lines(lalonde.fy3$F.treated.tmin1,col="red") #don't need to plot bc they are exactly the same
+
