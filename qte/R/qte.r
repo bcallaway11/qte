@@ -385,7 +385,10 @@ threeperiod.fanyu <- function(formla, t, tmin1, tmin2,
                               tname, x=NULL,data, 
                               dropalwaystreated=TRUE, idname, uniqueid, zname,
                               y.seq=NULL, dy.seq=NULL, probs=seq(0,1,0.1),
-                              h, probevals, bootstrap.iter=FALSE, copBool=FALSE) {
+                              h, probevals, bootstrap.iter=FALSE,
+                              copBool=FALSE, copula.test=NULL,
+                              F.untreated.change.test=NULL,
+                              F.treated.tmin1.test=NULL) {
   form = as.formula(formla)
   dta = model.frame(terms(form,data=data),data=data) #or model.matrix
   colnames(dta) = c("y","treatment")
@@ -545,7 +548,7 @@ threeperiod.fanyu <- function(formla, t, tmin1, tmin2,
   #(ii) take in vector u and vector v (of same length) and return
   # vector of length(v)
   copula <- function(u,v) {
-
+      if (is.null(copula.test)) {
       if ( (length(u) != 1) & (length(u) != length(v)) ) {
           stop("u must either be scalar or same length as v")
       }
@@ -579,8 +582,10 @@ threeperiod.fanyu <- function(formla, t, tmin1, tmin2,
       #                  FUN.VALUE=1)
       #whichval <- (u-copula.fun$u1)^2 + (v-copula.fun$u2)^2
       #whichy <- which.min(whichval)
-
-      copula.fun$copula[whichys]
+      return(copula.fun$copula[whichys])
+      } else {
+          return(copula.test(u,v))
+      }
   }
     
   #4) Get known distributions for period t that we will
@@ -634,9 +639,18 @@ threeperiod.fanyu <- function(formla, t, tmin1, tmin2,
     #att using abadie method
     att = mean(((pscore.data$changey)/pD1)*(pscore.data[,treat] - pscore)/(1-pscore))
   }
+
+  #if we are in test mode then change F.untreated.change
+  if (!is.null(F.untreated.change.test)) {
+      F.untreated.change <- F.untreated.change.test
+  }
   
   #b) distribution of outcomes for treated in previous period
-  F.treated.tmin1 = ecdf(treated.tmin1[,yname])
+  if (is.null(F.treated.tmin1.test)) {
+      F.treated.tmin1 = ecdf(treated.tmin1[,yname])
+  } else {
+      F.treated.tmin1 <- F.treated.tmin1.test
+  }
   #first compute the correct bandwidth
   #F.treated.tmin1.bw = npudistbw(~treated.tmin1[,yname])
   #F.treated.tmin1 = function(y, bw=F.treated.tmin1.bw) {
@@ -686,6 +700,7 @@ threeperiod.fanyu <- function(formla, t, tmin1, tmin2,
     #v.seq = seq(0.02,0.98,0.02)
     v.seq = seq(h,1-h,0.02) #TODO (def shouldn't have step size h); maybe pass
     #this as parameter?
+    v.seq = seq(0,1,0.02)
     
     #this new way all u to be passed in as a vector
     #funcval is a list of returns from partial1.copula

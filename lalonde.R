@@ -39,9 +39,10 @@ employed.subset = subset(lalonde.data, !(lalonde.data$id %in% lalonde.data[lalon
 exp.employed.subset = subset(lalonde.exp, u75==0)
 
 #call firpo (for cross-sectional case) method
-lalonde.firpo = firpo(re ~ treat, x=c("age","education","black","hispanic",
-                      "married","nodegree","u74","u75"), data=lalonde.data,
-      probs=probs)
+lalonde.firpo = firpo(re78 ~ treat, x=c("age","education","black","hispanic",
+                      "married","nodegree","u74","u75"),
+    data=subset(lalonde.psid, u75==0),
+    probs=probs)
 
 #ptm = proc.time()
 #Rprof()
@@ -62,7 +63,7 @@ lalonde.fy = fan.yu(re ~ treat,
 #ptm = proc.time()
 #Rprof()
 #call panelDid with 3 periods
-lalonde.fy3 = threeperiod.fanyu(re ~ treat,
+lalonde.fy3.simtest = threeperiod.fanyu(re ~ treat,
                            tname="year",t=1978, tmin1=1975, tmin2=1974,
                            data=employed.subset, idname="id", uniqueid="uniqueid",
                            #x=c("age","education","black","hispanic",
@@ -74,7 +75,10 @@ lalonde.fy3 = threeperiod.fanyu(re ~ treat,
                            dy.seq=seq(min(lalonde.exp$re78 - lalonde.exp$re75), max(lalonde.exp$re78 - lalonde.exp$re78), length.out=300),#sort(unique(lalonde.exp$re78-lalonde.exp$re75)),
                            probs=probs,
                            dropalwaystreated=FALSE,
-                           h=0.02, probevals=400)
+                           h=0.35, probevals=400,
+                           copula.test=actual.copula,
+                           F.untreated.change.test=actual.F.untreated.change,
+                           F.treated.tmin1.test=actual.F.untreated.initial)
 #Rprof(NULL)
 #summaryRprof()
 #proc.time()-ptm
@@ -82,7 +86,7 @@ lalonde.fy3 = threeperiod.fanyu(re ~ treat,
 #ptm = proc.time()
 #Rprof()
 #call panelDid with covariates
-lalonde.fy3.cov = threeperiod.fanyu(re ~ treat,
+lalonde.fy3.cov.simtest = threeperiod.fanyu(re ~ treat,
                                 tname="year",t=1978, tmin1=1975, tmin2=1974,
                                 data=employed.subset, idname="id", uniqueid="uniqueid",
                                 x=c("age","education","black","hispanic",
@@ -92,7 +96,11 @@ lalonde.fy3.cov = threeperiod.fanyu(re ~ treat,
                            dy.seq=seq(min(lalonde.exp$re78 - lalonde.exp$re75), max(lalonde.exp$re78 - lalonde.exp$re78), length.out=300),#sort(unique(lalonde.exp$re78-lalonde.exp$re75)),
                                 probs=probs,
                                 dropalwaystreated=FALSE,
-                                h=0.02, probevals=400)
+                                h=0.02, probevals=400,
+                                copula.test=actual.copula,
+                                F.untreated.change.test=actual.F.untreated.change,
+                                F.treated.tmin1.test=actual.F.untreated.initial)
+                                
 #Rprof(NULL)
 #summaryRprof()
 #proc.time()-ptm
@@ -161,11 +169,12 @@ ks = ks.test((subset(lalonde.exp,treat==1)$re75 - subset(lalonde.exp,treat==1)$r
 
 #2.b) QTETs
 par(mfrow=c(1,1)) #reset plot layout
+png("~/Documents/school/projects/Common App/paper/figures/copula-test.png")
 plot(probs,actual.qte.employed,type="l", ylim=c(-25000,12000), lwd=3, main="Estimated QTETs",
      xlab="quantile", ylab="QTE")
 lines(probs,lalonde.fy3$qte, col="blue", lwd=3)
-#lines(probs,lalonde.fy3.cov$qte, col="purple", lwd=3)
-lines(probs,lalonde.ai$qte, col="red", lwd=3)
+lines(probs,lalonde.fy3.cov$qte, col="purple", lwd=3)
+#lines(probs,lalonde.ai$qte, col="red", lwd=3)
 #randomization
 lines(probs,
       quantile(subset(lalonde.psid,treat==1)$re78,probs=probs) - 
@@ -180,14 +189,15 @@ lines(probs, lalonde.fy3.cov$qte, lwd=3, col="orange")
 legend("bottomleft", c("Experimental QTE","3 Per.","AI","Random Treatment", "Firpo", "Fan-Yu Bounds", "", "3 Per. w Covariates"), 
        col=c("black","blue","red","green","purple","black","black","orange"), lty=c(1,1,1,1,1,2,2,1),
        lwd=c(3,3,3,3,3,3,3,3))
+dev.off()
 
 
-#3) Covariates case
-#3.a) First plot the counterfactual distributions from the covariates case, the no covariates case, and the experimental case
-plot(lalonde.fy3$F.treatedcf.t, col="blue", main="Counterfactual Untreated Distribution of Wages")
-lines(lalonde.fy3.cov$F.treatedcf.t, col="green")
+#3) covariates case
+#3.a) first plot the counterfactual distributions from the covariates case, the no covariates case, and the experimental case
+plot(lalonde.fy3$f.treatedcf.t, col="blue", main="counterfactual untreated distribution of wages")
+lines(lalonde.fy3.cov$f.treatedcf.t, col="green")
 lines(ecdf(subset(lalonde.exp,treat==0)$re78),col="black")
-legend("bottomright", c("Experimental","3 Per. No Covariates","3 Per. Covariates"),
+legend("bottomright", c("experimental","3 per. no covariates","3 per. covariates"),
        col=c("black","green","blue"), lty=c(1,1,1),
        lwd=c(3,3,3))
 
@@ -197,24 +207,24 @@ uvec = seq(min(lalonde.fy3$untreated.change),max(lalonde.fy3$untreated.change),
     length.out=100)
 vvec = seq(min(lalonde.fy3$treated.tmin1), max(lalonde.fy3$treated.tmin1),
     length.out=100)
-F.joint.t.plotdata = expand.grid(uvec,vvec) #gets every combination
-colnames(F.joint.t.plotdata) = c("u","v")
-F.joint.t.plotdata$F = lalonde.fy3$F.joint.t(F.joint.t.plotdata$u,
-    F.joint.t.plotdata$v)
+f.joint.t.plotdata = expand.grid(uvec,vvec) #gets every combination
+colnames(f.joint.t.plotdata) = c("u","v")
+f.joint.t.plotdata$f = lalonde.fy3$f.joint.t(f.joint.t.plotdata$u,
+    f.joint.t.plotdata$v)
 
 
 require(lattice)
 ppi <- 1000
-#png("~/Documents/school/projects/Common\ App/paper/figures/figure-%d.png",
+#png("~/documents/school/projects/common\ app/paper/figures/figure-%d.png",
 #    width=12*ppi, height=12*ppi, res=ppi)
-wireframe(F ~ u * v, data=F.joint.t.plotdata,
-          xlab="Change in outcomes",
-          ylab="Initial Outcome",
-          drape=T,
-          colorkey=T,
-          scales=list(arrows=F))
+wireframe(f ~ u * v, data=f.joint.t.plotdata,
+          xlab="change in outcomes",
+          ylab="initial outcome",
+          drape=t,
+          colorkey=t,
+          scales=list(arrows=f))
 
-#levelplot(F ~ u * v, data=F.joint.t.plotdata,
+#levelplot(f ~ u * v, data=f.joint.t.plotdata,
 #          col.regions=terrain.colors(100))
 dev.off()
 
@@ -227,49 +237,49 @@ colnames(copula.plotdata) <- c("u","v")
 copula.plotdata$emp.cop <- lalonde.fy3$copula(copula.plotdata[,"u"],
                                               copula.plotdata[,"v"])
 copula.plotdata$ind.cop <- copula.plotdata$u * copula.plotdata$v
-copula.plotdata$ppd.cop <- apply(copula.plotdata[,c("u","v")], MARGIN=1, FUN=min)
-copula.plotdata$pnd.cop <- apply(copula.plotdata[,c("u","v")], MARGIN=1,
-                                 FUN=function(x) max(sum(x) -1, 0))
+copula.plotdata$ppd.cop <- apply(copula.plotdata[,c("u","v")], margin=1, fun=min)
+copula.plotdata$pnd.cop <- apply(copula.plotdata[,c("u","v")], margin=1,
+                                 fun=function(x) max(sum(x) -1, 0))
                                                  
 
 copplot1 <- wireframe(emp.cop ~ u * v, data=copula.plotdata,
-          xlab="Change in outcomes",
-          ylab="Initial Outcome",
-          drape=T,
-          colorkey=T,
-          col.regions = colorRampPalette(c("yellow", "black"))(100),
-          scales=list(arrows=F))
+          xlab="change in outcomes",
+          ylab="initial outcome",
+          drape=t,
+          colorkey=t,
+          col.regions = colorramppalette(c("yellow", "black"))(100),
+          scales=list(arrows=f))
 
 copplot2 <- wireframe(ind.cop ~ u * v, data=copula.plotdata,
-          xlab="Change in outcomes",
-          ylab="Initial Outcome",
-          drape=T,
-          colorkey=T,
-          scales=list(arrows=F))
+          xlab="change in outcomes",
+          ylab="initial outcome",
+          drape=t,
+          colorkey=t,
+          scales=list(arrows=f))
 
 copplot3 <- wireframe(ppd.cop ~ u * v, data=copula.plotdata,
-          xlab="Change in outcomes",
-          ylab="Initial Outcome",
-          drape=T,
-          colorkey=T,
-          scales=list(arrows=F))
+          xlab="change in outcomes",
+          ylab="initial outcome",
+          drape=t,
+          colorkey=t,
+          scales=list(arrows=f))
 
 copplot4 <- wireframe(pnd.cop ~ u * v, data=copula.plotdata,
-          xlab="Change in outcomes",
-          ylab="Initial Outcome",
-          drape=T,
-          colorkey=T,
-          scales=list(arrows=F))
+          xlab="change in outcomes",
+          ylab="initial outcome",
+          drape=t,
+          colorkey=t,
+          scales=list(arrows=f))
 
-#png("~/Documents/school/projects/Common App/paper/figures/figure-copulas.png")
-print(copplot1     , split=c(1,1,2,2) , more=TRUE )
-print(copplot2    , split=c(2,1,2,2) , more=TRUE )
-print(copplot3  , split=c(1,2,2,2) , more=TRUE)
+#png("~/documents/school/projects/common app/paper/figures/figure-copulas.png")
+print(copplot1     , split=c(1,1,2,2) , more=true )
+print(copplot2    , split=c(2,1,2,2) , more=true )
+print(copplot3  , split=c(1,2,2,2) , more=true)
 print(copplot4 , split=c(2,2,2,2) )
 #dev.off()
 
 #sum(1*(copula.plotdata$emp.cop>copula.plotdata$ppd.cop))
-#Note that somehow we are getting values for the copula that are above (and below)
+#note that somehow we are getting values for the copula that are above (and below)
 
 #find these problems and get rid of them
 tol <- 0.05
@@ -277,7 +287,7 @@ problems <- subset(copula.plotdata,
                    (copula.plotdata$emp.cop-tol)>copula.plotdata$ppd.cop |
                    (copula.plotdata$emp.cop+tol)<copula.plotdata$pnd.cop)
 
-#the copula upper (and lower) bound.  This means that there must be some mistake in the calculation of the copula! (not just in the numerical procedure to make
+#the copula upper (and lower) bound.  this means that there must be some mistake in the calculation of the copula! (not just in the numerical procedure to make
 #calculations from it)!.
 
 
@@ -286,7 +296,7 @@ pscore <- predict(glm(treat ~ age + education + hispanic + married + nodegree +
               u74 + u75, data=lalonde.psid, family=binomial(link="probit")),
                   type="response")
 require(ggplot2)
-png("~/Documents/school/projects/Common App/paper/figures/pscore-hist.png")
+png("~/documents/school/projects/common app/paper/figures/pscore-hist.png")
 ggplot(data.frame(pscore=pscore[186:length(pscore)]), aes(x=pscore)) +
     geom_histogram()
 dev.off()
@@ -295,25 +305,25 @@ sum(1*(pscore[186:length(pscore)]>0.5)) #only 20 observations with pscore>0.5
 #in the non-experimental dataset.
 
 #plot the untreated change distributions with and without covariates (these should be different)
-png("~/Documents/school/projects/Common App/paper/figures/change-dist.png")
-plot(lalonde.fy3.cov$F.untreated.change, xlim=c(-10000,10000), lwd=3,
-     main="Change in  Outcome between t-1 and t")
-lines(lalonde.fy3$F.untreated.change, lwd=3, col="blue")
-legend(x="bottomright", legend=c("Propensity Score Reweighted", "Unweighted Sample"), col=c("black","blue"), lwd=c(3,3))
+png("~/documents/school/projects/common app/paper/figures/change-dist.png")
+plot(lalonde.fy3.cov$f.untreated.change, xlim=c(-10000,10000), lwd=3,
+     main="change in  outcome between t-1 and t")
+lines(lalonde.fy3$f.untreated.change, lwd=3, col="blue")
+legend(x="bottomright", legend=c("propensity score reweighted", "unweighted sample"), col=c("black","blue"), lwd=c(3,3))
 dev.off()
-#lines(lalonde.fy3$F.treated.change.tmin1, col="black")
+#lines(lalonde.fy3$f.treated.change.tmin1, col="black")
 
 
 
-pscore.dw <- predict(glm(treat ~ age + I(age^2) + education +
-                         I(education^2) + nodegree + married + black +
-                         hispanic + re74 + I(re74^2) + re75 + I(re75^2) +
-                         I(1*(re74==0)) + I(1*(re75==0)) +
-                         I(1*(re74==0)*hispanic),
+pscore.dw <- predict(glm(treat ~ age + i(age^2) + education +
+                         i(education^2) + nodegree + married + black +
+                         hispanic + re74 + i(re74^2) + re75 + i(re75^2) +
+                         i(1*(re74==0)) + i(1*(re75==0)) +
+                         i(1*(re74==0)*hispanic),
                          data=lalonde.psid,
                          family=binomial(link="probit")), type="response")
 require(ggplot2)
-#png("~/Documents/school/projects/Common App/paper/figures/pscore-hist2.png")
+#png("~/documents/school/projects/common app/paper/figures/pscore-hist2.png")
 ggplot(data.frame(pscore.dw=pscore.dw[186:length(pscore.dw)]),
        aes(x=pscore.dw)) +
     geom_histogram()
@@ -322,40 +332,227 @@ ggplot(data.frame(pscore.dw=pscore.dw[186:length(pscore.dw)]),
 
 ##plot the distribution of outcomes for the treated group in the previous period
 #this plot does not depend on covariates whether or not you include them
-plot(lalonde.fy3$F.treated.tmin1)
+plot(lalonde.fy3$f.treated.tmin1)
 
 
 
-##########PLOT THE ESTIMATED OUTCOMES TO COMPARE WITH THE ACTUAL DISTN'S#####
+##########plot the estimated outcomes to compare with the actual distn's#####
 ##plot the estimated copula
-print(copplot1, split=c(1,1,1,1), more=T)
+print(copplot1, split=c(1,1,2,1), more=t)
 
 #estimate the actual copula
 actual.change <- subset(exp.employed.subset,treat==0)$re78 -
     subset(exp.employed.subset,treat==0)$re75
 actual.initial <- subset(exp.employed.subset, treat==0)$re75
+
 actual.copula.bw <- npudistbw(~ actual.change + actual.initial)
-actual.copula <- npcopula(bws=actual.copula.bw,
-                          data=data.frame(actual.change=actual.change,
-                              actual.initial=actual.initial))
-#still need to write this as a function so that we can call it
-####**************figuring out the actual copula is where to start tomorrow****##
-copplot.actual <- wireframe(pnd.cop ~ u * v, data=copula.plotdata,
+
+u.seq = v.seq = seq(0,1,0.02)
+actual.copula.fun <- npcopula(bws=actual.copula.bw,
+                              data=data.frame(actual.change=actual.change,
+                                  actual.initial=actual.initial),
+                              u=cbind(u.seq,v.seq))
+
+  #copula should either
+  #(i) take in scalar u and vector v and return vector of length(v)
+  #(ii) take in vector u and vector v (of same length) and return
+  # vector of length(v)
+  actual.copula <- function(u,v) {
+
+      if ( (length(u) != 1) & (length(u) != length(v)) ) {
+          stop("u must either be scalar or same length as v")
+      }
+
+      #when u is scalar will call this function with vapply
+      #call with x=v and z=u
+      copula.inner <- function(x,z) {
+          which.min((z-actual.copula.fun$u1)^2 + (x-actual.copula.fun$u2)^2)
+      }
+
+      #when u is vector will call this function with apply
+      #call with x=matrix(u,v)
+      copula.multiple <- function(x) {
+          which.min((x[1]-actual.copula.fun$u1)^2 + (x[2]-actual.copula.fun$u2)^2)
+      }
+
+      if (length(u) == 1) {
+          
+          whichys <- vapply(v, fun=copula.inner, fun.value=1, z=u)
+          
+      } else {
+
+          whichys <- apply(cbind(u,v), fun=copula.multiple, margin=1)
+
+      }
+      
+       #find the closest point in copula.fun and take its value
+      #whichys <- vapply(v,
+      #                  fun=function(x) which.min((u-copula.fun$u1)^2 +
+      #                      (x-copula.fun$u2)^2),
+      #                  fun.value=1)
+      #whichval <- (u-copula.fun$u1)^2 + (v-copula.fun$u2)^2
+      #whichy <- which.min(whichval)
+
+      actual.copula.fun$copula[whichys]
+  }
+
+
+#STILL NEED TO WRITE THIS AS A FUNCTION SO THAT WE CAN CALL IT
+####**************FIGURING OUT THE ACTUAL COPULA IS WHERE TO START TOMORROW****##
+uvec <- seq(0,1,0.05)
+vvec <- seq(0,1,0.05)
+actual.copula.plotdata <- expand.grid(uvec,vvec)
+actual.colnames(copula.plotdata) <- c("u","v")
+actual.copula.plotdata$cop <- actual.copula(actual.copula.plotdata[,"u"],
+                                              actual.copula.plotdata[,"v"])
+copplot.actual <- wireframe(cop ~ u * v, data=actual.copula.plotdata,
           xlab="Change in outcomes",
           ylab="Initial Outcome",
           drape=T,
           colorkey=T,
           scales=list(arrows=F))
 
+png("~/Documents/school/projects/Common App/paper/figures/actual-and-estimated-copulas.png")
+print(copplot1, split=c(1,1,2,1), more=T)
+print(copplot.actual, split=c(2,1,2,1))
+dev.off()
+
 #untreated change
+png("~/Documents/school/projects/Common App/paper/figures/change-dist.png")
 actual.F.untreated.change <- ecdf(actual.change)
-plot(actual.F.untreated.change)
-lines(lalonde.fy3.cov$F.untreated.change, col="blue")
-lines(lalonde.fy3$F.untreated.change, col="red")
+plot(actual.F.untreated.change, main="Distribution of change in outcomes",
+     ylim=c(0,1.3), xlim=c(-20000,20000))
+lines(lalonde.fy3.cov$F.untreated.change, col="blue", lwd=3)
+lines(lalonde.fy3$F.untreated.change, col="red", lwd=3)
+legend("bottomright", c("Actual", "P-score Reweighted", "Unweighted"),
+       col=c("black","blue","red"), lwd=3)
+dev.off()
 
 #untreated initial
+png("~/Documents/school/projects/Common App/paper/figures/initial-dist.png")
 actual.F.untreated.initial <- ecdf(actual.initial)
-plot(actual.F.untreated.initial)
+plot(actual.F.untreated.initial,
+     main="Distribution of initial untreated potential outcomes")
 lines(lalonde.fy3.cov$F.treated.tmin1,col="blue") #they are untreated at t-1
 #lines(lalonde.fy3$F.treated.tmin1,col="red") #don't need to plot bc they are exactly the same
+legend("bottomright", c("Future Experimental Untreated t-1" ,
+                        "Future Treated t-1"),
+       col=c("black","blue"), lwd=c(3,3))
+dev.off()
 
+
+##make the QTET plot when using the actual copulas
+par(mfrow=c(1,1)) #reset plot layout
+png("~/Documents/school/projects/Common App/paper/figures/copula-test.png")
+plot(probs,actual.qte.employed,type="l", ylim=c(-25000,12000), lwd=3, main="Estimated QTETs",
+     xlab="quantile", ylab="QTE")
+lines(probs,lalonde.fy3$qte, col="blue", lwd=3)
+lines(probs,lalonde.fy3.copulatest$qte, col="blue", lty=2, lwd=3)
+lines(probs,lalonde.fy3.cov$qte, col="orange", lwd=3)
+lines(probs,lalonde.fy3.cov.copulatest$qte, col="orange", lty=2, lwd=3)
+lines(probs, lalonde.fy$ub.qte, lty=2, lwd=3)
+lines(probs, lalonde.fy$lb.qte, lty=2, lwd=3)
+#thuysbaert
+#...
+legend("bottomleft", c("Experimental QTE","3 Per. Est. Copula","3 Per. Actual Copula","3 Per. w Covariates & Est. Copula", "3 Per. w Covs & Actual Copula", "Fan-Yu Bounds", ""), 
+       col=c("black","blue","blue","orange","orange","black","black"), lty=c(1,1,2,1,2,2,2),
+       lwd=c(3,3,3,3,3,3,3))
+dev.off()
+
+
+##make the QTET plot when using the actual change distribution
+par(mfrow=c(1,1)) #reset plot layout
+png("~/Documents/school/projects/Common App/paper/figures/change-test.png")
+plot(probs,actual.qte.employed,type="l", ylim=c(-25000,12000), lwd=3, main="Estimated QTETs",
+     xlab="quantile", ylab="QTE")
+lines(probs,lalonde.fy3$qte, col="blue", lwd=3)
+lines(probs,lalonde.fy3.changetest$qte, col="blue", lty=2, lwd=3)
+lines(probs,lalonde.fy3.cov$qte, col="orange", lwd=3)
+lines(probs,lalonde.fy3.cov.changetest$qte, col="orange", lty=2, lwd=3)
+lines(probs, lalonde.fy$ub.qte, lty=2, lwd=3)
+lines(probs, lalonde.fy$lb.qte, lty=2, lwd=3)
+#thuysbaert
+#...
+legend("bottomleft", c("Experimental QTE","3 Per. Observational Change","3 Per. Actual Change Data","3 Per. w Covariates Observational Change", "3 Per. w Covs & Actual Change Data", "Fan-Yu Bounds", ""), 
+       col=c("black","blue","blue","orange","orange","black","black"), lty=c(1,1,2,1,2,2,2),
+       lwd=c(3,3,3,3,3,3,3))
+dev.off()
+
+##make the QTET plot when using the actual initial distribution
+par(mfrow=c(1,1)) #reset plot layout
+png("~/Documents/school/projects/Common App/paper/figures/initial-test.png")
+plot(probs,actual.qte.employed,type="l", ylim=c(-25000,12000), lwd=3, main="Estimated QTETs",
+     xlab="quantile", ylab="QTE")
+lines(probs,lalonde.fy3$qte, col="blue", lwd=3)
+lines(probs,lalonde.fy3.initialtest$qte, col="blue", lty=2, lwd=3)
+lines(probs,lalonde.fy3.cov$qte, col="orange", lwd=3)
+lines(probs,lalonde.fy3.cov.initialtest$qte, col="orange", lty=2, lwd=3)
+lines(probs, lalonde.fy$ub.qte, lty=2, lwd=3)
+lines(probs, lalonde.fy$lb.qte, lty=2, lwd=3)
+#thuysbaert
+#...
+legend("bottomleft", c("Experimental QTE","3 Per. Observational Initial","3 Per. Actual Initial Data","3 Per. w Covariates Observational Initial", "3 Per. w Covs & Actual Initial Data", "Fan-Yu Bounds", ""), 
+       col=c("black","blue","blue","orange","orange","black","black"), lty=c(1,1,2,1,2,2,2),
+       lwd=c(3,3,3,3,3,3,3))
+dev.off()
+
+
+##make the QTET plot for the simulation test
+par(mfrow=c(1,1)) #reset plot layout
+#png("~/Documents/school/projects/Common App/paper/figures/sim-test.png")
+plot(probs,actual.qte.employed,type="l", ylim=c(-25000,12000), lwd=3, main="Estimated QTETs",
+     xlab="quantile", ylab="QTE")
+lines(probs,lalonde.fy3$qte, col="blue", lwd=3)
+lines(probs,lalonde.fy3.simtest$qte, col="blue", lty=2, lwd=3)
+lines(probs,lalonde.fy3.cov$qte, col="orange", lwd=3)
+lines(probs,lalonde.fy3.cov.simtest$qte, col="orange", lty=2, lwd=3)
+lines(probs, lalonde.fy$ub.qte, lty=2, lwd=3)
+lines(probs, lalonde.fy$lb.qte, lty=2, lwd=3)
+#thuysbaert
+#...
+legend("bottomleft", c("Experimental QTE","3 Per. Observational Initial","3 Per. Actual Initial Data","3 Per. w Covariates Observational Initial", "3 Per. w Covs & Actual Initial Data", "Fan-Yu Bounds", ""), 
+       col=c("black","blue","blue","orange","orange","black","black"), lty=c(1,1,2,1,2,2,2),
+       lwd=c(3,3,3,3,3,3,3))
+#dev.off()
+
+
+##Finally, plot all the differences (covariates case)
+par(mfrow=c(1,1)) #reset plot layout
+#png("~/Documents/school/projects/Common App/paper/figures/all-test-cov.png")
+plot(probs,actual.qte.employed,type="l", ylim=c(-25000,12000), lwd=3, main="Estimated QTETs",
+     xlab="quantile", ylab="QTE")
+lines(probs,lalonde.fy3.cov$qte, col="orange", lwd=3)
+lines(probs,lalonde.fy3.cov.copulatest$qte, col="red", lty=2, lwd=3)
+lines(probs,lalonde.fy3.cov.changetest$qte, col="green", lwd=3, lty=2)
+lines(probs,lalonde.fy3.cov.initialtest$qte, col="yellow", lty=2, lwd=3)
+lines(probs,lalonde.fy3.cov.simtest$qte, col="purple", lty=2, lwd=3)
+#lines(probs, lalonde.fy$ub.qte, lty=2, lwd=3)
+#lines(probs, lalonde.fy$lb.qte, lty=2, lwd=3)
+#thuysbaert
+#...
+legend("bottomleft", c("Experimental QTE","Estimated QTE","Copula Test","Change Test","Initial Test", "Sim Test"), 
+       col=c("black","orange","red","green","yellow","purple"), lty=1,
+       lwd=3)
+#dev.off()
+
+
+##Plot based on what happens based on different h
+par(mfrow=c(1,1)) #reset plot layout
+png("~/Documents/school/projects/Common App/paper/figures/bandwidth-test.png")
+plot(probs,actual.qte.employed,type="l", ylim=c(-25000,12000), lwd=3, main="Estimated QTETs",
+     xlab="quantile", ylab="QTE")
+lines(probs,lalonde.fy3.simtest$qte, col="blue", lwd=3)
+lines(probs,lalonde.fy3.simtest.02$qte, col="orange", lwd=3)
+lines(probs,lalonde.fy3.simtest.05$qte, col="red", lty=2, lwd=3)
+lines(probs,lalonde.fy3.simtest.1$qte, col="green", lwd=3, lty=2)
+lines(probs,lalonde.fy3.simtest.2$qte, col="yellow", lty=2, lwd=3)
+lines(probs,lalonde.fy3.simtest.3$qte, col="purple", lty=2, lwd=3)
+lines(probs,lalonde.fy3.simtest.4$qte, col="gray", lty=2, lwd=3)
+lines(probs, lalonde.fy$ub.qte, lty=2, lwd=3)
+lines(probs, lalonde.fy$lb.qte, lty=2, lwd=3)
+#thuysbaert
+#...
+legend("bottomleft", c("Experimental QTE","changed v to full range bw=0.3", "bw=0.02","bw=0.05","bw=0.1","bw=0.2", "bw=0.3", "bw=0.4"), 
+       col=c("black","blue","orange","red","green","yellow","purple","gray"), lty=1,
+       lwd=3)
+dev.off()
