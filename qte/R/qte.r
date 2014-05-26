@@ -701,6 +701,7 @@ threeperiod.fanyu <- function(formla, t, tmin1, tmin2,
     v.seq = seq(h,1-h,0.02) #TODO (def shouldn't have step size h); maybe pass
     #this as parameter?
     v.seq = seq(0,1,0.02)
+    v.seq = seq(0,1,h)
     
     #this new way all u to be passed in as a vector
     #funcval is a list of returns from partial1.copula

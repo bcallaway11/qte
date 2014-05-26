@@ -63,7 +63,7 @@ lalonde.fy = fan.yu(re ~ treat,
 #ptm = proc.time()
 #Rprof()
 #call panelDid with 3 periods
-lalonde.fy3.simtest = threeperiod.fanyu(re ~ treat,
+lalonde.fy3 = threeperiod.fanyu(re ~ treat,
                            tname="year",t=1978, tmin1=1975, tmin2=1974,
                            data=employed.subset, idname="id", uniqueid="uniqueid",
                            #x=c("age","education","black","hispanic",
@@ -75,10 +75,10 @@ lalonde.fy3.simtest = threeperiod.fanyu(re ~ treat,
                            dy.seq=seq(min(lalonde.exp$re78 - lalonde.exp$re75), max(lalonde.exp$re78 - lalonde.exp$re78), length.out=300),#sort(unique(lalonde.exp$re78-lalonde.exp$re75)),
                            probs=probs,
                            dropalwaystreated=FALSE,
-                           h=0.35, probevals=400,
-                           copula.test=actual.copula,
-                           F.untreated.change.test=actual.F.untreated.change,
-                           F.treated.tmin1.test=actual.F.untreated.initial)
+                           h=0.25, probevals=400)
+                           #copula.test=actual.copula)
+                           #F.untreated.change.test=actual.F.untreated.change)
+                           #F.treated.tmin1.test=actual.F.untreated.initial)
 #Rprof(NULL)
 #summaryRprof()
 #proc.time()-ptm
@@ -96,7 +96,7 @@ lalonde.fy3.cov.simtest = threeperiod.fanyu(re ~ treat,
                            dy.seq=seq(min(lalonde.exp$re78 - lalonde.exp$re75), max(lalonde.exp$re78 - lalonde.exp$re78), length.out=300),#sort(unique(lalonde.exp$re78-lalonde.exp$re75)),
                                 probs=probs,
                                 dropalwaystreated=FALSE,
-                                h=0.02, probevals=400,
+                                h=0.25, probevals=400,
                                 copula.test=actual.copula,
                                 F.untreated.change.test=actual.F.untreated.change,
                                 F.treated.tmin1.test=actual.F.untreated.initial)
@@ -169,11 +169,10 @@ ks = ks.test((subset(lalonde.exp,treat==1)$re75 - subset(lalonde.exp,treat==1)$r
 
 #2.b) QTETs
 par(mfrow=c(1,1)) #reset plot layout
-png("~/Documents/school/projects/Common App/paper/figures/copula-test.png")
+png("~/Documents/school/projects/Common App/paper/figures/qtet-estimates-2.png")
 plot(probs,actual.qte.employed,type="l", ylim=c(-25000,12000), lwd=3, main="Estimated QTETs",
      xlab="quantile", ylab="QTE")
 lines(probs,lalonde.fy3$qte, col="blue", lwd=3)
-lines(probs,lalonde.fy3.cov$qte, col="purple", lwd=3)
 #lines(probs,lalonde.ai$qte, col="red", lwd=3)
 #randomization
 lines(probs,
@@ -418,7 +417,7 @@ print(copplot.actual, split=c(2,1,2,1))
 dev.off()
 
 #untreated change
-png("~/Documents/school/projects/Common App/paper/figures/change-dist.png")
+#png("~/Documents/school/projects/Common App/paper/figures/change-dist.png")
 actual.F.untreated.change <- ecdf(actual.change)
 plot(actual.F.untreated.change, main="Distribution of change in outcomes",
      ylim=c(0,1.3), xlim=c(-20000,20000))
@@ -426,7 +425,7 @@ lines(lalonde.fy3.cov$F.untreated.change, col="blue", lwd=3)
 lines(lalonde.fy3$F.untreated.change, col="red", lwd=3)
 legend("bottomright", c("Actual", "P-score Reweighted", "Unweighted"),
        col=c("black","blue","red"), lwd=3)
-dev.off()
+#dev.off()
 
 #untreated initial
 png("~/Documents/school/projects/Common App/paper/figures/initial-dist.png")
@@ -443,7 +442,7 @@ dev.off()
 
 ##make the QTET plot when using the actual copulas
 par(mfrow=c(1,1)) #reset plot layout
-png("~/Documents/school/projects/Common App/paper/figures/copula-test.png")
+png("~/Documents/school/projects/Common App/paper/figures/copula-test-2.png")
 plot(probs,actual.qte.employed,type="l", ylim=c(-25000,12000), lwd=3, main="Estimated QTETs",
      xlab="quantile", ylab="QTE")
 lines(probs,lalonde.fy3$qte, col="blue", lwd=3)
@@ -462,7 +461,7 @@ dev.off()
 
 ##make the QTET plot when using the actual change distribution
 par(mfrow=c(1,1)) #reset plot layout
-png("~/Documents/school/projects/Common App/paper/figures/change-test.png")
+png("~/Documents/school/projects/Common App/paper/figures/change-test-2.png")
 plot(probs,actual.qte.employed,type="l", ylim=c(-25000,12000), lwd=3, main="Estimated QTETs",
      xlab="quantile", ylab="QTE")
 lines(probs,lalonde.fy3$qte, col="blue", lwd=3)
@@ -480,7 +479,7 @@ dev.off()
 
 ##make the QTET plot when using the actual initial distribution
 par(mfrow=c(1,1)) #reset plot layout
-png("~/Documents/school/projects/Common App/paper/figures/initial-test.png")
+png("~/Documents/school/projects/Common App/paper/figures/initial-test-2.png")
 plot(probs,actual.qte.employed,type="l", ylim=c(-25000,12000), lwd=3, main="Estimated QTETs",
      xlab="quantile", ylab="QTE")
 lines(probs,lalonde.fy3$qte, col="blue", lwd=3)
@@ -499,7 +498,7 @@ dev.off()
 
 ##make the QTET plot for the simulation test
 par(mfrow=c(1,1)) #reset plot layout
-#png("~/Documents/school/projects/Common App/paper/figures/sim-test.png")
+png("~/Documents/school/projects/Common App/paper/figures/sim-test-2.png")
 plot(probs,actual.qte.employed,type="l", ylim=c(-25000,12000), lwd=3, main="Estimated QTETs",
      xlab="quantile", ylab="QTE")
 lines(probs,lalonde.fy3$qte, col="blue", lwd=3)
@@ -513,12 +512,12 @@ lines(probs, lalonde.fy$lb.qte, lty=2, lwd=3)
 legend("bottomleft", c("Experimental QTE","3 Per. Observational Initial","3 Per. Actual Initial Data","3 Per. w Covariates Observational Initial", "3 Per. w Covs & Actual Initial Data", "Fan-Yu Bounds", ""), 
        col=c("black","blue","blue","orange","orange","black","black"), lty=c(1,1,2,1,2,2,2),
        lwd=c(3,3,3,3,3,3,3))
-#dev.off()
+dev.off()
 
 
 ##Finally, plot all the differences (covariates case)
 par(mfrow=c(1,1)) #reset plot layout
-#png("~/Documents/school/projects/Common App/paper/figures/all-test-cov.png")
+png("~/Documents/school/projects/Common App/paper/figures/all-test-cov-2.png")
 plot(probs,actual.qte.employed,type="l", ylim=c(-25000,12000), lwd=3, main="Estimated QTETs",
      xlab="quantile", ylab="QTE")
 lines(probs,lalonde.fy3.cov$qte, col="orange", lwd=3)
@@ -533,12 +532,12 @@ lines(probs,lalonde.fy3.cov.simtest$qte, col="purple", lty=2, lwd=3)
 legend("bottomleft", c("Experimental QTE","Estimated QTE","Copula Test","Change Test","Initial Test", "Sim Test"), 
        col=c("black","orange","red","green","yellow","purple"), lty=1,
        lwd=3)
-#dev.off()
+dev.off()
 
 
 ##Plot based on what happens based on different h
 par(mfrow=c(1,1)) #reset plot layout
-png("~/Documents/school/projects/Common App/paper/figures/bandwidth-test.png")
+#png("~/Documents/school/projects/Common App/paper/figures/bandwidth-test.png")
 plot(probs,actual.qte.employed,type="l", ylim=c(-25000,12000), lwd=3, main="Estimated QTETs",
      xlab="quantile", ylab="QTE")
 lines(probs,lalonde.fy3.simtest$qte, col="blue", lwd=3)
@@ -555,4 +554,4 @@ lines(probs, lalonde.fy$lb.qte, lty=2, lwd=3)
 legend("bottomleft", c("Experimental QTE","changed v to full range bw=0.3", "bw=0.02","bw=0.05","bw=0.1","bw=0.2", "bw=0.3", "bw=0.4"), 
        col=c("black","blue","orange","red","green","yellow","purple","gray"), lty=1,
        lwd=3)
-dev.off()
+#dev.off()
