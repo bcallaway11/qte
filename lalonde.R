@@ -75,7 +75,7 @@ lalonde.fy3 = threeperiod.fanyu(re ~ treat,
                            dy.seq=seq(min(lalonde.exp$re78 - lalonde.exp$re75), max(lalonde.exp$re78 - lalonde.exp$re78), length.out=300),#sort(unique(lalonde.exp$re78-lalonde.exp$re75)),
                            probs=probs,
                            dropalwaystreated=FALSE,
-                           h=0.25, probevals=400)
+                           h=0.25, probevals=500)
                            #copula.test=actual.copula)
                            #F.untreated.change.test=actual.F.untreated.change)
                            #F.treated.tmin1.test=actual.F.untreated.initial)
@@ -86,7 +86,7 @@ lalonde.fy3 = threeperiod.fanyu(re ~ treat,
 #ptm = proc.time()
 #Rprof()
 #call panelDid with covariates
-lalonde.fy3.cov.simtest = threeperiod.fanyu(re ~ treat,
+lalonde.fy3.cov = threeperiod.fanyu(re ~ treat,
                                 tname="year",t=1978, tmin1=1975, tmin2=1974,
                                 data=employed.subset, idname="id", uniqueid="uniqueid",
                                 x=c("age","education","black","hispanic",
@@ -96,10 +96,10 @@ lalonde.fy3.cov.simtest = threeperiod.fanyu(re ~ treat,
                            dy.seq=seq(min(lalonde.exp$re78 - lalonde.exp$re75), max(lalonde.exp$re78 - lalonde.exp$re78), length.out=300),#sort(unique(lalonde.exp$re78-lalonde.exp$re75)),
                                 probs=probs,
                                 dropalwaystreated=FALSE,
-                                h=0.25, probevals=400,
-                                copula.test=actual.copula,
-                                F.untreated.change.test=actual.F.untreated.change,
-                                F.treated.tmin1.test=actual.F.untreated.initial)
+                                h=0.25, probevals=500)
+                                #copula.test=function(u,v) return(u*v))
+                                #F.untreated.change.test=actual.F.untreated.change,
+                                #F.treated.tmin1.test=actual.F.untreated.initial)
                                 
 #Rprof(NULL)
 #summaryRprof()
@@ -156,10 +156,12 @@ legend("topleft", c("Experimental QTET", "ATT", "0"),
 #for means, these two should be equal
 mean.change.treated.tmin1 = mean(subset(lalonde.exp,treat==1)$re75) - mean(subset(lalonde.exp,treat==1)$re74)
 mean.change.untreated.tmin1 = mean(subset(lalonde.exp,treat==0)$re75) - mean(subset(lalonde.exp,treat==0)$re74)
-plot(density(subset(lalonde.exp,treat==1)$re75 - subset(lalonde.exp,treat==1)$re74), lwd=3, main="Change in Untreated Outcomes")
+png("~/Documents/school/projects/Common App/paper/figures/change-untreated-outcomes-no-cov.png")
+plot(density(subset(lalonde.exp,treat==1)$re75 - subset(lalonde.exp,treat==1)$re74), lwd=3, main="Change in Untreated Outcomes", xlim=c(-10000,10000))
 lines(density(subset(lalonde.exp,treat==0)$re75 - subset(lalonde.exp,treat==0)$re74), col="blue", lwd=3)
 legend("topleft", c("Change Untreated Outcomes Treated Group 1975-1974", "Change Untreated Outcomes Untreated Group 1975-1974"),
        col=c("black","blue"), lty=c(1,1), lwd=c(3,3))
+dev.off()
 
 #KS test can test if the two distributions are the same
 #ks.test(log(d05.treated.04$applcn),log(d05.untreated.04$applcn))
@@ -169,7 +171,7 @@ ks = ks.test((subset(lalonde.exp,treat==1)$re75 - subset(lalonde.exp,treat==1)$r
 
 #2.b) QTETs
 par(mfrow=c(1,1)) #reset plot layout
-png("~/Documents/school/projects/Common App/paper/figures/qtet-estimates-2.png")
+png("~/Documents/school/projects/Common App/paper/figures/qtet-estimates.png")
 plot(probs,actual.qte.employed,type="l", ylim=c(-25000,12000), lwd=3, main="Estimated QTETs",
      xlab="quantile", ylab="QTE")
 lines(probs,lalonde.fy3$qte, col="blue", lwd=3)
@@ -344,19 +346,29 @@ actual.change <- subset(exp.employed.subset,treat==0)$re78 -
     subset(exp.employed.subset,treat==0)$re75
 actual.initial <- subset(exp.employed.subset, treat==0)$re75
 
-actual.copula.bw <- npudistbw(~ actual.change + actual.initial)
+actual.copula <- getCopula(actual.change, actual.initial)
 
-u.seq = v.seq = seq(0,1,0.02)
-actual.copula.fun <- npcopula(bws=actual.copula.bw,
-                              data=data.frame(actual.change=actual.change,
-                                  actual.initial=actual.initial),
-                              u=cbind(u.seq,v.seq))
+#this should return a function that takes in u,v and returns
+#the value of `thecopula' for that u and v
+getCopula <- function(data1, data2, u.seq=seq(0,1,0.02), v.seq=seq(0,1,0.02)) {
+    copula.bw <<- npudistbw(~data1 + data2)
+    thecopula <<- npcopula(bws=copula.bw,
+                          data=data.frame(data1=data1, data2=data2),
+                          u=cbind(u.seq,v.seq))
+    ###retfun <- function(u,v) {
+    #    do.call(what=copulafun, args=u,v,the.npcopula=thecopula)
+    #}
+    #return(retfun)
+    outfun <- function(u,v) copulafun(u,v,the.npcopula=thecopula)
+    class(outfun) <- c("copfun", class(outfun))
+    outfun
+}
 
   #copula should either
   #(i) take in scalar u and vector v and return vector of length(v)
   #(ii) take in vector u and vector v (of same length) and return
   # vector of length(v)
-  actual.copula <- function(u,v) {
+  copulafun <- function(u,v,the.npcopula) {
 
       if ( (length(u) != 1) & (length(u) != length(v)) ) {
           stop("u must either be scalar or same length as v")
@@ -365,22 +377,22 @@ actual.copula.fun <- npcopula(bws=actual.copula.bw,
       #when u is scalar will call this function with vapply
       #call with x=v and z=u
       copula.inner <- function(x,z) {
-          which.min((z-actual.copula.fun$u1)^2 + (x-actual.copula.fun$u2)^2)
+          which.min((z-the.npcopula$u1)^2 + (x-the.npcopula$u2)^2)
       }
 
       #when u is vector will call this function with apply
       #call with x=matrix(u,v)
       copula.multiple <- function(x) {
-          which.min((x[1]-actual.copula.fun$u1)^2 + (x[2]-actual.copula.fun$u2)^2)
+          which.min((x[1]-the.npcopula$u1)^2 + (x[2]-the.npcopula$u2)^2)
       }
 
       if (length(u) == 1) {
           
-          whichys <- vapply(v, fun=copula.inner, fun.value=1, z=u)
+          whichys <- vapply(v, FUN=copula.inner, FUN.VALUE=1, z=u)
           
       } else {
 
-          whichys <- apply(cbind(u,v), fun=copula.multiple, margin=1)
+          whichys <- apply(cbind(u,v), FUN=copula.multiple, MARGIN=1)
 
       }
       
@@ -394,6 +406,47 @@ actual.copula.fun <- npcopula(bws=actual.copula.bw,
 
       actual.copula.fun$copula[whichys]
   }
+
+
+##Plot copula function
+plot.copfun <- function(x, ..., uvec=seq(0,1,0.05), vvec=seq(0,1,0.05)) {
+    require(lattice)
+    copfun <- x
+    plotdata <- expand.grid(uvec,vvec)
+    colnames(plotdata) <- c("u","v")
+    plotdata$cop <- copfun(plotdata[,"u"], plotdata[,"v"])
+    copplot <- wireframe(cop ~ u * v, data=plotdata,...)
+          #xlab="Change in outcomes",
+          #ylab="Initial Outcome",
+          #drape=T,
+          #colorkey=T,
+          #scales=list(arrows=F))
+    copplot
+    return(copplot)
+}
+
+print.copfun <- function(x,...) {
+    cat(x(0.5,0.5))
+}
+
+##Estimate the copula for the previous period
+actual.change.tmin1 <- subset(exp.employed.subset,treat==0)$re75 -
+    subset(exp.employed.subset,treat==0)$re74
+actual.initial.tmin1 <- subset(exp.employed.subset, treat==0)$re74
+
+actual.copula.tmin1 <- getCopula(actual.change.tmin1, actual.initial.tmin1)
+plot(actual.copula.tmin1)
+
+png("~/Documents/school/projects/Common App/paper/figures/copula-stability-t.png")
+plot(actual.copula)
+dev.off()
+
+png("~/Documents/school/projects/Common App/paper/figures/copula-stability-tmin1.png")
+plot(actual.copula.tmin1)
+dev.off()
+
+tcor <- cor(actual.change, actual.initial, method="spearman")
+tmin1cor <- cor(actual.change.tmin1, actual.initial.tmin1, method="spearman")
 
 
 #STILL NEED TO WRITE THIS AS A FUNCTION SO THAT WE CAN CALL IT
@@ -411,9 +464,23 @@ copplot.actual <- wireframe(cop ~ u * v, data=actual.copula.plotdata,
           colorkey=T,
           scales=list(arrows=F))
 
-png("~/Documents/school/projects/Common App/paper/figures/actual-and-estimated-copulas.png")
-print(copplot1, split=c(1,1,2,1), more=T)
+#png("~/Documents/school/projects/Common App/paper/figures/actual-and-estimated-copulas.png")
+print(copplot1, split=c(1,1,2,1), more=T, res=1000)
 print(copplot.actual, split=c(2,1,2,1))
+#dev.off()
+
+png("~/Documents/school/projects/Common App/paper/figures/estimated-copula.png")
+copplot1
+dev.off()
+
+png("~/Documents/school/projects/Common App/paper/figures/actual-copula.png")
+#copplot.actual
+plot(actual.copula)
+dev.off()
+
+class(lalonde.fy3.cov$copula) <- c("copfun","function")
+png("~/Documents/school/projects/Common App/paper/figures/estimated-copula.png")
+plot(lalonde.fy3.cov$copula)
 dev.off()
 
 #untreated change
@@ -442,39 +509,42 @@ dev.off()
 
 ##make the QTET plot when using the actual copulas
 par(mfrow=c(1,1)) #reset plot layout
-png("~/Documents/school/projects/Common App/paper/figures/copula-test-2.png")
-plot(probs,actual.qte.employed,type="l", ylim=c(-25000,12000), lwd=3, main="Estimated QTETs",
+png("~/Documents/school/projects/Common App/paper/figures/copula-test.png")
+plot(probs,actual.qte.employed,type="l", ylim=c(-8000,8000), lwd=3, main="Estimated QTETs",
      xlab="quantile", ylab="QTE")
 lines(probs,lalonde.fy3$qte, col="blue", lwd=3)
-lines(probs,lalonde.fy3.copulatest$qte, col="blue", lty=2, lwd=3)
+#lines(probs,lalonde.fy3.copulatest$qte, col="blue", lty=2, lwd=3)
 lines(probs,lalonde.fy3.cov$qte, col="orange", lwd=3)
-lines(probs,lalonde.fy3.cov.copulatest$qte, col="orange", lty=2, lwd=3)
-lines(probs, lalonde.fy$ub.qte, lty=2, lwd=3)
-lines(probs, lalonde.fy$lb.qte, lty=2, lwd=3)
+lines(probs,lalonde.fy3.cov.copulatest$qte, col="green", lty=2, lwd=3)
+lines(probs,lalonde.fy3.cov.indcopulatest$qte, col="red", lty=2, lwd=3)
+#lines(probs, lalonde.fy$ub.qte, lty=2, lwd=3)
+#lines(probs, lalonde.fy$lb.qte, lty=2, lwd=3)
 #thuysbaert
 #...
-legend("bottomleft", c("Experimental QTE","3 Per. Est. Copula","3 Per. Actual Copula","3 Per. w Covariates & Est. Copula", "3 Per. w Covs & Actual Copula", "Fan-Yu Bounds", ""), 
-       col=c("black","blue","blue","orange","orange","black","black"), lty=c(1,1,2,1,2,2,2),
-       lwd=c(3,3,3,3,3,3,3))
+#legend("bottomleft", c("Experimental QTE","3 Per. Est. Copula","3 Per. Actual Copula","3 Per. w Covariates & Est. Copula", "3 Per. w Covs & Actual Copula", "Fan-Yu Bounds", ""), 
+#       col=c("black","blue","blue","orange","orange","black","black"), lty=c(1,1,2,1,2,2,2),
+#       lwd=c(3,3,3,3,3,3,3))
+legend("bottomleft", c("Experimental QTET", "Unconditional 3 Per.", "Conditional 3 Per.", "Actual Copula Function", "Independence Copula Function"), col=c("black","blue","orange","green","red"), lty=c(1,1,1,2,2), lwd=3)
 dev.off()
 
 
 ##make the QTET plot when using the actual change distribution
 par(mfrow=c(1,1)) #reset plot layout
-png("~/Documents/school/projects/Common App/paper/figures/change-test-2.png")
-plot(probs,actual.qte.employed,type="l", ylim=c(-25000,12000), lwd=3, main="Estimated QTETs",
+png("~/Documents/school/projects/Common App/paper/figures/change-test.png")
+plot(probs,actual.qte.employed,type="l", ylim=c(-8000,8000), lwd=3, main="Estimated QTETs",
      xlab="quantile", ylab="QTE")
 lines(probs,lalonde.fy3$qte, col="blue", lwd=3)
-lines(probs,lalonde.fy3.changetest$qte, col="blue", lty=2, lwd=3)
+#lines(probs,lalonde.fy3.changetest$qte, col="blue", lty=2, lwd=3)
 lines(probs,lalonde.fy3.cov$qte, col="orange", lwd=3)
-lines(probs,lalonde.fy3.cov.changetest$qte, col="orange", lty=2, lwd=3)
-lines(probs, lalonde.fy$ub.qte, lty=2, lwd=3)
-lines(probs, lalonde.fy$lb.qte, lty=2, lwd=3)
+lines(probs,lalonde.fy3.changetest$qte, col="green", lty=2, lwd=3)
+#lines(probs, lalonde.fy$ub.qte, lty=2, lwd=3)
+#lines(probs, lalonde.fy$lb.qte, lty=2, lwd=3)
 #thuysbaert
 #...
-legend("bottomleft", c("Experimental QTE","3 Per. Observational Change","3 Per. Actual Change Data","3 Per. w Covariates Observational Change", "3 Per. w Covs & Actual Change Data", "Fan-Yu Bounds", ""), 
-       col=c("black","blue","blue","orange","orange","black","black"), lty=c(1,1,2,1,2,2,2),
-       lwd=c(3,3,3,3,3,3,3))
+#legend("bottomleft", c("Experimental QTE","3 Per. Observational Change","3 Per. Actual Change Data","3 Per. w Covariates Observational Change", "3 Per. w Covs & Actual Change Data", "Fan-Yu Bounds", ""), 
+#       col=c("black","blue","blue","orange","orange","black","black"), lty=c(1,1,2,1,2,2,2),
+#       lwd=c(3,3,3,3,3,3,3))
+legend("bottomlef", c("Experimental QTET", "Unconditional 3 Per.", "Conditional 3 Per.", "Actual Untreated Change"), col=c("black","blue","orange","green"), lty=c(1,1,1,2), lwd=3)
 dev.off()
 
 ##make the QTET plot when using the actual initial distribution
@@ -517,7 +587,7 @@ dev.off()
 
 ##Finally, plot all the differences (covariates case)
 par(mfrow=c(1,1)) #reset plot layout
-png("~/Documents/school/projects/Common App/paper/figures/all-test-cov-2.png")
+png("~/Documents/school/projects/Common App/paper/figures/all-test-cov.png")
 plot(probs,actual.qte.employed,type="l", ylim=c(-25000,12000), lwd=3, main="Estimated QTETs",
      xlab="quantile", ylab="QTE")
 lines(probs,lalonde.fy3.cov$qte, col="orange", lwd=3)
@@ -555,3 +625,45 @@ legend("bottomleft", c("Experimental QTE","changed v to full range bw=0.3", "bw=
        col=c("black","blue","orange","red","green","yellow","purple","gray"), lty=1,
        lwd=3)
 #dev.off()
+
+
+##calculate the summary statistics and plot
+lalonde.exp$id <- 1
+lalonde.exp$cat <- 1
+lalonde.psid$cat <- 2*(1-lalonde.psid$treat)
+lalonde.all <- rbind(subset(lalonde.exp, treat==0), lalonde.psid)
+require(tabular)
+require(Hmisc)
+
+tabular( (re78+re75+re74+u75+u74+age+education+black+hispanic+married+nodegree) ~ (n=1) + (Format(digits=2))*(Category=as.factor(cat))*(mean+sd), data=lalonde.all)
+
+#calculate the normalized difference
+nd <- function(xvec, yvec) {
+    nx <- length(xvec)
+    ny <- length(yvec)
+    num <- mean(xvec) - mean(yvec)
+    denom <- sqrt(var(xvec) + var(yvec))
+    num/denom
+}
+
+#specialize normalized difference method to work
+#for the lalonde dataset called by tabular
+lalonde.nd <- function(xvec, yvec)
+    #note that we want to calculate everything relative to the treated group
+    #so we want to pass only the treated obs on to nd method in yvec
+    nd(xvec, yvec[which(lalonde.all$cat==0)])
+}
+
+#this creates a table for wages by treated, randomized, observational
+latex(tabular( (re78 + re75 + re74) ~
+Format(digits=2)*(Treated=(cat==0))*(mean+sd) +
+    Format(digits=2)*(Randomized=(cat==1))*(mean+sd+(nd=(Percent(fn=lalonde.nd)))) +
+    Format(digits=2)*(Observational=(cat==2))*(mean+sd+(nd=(Percent(fn=lalonde.nd)))),
+data=lalonde.all))
+
+#this creates a table for covariates by treated, randomized, observational
+latex(tabular( (u75+u74+age+education+black+hispanic+married+nodegree) ~
+Format(digits=2)*(Treated=(cat==0))*(mean+sd) +
+    Format(digits=2)*(Randomized=(cat==1))*(mean+sd+(nd=(Percent(fn=lalonde.nd)))) +
+    Format(digits=2)*(Observational=(cat==2))*(mean+sd+(nd=(Percent(fn=lalonde.nd)))),
+data=lalonde.all))

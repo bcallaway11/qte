@@ -388,7 +388,8 @@ threeperiod.fanyu <- function(formla, t, tmin1, tmin2,
                               h, probevals, bootstrap.iter=FALSE,
                               copBool=FALSE, copula.test=NULL,
                               F.untreated.change.test=NULL,
-                              F.treated.tmin1.test=NULL) {
+                              F.treated.tmin1.test=NULL,
+                              method=c("simulation","direct")) {
   form = as.formula(formla)
   dta = model.frame(terms(form,data=data),data=data) #or model.matrix
   colnames(dta) = c("y","treatment")
@@ -610,6 +611,8 @@ threeperiod.fanyu <- function(formla, t, tmin1, tmin2,
   #TODO: add functionality to allow propensity score values to be
   #passed in.
   if (!(is.null(x))) {
+    #set up the data to do the propensity score re-weighting
+    #we need to bind the datasets back together to estimate pscore
     treated.t$changey = treated.t[,yname] - treated.tmin1[,yname]
     untreated.t$changey = untreated.t[,yname] - untreated.tmin1[,yname]
     pscore.data = rbind(treated.t, untreated.t)
@@ -618,6 +621,8 @@ threeperiod.fanyu <- function(formla, t, tmin1, tmin2,
                      family=binomial(link="probit"))
     pscore = fitted(pscore.reg)
     pD1 = nrow(treated.t)/nrow(untreated.t)
+
+    #this contains the support of the change in y
     p.dy.seq = pscore.data$changey #unique(pscore.data$changey)
     #F.untreated.change = rep(0,length(p.dy.seq))
     #TODO: What is this?  Need to come up with better name for this variable
@@ -635,6 +640,79 @@ threeperiod.fanyu <- function(formla, t, tmin1, tmin2,
                                    yleft=0, yright=1, f=0, ties="ordered")
     class(F.untreated.change) = c("ecdf", "stepfun", class(F.untreated.change))
     assign("nobs", length(p.dy.seq), envir = environment(F.untreated.change))
+
+
+    ###new idea is to jointly estimate the propensity score, the probability
+    #of treatment and the parameters of the logit model
+
+    if (F) { #don't do this because it doesn't work right now
+    #this function returns logit cdf
+    G <- function(z) {
+        exp(z)/(1+exp(z))
+    }
+
+    #this function returns the logit pdf
+    g <- function(z) {
+        exp(z)/((1+exp(z))^2)
+    }
+
+    #function that returns logit score for given parameter thet
+    #y is a vector of outcomes (1 or 0)
+    #x is a matrix of control variables of same dimension as thet
+    logit.score <- function(thet, yvec, xmat) {
+        apply(t((yvec-G(xmat%*%thet))*g(xmat%*%thet))%*%xmat,MARGIN=2,FUN=mean)
+    }
+
+    #returns the moment for estimating average number of treated obs
+    p.moment <- function(p, dvec) {
+        mean(dvec) - p
+    }
+
+    dist.moment <- function(Fparam, thet, p, yvec, xmat, dvec, yval) {
+        pscore <- G(xmat%*%thet)
+        ppart <- pscore/((1-pscore)*p)
+        dpart <- 1-dvec
+        ypart <- 1*(yvec<yval)
+        mean(ppart*dpart*ypart) - Fparam
+    }
+
+    #params should be a vector, 1st element the estimated value of F;
+    #2nd a vector of length number of params in logit estimation
+    #last element value of p
+    minfun <- function(params, yvec, xmat, dvec, yval) {
+        Fparam <- params[1]
+        thet <- params[2:(length(params)-1)]
+        p <- params[length(params)]
+
+        #calculate each of the moments
+        dist.mom <- dist.moment(Fparam, thet, p, yvec, xmat, dvec, yval)
+        logit.mom <- logit.score(thet, yvec, xmat)
+        p.mom <- p.moment(p, dvec)
+
+        #put the in the same vector
+        moments <- c(dist.mom, logit.mom, p.mom)
+
+        #return the sum of squared moments (don't need to worry about weighting
+        #matrix because we are exactly identified)
+        t(moments)%*%moments
+    }
+
+    xmat <- as.matrix(xmat)
+    yvec <- pscore.data[,yname]
+    dvec <- pscore.data[,treat]
+
+    optout <- optim(par=c(0,rep(0,ncol(xmat)), 0.1), fn=minfun,
+                  yvec=yvec, xmat=xmat, dvec=dvec, yval=0)
+
+    Fval <- optout$par[1]
+    thetval <- optout$par[2:(length(optout$par)-1)]
+    pscores <- G(xmat%*%thetval)
+    pval <- optout$par[length(optout$par)]
+
+    #this procedure produces weird results; is it ok to estimate the pscores
+    #at the same time as the other moments -- because the pscores should
+    #probably be the same for each value in the distribution that we check
+    }
     
     #att using abadie method
     att = mean(((pscore.data$changey)/pD1)*(pscore.data[,treat] - pscore)/(1-pscore))
@@ -897,6 +975,62 @@ threeperiod.fanyu <- function(formla, t, tmin1, tmin2,
                            yleft=0, yright=1, f=0, ties="ordered")
   class(F.treatedcf.t) = c("ecdf", "stepfun", class(F.treatedcf.t))
   assign("nobs", length(y.seq), envir = environment(F.treatedcf.t))
+
+
+  #try estimating the copula density directly and then calculating
+  #the counterfactual distribution directly
+  if (method=="direct") {
+      require("cubature")
+      browser()
+      uvec=seq(0,1,0.01)
+      change <- treated.tmin1[,yname] - treated.tmin2[,yname]
+      initial <- treated.tmin2[,yname]
+      bws <- npudistbw(~change + initial)
+      bws.pdf <- npudensbw(~change + initial)
+      copula.pdf.fun <- npcopula(bws=bws, bws.pdf=bws.pdf, data=data.frame(change=change, initial=initial), density=T, u=cbind(uvec,uvec))
+      #this is wrong, get the density in the next periods.
+      #f.change <- npudens(change)
+      #f.initial <- npudens(initial)
+
+      copula.pdf <- function(u,v) {
+
+          if ( (length(u) != 1) & (length(u) != length(v)) ) {
+              stop("u must either be scalar or same length as v")
+          }
+
+                                        #when u is scalar will call this function with vapply
+                                        #call with x=v and z=u
+          copula.inner <- function(x,z) {
+              which.min((z-copula.pdf.fun$u1)^2 + (x-copula.pdf.fun$u2)^2)
+          }
+
+                                        #when u is vector will call this function with apply
+                                        #call with x=matrix(u,v)
+          copula.multiple <- function(x) {
+              which.min((x[1]-copula.pdf.fun$u1)^2 + (x[2]-copula.pdf.fun$u2)^2)
+          }
+
+          if (length(u) == 1) {
+          
+              whichys <- vapply(v, FUN=copula.inner, FUN.VALUE=1, z=u)
+          
+          } else {
+
+              whichys <- apply(cbind(u,v), FUN=copula.multiple, MARGIN=1)
+
+          }
+      
+      
+          return(copula.pdf.fun$copula[whichys])
+      }
+
+      intfun <- function(x) {
+          copula.pdf(x[1], x[2])
+      }
+
+      adaptIntegrate(intfun, lowerLimit=c(0,0), upperLimit=c(1,1))
+
+  }
 
   
   #this is the actual distribution of outcomes for the treated
