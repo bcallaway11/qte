@@ -645,7 +645,7 @@ threeperiod.fanyu <- function(formla, t, tmin1, tmin2,
     ###new idea is to jointly estimate the propensity score, the probability
     #of treatment and the parameters of the logit model
 
-    if (F) { #don't do this because it doesn't work right now
+    #if (F) { #don't do this because it doesn't work right now
     #this function returns logit cdf
     G <- function(z) {
         exp(z)/(1+exp(z))
@@ -660,62 +660,114 @@ threeperiod.fanyu <- function(formla, t, tmin1, tmin2,
     #y is a vector of outcomes (1 or 0)
     #x is a matrix of control variables of same dimension as thet
     logit.score <- function(thet, yvec, xmat) {
-        apply(t((yvec-G(xmat%*%thet))*g(xmat%*%thet))%*%xmat,MARGIN=2,FUN=mean)
+        #apply(t((yvec-G(xmat%*%thet))*g(xmat%*%thet))%*%xmat,MARGIN=2,FUN=mean)
+        #as.numeric((yvec-G(xmat%*%thet))*g(xmat%*%thet))*xmat #has mistake
+        as.numeric((yvec-G(xmat%*%thet))*g(xmat%*%thet) /
+                   (G(xmat%*%thet)*(1-G(xmat%*%thet)))) * xmat
     }
 
     #returns the moment for estimating average number of treated obs
-    p.moment <- function(p, dvec) {
-        mean(dvec) - p
-    }
+    #p.moment <- function(p, dvec) {
+    #    mean(dvec) - p
+    #}
 
-    dist.moment <- function(Fparam, thet, p, yvec, xmat, dvec, yval) {
-        pscore <- G(xmat%*%thet)
-        ppart <- pscore/((1-pscore)*p)
-        dpart <- 1-dvec
-        ypart <- 1*(yvec<yval)
-        mean(ppart*dpart*ypart) - Fparam
-    }
+    #dist.moment <- function(Fparam, thet, p, yvec, xmat, dvec, yval) {
+    #    pscore <- G(xmat%*%thet)
+    #    ppart <- pscore/((1-pscore)*p)
+    #    dpart <- 1-dvec
+    #    ypart <- 1*(yvec<yval)
+    #    mean(ppart*dpart*ypart) - Fparam
+    #}
 
     #params should be a vector, 1st element the estimated value of F;
     #2nd a vector of length number of params in logit estimation
     #last element value of p
-    minfun <- function(params, yvec, xmat, dvec, yval) {
-        Fparam <- params[1]
-        thet <- params[2:(length(params)-1)]
-        p <- params[length(params)]
+    #minfun <- function(params, yvec, xmat, dvec, yval) {
+    #    Fparam <- params[1]
+    #    thet <- params[2:(length(params)-1)]
+    #    p <- params[length(params)]
 
         #calculate each of the moments
-        dist.mom <- dist.moment(Fparam, thet, p, yvec, xmat, dvec, yval)
-        logit.mom <- logit.score(thet, yvec, xmat)
-        p.mom <- p.moment(p, dvec)
+    #    dist.mom <- dist.moment(Fparam, thet, p, yvec, xmat, dvec, yval)
+    #    logit.mom <- logit.score(thet, yvec, xmat)
+    #    p.mom <- p.moment(p, dvec)
 
         #put the in the same vector
-        moments <- c(dist.mom, logit.mom, p.mom)
+    #    moments <- c(dist.mom, logit.mom, p.mom)
 
         #return the sum of squared moments (don't need to worry about weighting
         #matrix because we are exactly identified)
-        t(moments)%*%moments
-    }
+    #    t(moments)%*%moments
+    #}
 
-    xmat <- as.matrix(xmat)
-    yvec <- pscore.data[,yname]
-    dvec <- pscore.data[,treat]
+    xmat <- cbind(1,as.matrix(xmat))
+    #yvec <- pscore.data[,yname]
+    #dvec <- pscore.data[,treat]
 
-    optout <- optim(par=c(0,rep(0,ncol(xmat)), 0.1), fn=minfun,
-                  yvec=yvec, xmat=xmat, dvec=dvec, yval=0)
+    #optout <- optim(par=c(0,rep(0,ncol(xmat)), 0.1), fn=minfun,
+    #              yvec=yvec, xmat=xmat, dvec=dvec, yval=0)
 
-    Fval <- optout$par[1]
-    thetval <- optout$par[2:(length(optout$par)-1)]
-    pscores <- G(xmat%*%thetval)
-    pval <- optout$par[length(optout$par)]
+    #Fval <- optout$par[1]
+    #thetval <- optout$par[2:(length(optout$par)-1)]
+    #pscores <- G(xmat%*%thetval)
+    #pval <- optout$par[length(optout$par)]
 
     #this procedure produces weird results; is it ok to estimate the pscores
     #at the same time as the other moments -- because the pscores should
     #probably be the same for each value in the distribution that we check
+    #}
+
+    #another idea is to try estimating moments with gmm
+    #browser()
+    require(gmm)
+    moments <- function(thet) {
+        bet <- as.matrix(thet[1:(length(thet)-1)])
+        p <- thet[length(thet)]
+        N <- nrow(xmat)
+        d <- pscore.data[,treat]
+        x <- as.matrix(xmat)
+        #pscore <- x%*%bet
+        pscore <- G(x%*%bet)
+        
+        m1 <- logit.score(bet, d, x)
+        #m1 <- (x*d)-(x*as.numeric(x%*%bet))
+        m2 <- rep(p - mean(d),N)
+        m3 <- rep(1 - (1/N)*sum(((1-d)*pscore)/((1-pscore)*p)),N)
+
+        cbind(m1,m2,m3)
     }
+
+    minfun <- function(params) {
+        moments <- apply(moments(params), MARGIN=2, FUN=mean)
+        mout <<- moments
+        t(moments)%*%moments
+    }
+
+    optout <- optim(par=c(rep(0,ncol(xmat)), 0.1), fn=minfun,
+                    control=list(maxit=5000))
+
+    pscore <- G(xmat%*%optout$par[1:ncol(xmat)])
+    #pscore <- xmat%*%optout$par[1:ncol(xmat)]
+    pval <- optout$par[ncol(xmat)+1]
+    dy.seq <- seq(min(pscore.data$changey), max(pscore.data$changey),
+                  length.out=500)
+    F.val <- vapply(dy.seq, FUN=function(x) { (1/nrow(pscore.data)) *
+        sum((1-pscore.data[,treat])*pscore*(1*(pscore.data$changey<x)) /
+            ((1 - pscore)*pval))}, FUN.VALUE=1)
+    F.untreated.change = approxfun(dy.seq, F.val, method="constant",
+        yleft=0, yright=1, f=0, ties="ordered")
+    class(F.untreated.change) = c("ecdf", "stepfun", class(F.untreated.change))
+    assign("nobs", length(dy.seq), envir = environment(F.untreated.change))
+
+
+    #gmmest <- gmm(g=moments, x=cbind(pscore.data[,treat],as.matrix(xmat)),
+    #              t0=rep(0.1,(ncol(xmat)+1)))
     
     #att using abadie method
-    att = mean(((pscore.data$changey)/pD1)*(pscore.data[,treat] - pscore)/(1-pscore))
+    #att = mean(((pscore.data$changey)/pD1)*(pscore.data[,treat] - pscore)/(1-pscore))
+    #update to use newly calculated values
+    att <- mean(((pscore.data$changey)/pval)*(pscore.data[,treat] - pscore) /
+                (1-pscore))
   }
 
   #if we are in test mode then change F.untreated.change

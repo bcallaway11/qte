@@ -90,13 +90,13 @@ lalonde.fy3.cov = threeperiod.fanyu(re ~ treat,
                                 tname="year",t=1978, tmin1=1975, tmin2=1974,
                                 data=employed.subset, idname="id", uniqueid="uniqueid",
                                 x=c("age","education","black","hispanic",
-                                "married","nodegree","u74","u75"),
+                                "married","nodegree"),
                                 #x=NULL,
                                 y.seq=seq(min(lalonde.exp$re78), max(lalonde.exp$re78), length.out=300),#sort(unique(lalonde.exp$re78)),
                            dy.seq=seq(min(lalonde.exp$re78 - lalonde.exp$re75), max(lalonde.exp$re78 - lalonde.exp$re78), length.out=300),#sort(unique(lalonde.exp$re78-lalonde.exp$re75)),
                                 probs=probs,
                                 dropalwaystreated=FALSE,
-                                h=0.25, probevals=500)
+                                h=0.4, probevals=500)
                                 #copula.test=function(u,v) return(u*v))
                                 #F.untreated.change.test=actual.F.untreated.change,
                                 #F.treated.tmin1.test=actual.F.untreated.initial)
