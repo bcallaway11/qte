@@ -86,17 +86,21 @@ lalonde.fy3 = threeperiod.fanyu(re ~ treat,
 #ptm = proc.time()
 #Rprof()
 #call panelDid with covariates
-lalonde.fy3.cov = threeperiod.fanyu(re ~ treat,
+#bw = panel.qte.bw(hvec=c(0.33,0.35,0.37),
+lalonde.fy3.cov = panel.qte(re ~ treat, xformla=~age + education + black + 
+    hispanic + married + nodegree + u74,
+#    I(u74*age) + I(u74*education) + I(u74*black) +
+#    I(u74*hispanic) + I(u74*married) + I(u74*nodegree),
                                 tname="year",t=1978, tmin1=1975, tmin2=1974,
                                 data=employed.subset, idname="id", uniqueid="uniqueid",
-                                x=c("age","education","black","hispanic",
-                                "married","nodegree"),
-                                #x=NULL,
+                                #x=c("age","education","black","hispanic",
+                                #"married","nodegree","u74"),
                                 y.seq=seq(min(lalonde.exp$re78), max(lalonde.exp$re78), length.out=300),#sort(unique(lalonde.exp$re78)),
                            dy.seq=seq(min(lalonde.exp$re78 - lalonde.exp$re75), max(lalonde.exp$re78 - lalonde.exp$re78), length.out=300),#sort(unique(lalonde.exp$re78-lalonde.exp$re75)),
                                 probs=probs,
                                 dropalwaystreated=FALSE,
-                                h=0.4, probevals=500)
+                                h=0.37,
+    probevals=500)
                                 #copula.test=function(u,v) return(u*v))
                                 #F.untreated.change.test=actual.F.untreated.change,
                                 #F.treated.tmin1.test=actual.F.untreated.initial)
@@ -171,7 +175,7 @@ ks = ks.test((subset(lalonde.exp,treat==1)$re75 - subset(lalonde.exp,treat==1)$r
 
 #2.b) QTETs
 par(mfrow=c(1,1)) #reset plot layout
-png("~/Documents/school/projects/Common App/paper/figures/qtet-estimates.png")
+#png("~/Documents/school/projects/Common App/paper/figures/qtet-estimates.png")
 plot(probs,actual.qte.employed,type="l", ylim=c(-25000,12000), lwd=3, main="Estimated QTETs",
      xlab="quantile", ylab="QTE")
 lines(probs,lalonde.fy3$qte, col="blue", lwd=3)
@@ -190,7 +194,7 @@ lines(probs, lalonde.fy3.cov$qte, lwd=3, col="orange")
 legend("bottomleft", c("Experimental QTE","3 Per.","AI","Random Treatment", "Firpo", "Fan-Yu Bounds", "", "3 Per. w Covariates"), 
        col=c("black","blue","red","green","purple","black","black","orange"), lty=c(1,1,1,1,1,2,2,1),
        lwd=c(3,3,3,3,3,3,3,3))
-dev.off()
+#dev.off()
 
 
 #3) covariates case
@@ -483,7 +487,7 @@ png("~/Documents/school/projects/Common App/paper/figures/estimated-copula.png")
 plot(lalonde.fy3.cov$copula)
 dev.off()
 
-#untreated change
+#************UNTREATED CHANGE***********#
 #png("~/Documents/school/projects/Common App/paper/figures/change-dist.png")
 actual.F.untreated.change <- ecdf(actual.change)
 plot(actual.F.untreated.change, main="Distribution of change in outcomes",

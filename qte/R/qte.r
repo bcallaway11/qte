@@ -345,7 +345,7 @@ fan.yu <- function(formla, t, tmin1, tname, x=NULL,data,
 }
 
 
-#####Three Period Fan-Yu#####
+#####Panel QTE#####
 #Idea here is that we can use information from a third period
 #to point identify counterfactual distribution of outcomes
 #for the treated group
@@ -353,10 +353,10 @@ fan.yu <- function(formla, t, tmin1, tname, x=NULL,data,
 #main function should take in x,y,d
 #call plot function, summary function, formula function, etc. later
 #add functionality to pass in pscore
-#' @title Three Period Fan Yu
+#' @title Panel QTE
 #'
 #' @description
-#' \code{threeperiod.fanyu} uses third period of data, combined with Distributional Difference in Differences assumption (Fan and Yu, 2012) to point identify QTET.
+#' \code{panel.qte} uses third period of data, combined with Distributional Difference in Differences assumption (Fan and Yu, 2012) to point identify QTET.
 #' 
 #' @param formla outcome variable on treatment
 #' @param t last time period
@@ -381,7 +381,7 @@ fan.yu <- function(formla, t, tmin1, tname, x=NULL,data,
 #' threeperiod.fanyu(y~d)
 #' }
 #' @export
-threeperiod.fanyu <- function(formla, t, tmin1, tmin2,
+panel.qte <- function(formla, xformla=NULL, t, tmin1, tmin2,
                               tname, x=NULL,data, 
                               dropalwaystreated=TRUE, idname, uniqueid, zname,
                               y.seq=NULL, dy.seq=NULL, probs=seq(0,1,0.1),
@@ -419,6 +419,12 @@ threeperiod.fanyu <- function(formla, t, tmin1, tmin2,
     data = subset(data, !(d06==1 & d10==1))
     #probably want to make above line drop those who are treated
     #in the middle period, but leave for now.
+  }
+
+  #set up the x variables
+  if (!(is.null(xformla))) {
+      x <- colnames(model.frame(terms(as.formula(xformla)), data=data))
+      data <- cbind(data[,c(yname,treat,idname,uniqueid,tname)], model.frame(terms(as.formula(xformla)), data=data))
   }
   
   #just to make sure the factors are working ok
@@ -620,6 +626,7 @@ threeperiod.fanyu <- function(formla, t, tmin1, tmin2,
     pscore.reg = glm(pscore.data[,treat] ~ as.matrix(xmat),
                      family=binomial(link="probit"))
     pscore = fitted(pscore.reg)
+    pscore.data$pscore <- pscore
     pD1 = nrow(treated.t)/nrow(untreated.t)
 
     #this contains the support of the change in y
@@ -634,7 +641,7 @@ threeperiod.fanyu <- function(formla, t, tmin1, tmin2,
     pscore.data$distvals = distvals
     
     pscore.data1 = pscore.data[order(pscore.data$changey),]
-    
+
     #Note: this is also likely to have some smoothing
     F.untreated.change = approxfun(pscore.data1$changey, pscore.data1$distvals, method="constant",
                                    yleft=0, yright=1, f=0, ties="ordered")
@@ -731,20 +738,48 @@ threeperiod.fanyu <- function(formla, t, tmin1, tmin2,
         
         m1 <- logit.score(bet, d, x)
         #m1 <- (x*d)-(x*as.numeric(x%*%bet))
-        m2 <- rep(p - mean(d),N)
-        m3 <- rep(1 - (1/N)*sum(((1-d)*pscore)/((1-pscore)*p)),N)
+        m2 <- p - d #m2 <- rep(p - mean(d),N)
+        m3 <- 1 - ((1-d)*pscore/((1-pscore)*p))
+        #m3 <- rep(1 - (1/N)*sum(((1-d)*pscore)/((1-pscore)*p)),N)
 
         cbind(m1,m2,m3)
     }
 
-    minfun <- function(params) {
+    #browser()
+    minfun <- function(params,W=NULL) {
         moments <- apply(moments(params), MARGIN=2, FUN=mean)
         mout <<- moments
-        t(moments)%*%moments
+        if (is.null(W)) {
+            W <- diag(length(moments))
+        }
+        t(moments) %*% W %*% moments
     }
 
     optout <- optim(par=c(rep(0,ncol(xmat)), 0.1), fn=minfun,
                     control=list(maxit=5000))
+
+    maxiters <- 2
+    currentiter <- 1
+    tol <- 0.1 #set this for tolerance in continuously updated GMM
+    while(T) {
+        params <- optout$par #params from previous loop
+        mom <- moments(params) #this will be nxk
+        N <- nrow(mom)
+        Omeg <- (1/N) * (t(mom) %*% mom)
+        optout <- optim(par=params, fn=minfun,
+                        control=list(maxit=5000), W=solve(Omeg))
+
+        if (norm(as.matrix(params - optout$par), "f") < tol) {
+            break
+        }
+
+        if (currentiter >= maxiters) {
+            warning("breaking out of gmm because reached max iterations")
+            break
+        }
+
+        currentiter <- currentiter + 1        
+    }
 
     pscore <- G(xmat%*%optout$par[1:ncol(xmat)])
     #pscore <- xmat%*%optout$par[1:ncol(xmat)]
@@ -758,6 +793,10 @@ threeperiod.fanyu <- function(formla, t, tmin1, tmin2,
         yleft=0, yright=1, f=0, ties="ordered")
     class(F.untreated.change) = c("ecdf", "stepfun", class(F.untreated.change))
     assign("nobs", length(dy.seq), envir = environment(F.untreated.change))
+
+    pscore.data$pscore <- pscore
+
+    #browser()
 
 
     #gmmest <- gmm(g=moments, x=cbind(pscore.data[,treat],as.matrix(xmat)),
@@ -1033,7 +1072,7 @@ threeperiod.fanyu <- function(formla, t, tmin1, tmin2,
   #the counterfactual distribution directly
   if (method=="direct") {
       require("cubature")
-      browser()
+      #browser()
       uvec=seq(0,1,0.01)
       change <- treated.tmin1[,yname] - treated.tmin2[,yname]
       initial <- treated.tmin2[,yname]
@@ -1118,11 +1157,46 @@ threeperiod.fanyu <- function(formla, t, tmin1, tmin2,
                 copula=copula, pearsons.cor=pearsons.cor, qte=(q1-q0),
                 spearmans.rho=spearmans.rho, kendalls.tau=kendalls.tau,
                 spearmans.rho2=0, att=att, randu=randu, randv=randv,
-                randt=r.unift, h=h, numtrims=numtrims)
+                randt=r.unift, h=h, numtrims=numtrims, probs=probs)
   class(retObj) = "panelDiD"
   
   return(retObj)
 }
+
+#'@title panel.qte.bw
+#' @inheritParams panel.qte
+#' @export
+#' call this with all the same parameters as panel.qte except for h
+panel.qte.bw <- function(hvec,...) {
+    distvec <- rep(99999999, length(hvec))
+    count <- 1
+    for (h in hvec) {
+        this.panel.qte <- panel.qte(h=h,...)
+        this.att <- this.panel.qte$att
+        this.probs <- this.panel.qte$probs
+        this.qte <- this.panel.qte$qte
+        #now compute the integrated qte
+        Iqte <- sum(this.qte)/length(this.qte)
+        print(this.att)
+        print(Iqte)
+        distvec[count] <- Iqte - this.att
+        count <- count+1
+    }
+    distvec
+    retval <<- hvec[which(distvec==min(abs(distvec)))] #return the value of h that minimizes
+    print(retval)
+    return(retval)
+}
+#    formla, xformla=NULL, t, tmin1, tmin2,
+#                              tname, x=NULL,data, 
+#                              dropalwaystreated=TRUE, idname, uniqueid, zname,
+#                              y.seq=NULL, dy.seq=NULL, probs=seq(0,1,0.1),
+#                              h, probevals, bootstrap.iter=FALSE,
+#                              copBool=FALSE, copula.test=NULL,
+#                              F.untreated.change.test=NULL,
+#                              F.treated.tmin1.test=NULL,
+#                              method=c("simulation","direct")) {
+
 
 
 #'@title bootstrap.threeperiod.fanyu
