@@ -1,4 +1,5 @@
 require(causalsens)
+source("qte/R/qte.r")
 
 data(lalonde.exp)
 data(lalonde.psid)
@@ -44,6 +45,22 @@ lalonde.firpo = firpo(re78 ~ treat, x=c("age","education","black","hispanic",
     data=subset(lalonde.psid, u75==0),
     probs=probs)
 
+#call new panel qte method
+lalonde.panel <- panel.qte1(re ~ treat,
+                           tname="year",t=1978, tmin1=1975, tmin2=1974,
+                           data=employed.subset, idname="id", uniqueid="uniqueid",
+                           #x=c("age","education","black","hispanic",
+                           #     "married","nodegree","u74","u75"),
+                           x=c("age","education"),
+                           #x=NULL,
+                           #y.seq=seq(0,120000,length.out=20),
+                           #dy.seq=seq(-70000,120000,length.out=20), 
+                           y.seq=seq(min(lalonde.exp$re78), max(lalonde.exp$re78), length.out=300),#sort(unique(lalonde.exp$re78)),
+                           dy.seq=seq(min(lalonde.exp$re78 - lalonde.exp$re75), max(lalonde.exp$re78 - lalonde.exp$re78), length.out=300),#sort(unique(lalonde.exp$re78-lalonde.exp$re75)),
+                           probs=probs,
+                           dropalwaystreated=FALSE,
+                           h=0.37, probevals=500)
+
 #ptm = proc.time()
 #Rprof()
 #call fan-yu for bounds
@@ -63,7 +80,7 @@ lalonde.fy = fan.yu(re ~ treat,
 #ptm = proc.time()
 #Rprof()
 #call panelDid with 3 periods
-lalonde.fy3 = threeperiod.fanyu(re ~ treat,
+lalonde.fy3 = panel.qte(re ~ treat,
                            tname="year",t=1978, tmin1=1975, tmin2=1974,
                            data=employed.subset, idname="id", uniqueid="uniqueid",
                            #x=c("age","education","black","hispanic",
@@ -75,7 +92,7 @@ lalonde.fy3 = threeperiod.fanyu(re ~ treat,
                            dy.seq=seq(min(lalonde.exp$re78 - lalonde.exp$re75), max(lalonde.exp$re78 - lalonde.exp$re78), length.out=300),#sort(unique(lalonde.exp$re78-lalonde.exp$re75)),
                            probs=probs,
                            dropalwaystreated=FALSE,
-                           h=0.25, probevals=500)
+                           h=0.37, probevals=500)
                            #copula.test=actual.copula)
                            #F.untreated.change.test=actual.F.untreated.change)
                            #F.treated.tmin1.test=actual.F.untreated.initial)
@@ -89,8 +106,8 @@ lalonde.fy3 = threeperiod.fanyu(re ~ treat,
 #bw = panel.qte.bw(hvec=c(0.33,0.35,0.37),
 lalonde.fy3.cov = panel.qte(re ~ treat, xformla=~age + education + black + 
     hispanic + married + nodegree + u74,
-#    I(u74*age) + I(u74*education) + I(u74*black) +
-#    I(u74*hispanic) + I(u74*married) + I(u74*nodegree),
+    I(u74*age) + I(u74*education) + I(u74*black) +
+    I(u74*hispanic) + I(u74*married) + I(u74*nodegree),
                                 tname="year",t=1978, tmin1=1975, tmin2=1974,
                                 data=employed.subset, idname="id", uniqueid="uniqueid",
                                 #x=c("age","education","black","hispanic",
@@ -175,7 +192,7 @@ ks = ks.test((subset(lalonde.exp,treat==1)$re75 - subset(lalonde.exp,treat==1)$r
 
 #2.b) QTETs
 par(mfrow=c(1,1)) #reset plot layout
-#png("~/Documents/school/projects/Common App/paper/figures/qtet-estimates.png")
+#png("~/Documents/school/projects/Common App/paper/figures/qtet-estimates-3.png")
 plot(probs,actual.qte.employed,type="l", ylim=c(-25000,12000), lwd=3, main="Estimated QTETs",
      xlab="quantile", ylab="QTE")
 lines(probs,lalonde.fy3$qte, col="blue", lwd=3)
