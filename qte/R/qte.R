@@ -36,12 +36,8 @@
 #'
 #' @return QTE object
 #'
-#' @examples
-#' \dontrun{
-#' compute.panel.qte(y~d)
-#' }
 #' @keywords internal
-compute.panel.qte <- function(formla, xformla=NULL, t, tmin1, tmin2,
+compute.panel.qtet <- function(formla, xformla=NULL, t, tmin1, tmin2,
                               tname, x=NULL,data, 
                               dropalwaystreated=TRUE, idname,
                               probs=seq(0.05,0.95,0.05),
@@ -71,7 +67,7 @@ compute.panel.qte <- function(formla, xformla=NULL, t, tmin1, tmin2,
     ##set up the x variables
     if (!(is.null(xformla))) {
         x <- colnames(model.frame(terms(as.formula(xformla)), data=data))
-        data <- cbind(data[,c(yname,treat,idname,uniqueid,tname)],
+        data <- cbind(data[,c(yname,treat,idname,tname)],
                       model.frame(terms(as.formula(xformla)), data=data))
     }
     
@@ -639,7 +635,7 @@ compute.panel.qte <- function(formla, xformla=NULL, t, tmin1, tmin2,
 
             ##z is the value that we wish to evaluate at
             ##other parameters are already set up
-            G <- function(z, x, bet, y, h, J) {
+            G1 <- function(z, x, bet, y, h, J) {
                 xbet <- x%*%bet
                 ##i <- rownumberi
                 ##semipar.data.noti <- leave.one.out.df(semipar.data,rownumberi)
@@ -648,7 +644,7 @@ compute.panel.qte <- function(formla, xformla=NULL, t, tmin1, tmin2,
                 return(numerator/denominator)
             }
 
-            pscore <- vapply(x%*%bet, FUN=G, FUN.VALUE=1, x, bet, y=d, h, J)
+            pscore <- vapply(x%*%bet, FUN=G1, FUN.VALUE=1, x, bet, y=d, h, J)
             dy.seq <- seq(min(pscore.data$changey), max(pscore.data$changey),
                           length.out=500)
             F.val <- vapply(dy.seq, FUN=function(x) {
@@ -905,7 +901,7 @@ panel.qtet <- function(formla, t, tmin1, tmin2,
     untreated.tmin2 = data[ data[,tname] == tmin2 & data[,treat] == 0, ]
 
     ##first calculate the actual estimate
-    pqte = compute.panel.qte(formla=formla, t=t, tmin1=tmin1, tmin2=tmin2, 
+    pqte = compute.panel.qtet(formla=formla, t=t, tmin1=tmin1, tmin2=tmin2, 
         tname=tname, x=x,data=data,
         dropalwaystreated=dropalwaystreated,
         idname=idname, probs=probs,
@@ -956,7 +952,7 @@ panel.qtet <- function(formla, t, tmin1, tmin2,
                                           seq(1, nt+nu)),sep="-")
             
             ##boot.data = process.bootdata(boot.data, idname, uniqueid)
-            thisIter = compute.panel.qte(formla=formla, t=t, tmin1=tmin1,
+            thisIter = compute.panel.qtet(formla=formla, t=t, tmin1=tmin1,
                 tmin2=tmin2, 
                 tname=tname, x=x,data=boot.data,
                 dropalwaystreated=dropalwaystreated,
@@ -970,7 +966,7 @@ panel.qtet <- function(formla, t, tmin1, tmin2,
                 ##        F.treated.t.cf=thisIter$F.treated.t.cf)
         }
 
-        SEobj <- computeSE(eachIter, plot=plot, alp=alp)
+        SEobj <- computeSE(eachIter, alp=alp)
 
         ##could return each bootstrap iteration w/ eachIter
         ##but not currently doing that
@@ -1094,7 +1090,7 @@ compute.qtet = function(formla, x=NULL, data, probs=seq(0.05,0.95,0.05), method=
 #' @param x Vector of covariates.  Default is no covariates
 #' @param method Method to compute propensity score.  Default is logit; other
 #'  option is probit.
-#' @param indSample Binary variable for whether to treat the samples as
+#' @param indsample Binary variable for whether to treat the samples as
 #'  independent or dependent.  This affects bootstrap standard errors.  In
 #'  the job training example, the samples are independent because they
 #'  are two samples collected independently and then merged.  If the data is
@@ -1104,7 +1100,7 @@ compute.qtet = function(formla, x=NULL, data, probs=seq(0.05,0.95,0.05), method=
 #'
 #' @references
 #' Firpo, Sergio.   ``Efficient Semiparametric Estimation of Quantile Treatment
-#'  Effects.'' \texit{Econometrica} 75.1, pp. 259-276, 2015.
+#'  Effects.'' Econometrica 75.1, pp. 259-276, 2015.
 #' 
 #' @examples
 #' ## Load the data
@@ -1118,7 +1114,6 @@ compute.qtet = function(formla, x=NULL, data, probs=seq(0.05,0.95,0.05), method=
 #' q1 <- qtet(re78 ~ treat, x=NULL, data=lalonde.psid, se=FALSE,
 #'  probs=seq(0.05,0.95,0.05))
 #' summary(q1)
-#' }
 #' 
 #' ##This estimation controls for all the available background characteristics.
 #' q2 <- qtet(re78 ~ treat, 
@@ -1129,7 +1124,8 @@ compute.qtet = function(formla, x=NULL, data, probs=seq(0.05,0.95,0.05), method=
 #' @return QTE object
 #' @export
 qtet <- function(formla, x=NULL, data, probs=seq(0.05,0.95,0.05), se=TRUE,
-                 iters=100, alp=0.05, plot=FALSE, seedvec=NULL, indsample=TRUE,
+                 iters=100, alp=0.05, plot=FALSE, method="logit",
+                 seedvec=NULL, indsample=TRUE,
                  printIter=FALSE) {
     form = as.formula(formla)
     dta = model.frame(terms(form,data=data),data=data) #or model.matrix
@@ -1149,7 +1145,8 @@ qtet <- function(formla, x=NULL, data, probs=seq(0.05,0.95,0.05), se=TRUE,
     untreated.t = data[data[,treat]==0,]
     
     ##first calculate the actual estimate
-    firpo.qtet <- compute.qtet(formla=formla, x=x,data=data, probs=probs)
+    firpo.qtet <- compute.qtet(formla=formla, x=x,data=data, probs=probs,
+                               method=method)
 
     if (se) {
         ##now calculate the bootstrap confidence interval
@@ -1175,7 +1172,7 @@ qtet <- function(formla, x=NULL, data, probs=seq(0.05,0.95,0.05), se=TRUE,
                 
                 ##boot.data = process.bootdata(boot.data, idname, uniqueid)
                 thisIter = compute.qtet(formla=formla, x=x, data=boot.data,
-                    probs=probs)
+                    probs=probs, method=method)
                 eachIter[[i]] = thisIter ##list(att = thisIter$att, qte=thisIter$qte)
 
             } else {
@@ -1193,7 +1190,7 @@ qtet <- function(formla, x=NULL, data, probs=seq(0.05,0.95,0.05), se=TRUE,
                 ##boot.data = process.bootdata(boot.data, idname, uniqueid)
                 out.bootdatalist[[i]] <- boot.data
                 thisIter = compute.qtet(formla=formla, x=x, data=boot.data,
-                    probs=probs)
+                    probs=probs, method=method)
                 eachIter[[i]] = thisIter##list(ate = thisIter$ate, qte=thisIter$qte)
                 if (printIter) {
                     print(i)
@@ -1201,7 +1198,7 @@ qtet <- function(formla, x=NULL, data, probs=seq(0.05,0.95,0.05), se=TRUE,
             }
         }
         
-        SEobj <- computeSE(eachIter, plot=plot, alp=alp)
+        SEobj <- computeSE(eachIter, alp=alp)
         
         out <- QTE(qte=firpo.qtet$qte, qte.upper=SEobj$qte.upper,
                     qte.lower=SEobj$qte.lower, ate=firpo.qtet$ate,
@@ -1529,7 +1526,7 @@ CiC <- function(formla, t, tmin1, tname, x=NULL,data,
             
         }
 
-        SEobj <- computeSE(eachIter, plot=plot, alp=alp)
+        SEobj <- computeSE(eachIter, alp=alp)
 
         out <- QTE(qte=cic$qte, qte.upper=SEobj$qte.upper,
                    qte.lower=SEobj$qte.lower, ate=cic$ate,
@@ -1657,8 +1654,7 @@ compute.QDiD <- function(formla, t, tmin1, tname, x=NULL, data,
 #' in Athey and Imbens (2006)), it computes the Change in Changes model
 #' based on these quasi-residuals.
 #' @inheritParams panel.qtet
-#' @param uniqueid Not sure if used anymore
-#' @param printIter Not used
+#' @inheritParams CiC
 #' 
 #' @references
 #' Athey, Susan and Guido Imbens.  ``Identification and Inference in Nonlinear
@@ -1676,7 +1672,7 @@ compute.QDiD <- function(formla, t, tmin1, tname, x=NULL, data,
 #'  data=lalonde.psid.panel, idname="id", se=FALSE,
 #'  probs=seq(0.05, 0.95, 0.05))
 #' summary(qd1)
-#' }
+#' 
 #' @export
 QDiD <- function(formla, t, tmin1, tname, x=NULL,data,
                  dropalwaystreated=TRUE, panel=FALSE, se=TRUE,
@@ -1814,7 +1810,7 @@ QDiD <- function(formla, t, tmin1, tname, x=NULL,data,
             
         }
         
-        SEobj <- computeSE(eachIter, plot=plot, alp=alp)
+        SEobj <- computeSE(eachIter, alp=alp)
         
         out <- QTE(qte=qdid$qte, qte.upper=SEobj$qte.upper,
                    qte.lower=SEobj$qte.lower, ate=qdid$ate,
@@ -1831,7 +1827,10 @@ QDiD <- function(formla, t, tmin1, tname, x=NULL,data,
 ###Mean Difference-in-Differences
 ##Note that you need to pass in data where treated status is noted in
 ##every period.  Data is form of (year-individual-outcome-x-evertreated)
-#'@title MDiD
+#' @title compute.MDiD
+#'
+#' @description Internal function for computing the actual value for MDiD
+#' 
 #' @inheritParams panel.qtet
 #'
 #' @keywords internal
@@ -1942,10 +1941,9 @@ compute.MDiD <- function(formla, t, tmin1, tname, x=NULL, data,
 #' based on these quasi-residuals.
 #' 
 #' @inheritParams panel.qtet
-#' @param uniqueid Not sure if used anymore
-#' @param printIter Not used
-
-#' #' @examples
+#' @inheritParams CiC
+#' 
+#' @examples
 #' ## load the data
 #' data(lalonde)
 #'
@@ -2101,7 +2099,7 @@ MDiD <- function(formla, t, tmin1, tname, x=NULL,data,
             
         }
 
-        SEobj <- computeSE(eachIter, plot=plot, alp=alp)
+        SEobj <- computeSE(eachIter, alp=alp)
 
         out <- QTE(qte=mdid$qte, qte.upper=SEobj$qte.upper,
                    qte.lower=SEobj$qte.lower, ate=mdid$ate,
@@ -2130,7 +2128,7 @@ MDiD <- function(formla, t, tmin1, tname, x=NULL,data,
 #'
 #' ## Run the bounds method with no covariates
 #' b1 <- bounds(re ~ treat, t=1978, tmin1=1975, data=lalonde.psid.panel,
-#'   idname="id")
+#'   idname="id", tname="year")
 #' summary(b1)
 #'
 #' @references
@@ -2253,8 +2251,8 @@ bounds <- function(formla, t, tmin1, tname, x=NULL,data,
     ## I think that I can pass this as both arguments s, and y below
     ## but maybe should separate them esp. if there are issues
     lbs = vapply(supy,FUN=getlb,FUN.VALUE=1, 
-        ecdf.change.newlytreated=F.untreated.change.t,
-        ecdf.newlytreated.tmin1=F.treated.tmin1,
+        F.change.treated=F.untreated.change.t,
+        F.treated.tmin1=F.treated.tmin1,
         y=posvals)
     F.lb <- approxfun(supy, lbs, method="constant",
                       yleft=0, yright=1, f=0, ties="ordered")
@@ -2262,8 +2260,8 @@ bounds <- function(formla, t, tmin1, tname, x=NULL,data,
     assign("nobs", length(supy), envir = environment(F.lb))
 
     ubs = vapply(supy,FUN=getub,FUN.VALUE=1, 
-        ecdf.change.newlytreated=F.untreated.change.t,
-        ecdf.newlytreated.tmin1=F.treated.tmin1,
+        F.change.treated=F.untreated.change.t,
+        F.treated.tmin1=F.treated.tmin1,
         y=posvals)
     F.ub <- approxfun(supy, ubs, method="constant",
                       yleft=0, yright=1, f=0, ties="ordered")
@@ -2303,37 +2301,6 @@ bounds <- function(formla, t, tmin1, tname, x=NULL,data,
 
 ######GENERAL HELPER FUNCTIONS#######
 
-
-#' @title panel.qte.bw
-#'
-#' @description This method is not currently used, but it is in development
-#'  to help choose the bandwidth using semiparametric methods in the
-#'  panel.qtet method
-#'
-#' @param hvec Vector of bandwidths
-#'
-#' @keywords internal
-panel.qte.bw <- function(hvec,...) {
-    distvec <- rep(99999999, length(hvec))
-    count <- 1
-    for (h in hvec) {
-        this.panel.qte <- panel.qte(h=h,...)
-        this.att <- this.panel.qte$att
-        this.probs <- this.panel.qte$probs
-        this.qte <- this.panel.qte$qte
-        #now compute the integrated qte
-        Iqte <- sum(this.qte)/length(this.qte)
-        print(this.att)
-        print(Iqte)
-        distvec[count] <- Iqte - this.att
-        count <- count+1
-    }
-    distvec
-    retval <<- hvec[which(distvec==min(abs(distvec)))] #return the value of h that minimizes
-    print(retval)
-    return(retval)
-}
-
 ##return an SE object
 ##bootIters should contain ATT as first object in list
 #' @title computeDiffSE
@@ -2357,7 +2324,7 @@ panel.qte.bw <- function(hvec,...) {
 #' @keywords internal
 computeDiffSE <- function(est1, bootIters1, est2, bootIters2, alp=0.05) {
     iters <- length(bootIters1)
-    att.diff <- est1$ate - est2$ate
+    ate.diff <- est1$ate - est2$ate
     qte.diff <- est1$qte - est2$qte
     ##For now, just plot the qte and att with standard errors
     ##helper function to get the first element out of a list
@@ -2406,14 +2373,12 @@ computeDiffSE <- function(est1, bootIters1, est2, bootIters2, alp=0.05) {
 #'  is called by several functions in the qte package
 #' 
 #' @param bootIters List of bootstrap iterations
-#' @param plot OLD - QTE objects and their standard errors can be computed
-#'  by calling plot(QTE object name)
 #' @inheritParams panel.qtet
 #'
 #' @keywords internal
 #'
 #' @return SEObj
-computeSE <- function(bootIters, plot=FALSE, alp=0.05) {
+computeSE <- function(bootIters, alp=0.05) {
     ##For now, just plot the qte and att with standard errors
     ##helper function to get the first element out of a list
     iters <- length(bootIters)
@@ -2429,14 +2394,6 @@ computeSE <- function(bootIters, plot=FALSE, alp=0.05) {
     all.ate = all.ate[order(all.ate)]
     ate.upper = all.ate[min(iters,round((1-alp/2)*iters))]
     ate.lower = all.ate[max(1,round((alp/2)*iters))]
-    ##set up a blank plot
-    if (plot) {
-        plot(1,type="n",ylim=c(-2,2)) #these numbers come from having a good idea
-        ##what the result is, and then subject to some modifications
-        abline(a=pqte$ate, b=0)
-        abline(a=ate.upper, b=0, lty=2)
-        abline(a=ate.lower, b=0, lty=2)
-    }
     
     ##now get CI for qte:
     all.qte = lapply(bootIters, FUN=getElement, elemNum=1)
@@ -2448,12 +2405,6 @@ computeSE <- function(bootIters, plot=FALSE, alp=0.05) {
     qte.upper = sorted.qtemat[round((1-alp/2)*iters),]
     qte.lower = sorted.qtemat[max(1,round((alp/2)*iters)),]
 
-    if (plot) {
-        plot(seq(0,1,length.out=ncol(qte.mat)), pqte$qte, type="l", ylim=c(-2,1))
-        lines(seq(0,1,length.out=ncol(qte.mat)), qte.upper, lty=2)
-        lines(seq(0,1,length.out=ncol(qte.mat)), qte.lower, lty=2)
-        abline(a=0,b=0)
-    }
     out <- SE(ate.se=ate.se, ate.upper=ate.upper, ate.lower=ate.lower,
                 qte.se=qte.se, qte.upper=qte.upper, qte.lower=qte.lower)
     return(out)
@@ -2462,13 +2413,18 @@ computeSE <- function(bootIters, plot=FALSE, alp=0.05) {
 
 ##summary function for QTE objects
 #'@title Summary
-#' @param qte.obj A QTE Object
+#' 
+#' @param object A QTE Object
+#' @param ... Other params (to work as generic method, but not used)
+#' 
 #' @export
-summary.QTE <- function(qte.obj) {
+summary.QTE <- function(object, ...) {
     ##to follow lm, use this function to create a summary.BootQTE object
     ##then that object will have a print method
     ##to check it out for lm, call getAnywhere(print.summary.lm)
     ##and can easily see summary.lm w/o special call
+    qte.obj <- object
+    
     out <- list(probs=qte.obj$probs, qte=qte.obj$qte,
                        qte.se=qte.obj$qte.se,
                        ate=qte.obj$ate, ate.se=qte.obj$ate.se)
@@ -2477,10 +2433,15 @@ summary.QTE <- function(qte.obj) {
 }
 
 #' @title Print
+#' 
 #' @description Prints a Summary QTE Object
-#' @param summary.qte.obj
+#' 
+#' @param x A summary.QTE object
+#' @param ... Other params (required as generic function, but not used)
+#' 
 #' @export
-print.summary.QTE <- function(summary.qte.obj) {
+print.summary.QTE <- function(x, ...) {
+    summary.qte.obj <- x
     qte <- summary.qte.obj$qte
     qte.se <- summary.qte.obj$qte.se
     ate <- summary.qte.obj$ate
@@ -2537,7 +2498,7 @@ print.matrix1 <- function(m){
 #' 
 #' @description Plots a QTE Object
 #' 
-#' @param qte.obj a QTE Object
+#' @param x a QTE Object
 #' @param plotate Boolean whether or not to plot the ATE
 #' @param plot0 Boolean whether to plot a line at 0
 #' @param qtecol Color for qte plot.  Default "black"
@@ -2547,11 +2508,14 @@ print.matrix1 <- function(m){
 #'  set based on the values that the QTE takes
 #' @param uselegend Boolean whether or not to print a legend
 #' @param legloc String location for the legend.  Default "topright"
+#' @param ... Other parameters to be passed to plot (e.g lwd)
 #' 
 #' @export
-plot.QTE <- function(qte.obj, plotate=FALSE, plot0=FALSE,
+plot.QTE <- function(x, plotate=FALSE, plot0=FALSE,
                          qtecol="black", atecol="black", col0="black",
                          ylim=NULL, uselegend=FALSE, legloc="topright", ...) {
+
+    qte.obj <- x
 
     if (is.null(ylim)) {
         ylim=c(min(qte.obj$qte.lower)-abs(median(qte.obj$qte)),
@@ -2583,16 +2547,19 @@ plot.QTE <- function(qte.obj, plotate=FALSE, plot0=FALSE,
 ##summary function for QTE objects
 #' @title Summary of BoundsObj
 #' 
-#' @param bounds.obj A BoundsObj Object
+#' @param object A BoundsObj Object
+#' @param ... Other params (for consistency as generic S3 method, but not used)
 #'
 #' @return summary.BoundsObj Object
 #' 
 #' @export
-summary.BoundsObj <- function(bounds.obj) {
+summary.BoundsObj <- function(object, ...) {
     ##to follow lm, use this function to create a summary.BootQTE object
     ##then that object will have a print method
     ##to check it out for lm, call getAnywhere(print.summary.lm)
     ##and can easily see summary.lm w/o special call
+    bounds.obj <- object
+    
     out <- list(lbs=bounds.obj$lbs, ubs=bounds.obj$ubs,
                 lb.quantiles=bounds.obj$lb.quantiles,
                 ub.quantiles=bounds.obj$ub.quantiles,
@@ -2608,10 +2575,13 @@ summary.BoundsObj <- function(bounds.obj) {
 #' 
 #' @description Prints a Summary QTE Object
 #' 
-#' @param summary.bounds.obj A summary.BoundsObj
+#' @param x A summary.BoundsObj
+#' @param ... Other objects to pass (not used)
 #' 
 #' @export
-print.summary.BoundsObj <- function(summary.bounds.obj) {
+print.summary.BoundsObj <- function(x, ...) {
+    summary.bounds.obj <- x
+    
     lb.qte <- summary.bounds.obj$lb.qte
     ub.qte <- summary.bounds.obj$ub.qte
     probs <- summary.bounds.obj$probs
@@ -2644,15 +2614,14 @@ print.summary.BoundsObj <- function(summary.bounds.obj) {
 #' 
 #' @description Plots a BoundObj Object
 #'
-#' @param bounds.obj A BoundsObj to plot
-#' 
 #' @inheritParams plot.QTE
-#' @param bounds.obj A BoundsObj Object
+#' @param x A BoundsObj Object
 #' 
 #' @export 
-plot.BoundsObj <- function(bounds.obj, plotate=FALSE, plot0=FALSE,
+plot.BoundsObj <- function(x, plotate=FALSE, plot0=FALSE,
                          qtecol="black", atecol="black", col0="black",
                          ylim=NULL, uselegend=FALSE, legloc="topright", ...) {
+    bounds.obj <- x
 
     if (is.null(ylim)) {
         ylim=c(min(bounds.obj$lb.qte)-abs(median(bounds.obj$lb.qte)),
@@ -2769,12 +2738,47 @@ simple.quantile <- function(x,Fx,probs=c(0,0.25,0.5,0.75,1)) {
 #' @description Main class of objects
 #'
 #' @param qte The Quantile Treatment Effect at each value of probs
-#' @param ate The Average Treatment Effect
+#' @param qte.se A vector of standard errors for each qte
+#' @param qte.upper A vector of upper confidence intervals for each qte (it is
+#'  based on the bootstrap confidence interval -- not the se -- so it may not
+#'  be symmetric about the qte
+#' @param qte.lower A vector of lower confidence intervals for each qte (it is
+#'  based on the bootstrap confidence interval -- not the se -- so it may not
+#'  be symmyetric about the qte
+#' @param ate The Average Treatment Effect (or Average Treatment Effect on
+#'  the Treated)
+#' @param ate.se The standard error for the ATE
+#' @param ate.lower Lower confidence interval for the ATE (it is based on the
+#'  bootstrap confidence intervall -- not the se -- so it may not be symmetric
+#'  about the ATE
+#' @param ate.upper Upper confidence interval for the ATE (it is based on the
+#'  bootstrap confidence interval -- not the se -- so it may not be symmetric
+#'  about the ATE
 #' @param pscore.reg The results of propensity score regression, if specified
 #' @param probs The values for which the qte is computed
 #' @param type Takes the values "On the Treated" or "Population" to indicate
 #'  whether the estimated QTE is for the treated group or for the entire
 #'  population
+#' @param F.treated.t Distribution of treated outcomes for the treated group at
+#'  period t
+#' @param F.untreated.t Distribution of untreated potential outcomes for the
+#'  untreated group at period t
+#' @param F.treated.t.cf Counterfactual distribution of untreated potential
+#'  outcomes for the treated group at period t
+#' @param F.treated.tmin1 Distribution of treated outcomes for the
+#'  treated group at period tmin1
+#' @param F.treated.tmin2 Distribution of treated outcomes for the
+#'  treated group at period tmin2
+#' @param F.treated.change.tmin1 Distribution of the change in outcomes for
+#'  the treated group between periods tmin1 and tmin2
+#' @param F.untreated.change.t Distribution of the change in outcomes for the
+#'  untreated group between periods t and tmin1
+#' @param F.untreated.change.tmin1 Distribution of the change in outcomes for
+#'  the untreated group between periods tmin1 and tmin2
+#' @param F.untreated.tmin1 Distribution of outcomes for the untreated group
+#'  in period tmin1
+#' @param F.untreated.tmin2 Distribution of outcomes for the untreated group
+#'  in period tmin2
 #'
 #' @export
 QTE <- function(qte, ate=NULL, qte.se=NULL, qte.lower=NULL,
@@ -2831,14 +2835,23 @@ SE <- function(qte.se=NULL, ate.se=NULL, qte.upper=NULL, qte.lower=NULL,
 #'
 #' @description An object of results from computing bounds
 #'
-#' @param lbs
-#' @param ubs
-#' @param ub.quantiles
-#' @param lb.quantiles
+#' @param lbs A vector of the lower bounds for each value in the support
+#'  of the outcome
+#' @param ubs A vector of the upper bounds for each value in the support
+#'  of the outcome
+#' @param ub.quantiles A vector of the same length as probs that contains
+#'  the upper bound of the quantiles of the counterfactual distribution
+#'  of untreated potential outcomes for the treated group
+#' @param lb.quantiles A vector of the same length as probs that contains
+#'  the lower bound of the quantiles of the counterfactual distribution
+#'  of untreated potential outcomes for the treated group
 #' @param ub.qte The point estimate of the upper bound for the QTE
 #' @param lb.qte The point estimate of the lower bound for the QTE
 #' @param att The ATT is point identified under the assumptions required
 #'  by the bounds method
+#' @inheritParams panel.qtet
+#'
+#' @keywords internal
 BoundsObj <- function(lbs, ubs, ub.quantiles, lb.quantiles, ub.qte,
                       lb.qte, att=NULL, probs) {
 
@@ -2848,3 +2861,91 @@ BoundsObj <- function(lbs, ubs, ub.quantiles, lb.quantiles, ub.qte,
     class(out) <- "BoundsObj"
     return(out)
 }
+
+
+############## DATA DOCUMENTATION ################
+#' @title Lalonde (1986)'s NSW Dataset
+#' 
+#' @description \code{lalonde} contains data from the National Supported Work
+#'  Demonstration.  This program randomly assigned applicants to the job
+#'  training program (or out of the job training program).  The dataset is
+#'  discussed in Lalonde (1986).  The experimental part of the dataset is
+#'  combined with an observational dataset from the Panel Study of Income
+#'  Dynamics (PSID).  Lalonde (1986) and many subsequent papers (e.g.
+#'  Heckman and Hotz (1989), Dehejia and Wahba (1999), Smith and Todd (2005),
+#'  and Firpo (2007) have used this combination to study the effectiveness
+#'  of various `observational' methods (e.g. regression, Heckman selection,
+#'  Difference in Differences, and propensity score matching) estimate
+#'  the Average Treatment Effect (ATE) of participating in the job training
+#'  program.  The idea is that the results from the observational method
+#'  can be compared to results that can be easily obtained from the
+#'  experimental portion of the dataset.
+#'
+#'  To be clear, the observational data combines the observations that are
+#'  treated from the experimental portion of the data with untreated observations
+#'  from the PSID.
+#' 
+#' @format Four data.frames: (i) lalonde.exp contains a cross sectional version
+#'  of the experimental data, (ii) lalonde.psid contains a cross sectional
+#'  version of the observational data, (iii) lalonde.exp.panel contains a
+#'  panel version of the experimental data, and (iv) lalonde.psid.panel contains
+#'  a panel version of the observational data.  Note: the cross sectional
+#'  and panel versions of each dataset are identical up to their shape; in
+#'  demonstrating each of the methods, it is sometimes convenient to have
+#'  one form of the data or the other.
+#' @docType data
+#' @name lalonde
+#' @usage data(lalonde)
+#' @references LaLonde, Robert.  ``Evaluating the Econometric Evaluations of
+#'  Training Programs with Experimental Data.'' The American Economics Review,
+#'  pp. 604-620, 1986.
+#'  @source The dataset comes from Lalonde (1986) and has been studied in much
+#'  subsequent work.  The \code{qte} package uses a version from the
+#'  \code{causalsens} package
+#'  (\url{http://cran.r-project.org/web/packages/causalsens/causalsens.pdf})
+#' @keywords datasets
+NULL
+
+#' @title Lalonde's Experimental Dataset
+#'
+#' @description The cross sectional verion of the experimental part of the
+#'  \code{lalonde} dataset.  It
+#'  is loaded with all the datasets with the command \code{data(lalonde)}
+#'
+#' @docType data
+#' @name lalonde.exp
+#' @keywords datasets
+NULL
+
+#' @title Lalonde's Panel Experimental Dataset
+#'
+#' @description The panel verion of the experimental part of the
+#'  \code{lalonde} dataset.  It
+#'  is loaded with all the datasets with the command \code{data(lalonde)}
+#'
+#' @docType data
+#' @name lalonde.exp.panel
+#' @keywords datasets
+NULL
+
+#' @title Lalonde's Observational Dataset
+#'
+#' @description The cross sectional verion of the observational part of the
+#'  \code{lalonde} dataset.  It
+#'  is loaded with all the datasets with the command \code{data(lalonde)}
+#'
+#' @docType data
+#' @name lalonde.psid
+#' @keywords datasets
+NULL
+
+#' @title Lalonde's Experimental Dataset
+#'
+#' @description The panel verion of the observational part of the
+#'  \code{lalonde} dataset.  It
+#'  is loaded with all the datasets with the command \code{data(lalonde)}
+#'
+#' @docType data
+#' @name lalonde.psid.panel
+#' @keywords datasets
+NULL
