@@ -1,28 +1,19 @@
+##load("lalonde workspace.RData")
+
+##load source files
 require(causalsens)
 source("qte/R/qte.r")
 
+##setup data
 data(lalonde.exp)
 data(lalonde.psid)
 
+##probs are the values that we compute QTET for
+probs <- c(0.7,0.8,0.9)
+iters <- 100 #the number of bootstrap iterations to be used
 
-#calculate the average treatment effect on the treated without
-#covariates
-att = mean(subset(lalonde.exp,treat==1)$re78) - mean(subset(lalonde.exp,treat==0)$re78)
-
-#parameters used below:
-#h is the step size passed to various function
-h = 0.1
-#probs are the values that we compute QTET for
-probs = seq(h,1-h,0.02)
-
-#experimental QTE
-actual.qte = quantile(subset(lalonde.exp,treat==1)$re78,probs=probs) - quantile(subset(lalonde.exp,treat==0)$re78,probs=probs)
-actual.qte.employed = quantile(subset(exp.employed.subset,treat==1)$re78,probs=probs) - quantile(subset(exp.employed.subset,treat==0)$re78, probs=probs)
-#plot experimental QTE
-plot(probs,actual.qte,type="l")
-
-#set up data for call to fan-yu
-#here we make dataset into a panel for calls to functions below
+##set up data
+##make dataset into a panel for calls to functions below
 lalonde.psid$id = as.integer(rownames(lalonde.psid))
 tempdata3 = cbind(year=1978, lalonde.psid[,c("id","re78","treat","age","education","black",
                                 "hispanic","married","nodegree","u74","u75")])
@@ -35,112 +26,417 @@ colnames(tempdata3) = colnames(tempdata2) = colnames(tempdata1) = c("year","id",
 lalonde.data = rbind(tempdata3,tempdata2,tempdata1)
 lalonde.data$uniqueid = paste(lalonde.data$id,lalonde.data$year,sep="-")
 
-employed.subset = subset(lalonde.data, !(lalonde.data$id %in% lalonde.data[lalonde.data[,"u75"]==1,"id"]))
+##do the same thing to have panel with experimental data
+lalonde.exp$id = as.integer(rownames(lalonde.exp))
+tempdata3 = cbind(year=1978, lalonde.exp[,c("id","re78","treat","age","education","black",
+                                "hispanic","married","nodegree","u74","u75")])
+tempdata2 = cbind(year=1975, lalonde.exp[,c("id","re75","treat","age","education","black",
+                                "hispanic","married","nodegree","u74","u75")])
+tempdata1 = cbind(year=1974, lalonde.exp[,c("id","re74","treat","age","education","black",
+                                "hispanic","married","nodegree","u74","u75")])
+colnames(tempdata3) = colnames(tempdata2) = colnames(tempdata1) = c("year","id","re","treat","age","education","black","hispanic","married","nodegree","u74","u75")
+lalonde.exp.data = rbind(tempdata3,tempdata2,tempdata1)
+lalonde.exp.data$uniqueid = paste(lalonde.exp.data$id,lalonde.exp.data$year,sep="-")
 
-exp.employed.subset = subset(lalonde.exp, u75==0)
 
-#call firpo (for cross-sectional case) method
-lalonde.firpo = firpo(re78 ~ treat, x=c("age","education","black","hispanic",
-                      "married","nodegree","u74","u75"),
-    data=subset(lalonde.psid, u75==0),
-    probs=probs)
+###TABLES###
 
-#call new panel qte method
-lalonde.panel <- panel.qte1(re ~ treat,
+##TABLE 2 RESULTS
+##1)experimental QTE and ATT
+actual.qte = quantile(subset(lalonde.exp,treat==1)$re78,probs=probs) - quantile(subset(lalonde.exp,treat==0)$re78,probs=probs)
+actual.att <- mean(subset(lalonde.exp,treat==1)$re78) - mean(subset(lalonde.exp,treat==0)$re78)
+
+set.seed(29280)
+seedvec <- runif(iters)*99999
+
+
+##to compute the standard error of the difference between estimated and actual
+##qtet/att, need to also bootstrap the experimental part
+##just need to do this once as it will be the same every time
+##because of the way that we are setting the seed
+##and can use qtet method (w/ no covariates) to recover the experimental
+##qtet.  The advantage of this is that it already has bootstrap features built in
+lalonde.exp.boot <- qtet(re78 ~ treat,
+    ##x=c("age","education","black","hispanic",
+    ##                  "married","nodegree","u74","u75","re74","re75"),
+    ##x=x,
+    x=NULL,
+    data=lalonde.exp,
+    probs=probs, se=T, iters=iters, indsample=T, seedvec=seedvec)
+
+
+xlist <- list(c("age","education","black","hispanic","married",
+                      "nodegree"), c("age","education","black","hispanic",
+                                "married","nodegree","u74","u75"), NULL)
+
+qtebootlist <- list()
+panelbootlist <- list()
+qteDiffbootlist <- list()
+panelDiffbootlist <- list()
+for (x in xlist) {
+    
+##call Panel qte method
+lalonde.panel <- panel.qte(re ~ treat,
                            tname="year",t=1978, tmin1=1975, tmin2=1974,
-                           data=employed.subset, idname="id", uniqueid="uniqueid",
-                           #x=c("age","education","black","hispanic",
-                           #     "married","nodegree","u74","u75"),
-                           x=c("age","education"),
-                           #x=NULL,
-                           #y.seq=seq(0,120000,length.out=20),
-                           #dy.seq=seq(-70000,120000,length.out=20), 
-                           y.seq=seq(min(lalonde.exp$re78), max(lalonde.exp$re78), length.out=300),#sort(unique(lalonde.exp$re78)),
-                           dy.seq=seq(min(lalonde.exp$re78 - lalonde.exp$re75), max(lalonde.exp$re78 - lalonde.exp$re78), length.out=300),#sort(unique(lalonde.exp$re78-lalonde.exp$re75)),
+                           data=lalonde.data, idname="id",
+                           x=c("age","education","black","hispanic",
+                               "married","nodegree"),
+                           ##x=NULL,
+                           ##x=x,
                            probs=probs,
-                           dropalwaystreated=FALSE,
-                           h=0.37, probevals=500)
+                           dropalwaystreated=FALSE, plot=F,
+                           method="GMM", se=F, iters=iters,
+                           seedvec=seedvec)
 
-#ptm = proc.time()
-#Rprof()
-#call fan-yu for bounds
+diffy <- computeDiffSE(lalonde.panel, lalonde.panel$eachIter,
+                       lalonde.exp.boot, lalonde.exp.boot$eachIter)
+
+panelDiffbootlist[[length(panelDiffbootlist)+1]] <- diffy
+qteDiffbootlist[[length(qteDiffbootlist)+1]] <- diffy
+panelbootlist <- c(panelbootlist, list(lalonde.panel))
+qtebootlist <- c(qtebootlist, list(lalonde.panel))
+}
+
+xlist1 <- c(list(xlist[[1]]), list(xlist[[2]]),
+            list(c("age","education","black","hispanic","married",
+                          "nodegree", "u74","u75","re74","re75")),
+            list(xlist[[3]]))
+
+qtetbootlist <- list()
+qtetDiffbootlist <- list()
+for(x in xlist1) {
+    
+#call firpo (for cross-sectional case) method
+lalonde.qtet = qtet(re78 ~ treat,
+    ##x=c("age","education","black","hispanic",
+    ##                  "married","nodegree","u74","u75","re74","re75"),
+    x=x,
+    data=lalonde.psid,
+    probs=probs, se=T, iters=iters, indsample=T, seedvec=seedvec)
+
+diffy <- computeDiffSE(lalonde.qtet, lalonde.qtet$eachIter,
+                       lalonde.exp.boot, lalonde.exp.boot$eachIter)
+
+qtetDiffbootlist[[length(qtetDiffbootlist)+1]] <- diffy
+qteDiffbootlist[[length(qteDiffbootlist)+1]] <- diffy
+qtetbootlist <- c(qtetbootlist, list(lalonde.qtet))
+qtebootlist <- c(qtebootlist, list(lalonde.qtet))
+}
+
+cicbootlist <- list()
+cicDiffbootlist <- list()
+for (x in xlist) {
+
+##call athey-imbens with two periods
+lalonde.cic = CiC(re ~ treat, t=1978, tmin1=1975, tname="year",
+    ##x=c("age","education","black","hispanic","married","nodegree","u74","u75"),
+    x=x,
+                     data=lalonde.data, dropalwaystreated=FALSE,
+                     idname="id", uniqueid="uniqueid", panel=TRUE, plot=F,
+                     probs=probs, se=T, iters=iters, seedvec=seedvec)
+
+diffy <- computeDiffSE(lalonde.cic, lalonde.cic$eachIter,
+                       lalonde.exp.boot, lalonde.exp.boot$eachIter)
+
+cicDiffbootlist[[length(cicDiffbootlist)+1]] <- diffy
+qteDiffbootlist[[length(qteDiffbootlist)+1]] <- diffy
+cicbootlist <- c(cicbootlist, list(lalonde.cic))
+qtebootlist <- c(qtebootlist, list(lalonde.cic))
+}
+
+
+qdidbootlist <- list()
+qdidDiffbootlist <- list()
+for (x in xlist) {
+    
+lalonde.qdid = QDiD(re ~ treat, t=1978, tmin1=1975, tname="year",
+    ##x=c("age","education","black","hispanic","married","nodegree"),
+    x=x,
+                     data=lalonde.data, dropalwaystreated=FALSE,
+                     idname="id", panel=TRUE, plot=F,
+                     probs=probs, se=T, iters=iters, seedvec=seedvec)
+
+diffy <- computeDiffSE(lalonde.qdid, lalonde.qdid$eachIter,
+                       lalonde.exp.boot, lalonde.exp.boot$eachIter)
+
+qdidDiffbootlist[[length(qdidDiffbootlist)+1]] <- diffy
+qteDiffbootlist[[length(qteDiffbootlist)+1]] <- diffy
+qdidbootlist <- c(qdidbootlist, list(lalonde.qdid))
+qtebootlist <- c(qtebootlist, list(lalonde.qdid))
+}
+
+mdidbootlist <- list()
+mdidDiffbootlist <- list()
+for (x in xlist) {
+
+lalonde.mdid = MDiD(re ~ treat, t=1978, tmin1=1975, tname="year",
+    ##x=c("age","education","black","hispanic","married","nodegree"),
+    x=x,
+                     data=lalonde.data, dropalwaystreated=FALSE,
+                     idname="id", uniqueid="uniqueid", panel=TRUE, plot=F,
+                     probs=probs, se=T, iters=iters, seedvec=seedvec)
+
+diffy <- computeDiffSE(lalonde.mdid, lalonde.mdid$eachIter,
+                       lalonde.exp.boot, lalonde.exp.boot$eachIter)
+
+mdidDiffbootlist[[length(mdidDiffbootlist)+1]] <- diffy
+qteDiffbootlist[[length(qteDiffbootlist)+1]] <- diffy
+mdidbootlist <- c(mdidbootlist, list(lalonde.mdid))
+qtebootlist <- c(qtebootlist, list(lalonde.mdid))
+}
+
+######
+pi.bounds <- list()
+for (x in xlist) {
+##compute the fan-yu bounds
 lalonde.fy = fan.yu(re ~ treat,
-               tname="year",t=1978, tmin1=1975, data=employed.subset,
-               idname="id", uniqueid="uniqueid", 
-               #x=c("sq"),
-               x=NULL,
-               y.seq=sort(unique(lalonde.exp$re78)),
-               dy.seq=sort(unique(lalonde.exp$re78-lalonde.exp$re75)),
+               tname="year",t=1978, tmin1=1975, data=lalonde.data,
+               idname="id",  
+               ##x=c("age","education","black","hispanic","married","nodegree"),
+               ##x=NULL,
+    x=x,
                dropalwaystreated=FALSE,
                probs=probs)
-#Rprof(NULL)
-#summaryRprof()
-#proc.time()-ptm
 
-#ptm = proc.time()
-#Rprof()
-#call panelDid with 3 periods
-lalonde.fy3 = panel.qte(re ~ treat,
-                           tname="year",t=1978, tmin1=1975, tmin2=1974,
-                           data=employed.subset, idname="id", uniqueid="uniqueid",
-                           #x=c("age","education","black","hispanic",
-                           #     "married","nodegree","u74","u75"),
-                           x=NULL,
-                           #y.seq=seq(0,120000,length.out=20),
-                           #dy.seq=seq(-70000,120000,length.out=20), 
-                           y.seq=seq(min(lalonde.exp$re78), max(lalonde.exp$re78), length.out=300),#sort(unique(lalonde.exp$re78)),
-                           dy.seq=seq(min(lalonde.exp$re78 - lalonde.exp$re75), max(lalonde.exp$re78 - lalonde.exp$re78), length.out=300),#sort(unique(lalonde.exp$re78-lalonde.exp$re75)),
-                           probs=probs,
-                           dropalwaystreated=FALSE,
-                           h=0.37, probevals=500)
-                           #copula.test=actual.copula)
-                           #F.untreated.change.test=actual.F.untreated.change)
-                           #F.treated.tmin1.test=actual.F.untreated.initial)
-#Rprof(NULL)
-#summaryRprof()
-#proc.time()-ptm
+pi.bounds <- c(pi.bounds, list(lalonde.fy))
+}
 
-#ptm = proc.time()
-#Rprof()
-#call panelDid with covariates
-#bw = panel.qte.bw(hvec=c(0.33,0.35,0.37),
-lalonde.fy3.cov = panel.qte(re ~ treat, xformla=~age + education + black + 
-    hispanic + married + nodegree + u74,
-    I(u74*age) + I(u74*education) + I(u74*black) +
-    I(u74*hispanic) + I(u74*married) + I(u74*nodegree),
-                                tname="year",t=1978, tmin1=1975, tmin2=1974,
-                                data=employed.subset, idname="id", uniqueid="uniqueid",
-                                #x=c("age","education","black","hispanic",
-                                #"married","nodegree","u74"),
-                                y.seq=seq(min(lalonde.exp$re78), max(lalonde.exp$re78), length.out=300),#sort(unique(lalonde.exp$re78)),
-                           dy.seq=seq(min(lalonde.exp$re78 - lalonde.exp$re75), max(lalonde.exp$re78 - lalonde.exp$re78), length.out=300),#sort(unique(lalonde.exp$re78-lalonde.exp$re75)),
-                                probs=probs,
-                                dropalwaystreated=FALSE,
-                                h=0.37,
-    probevals=500)
-                                #copula.test=function(u,v) return(u*v))
-                                #F.untreated.change.test=actual.F.untreated.change,
-                                #F.treated.tmin1.test=actual.F.untreated.initial)
-                                
-#Rprof(NULL)
-#summaryRprof()
-#proc.time()-ptm
+###TABLES###
+##helper function
+char.decimal <- function(x, k=2, se=NULL, divideby=1) {
+    if(is.null(se)) {
+        return(paste0("$",format(round(x/divideby, k),
+                                 nsmall=k, big.mark=","),"$"))
+    } else {
+        out <- paste0("$",format(round(x/divideby, k), nsmall=k, big.mark=","))
+        altout <- paste0(out, "^*")
+        out <- ifelse(abs(x/se)>1.96, altout, out)
+        out <- paste0(out, "$")
+        return(out)
+    }
+}
+    
+
+##qtebootlist should contain a list of QTEboot objects computed for the same probs
+makeQTEtable <- function(qtebootlist, headervec=NULL, headerplacevec=NULL,
+                         expqte, probs, rownamesvec,
+                         caption=NULL,fontsize=NULL,tableloc=NULL,
+                         tablenotes=NULL, notessize="small", label=NULL) {
+
+    ##QTEboot objects should contain
+    numprobs <- length(probs)
+    numcols <- 1 + 2*numprobs + 2 #add columns for column name, estimate, difference between experimental group, att, and att diff
+    ##make the output
+    str <- "\\begin{table}"
+    if (!is.null(tableloc)) {
+        str <- paste0(str, "[", tableloc, "!]\n")
+    }
+    if (!is.null(caption)) {
+        str <- paste0(str, "\\caption{", caption, "}\n")
+    }
+    if (!is.null(fontsize)) {
+        str <- paste0(str, "\\small\n")
+    }
+    str <- paste0(str, "\\resizebox{\\columnwidth}{!}{%\n")
+    str <- paste0(str,"\\begin{tabular}{l",
+                  paste0(rep("c", numcols-1),collapse=""), "}\n")
+    str <- paste0(str, "\\hline\n")
+    str <- paste0(str, "    & ", paste0(probs, " & Diff & ", collapse=""),
+                  "ATT & Diff \\Tstrut \\Bstrut \\\\\n")
+    str <- paste0(str, "\\hline\n")
+
+    headcounter <- 1
+    for (i in 1:length(qtebootlist)) {
+        inloopcounter <- 1
+        if (!is.null(headerplacevec)) {
+            if(headcounter <= length(headerplacevec)) {
+                if (i == headerplacevec[headcounter]) {
+                    str <- paste0(str, "\\multicolumn{", numcols,
+                                  "}{c}{\\underline{",headervec[headcounter],
+                                  "}} \\Tstrut \\Bstrut \\\\\n")
+                    headcounter <- headcounter + 1
+                }
+            }
+        }
+
+        while(inloopcounter != 3) {
+            
+            if (inloopcounter==1) {
+                str <- paste0(str, rownamesvec[i],
+                              paste0(" & ",
+                                     char.decimal(c(qtebootlist[[i]]$qte,
+                                                    qtebootlist[[i]]$att),
+                                                  2, divideby=1000,
+                                                  se=c(qtebootlist[[i]]$qte.se,
+                                                      qtebootlist[[i]]$att.se)),
+                                     " & ",
+                                     char.decimal(c(qteDiffbootlist[[i]]$qte.diff,
+                                             qteDiffbootlist[[i]]$att.diff),2,
+                                                  divideby=1000,
+                                                  se=c(qteDiffbootlist[[i]]$qte.diff.se,
+                                                      qteDiffbootlist[[i]]$att.diff.se)),
+                                     collapse=""),"\\\\\n")
+                
+                inloopcounter <- 2
+            } else if (inloopcounter==2) { #this is a standard error row
+                str <- paste0(str,
+                              paste0(" & (",
+                                     char.decimal(c(qtebootlist[[i]]$qte.se,
+                                             qtebootlist[[i]]$att.se),2,
+                                                  divideby=1000),
+                                     ") & (",
+                                     char.decimal(c(qteDiffbootlist[[i]]$qte.diff.se,
+                                                    qteDiffbootlist[[i]]$att.diff.se),2,
+                                                  divideby=1000),
+                                     ")",
+                                     collapse=""), "\\Bstrut \\\\\n")
+                inloopcounter <- 3
+            }
+        }
+    }
+
+    ##bounds - include this in separate table
+    ##if (!is.null(pi.bounds)) {
+        ##TODO: fill this in.
+        ##str <- paste0
+    ##}
+
+    ##experimental results
+    str <- paste0(str, "\\hline\n")
+    str <- paste0(str, "Experimental", paste0(" & ", char.decimal(expqte,2),
+                                              " &", collapse=""),
+                  "\\Tstrut \\Bstrut \\\\\n")
+
+    ##end the table
+    str <- paste0(str, "\\hline\n")
+    str <- paste0(str, "\\end{tabular}\n")
+    str <- paste0(str, "}\n")
+    if (!is.null(tablenotes)) {
+        str <- paste0(str, "\\" , notessize, "{\\\\ \\textit{Notes:} ",
+                      tablenotes, "}\n")
+    }
+    if (!is.null(label)) {
+        str <- paste0(str, "\\label{", label, "}\n")
+    }
+    str <- paste0(str, "\\end{table}")
+    
+    cat(str)
+    return(str)
+}
 
 
-#ptm = proc.time()
-#Rprof()
-#call athey-imbens with two periods
-lalonde.ai = athey.imbens(re ~ treat, t=1978, tmin1=1975, tname="year", x=NULL,
-                     data=lalonde.data, dropalwaystreated=FALSE,
-                     idname="id", uniqueid="uniqueid",
-                     y.seq=sort(unique(lalonde.exp$re78)),
-                     probs=probs)
-#Rprof(NULL)
-#summaryRprof()
-#proc.time()-ptm
+##qtebootlist <- list(boot.lalonde.ai.cov, boot.lalonde.ai.unem,
+##                    boot.lalonde.ai.nocov, boot.lalonde.qdid.cov,
+##                    boot.lalonde.qdid.unem, boot.lalonde.qdid.nocov)
+headervec <- c("PanelQTET Method", "Conditional Independence Method",
+               "Change in Changes",
+               "Quantile D-i-D", "Mean D-i-D")
+headerplacevec <- c(1, 4, 8, 11, 14)
+rownamesvec <- c("PanelQTET Cov", "PanelQTET Unem", "PanelQTET No Cov",
+                 "CI Cov", "CI Unem","CI RE", "CI No Cov",
+                 "CiC Cov", "CiC Unem", "CiC No Cov",
+                 "QDiD Cov", "QDiD Unem", "QDiD No Cov",
+                 "MDiD Cov", "MDiD Unem", "MDiD No Cov")
+caption <- "QTET Estimates for Job Training Program"
+tablenotes <- "This table provides estimates of the QTET for $\\tau=c(0.7,0.8,0.9)$ using a variety of methods on the observational dataset.  The columns labeled `Diff' provide the difference between the estimated QTET and the QTET obtained from the experimental portion of the dataset.  The columns identify the method (PanelQTET, CI, CiC, QDiD, or MDiD) and the set of covariates ((i) COV: Age, Education, Black dummy, Hispanic dummy, Married dummy, and No HS Degree dummy; (ii) UNEM: COV plus Unemployed in 1974 dummy and Unemployed in 1975 dummy; (iii) RE: COV plus UNEM plus Real Earnings in 1974 and Real Earnings in 1975; and (iv) NO COV: no covariates).  The PanelQTET model and the CI model use propensity score re-weighting techniques based on the covariate set.  The CiC, QDiD, and MDiD method ``residualize'' (as outlined in the text) the outcomes based on the covariate set; the estimates come from using the no covariate method on the ``residualized'' outcome.  Standard errors are produced using 100 bootstrap iterations.  The significance level is 5\\%."
+label <- "table:results"
+
+
+qtetable <- makeQTEtable(qtebootlist, headervec, headerplacevec,
+                     c(actual.qte,actual.att), 
+             probs=probs,
+             rownamesvec=rownamesvec,
+                         caption=caption,
+                         tablenotes=tablenotes,
+                         fontsize="small", notessize="scriptsize",
+             tableloc="t")
+
+fileConn = file("../paper/tables/qtetable.tex")
+writeLines(qtetable, fileConn)
+close(fileConn)
+
+
+
+###Make the table with bounds
+makeBoundsTable <- function(pi.bounds, expqte, probs, rownamesvec,
+                         caption=NULL,fontsize=NULL,tableloc=NULL,
+                         tablenotes=NULL, label=NULL) {
+
+    ##QTEboot objects should contain
+    numprobs <- length(probs)
+    numcols <- 1 + 2*numprobs + 2 #add columns for column name, estimate, difference between experimental group, att, and att diff
+    ##make the output
+    str <- "\\begin{table}"
+    if (!is.null(tableloc)) {
+        str <- paste0(str, "[", tableloc, "!]\n")
+    }
+    if (!is.null(fontsize)) {
+        str <- paste0(str, "\\small\n")
+    }
+    str <- paste0(str,"\\begin{tabular}{l",
+                  paste0(rep("c", numcols-1),collapse=""), "}\n")
+    str <- paste0(str, "\\hline\n")
+    str <- paste0(str, paste0(" & \\multicolumn{2}{c}{\\underline{",probs,"}}",
+                              collapse=""), "& & \\Tstrut \\Bstrut \\\\\n")
+    str <- paste0(str, "    ", paste0(rep(" & LB & UB ", length(probs)),
+                                        collapse=""),
+                  "& ATT & Diff \\\\\n")
+    str <- paste0(str, "\\hline\n")
+
+    ##report the bounds
+    for (i in 1:length(pi.bounds)) {
+        if (i == 1) {
+            str <- paste0(str, "\\Tstrut ") #adds extra height to first row
+        }
+        
+        str <- paste0(str,rownamesvec[i])
+
+        str <- paste0(str, paste0(" & [", char.decimal(pi.bounds[[i]]$lb.qte),
+                                  ", & ",
+                                  char.decimal(pi.bounds[[i]]$ub.qte),
+                                  "] ", collapse=""),
+                      " & ", char.decimal(pi.bounds[[i]]$att), " & ",
+                      char.decimal(pi.bounds[[i]]$att-expqte[length(expqte)]),
+                      " \\Bstrut \\\\\n")
+    }
+    
+    ##experimental results
+    str <- paste0(str, "\\hline\n")
+    str <- paste0(str, "Experimental", paste0(" & ", char.decimal(expqte,2),
+                                              " &", collapse=""),
+                  "\\Tstrut \\Bstrut \\\\\n")
+
+    ##end the table
+    str <- paste0(str, "\\hline\n")
+    str <- paste0(str, "\\end{tabular}\n")
+    if (!is.null(tablenotes)) {
+        str <- paste0(str, "\\small{\\textit{Notes:} ", tablenotes, "}\n")
+    }
+    if (!is.null(label)) {
+        str <- paste0(str, "\\label{", label, "}\n")
+    }
+    str <- paste0(str, "\\end{table}")
+    
+    cat(str)
+    return(str)
+}
+
+bounds.table <- makeBoundsTable(pi.bounds, c(actual.qte,actual.att), probs,
+             rownamesvec=c("Cov", "Unem", "No Cov"),
+             caption="Brant is cool", fontsize="small",
+             tableloc="t")
+
+fileConn = file("../paper/tables/boundstable.tex")
+writeLines(bounds.table, fileConn)
+close(fileConn)
 
 
 ###FIGURES###
+
+##plot experimental QTE
+plot(probs,employed.actual.qte,type="l")
+lines(probs, actual.qte, type="l")
+
 
 #1) Experimental Plots
 #1.a) Experimental CDF
@@ -653,38 +949,51 @@ lalonde.exp$id <- 1
 lalonde.exp$cat <- 1
 lalonde.psid$cat <- 2*(1-lalonde.psid$treat)
 lalonde.all <- rbind(subset(lalonde.exp, treat==0), lalonde.psid)
-require(tabular)
+require(tables)
 require(Hmisc)
 
-tabular( (re78+re75+re74+u75+u74+age+education+black+hispanic+married+nodegree) ~ (n=1) + (Format(digits=2))*(Category=as.factor(cat))*(mean+sd), data=lalonde.all)
+tabular( (re78+re75+re74+age+education+black+hispanic+married+nodegree+u75+u74) ~ (n=1) + (Format(digits=2))*(Category=as.factor(cat))*(mean+sd), data=lalonde.all)
 
 #calculate the normalized difference
-nd <- function(xvec, yvec) {
+nd <- function(xvec, yvec, digits=NULL) {
     nx <- length(xvec)
     ny <- length(yvec)
     num <- mean(xvec) - mean(yvec)
     denom <- sqrt(var(xvec) + var(yvec))
-    num/denom
+    if (is.null(digits)) { 
+        return(num/denom)
+    } else {
+        return(round(num/denom, digits=digits))
+    }
 }
 
 #specialize normalized difference method to work
 #for the lalonde dataset called by tabular
-lalonde.nd <- function(xvec, yvec)
+lalonde.nd <- function(xvec, yvec,digits=2) {
     #note that we want to calculate everything relative to the treated group
     #so we want to pass only the treated obs on to nd method in yvec
-    nd(xvec, yvec[which(lalonde.all$cat==0)])
+    ##old, I think that I need to reverse order?
+    ##nd(xvec, yvec[which(lalonde.all$cat==0)], digits=digits)
+    nd(yvec[which(lalonde.all$cat==0)],xvec,digits=digits)
 }
 
 #this creates a table for wages by treated, randomized, observational
-latex(tabular( (re78 + re75 + re74) ~
+latex(tabular( (I(re78/1000) + I(re75/1000) + I(re74/1000)) ~
 Format(digits=2)*(Treated=(cat==0))*(mean+sd) +
     Format(digits=2)*(Randomized=(cat==1))*(mean+sd+(nd=(Percent(fn=lalonde.nd)))) +
     Format(digits=2)*(Observational=(cat==2))*(mean+sd+(nd=(Percent(fn=lalonde.nd)))),
 data=lalonde.all))
 
 #this creates a table for covariates by treated, randomized, observational
-latex(tabular( (u75+u74+age+education+black+hispanic+married+nodegree) ~
-Format(digits=2)*(Treated=(cat==0))*(mean+sd) +
-    Format(digits=2)*(Randomized=(cat==1))*(mean+sd+(nd=(Percent(fn=lalonde.nd)))) +
-    Format(digits=2)*(Observational=(cat==2))*(mean+sd+(nd=(Percent(fn=lalonde.nd)))),
+latex(tabular( (I(re78/1000) + I(re75/1000) + I(re74/1000) + age+education+black+hispanic+married+nodegree+u75+u74) ~
+Format(digits=1)*((Treated=(cat==0))*(mean+sd) +
+    (Randomized=(cat==1))*(mean+sd+(nd=(Percent(fn=lalonde.nd)))) +
+    (Observational=(cat==2))*(mean+sd+(nd=(Percent(fn=lalonde.nd))))),
+data=lalonde.all))
+
+##remove normalized difference (for presentation)
+latex(tabular( (I(re78/1000) + I(re75/1000) + I(re74/1000) + age+education+black+hispanic+married+nodegree+u75+u74) ~
+Format(digits=1)*((Treated=(cat==0))*(mean+sd) +
+    (Randomized=(cat==1))*(mean+sd) +
+    (Observational=(cat==2))*(mean+sd)),
 data=lalonde.all))

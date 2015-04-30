@@ -1,19 +1,11 @@
 Package: qte
 Type: Package
-Title: Various methods to estimate quantile treatment effects
-Version: 1.0
-Date: 2014-05-08
+Title: Quantile Treatment Effects
+Version: 1.0.1
+Date: 2015-04-23
 Author: Brantly Callaway
 Maintainer: Brantly Callaway <brantly.m.callaway@vanderbilt.edu>
-Description: Provides several methods to estimate quantile treatment effects.
-    In the case where selection on observables holds (i.e. treatment is
-    essentially random after controlling for some covariates), the user should
-    use the method SoO.Qte that implements the method in Firpo (2007).  When
-    treatment is random, the user can use the same method, but provide no
-    covariates.  When the user has access to panel data, then they should use
-    the method panelDiD.Qte.  Finally, when the user has access to an available
-    instrumental variable, then they should use iv.Qte.
+Description: The qte package provides several methods for computing the Quantile Treatment Effect (QTE) and Quantile Treatment Effect on the Treated (QTET).  The main cases covered are (i) Treatment is randomly assigned, (ii) Treatment is as good as randomly assigned after conditioning on some covariates (also called conditional independence or selection on observables), (iii) Identification is based on a Difference in Differences assumption (several varieties are available in the package).
+Depends: R
 License: GPL-2
-Imports:
-    Rcpp (>= 0.11.1)
-LinkingTo: Rcpp, RcppGSL
+LazyData: true
