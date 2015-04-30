@@ -1,12 +1,3 @@
-##TODO: check which of these packages are actually needed
-##require(np)
-##require(MASS)
-##require(Rcpp)
-##require(copula)
-
-#use this line for prototyping; comment for building package
-##sourceCpp("~/Documents/school/projects/Common App/data/qte/src/qtecpp.cpp")
-
 #####MAIN FUNCTIONS#####
 
 #####Panel QTE#####
@@ -2688,99 +2679,6 @@ plot.BoundsObj <- function(bounds.obj, plotate=FALSE, plot0=FALSE,
 }
 
 
-##change function takes a panel data set, and takes the time 
-##difference of a particular variable, returning NA
-##in the first year
-#' @title change
-#' @description Not sure this is used anymore
-#' @keywords internal
-change <- function(xname, idname, tname, data, withBetweenYears=TRUE) {
-    mint = min(data[,tname])
-    maxt = max(data[,tname])
-    data$outvec = NA #we will change this value, but only
-    ##for the years 2-end
-    
-    ##debug
-    out.xname <<-xname
-    out.data <<- data
-    out.withBetweenYears <<- withBetweenYears
-    out.idname <<- idname
-    out.tname <<-tname
-    
-    if (withBetweenYears) {
-        for(t in (mint+1):maxt) {
-            for(id in unique(data[,idname])) {
-                data[which(t == data[,tname] & id == data[,idname]),]$outvec =
-                    data[which(t == data[,tname] & id == data[,idname]),xname] -
-                        data[which((t-1) == data[,tname] & id == data[,idname]),xname]
-            }
-        }
-    } else {
-        ##the else case is if you only want to get the lag between two years
-        for (id in unique(data[,idname])) {
-            ## Debug
-            out.id <<- id
-            out.data <<- data
-            out.outvec <<- out.data$outvec
-            out.breakmatch <<- data[which(mint == data[,tname] & id == data[,idname]),xname]
-            ##
-            data[which(maxt == data[,tname] & id == data[,idname]),]$outvec =
-                data[which(maxt == data[,tname] & id == data[,idname]),xname] -
-                    data[which(mint == data[,tname] & id == data[,idname]),xname]
-        }
-    }
-    return(data$outvec)
-} 
-
-##getLag is the exact same as change function
-##except just recover the lagged value instead
-##of taking difference with something you already
-##have.
-##Changes: add parameter withBetweenYears
-## when this is set to false, the function will only
-## compute the lag over the two time periods in the data
-## [probably should just adjust this so that it can 
-## work with whatever data is passed, but this will
-## work for now.]
-## #'@title getLag
-## #'@keywords internal
-## getLag <- function(xname, idname, tname, data, withBetweenYears=TRUE) {
-##    mint = min(data[,tname])
-##    maxt = max(data[,tname])
-##    data$outvec = NA #we will change this value, but only
-    ##for the years 2-end
-    
-    ##debug
-##    out.xname <<-xname
-##    out.data <<- data
-##    out.withBetweenYears <<- withBetweenYears
-##    out.idname <<- idname
-##    out.tname <<-tname
-    
-##    if (withBetweenYears) {
-##        for(t in (mint+1):maxt) {
-##            for(id in unique(data[,idname])) {
-##                data[which(t == data[,tname] & id == data[,idname]),]$outvec =
-##                    data[which((t-1) == data[,tname] & id == data[,idname]),xna## me]
-##            }
-##        }
-##    } else {
-##        ##the else case is if you only want to get the lag between two years
-##        for (id in unique(data[,idname])) {
-##            ## Debug
-##            out.id <<- id
-##            out.data <<- data
-##            out.outvec <<- out.data$outvec
-##            out.breakmatch <<- data[which(mint == data[,tname] & id == data[,idname]),xname]
-            ##
-##            data[which(maxt == data[,tname] & id == data[,idname]),]$outvec =
-##                data[which(mint == data[,tname] & id == data[,idname]),xname]
-                                        #test.data <<- data ...Not sure what this does
-##        }
-##    }
-##    return(data$outvec)
-##}
-
 ###makeBalancedPanel is a function to take a dataset
 ## and make sure that all years are available for 
 ## all observations.  If some years are not available,
@@ -2815,38 +2713,6 @@ makeBalancedPanel <- function(data, idname, tname) {
     }
     return(data)
 }
-
-
-##Looks like this is not used anymore
-##
-##one idea here is to also pass the random numbers that generated
-##the bootstrap data and just append that onto the end (should work)
-##this function adjusts bootdata idnames
-##so that there are no more duplicates
-#' @title process.bootdata
-#' @keywords internal
-##process.bootdata <- function(data, idname, uniqueid) {
-    ##duplicated function works perfectly for this, I think
-##    this.data = data
-##    add.to.end = 1
-##    while (any(duplicated(this.data[,uniqueid]))) {
-##        this.data[duplicated(this.data[,uniqueid]), idname] = 
-##            sapply(this.data[duplicated(this.data[,uniqueid]), idname],
-##                   FUN=paste, add.to.end, sep="-")
-        ##this doesn't follow exact naming pattern as previous
-        ##unique ids, but I think it will be ok because we don't
-        ##use it anywhere but here; and it is easy to implement
-##        this.data[duplicated(this.data[,uniqueid]), uniqueid] = 
-##            sapply(this.data[duplicated(this.data[,uniqueid]), uniqueid],
-##                   FUN=paste, add.to.end, sep="-")
-##        add.to.end = add.to.end + 1
-##        if (add.to.end > 20) {
-            ##do this just in case we start spinning
-            
-##        }
-##    }
-##    return(this.data)
-##}
 
 
 
