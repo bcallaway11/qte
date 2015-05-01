@@ -1,6 +1,6 @@
 #####MAIN FUNCTIONS#####
 
-#####Panel QTE#####
+#####Panel QTET#####
 ##Idea here is that we can use information from a third period
 ##to point identify counterfactual distribution of outcomes
 ##for the treated group
@@ -983,7 +983,7 @@ panel.qtet <- function(formla, t, tmin1, tmin2,
 
 
 ####Cross-sectional QTET method using Firpo (2007)########
-#' @title compute.qtet
+#' @title compute.ci.qtet
 #' 
 #' @inheritParams panel.qtet
 #' @param x Vector of covariates.  Default is no covariates
@@ -993,7 +993,7 @@ panel.qtet <- function(formla, t, tmin1, tmin2,
 #' @keywords internal
 #' 
 #' @return QTE object
-compute.qtet = function(formla, x=NULL, data, probs=seq(0.05,0.95,0.05), method="logit") {
+compute.ci.qtet = function(formla, x=NULL, data, probs=seq(0.05,0.95,0.05), method="logit") {
     form = as.formula(formla)
     dta = model.frame(terms(form,data=data),data=data) #or model.matrix
     colnames(dta) = c("y","treatment")
@@ -1077,9 +1077,9 @@ compute.qtet = function(formla, x=NULL, data, probs=seq(0.05,0.95,0.05), method=
     
 }
 
-#' @title qtet
+#' @title ci.qtet
 #'
-#' @description The \code{qtet} method implements estimates the Quantile
+#' @description The \code{ci.qtet} method implements estimates the Quantile
 #' Treatment Effect on the Treated (QTET) under a Conditional Independence
 #' Assumption (sometimes this is called Selection on Observables) developed
 #' in Firpo (2007).  This method using propensity score re-weighting
@@ -1111,19 +1111,19 @@ compute.qtet = function(formla, x=NULL, data, probs=seq(0.05,0.95,0.05), method=
 #' ## in the job training program are likely to be much different than
 #' ## individuals that do not (e.g. less experience and less education), this
 #' ## method is likely to perform poorly at estimating the true QTET
-#' q1 <- qtet(re78 ~ treat, x=NULL, data=lalonde.psid, se=FALSE,
+#' q1 <- ci.qtet(re78 ~ treat, x=NULL, data=lalonde.psid, se=FALSE,
 #'  probs=seq(0.05,0.95,0.05))
 #' summary(q1)
 #' 
 #' ##This estimation controls for all the available background characteristics.
-#' q2 <- qtet(re78 ~ treat, 
+#' q2 <- ci.qtet(re78 ~ treat, 
 #'  x=c("age","education","black","hispanic","married","nodegree"),
 #'  data=lalonde.psid, se=FALSE, probs=seq(0.05, 0.95, 0.05))
 #' summary(q2)
 #'
 #' @return QTE object
 #' @export
-qtet <- function(formla, x=NULL, data, probs=seq(0.05,0.95,0.05), se=TRUE,
+ci.qtet <- function(formla, x=NULL, data, probs=seq(0.05,0.95,0.05), se=TRUE,
                  iters=100, alp=0.05, plot=FALSE, method="logit",
                  seedvec=NULL, indsample=TRUE,
                  printIter=FALSE) {
@@ -1145,7 +1145,7 @@ qtet <- function(formla, x=NULL, data, probs=seq(0.05,0.95,0.05), se=TRUE,
     untreated.t = data[data[,treat]==0,]
     
     ##first calculate the actual estimate
-    firpo.qtet <- compute.qtet(formla=formla, x=x,data=data, probs=probs,
+    firpo.qtet <- compute.ci.qtet(formla=formla, x=x,data=data, probs=probs,
                                method=method)
 
     if (se) {
@@ -1171,7 +1171,7 @@ qtet <- function(formla, x=NULL, data, probs=seq(0.05,0.95,0.05), se=TRUE,
                 boot.data <- rbind(boot.data.treated.t, boot.data.untreated.t)
                 
                 ##boot.data = process.bootdata(boot.data, idname, uniqueid)
-                thisIter = compute.qtet(formla=formla, x=x, data=boot.data,
+                thisIter = compute.ci.qtet(formla=formla, x=x, data=boot.data,
                     probs=probs, method=method)
                 eachIter[[i]] = thisIter ##list(att = thisIter$att, qte=thisIter$qte)
 
@@ -1189,7 +1189,7 @@ qtet <- function(formla, x=NULL, data, probs=seq(0.05,0.95,0.05), se=TRUE,
                 boot.data <- data[randy,]
                 ##boot.data = process.bootdata(boot.data, idname, uniqueid)
                 out.bootdatalist[[i]] <- boot.data
-                thisIter = compute.qtet(formla=formla, x=x, data=boot.data,
+                thisIter = compute.ci.qtet(formla=formla, x=x, data=boot.data,
                     probs=probs, method=method)
                 eachIter[[i]] = thisIter##list(ate = thisIter$ate, qte=thisIter$qte)
                 if (printIter) {
@@ -1208,6 +1208,237 @@ qtet <- function(formla, x=NULL, data, probs=seq(0.05,0.95,0.05), se=TRUE,
         return(out)
     } else {
         return(firpo.qtet)
+    }
+
+}
+
+
+####Cross-sectional QTE method using Firpo (2007)########
+#' @title compute.ci.qte
+#' 
+#' @inheritParams panel.qtet
+#' @param x Vector of covariates.  Default is no covariates
+#' @param method Method to compute propensity score.  Default is logit; other
+#'  option is probit.
+#'
+#' @keywords internal
+#' 
+#' @return QTE object
+compute.ci.qte = function(formla, x=NULL, data, probs=seq(0.05,0.95,0.05), method="logit") {
+    form = as.formula(formla)
+    dta = model.frame(terms(form,data=data),data=data) #or model.matrix
+    colnames(dta) = c("y","treatment")
+    yname="y"
+    treat="treatment"
+    data=cbind.data.frame(dta,data)
+
+    ##setup the data
+    treated = data[data[,treat]==1,]
+    untreated = data[data[,treat]==0,]
+
+    ##no covariate att - will update if there are covariates
+    ate <- mean(treated[,yname]) - mean(untreated[,yname])
+
+    qte <- quantile(treated[,yname], probs=probs) -
+        quantile(untreated[,yname], probs=probs)
+    
+    n = nrow(data)
+
+    if (!is.null(x)) {
+        ##estimate the propensity score
+        pscore=fitted(glm(data[,treat] ~ as.matrix(data[,x]),
+            family=binomial(link=method)))
+        p = rep(nrow(treated)/(nrow(treated) + nrow(untreated)), n)
+        D <- data[,treat]
+        y <- data[,yname]
+        ##there are alternatives for how to compute the quantiles of 
+        ##treated outcomes for the treated group:
+        ##1) compute quantiles directly
+        treated.quantiles = quantile(treated[,yname], probs=probs)
+        ##2) use firpo method
+        ##checkfun will be called by the various functions to be minimized
+        ##in this routine
+        checkfun = function(a, tau) {
+            return(a*(tau - (1*(a<=0))))
+        }
+        treated.weights = D / (n * pscore)
+        minfun.inner = function(q, tau, weights) {
+            retval = sum(weights*checkfun(data[,yname]-q, tau))
+            return(retval)
+        }
+
+        get.firpo.quantiles = function(tau, weights) {
+            return(optimize(minfun.inner, 
+                            lower=min(data[,yname]),
+                            upper=max(data[,yname]),
+                            tau=tau,weights=weights)$minimum)
+        }
+        treated.firpo.quantiles = vapply(probs, FUN=get.firpo.quantiles,
+            FUN.VALUE=1, weights=treated.weights)
+        
+        untreated.weights = (1-D) / (n * (1-pscore) )
+        untreated.firpo.quantiles = vapply(probs, FUN=get.firpo.quantiles,
+            FUN.VALUE=1, weights=untreated.weights)
+        
+        qte <- treated.firpo.quantiles - untreated.firpo.quantiles
+
+        ate <- mean( ((D-pscore)*y) / (pscore*(1-pscore)) )
+
+        ##Alternative method for calculating the distribution of each
+        ##potential outcome using moment conditions.
+        ##comment this out (unused)
+        ##F.treated <- ecdf(treated[,yname])
+        ##F.treatedcf.fun <- function(y) {
+        ##    pterm <- pscore/((1-pscore)*p)
+        ##    Dterm <- 1 - data[,treat]
+        ##    yterm <- 1*(data[,yname] < y)
+        ##    mean(pterm*Dterm*yterm)
+        ##} #something appears to be off here for 0 wages, otherwise, everything good!
+        ##y.seq <- seq(min(data[,yname]), max(data[,yname]), length.out=500)
+        ##F.treatedcf = approxfun(y.seq,
+        ##    vapply(y.seq, FUN=F.treatedcf.fun, FUN.VALUE=1)
+        ##    , method="constant", yleft=0, yright=1, f=0, ties="ordered")
+        ##class(F.treatedcf) = c("ecdf", "stepfun", class(F.treatedcf.fun))
+        ##assign("nobs", nrow(treated), envir = environment(F.treatedcf))
+    }
+
+    out <- QTE(qte=qte, ate=ate, probs=probs)
+
+    return(out)
+    
+}
+
+#' @title ci.qte
+#'
+#' @description The \code{ci.qtet} method implements estimates the Quantile
+#' Treatment Effect (QTE) under a Conditional Independence
+#' Assumption (sometimes this is called Selection on Observables) developed
+#' in Firpo (2007).  This method using propensity score re-weighting
+#' and minimizes a check function to compute the QTET.  Standard errors
+#' (if requested) are computed using the bootstrap.
+#' 
+#' @inheritParams panel.qtet
+#' @param x Vector of covariates.  Default is no covariates
+#' @param method Method to compute propensity score.  Default is logit; other
+#'  option is probit.
+#' @param indsample Binary variable for whether to treat the samples as
+#'  independent or dependent.  This affects bootstrap standard errors.  In
+#'  the job training example, the samples are independent because they
+#'  are two samples collected independently and then merged.  If the data is
+#'  from the same source, usually should set this option to be FALSE.
+#' @param printIter For debugging only; should leave at default FALSE unless
+#'  you want to see a lot of output
+#'
+#' @references
+#' Firpo, Sergio.   ``Efficient Semiparametric Estimation of Quantile Treatment
+#'  Effects.'' Econometrica 75.1, pp. 259-276, 2015.
+#' 
+#' @examples
+#' ## Load the data
+#' data(lalonde)
+#'
+#' ##Estimate the QTET of participating in the job training program;
+#' ##This is the no covariate case.  Note: Because individuals that participate
+#' ## in the job training program are likely to be much different than
+#' ## individuals that do not (e.g. less experience and less education), this
+#' ## method is likely to perform poorly at estimating the true QTET
+#' q1 <- ci.qte(re78 ~ treat, x=NULL, data=lalonde.psid, se=FALSE,
+#'  probs=seq(0.05,0.95,0.05))
+#' summary(q1)
+#' 
+#' ##This estimation controls for all the available background characteristics.
+#' q2 <- ci.qte(re78 ~ treat, 
+#'  x=c("age","education","black","hispanic","married","nodegree"),
+#'  data=lalonde.psid, se=FALSE, probs=seq(0.05, 0.95, 0.05))
+#' summary(q2)
+#'
+#' @return QTE object
+#' @export
+ci.qte <- function(formla, x=NULL, data, probs=seq(0.05,0.95,0.05), se=TRUE,
+                 iters=100, alp=0.05, plot=FALSE, method="logit",
+                 seedvec=NULL, indsample=TRUE,
+                 printIter=FALSE) {
+    form = as.formula(formla)
+    dta = model.frame(terms(form,data=data),data=data) #or model.matrix
+    colnames(dta) = c("y","treatment")
+    yname="y"
+    treat="treatment"
+    data=cbind.data.frame(dta,data)
+
+    ##just to make sure the factors are working ok
+    data <- droplevels(data)
+    ##
+
+    ##a) get all the treated observations
+    treated.t = data[data[,treat]==1,]
+    
+    ##untreated at t
+    untreated.t = data[data[,treat]==0,]
+    
+    ##first calculate the actual estimate
+    firpo.qte <- compute.ci.qte(formla=formla, x=x,data=data, probs=probs,
+                               method=method)
+
+    if (se) {
+        ##now calculate the bootstrap confidence interval
+        eachIter <- list()
+        ##Need to build dataset by sampling individuals, and then
+        ##taking all of their time periods
+        n <- nrow(data)
+        nt <- nrow(treated.t)
+        nu <- nrow(untreated.t)
+        out.bootdatalist <- list()
+        for (i in 1:iters) {
+            if(!is.null(seedvec)) {
+                set.seed(seedvec[i])
+            }
+            if (indsample) {
+                randy.t = sample(1:nt, nt, replace=T)
+                randy.u <- sample(1:nu, nu, replace=T)
+
+                boot.data.treated.t <- treated.t[randy.t, ]
+                boot.data.untreated.t <- untreated.t[randy.u, ]
+
+                boot.data <- rbind(boot.data.treated.t, boot.data.untreated.t)
+                
+                ##boot.data = process.bootdata(boot.data, idname, uniqueid)
+                thisIter = compute.ci.qte(formla=formla, x=x, data=boot.data,
+                    probs=probs, method=method)
+                eachIter[[i]] = thisIter ##list(att = thisIter$att, qte=thisIter$qte)
+
+            } else {
+
+                ##reset boot.data
+                ##out.iter <- i
+                boot.data = data[0,]
+                randy = sample(1:n, n, replace=T)
+                ##there has to be a way to do this faster, but go with the loop
+                ##for now
+                ##for (j in all.ids[randy]) {
+                ##  boot.data = rbind(boot.data, data[(data[,idname]==j),])
+                ##}
+                boot.data <- data[randy,]
+                ##boot.data = process.bootdata(boot.data, idname, uniqueid)
+                out.bootdatalist[[i]] <- boot.data
+                thisIter = compute.ci.qte(formla=formla, x=x, data=boot.data,
+                    probs=probs, method=method)
+                eachIter[[i]] = thisIter##list(ate = thisIter$ate, qte=thisIter$qte)
+                if (printIter) {
+                    print(i)
+                }
+            }
+        }
+        
+        SEobj <- computeSE(eachIter, alp=alp)
+        
+        out <- QTE(qte=firpo.qte$qte, qte.upper=SEobj$qte.upper,
+                    qte.lower=SEobj$qte.lower, ate=firpo.qte$ate,
+                    ate.upper=SEobj$ate.upper, ate.lower=SEobj$ate.lower,
+                    qte.se=SEobj$qte.se, ate.se=SEobj$ate.se,
+                    probs=probs)
+        return(out)
+    } else {
+        return(firpo.qte)
     }
 
 }
@@ -1672,6 +1903,8 @@ compute.QDiD <- function(formla, t, tmin1, tname, x=NULL, data,
 #'  data=lalonde.psid.panel, idname="id", se=FALSE,
 #'  probs=seq(0.05, 0.95, 0.05))
 #' summary(qd1)
+#'
+#' @return QTE Object
 #' 
 #' @export
 QDiD <- function(formla, t, tmin1, tname, x=NULL,data,
@@ -1962,6 +2195,9 @@ compute.MDiD <- function(formla, t, tmin1, tname, x=NULL, data,
 #'
 #' Thuysbaert, Bram.  ``Distributional Comparisons in Difference in Differences
 #'  Models.'' Working Paper, 2007.
+#'
+#' @return A \code{QTE} object
+#' 
 #' @export
 MDiD <- function(formla, t, tmin1, tname, x=NULL,data,
                  dropalwaystreated=TRUE, panel=FALSE, se=TRUE,
@@ -2135,6 +2371,8 @@ MDiD <- function(formla, t, tmin1, tname, x=NULL,data,
 #' Fan, Yanqin and Zhengfei Yu.  ``Partial Identification of Distributional
 #'  and Quantile Treatment Effects in Difference-in-Differences Models.''
 #'  Economics Letters 115.3, pp.511-515, 2012.
+#'
+#' @return A \code{BoundsObj} object
 #' 
 #' @export
 bounds <- function(formla, t, tmin1, tname, x=NULL,data,
@@ -2735,7 +2973,8 @@ simple.quantile <- function(x,Fx,probs=c(0,0.25,0.5,0.75,1)) {
 #####SETUP CLASSES################
 #' @title QTE
 #'
-#' @description Main class of objects
+#' @description Main class of objects.  A \code{QTE} object is returned by
+#'  all of the methods that compute the QTE or QTET.
 #'
 #' @param qte The Quantile Treatment Effect at each value of probs
 #' @param qte.se A vector of standard errors for each qte
@@ -2875,7 +3114,7 @@ BoundsObj <- function(lbs, ubs, ub.quantiles, lb.quantiles, ub.qte,
 #'  Heckman and Hotz (1989), Dehejia and Wahba (1999), Smith and Todd (2005),
 #'  and Firpo (2007) have used this combination to study the effectiveness
 #'  of various `observational' methods (e.g. regression, Heckman selection,
-#'  Difference in Differences, and propensity score matching) estimate
+#'  Difference in Differences, and propensity score matching) of estimating
 #'  the Average Treatment Effect (ATE) of participating in the job training
 #'  program.  The idea is that the results from the observational method
 #'  can be compared to results that can be easily obtained from the
