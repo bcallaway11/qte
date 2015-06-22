@@ -264,7 +264,6 @@ compute.panel.qtet <- function(formla, xformla=NULL, t, tmin1, tmin2,
             ##now estimate moment conditions with gmm
             ##returns matrix of moment conditions for particular
             ##value of parameters
-            require(gmm)
             moments <- function(thet, datamat) {
                 bet <- as.matrix(thet[1:(length(thet)-1)])
                 p <- thet[length(thet)]
@@ -309,7 +308,7 @@ compute.panel.qtet <- function(formla, xformla=NULL, t, tmin1, tmin2,
 
             ##We use 2-step GMM
             ##1st stage GMM
-            browser()
+            ##browser()
             datamat <- cbind(xmat, d)
             ##need to set up some other variance matrix otherwise
             ##we will get singularities
@@ -345,7 +344,7 @@ compute.panel.qtet <- function(formla, xformla=NULL, t, tmin1, tmin2,
             ##    params <- optout$esimate #params from previous loop
             ##    mom <- moments(params) #this will be nxk
             ##    N <- nrow(mom)
-                optout <- nlm(p=params, f=minfun,
+            optout <- nlm(p=params, f=minfun,
                               W=solve(Omeg), datamat=datamat)
             params <- optout$estimate
 
@@ -421,7 +420,7 @@ compute.panel.qtet <- function(formla, xformla=NULL, t, tmin1, tmin2,
 
             ##TODO: this part is not complete
 
-            browser()
+            ##browser()
             
             semipar.data <- data.frame(pscore.data[,treat],xmat)
             colnames(semipar.data)[1] <- "treatment"
@@ -607,7 +606,7 @@ compute.panel.qtet <- function(formla, xformla=NULL, t, tmin1, tmin2,
             h.new <- cross.validation(h.seq, d, x)
             
             cross.validation <- function(h.seq,y,x) {
-                browser()
+                ##browser()
                 cv.vals <- vapply(h.seq, FUN=cv.min1, FUN.VALUE=1, y=y, x=x)
                 return(h.seq[which.min(cv.vals)])
             }
@@ -2149,7 +2148,7 @@ compute.MDiD <- function(formla, t, tmin1, tname, x=NULL, data,
     att = mean(treated.t[,yname]) - ( mean(treated.tmin1[,yname]) + mean(untreated.t[,yname]) - mean(untreated.tmin1[,yname]) )
     
     
-    ##add this to the plot
+    ##add this t othe plot
     if (plot) {
         abline(a=att, b=0)
     }
@@ -2543,7 +2542,8 @@ bounds <- function(formla, t, tmin1, tname, x=NULL,data,
 ##bootIters should contain ATT as first object in list
 #' @title computeDiffSE
 #'
-#' @description Takes two sets of initial estimates and bootstrap estimations
+#' @description Takes two sets of initial estimates and bootstrap
+#'  estimations
 #'  (they need to have the same number of iterations) and determines
 #'  whether or not the estimates are statistically different from each
 #'  other.  It can be used to compare any sets of estimates, but it is
@@ -2558,8 +2558,6 @@ bounds <- function(formla, t, tmin1, tname, x=NULL,data,
 #' @param bootIters2 A List of QTE objects that have been bootstrapped
 #'  using the second method
 #' @inheritParams panel.qtet
-#'
-#' @keywords internal
 computeDiffSE <- function(est1, bootIters1, est2, bootIters2, alp=0.05) {
     iters <- length(bootIters1)
     ate.diff <- est1$ate - est2$ate

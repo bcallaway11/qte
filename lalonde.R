@@ -1,8 +1,7 @@
-##load("lalonde workspace.RData")
-
 ##load source files
-require(causalsens)
-source("qte/R/qte.r")
+require(causalsens) ## this package contains the Lalonde source data
+require(qte) ## loads the qte package
+
 
 ##setup data
 data(lalonde.exp)
@@ -15,77 +14,104 @@ iters <- 100 #the number of bootstrap iterations to be used
 ##set up data
 ##make dataset into a panel for calls to functions below
 lalonde.psid$id = as.integer(rownames(lalonde.psid))
-tempdata3 = cbind(year=1978, lalonde.psid[,c("id","re78","treat","age","education","black",
-                                "hispanic","married","nodegree","u74","u75")])
-tempdata2 = cbind(year=1975, lalonde.psid[,c("id","re75","treat","age","education","black",
-                                "hispanic","married","nodegree","u74","u75")])
-tempdata1 = cbind(year=1974, lalonde.psid[,c("id","re74","treat","age","education","black",
-                                "hispanic","married","nodegree","u74","u75")])
-colnames(tempdata3) = colnames(tempdata2) = colnames(tempdata1) = c("year","id","re","treat","age","education","black",
-                                                                    "hispanic","married","nodegree","u74","u75")
+tempdata3 = cbind(year=1978, lalonde.psid[,c("id","re78","treat","age",
+                      "education","black","hispanic","married",
+                      "nodegree","u74","u75","re74","re75")])
+tempdata2 = cbind(year=1975, lalonde.psid[,c("id","re75","treat","age",
+                      "education","black","hispanic","married",
+                      "nodegree","u74","u75","re74","re75")])
+tempdata1 = cbind(year=1974, lalonde.psid[,c("id","re74","treat","age",
+                      "education","black","hispanic","married",
+                      "nodegree","u74","u75","re74","re75")])
+( colnames(tempdata3) = colnames(tempdata2) = colnames(tempdata1) =
+ c("year","id","re","treat","age","education","black",
+   "hispanic","married","nodegree","u74","u75","re74","re75") )
 lalonde.data = rbind(tempdata3,tempdata2,tempdata1)
 lalonde.data$uniqueid = paste(lalonde.data$id,lalonde.data$year,sep="-")
 
 ##do the same thing to have panel with experimental data
 lalonde.exp$id = as.integer(rownames(lalonde.exp))
-tempdata3 = cbind(year=1978, lalonde.exp[,c("id","re78","treat","age","education","black",
-                                "hispanic","married","nodegree","u74","u75")])
-tempdata2 = cbind(year=1975, lalonde.exp[,c("id","re75","treat","age","education","black",
-                                "hispanic","married","nodegree","u74","u75")])
-tempdata1 = cbind(year=1974, lalonde.exp[,c("id","re74","treat","age","education","black",
-                                "hispanic","married","nodegree","u74","u75")])
-colnames(tempdata3) = colnames(tempdata2) = colnames(tempdata1) = c("year","id","re","treat","age","education","black","hispanic","married","nodegree","u74","u75")
-lalonde.exp.data = rbind(tempdata3,tempdata2,tempdata1)
-lalonde.exp.data$uniqueid = paste(lalonde.exp.data$id,lalonde.exp.data$year,sep="-")
+tempdata3 = cbind(year=1978, lalonde.exp[,c("id","re78","treat","age",
+                      "education","black","hispanic","married",
+                      "nodegree","u74","u75","re74","re75")])
+tempdata2 = cbind(year=1975, lalonde.exp[,c("id","re75","treat","age",
+                      "education","black","hispanic","married",
+                      "nodegree","u74","u75","re74","re75")])
+tempdata1 = cbind(year=1974, lalonde.exp[,c("id","re74","treat","age",
+                      "education","black","hispanic","married",
+                      "nodegree","u74","u75","re74","re75")])
+( colnames(tempdata3) = colnames(tempdata2) = colnames(tempdata1) =
+ c("year","id","re","treat","age","education","black",
+   "hispanic","married","nodegree","u74","u75","re74","re75") )
+ lalonde.exp.data = rbind(tempdata3,tempdata2,tempdata1)
+ lalonde.exp.data$uniqueid = paste(lalonde.exp.data$id,
+     lalonde.exp.data$year,sep="-")
+
+## Some additional covariates used in the nonparametric pscore
+## specification below
+lalonde.data$age2 <- lalonde.data$age^2
+lalonde.data$education2 <- lalonde.data$education^2
+lalonde.data$re742 <- lalonde.data$re74^2
 
 
-###TABLES###
-
+#####################################################################
+#####                  GENERATE TABLES                      #########
+#####################################################################
+ 
 ##TABLE 2 RESULTS
 ##1)experimental QTE and ATT
-actual.qte = quantile(subset(lalonde.exp,treat==1)$re78,probs=probs) - quantile(subset(lalonde.exp,treat==0)$re78,probs=probs)
-actual.att <- mean(subset(lalonde.exp,treat==1)$re78) - mean(subset(lalonde.exp,treat==0)$re78)
+actual.qte = quantile(subset(lalonde.exp,treat==1)$re78,probs=probs) -
+ quantile(subset(lalonde.exp,treat==0)$re78,probs=probs)
+actual.att <- mean(subset(lalonde.exp,treat==1)$re78) -
+ mean(subset(lalonde.exp,treat==0)$re78)
 
+## set the seed for bootstrap
 set.seed(29280)
 seedvec <- runif(iters)*99999
 
+##NOTE:
+## to compute the standard error of difference between estimated and actual
+## qtet/att, need to also bootstrap the experimental part
+## just need to do this once as it will be the same every time
+## because of the way that we are setting the seed
+## and can use qtet method (w/ no covariates) to recover the experimental
+## qtet.  The advantage of this is that it already has bootstrap
+## features built in
 
-##to compute the standard error of the difference between estimated and actual
-##qtet/att, need to also bootstrap the experimental part
-##just need to do this once as it will be the same every time
-##because of the way that we are setting the seed
-##and can use qtet method (w/ no covariates) to recover the experimental
-##qtet.  The advantage of this is that it already has bootstrap features built in
-lalonde.exp.boot <- qtet(re78 ~ treat,
-    ##x=c("age","education","black","hispanic",
-    ##                  "married","nodegree","u74","u75","re74","re75"),
-    ##x=x,
+## experimental results with bootstrapped standard errors
+lalonde.exp.boot <- ci.qtet(re78 ~ treat,
     x=NULL,
     data=lalonde.exp,
     probs=probs, se=T, iters=iters, indsample=T, seedvec=seedvec)
 
-
+## A list of covariates that will be used for each method
 xlist <- list(c("age","education","black","hispanic","married",
                       "nodegree"), c("age","education","black","hispanic",
                                 "married","nodegree","u74","u75"), NULL)
 
+## These will hold the results of each method; then we print at end
 qtebootlist <- list()
 panelbootlist <- list()
 qteDiffbootlist <- list()
 panelDiffbootlist <- list()
-for (x in xlist) {
-    
+
+## Add additional specification for series logit
+xlist1 <- c(list(c("age","education","black","hispanic","married",
+                 "nodegree","u74","u75","re74","re75","age2",
+                 "education2","re742"), xlist[[1]]), list(xlist[[2]]),
+            list(xlist[[3]]))
+
+for (x in xlist1) {
 ##call Panel qte method
-lalonde.panel <- panel.qte(re ~ treat,
+lalonde.panel <- panel.qtet(re ~ treat,
                            tname="year",t=1978, tmin1=1975, tmin2=1974,
                            data=lalonde.data, idname="id",
-                           x=c("age","education","black","hispanic",
-                               "married","nodegree"),
-                           ##x=NULL,
-                           ##x=x,
+                           ##x=c("age","education","black","hispanic",
+                           ##    "married","nodegree"),
+                           x=x,
                            probs=probs,
                            dropalwaystreated=FALSE, plot=F,
-                           method="GMM", se=F, iters=iters,
+                           method="logit", se=T, iters=iters)
                            seedvec=seedvec)
 
 diffy <- computeDiffSE(lalonde.panel, lalonde.panel$eachIter,
@@ -97,17 +123,13 @@ panelbootlist <- c(panelbootlist, list(lalonde.panel))
 qtebootlist <- c(qtebootlist, list(lalonde.panel))
 }
 
-xlist1 <- c(list(xlist[[1]]), list(xlist[[2]]),
-            list(c("age","education","black","hispanic","married",
-                          "nodegree", "u74","u75","re74","re75")),
-            list(xlist[[3]]))
-
+## Firpo (2007)'s method
 qtetbootlist <- list()
 qtetDiffbootlist <- list()
 for(x in xlist1) {
     
 #call firpo (for cross-sectional case) method
-lalonde.qtet = qtet(re78 ~ treat,
+lalonde.qtet = ci.qtet(re78 ~ treat,
     ##x=c("age","education","black","hispanic",
     ##                  "married","nodegree","u74","u75","re74","re75"),
     x=x,
@@ -123,6 +145,7 @@ qtetbootlist <- c(qtetbootlist, list(lalonde.qtet))
 qtebootlist <- c(qtebootlist, list(lalonde.qtet))
 }
 
+## Athey and Imbens (2006)'s Change in Changes method
 cicbootlist <- list()
 cicDiffbootlist <- list()
 for (x in xlist) {
@@ -144,7 +167,7 @@ cicbootlist <- c(cicbootlist, list(lalonde.cic))
 qtebootlist <- c(qtebootlist, list(lalonde.cic))
 }
 
-
+## Quantile Difference in Differences 
 qdidbootlist <- list()
 qdidDiffbootlist <- list()
 for (x in xlist) {
@@ -165,6 +188,7 @@ qdidbootlist <- c(qdidbootlist, list(lalonde.qdid))
 qtebootlist <- c(qtebootlist, list(lalonde.qdid))
 }
 
+## Mean Difference in Differences 
 mdidbootlist <- list()
 mdidDiffbootlist <- list()
 for (x in xlist) {
@@ -185,30 +209,36 @@ mdidbootlist <- c(mdidbootlist, list(lalonde.mdid))
 qtebootlist <- c(qtebootlist, list(lalonde.mdid))
 }
 
-######
+###### NOT IN PAPER; FAN YU (2012) BOUNDS
 pi.bounds <- list()
 for (x in xlist) {
 ##compute the fan-yu bounds
-lalonde.fy = fan.yu(re ~ treat,
-               tname="year",t=1978, tmin1=1975, data=lalonde.data,
-               idname="id",  
-               ##x=c("age","education","black","hispanic","married","nodegree"),
-               ##x=NULL,
+lalonde.fy = bounds(re ~ treat,
+    tname="year",t=1978, tmin1=1975, data=lalonde.data,
+    idname="id",  
+    ##x=c("age","education","black","hispanic","married","nodegree"),
+    ##x=NULL,
     x=x,
-               dropalwaystreated=FALSE,
-               probs=probs)
-
+    dropalwaystreated=FALSE,
+    probs=probs)
 pi.bounds <- c(pi.bounds, list(lalonde.fy))
 }
 
-###TABLES###
-##helper function
+##############################################################
+###              FUNCTIONS TO BUILD THE TABLES             ###
+##############################################################
+
+##char.decimal
+## format a number by rounding it to k digits,
+## add commas, convert to latex number, and add significance stars
+## when a standard error is passed to the function
 char.decimal <- function(x, k=2, se=NULL, divideby=1) {
     if(is.null(se)) {
         return(paste0("$",format(round(x/divideby, k),
                                  nsmall=k, big.mark=","),"$"))
     } else {
-        out <- paste0("$",format(round(x/divideby, k), nsmall=k, big.mark=","))
+        out <- paste0("$",format(round(x/divideby, k),
+                                 nsmall=k, big.mark=","))
         altout <- paste0(out, "^*")
         out <- ifelse(abs(x/se)>1.96, altout, out)
         out <- paste0(out, "$")
@@ -216,132 +246,143 @@ char.decimal <- function(x, k=2, se=NULL, divideby=1) {
     }
 }
     
-
-##qtebootlist should contain a list of QTEboot objects computed for the same probs
+##makeQTEtable
+## builds the actual table using what we have created above
+## and the R texreg package
+## qtebootlist should contain a list of QTEboot objects computed
+## for the same probs
 makeQTEtable <- function(qtebootlist, headervec=NULL, headerplacevec=NULL,
-                         expqte, probs, rownamesvec,
-                         caption=NULL,fontsize=NULL,tableloc=NULL,
-                         tablenotes=NULL, notessize="small", label=NULL) {
+expqte, probs, rownamesvec,
+caption=NULL,fontsize=NULL,tableloc=NULL,
+tablenotes=NULL, notessize="small", label=NULL) {
 
-    ##QTEboot objects should contain
-    numprobs <- length(probs)
-    numcols <- 1 + 2*numprobs + 2 #add columns for column name, estimate, difference between experimental group, att, and att diff
-    ##make the output
-    str <- "\\begin{table}"
-    if (!is.null(tableloc)) {
-        str <- paste0(str, "[", tableloc, "!]\n")
-    }
-    if (!is.null(caption)) {
-        str <- paste0(str, "\\caption{", caption, "}\n")
-    }
-    if (!is.null(fontsize)) {
-        str <- paste0(str, "\\small\n")
-    }
-    str <- paste0(str, "\\resizebox{\\columnwidth}{!}{%\n")
-    str <- paste0(str,"\\begin{tabular}{l",
-                  paste0(rep("c", numcols-1),collapse=""), "}\n")
-    str <- paste0(str, "\\hline\n")
-    str <- paste0(str, "    & ", paste0(probs, " & Diff & ", collapse=""),
-                  "ATT & Diff \\Tstrut \\Bstrut \\\\\n")
-    str <- paste0(str, "\\hline\n")
+##QTEboot objects should contain
+numprobs <- length(probs)
+numcols <- 1 + 2*numprobs + 2 #add columns for column name, estimate, difference between experimental group, att, and att diff
+##make the output
+str <- "\\begin{table}"
+if (!is.null(tableloc)) {
+    str <- paste0(str, "[", tableloc, "!]\n")
+}
+if (!is.null(caption)) {
+    str <- paste0(str, "\\caption{", caption, "}\n")
+}
+if (!is.null(fontsize)) {
+    str <- paste0(str, "\\small\n")
+}
+str <- paste0(str, "\\resizebox{\\columnwidth}{!}{%\n")
+str <- paste0(str,"\\begin{tabular}{l",
+              paste0(rep("c", numcols-1),collapse=""), "}\n")
+str <- paste0(str, "\\hline\n")
+str <- paste0(str, "    & ", paste0(probs, " & Diff & ", collapse=""),
+              "ATT & Diff \\Tstrut \\Bstrut \\\\\n")
+str <- paste0(str, "\\hline\n")
 
-    headcounter <- 1
-    for (i in 1:length(qtebootlist)) {
-        inloopcounter <- 1
-        if (!is.null(headerplacevec)) {
-            if(headcounter <= length(headerplacevec)) {
-                if (i == headerplacevec[headcounter]) {
-                    str <- paste0(str, "\\multicolumn{", numcols,
-                                  "}{c}{\\underline{",headervec[headcounter],
-                                  "}} \\Tstrut \\Bstrut \\\\\n")
-                    headcounter <- headcounter + 1
-                }
+headcounter <- 1
+for (i in 1:length(qtebootlist)) {
+    inloopcounter <- 1
+    if (!is.null(headerplacevec)) {
+        if(headcounter <= length(headerplacevec)) {
+            if (i == headerplacevec[headcounter]) {
+                str <- paste0(str, "\\multicolumn{", numcols,
+                              "}{c}{\\underline{",headervec[headcounter],
+                              "}} \\Tstrut \\Bstrut \\\\\n")
+                headcounter <- headcounter + 1
             }
         }
+    }
 
-        while(inloopcounter != 3) {
+    while(inloopcounter != 3) {
+        
+        if (inloopcounter==1) {
+            str <- paste0(str, rownamesvec[i],
+                          paste0(" & ",
+                                 char.decimal(c(qtebootlist[[i]]$qte,
+                                                qtebootlist[[i]]$att),
+                                              2, divideby=1000,
+                                              se=c(qtebootlist[[i]]$qte.se,
+                                                  qtebootlist[[i]]$att.se)),
+                                 " & ",
+                                 char.decimal(c(qteDiffbootlist[[i]]$qte.diff,
+                                                qteDiffbootlist[[i]]$att.diff),2,
+                                              divideby=1000,
+                                              se=c(qteDiffbootlist[[i]]$qte.diff.se,
+                                                  qteDiffbootlist[[i]]$att.diff.se)),
+                                 collapse=""),"\\\\\n")
             
-            if (inloopcounter==1) {
-                str <- paste0(str, rownamesvec[i],
-                              paste0(" & ",
-                                     char.decimal(c(qtebootlist[[i]]$qte,
-                                                    qtebootlist[[i]]$att),
-                                                  2, divideby=1000,
-                                                  se=c(qtebootlist[[i]]$qte.se,
-                                                      qtebootlist[[i]]$att.se)),
-                                     " & ",
-                                     char.decimal(c(qteDiffbootlist[[i]]$qte.diff,
-                                             qteDiffbootlist[[i]]$att.diff),2,
-                                                  divideby=1000,
-                                                  se=c(qteDiffbootlist[[i]]$qte.diff.se,
-                                                      qteDiffbootlist[[i]]$att.diff.se)),
-                                     collapse=""),"\\\\\n")
-                
-                inloopcounter <- 2
-            } else if (inloopcounter==2) { #this is a standard error row
-                str <- paste0(str,
-                              paste0(" & (",
-                                     char.decimal(c(qtebootlist[[i]]$qte.se,
-                                             qtebootlist[[i]]$att.se),2,
-                                                  divideby=1000),
-                                     ") & (",
-                                     char.decimal(c(qteDiffbootlist[[i]]$qte.diff.se,
-                                                    qteDiffbootlist[[i]]$att.diff.se),2,
-                                                  divideby=1000),
-                                     ")",
-                                     collapse=""), "\\Bstrut \\\\\n")
-                inloopcounter <- 3
-            }
+            inloopcounter <- 2
+        } else if (inloopcounter==2) { #this is a standard error row
+            str <- paste0(str,
+                          paste0(" & (",
+                                 char.decimal(c(qtebootlist[[i]]$qte.se,
+                                                qtebootlist[[i]]$att.se),2,
+                                              divideby=1000),
+                                 ") & (",
+                                 char.decimal(c(qteDiffbootlist[[i]]$qte.diff.se,
+                                                qteDiffbootlist[[i]]$att.diff.se),2,
+                                              divideby=1000),
+                                 ")",
+                                 collapse=""), "\\Bstrut \\\\\n")
+            inloopcounter <- 3
         }
     }
+}
 
-    ##bounds - include this in separate table
-    ##if (!is.null(pi.bounds)) {
-        ##TODO: fill this in.
-        ##str <- paste0
-    ##}
+##bounds - include this in separate table
+##if (!is.null(pi.bounds)) {
+##TODO: fill this in.
+##str <- paste0
+##}
 
-    ##experimental results
-    str <- paste0(str, "\\hline\n")
-    str <- paste0(str, "Experimental", paste0(" & ", char.decimal(expqte,2),
-                                              " &", collapse=""),
-                  "\\Tstrut \\Bstrut \\\\\n")
+##experimental results
+str <- paste0(str, "\\hline\n")
+str <- paste0(str, "Experimental", paste0(" & ", char.decimal(expqte,2),
+                                          " &", collapse=""),
+              "\\Tstrut \\Bstrut \\\\\n")
 
-    ##end the table
-    str <- paste0(str, "\\hline\n")
-    str <- paste0(str, "\\end{tabular}\n")
-    str <- paste0(str, "}\n")
-    if (!is.null(tablenotes)) {
-        str <- paste0(str, "\\" , notessize, "{\\\\ \\textit{Notes:} ",
-                      tablenotes, "}\n")
-    }
-    if (!is.null(label)) {
-        str <- paste0(str, "\\label{", label, "}\n")
-    }
-    str <- paste0(str, "\\end{table}")
-    
-    cat(str)
-    return(str)
+##end the table
+str <- paste0(str, "\\hline\n")
+str <- paste0(str, "\\end{tabular}\n")
+str <- paste0(str, "}\n")
+if (!is.null(tablenotes)) {
+    str <- paste0(str, "\\" , notessize, "{\\\\ \\textit{Notes:} ",
+                  tablenotes, "}\n")
+}
+if (!is.null(label)) {
+    str <- paste0(str, "\\label{", label, "}\n")
+}
+str <- paste0(str, "\\end{table}")
+
+cat(str)
+return(str)
 }
 
 
-##qtebootlist <- list(boot.lalonde.ai.cov, boot.lalonde.ai.unem,
-##                    boot.lalonde.ai.nocov, boot.lalonde.qdid.cov,
-##                    boot.lalonde.qdid.unem, boot.lalonde.qdid.nocov)
+## Put the desired names of methods here
 headervec <- c("PanelQTET Method", "Conditional Independence Method",
                "Change in Changes",
                "Quantile D-i-D", "Mean D-i-D")
-headerplacevec <- c(1, 4, 8, 11, 14)
+
+## Put the location of each new method in list here
+headerplacevec <- c(1, 5, 9, 12, 15)
+
+## Put row names for each method here
 rownamesvec <- c("PanelQTET Cov", "PanelQTET Unem", "PanelQTET No Cov",
                  "CI Cov", "CI Unem","CI RE", "CI No Cov",
                  "CiC Cov", "CiC Unem", "CiC No Cov",
                  "QDiD Cov", "QDiD Unem", "QDiD No Cov",
                  "MDiD Cov", "MDiD Unem", "MDiD No Cov")
+
+## Table Caption 
 caption <- "QTET Estimates for Job Training Program"
+
+## Table Notes
 tablenotes <- "This table provides estimates of the QTET for $\\tau=c(0.7,0.8,0.9)$ using a variety of methods on the observational dataset.  The columns labeled `Diff' provide the difference between the estimated QTET and the QTET obtained from the experimental portion of the dataset.  The columns identify the method (PanelQTET, CI, CiC, QDiD, or MDiD) and the set of covariates ((i) COV: Age, Education, Black dummy, Hispanic dummy, Married dummy, and No HS Degree dummy; (ii) UNEM: COV plus Unemployed in 1974 dummy and Unemployed in 1975 dummy; (iii) RE: COV plus UNEM plus Real Earnings in 1974 and Real Earnings in 1975; and (iv) NO COV: no covariates).  The PanelQTET model and the CI model use propensity score re-weighting techniques based on the covariate set.  The CiC, QDiD, and MDiD method ``residualize'' (as outlined in the text) the outcomes based on the covariate set; the estimates come from using the no covariate method on the ``residualized'' outcome.  Standard errors are produced using 100 bootstrap iterations.  The significance level is 5\\%."
+
+## Table (Latex) Label
 label <- "table:results"
 
-
+## Call the function to build the table
 qtetable <- makeQTEtable(qtebootlist, headervec, headerplacevec,
                      c(actual.qte,actual.att), 
              probs=probs,
@@ -351,6 +392,7 @@ qtetable <- makeQTEtable(qtebootlist, headervec, headerplacevec,
                          fontsize="small", notessize="scriptsize",
              tableloc="t")
 
+## Write the table to file
 fileConn = file("../paper/tables/qtetable.tex")
 writeLines(qtetable, fileConn)
 close(fileConn)
@@ -359,79 +401,83 @@ close(fileConn)
 
 ###Make the table with bounds
 makeBoundsTable <- function(pi.bounds, expqte, probs, rownamesvec,
-                         caption=NULL,fontsize=NULL,tableloc=NULL,
-                         tablenotes=NULL, label=NULL) {
+caption=NULL,fontsize=NULL,tableloc=NULL,
+tablenotes=NULL, label=NULL) {
 
-    ##QTEboot objects should contain
-    numprobs <- length(probs)
-    numcols <- 1 + 2*numprobs + 2 #add columns for column name, estimate, difference between experimental group, att, and att diff
-    ##make the output
-    str <- "\\begin{table}"
-    if (!is.null(tableloc)) {
-        str <- paste0(str, "[", tableloc, "!]\n")
-    }
-    if (!is.null(fontsize)) {
-        str <- paste0(str, "\\small\n")
-    }
-    str <- paste0(str,"\\begin{tabular}{l",
-                  paste0(rep("c", numcols-1),collapse=""), "}\n")
-    str <- paste0(str, "\\hline\n")
-    str <- paste0(str, paste0(" & \\multicolumn{2}{c}{\\underline{",probs,"}}",
-                              collapse=""), "& & \\Tstrut \\Bstrut \\\\\n")
-    str <- paste0(str, "    ", paste0(rep(" & LB & UB ", length(probs)),
-                                        collapse=""),
-                  "& ATT & Diff \\\\\n")
-    str <- paste0(str, "\\hline\n")
+##QTEboot objects should contain
+numprobs <- length(probs)
+numcols <- 1 + 2*numprobs + 2 #add columns for column name, estimate, difference between experimental group, att, and att diff
+##make the output
+str <- "\\begin{table}"
+if (!is.null(tableloc)) {
+    str <- paste0(str, "[", tableloc, "!]\n")
+}
+if (!is.null(fontsize)) {
+    str <- paste0(str, "\\small\n")
+}
+str <- paste0(str,"\\begin{tabular}{l",
+              paste0(rep("c", numcols-1),collapse=""), "}\n")
+str <- paste0(str, "\\hline\n")
+str <- paste0(str, paste0(" & \\multicolumn{2}{c}{\\underline{",probs,"}}",
+                          collapse=""), "& & \\Tstrut \\Bstrut \\\\\n")
+str <- paste0(str, "    ", paste0(rep(" & LB & UB ", length(probs)),
+                                  collapse=""),
+              "& ATT & Diff \\\\\n")
+str <- paste0(str, "\\hline\n")
 
-    ##report the bounds
-    for (i in 1:length(pi.bounds)) {
-        if (i == 1) {
-            str <- paste0(str, "\\Tstrut ") #adds extra height to first row
-        }
-        
-        str <- paste0(str,rownamesvec[i])
-
-        str <- paste0(str, paste0(" & [", char.decimal(pi.bounds[[i]]$lb.qte),
-                                  ", & ",
-                                  char.decimal(pi.bounds[[i]]$ub.qte),
-                                  "] ", collapse=""),
-                      " & ", char.decimal(pi.bounds[[i]]$att), " & ",
-                      char.decimal(pi.bounds[[i]]$att-expqte[length(expqte)]),
-                      " \\Bstrut \\\\\n")
+##report the bounds
+for (i in 1:length(pi.bounds)) {
+    if (i == 1) {
+        str <- paste0(str, "\\Tstrut ") #adds extra height to first row
     }
     
-    ##experimental results
-    str <- paste0(str, "\\hline\n")
-    str <- paste0(str, "Experimental", paste0(" & ", char.decimal(expqte,2),
-                                              " &", collapse=""),
-                  "\\Tstrut \\Bstrut \\\\\n")
+    str <- paste0(str,rownamesvec[i])
 
-    ##end the table
-    str <- paste0(str, "\\hline\n")
-    str <- paste0(str, "\\end{tabular}\n")
-    if (!is.null(tablenotes)) {
-        str <- paste0(str, "\\small{\\textit{Notes:} ", tablenotes, "}\n")
-    }
-    if (!is.null(label)) {
-        str <- paste0(str, "\\label{", label, "}\n")
-    }
-    str <- paste0(str, "\\end{table}")
-    
-    cat(str)
-    return(str)
+    str <- paste0(str, paste0(" & [", char.decimal(pi.bounds[[i]]$lb.qte),
+                              ", & ",
+                              char.decimal(pi.bounds[[i]]$ub.qte),
+                              "] ", collapse=""),
+                  " & ", char.decimal(pi.bounds[[i]]$att), " & ",
+                  char.decimal(pi.bounds[[i]]$att-expqte[length(expqte)]),
+                  " \\Bstrut \\\\\n")
 }
 
+##experimental results
+str <- paste0(str, "\\hline\n")
+str <- paste0(str, "Experimental", paste0(" & ", char.decimal(expqte,2),
+                                          " &", collapse=""),
+              "\\Tstrut \\Bstrut \\\\\n")
+
+##end the table
+str <- paste0(str, "\\hline\n")
+str <- paste0(str, "\\end{tabular}\n")
+if (!is.null(tablenotes)) {
+    str <- paste0(str, "\\small{\\textit{Notes:} ", tablenotes, "}\n")
+}
+if (!is.null(label)) {
+    str <- paste0(str, "\\label{", label, "}\n")
+}
+str <- paste0(str, "\\end{table}")
+
+cat(str)
+return(str)
+}
+
+## Call the function to write the bounds table
 bounds.table <- makeBoundsTable(pi.bounds, c(actual.qte,actual.att), probs,
              rownamesvec=c("Cov", "Unem", "No Cov"),
              caption="Brant is cool", fontsize="small",
              tableloc="t")
 
+## Write the table to file
 fileConn = file("../paper/tables/boundstable.tex")
 writeLines(bounds.table, fileConn)
 close(fileConn)
 
-
-###FIGURES###
+#####################################################
+###                 FIGURES                       ###
+###         NEED TO GO THROUGH THIS AGAIN         ###
+#####################################################
 
 ##plot experimental QTE
 plot(probs,employed.actual.qte,type="l")
