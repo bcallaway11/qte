@@ -1,0 +1,3 @@
+^README\.Rmd$
+^README-.*\.png$
+^qte/cran-comments\.md$

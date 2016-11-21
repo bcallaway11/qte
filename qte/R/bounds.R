@@ -249,7 +249,7 @@ print.summary.BoundsObj <- function(x, ...) {
     ##    cat(format(body[i,],digits=5), sep="\t\t")
     ##    cat("\n")
     ##}
-    print.matrix1(rbind(header, body))
+    print.matrix2(rbind(header, body), header=header)
     cat("\n")
     cat("Average Treatment Effect on the Treated:")
     cat("\t")
@@ -257,6 +257,22 @@ print.summary.BoundsObj <- function(x, ...) {
     cat("\n")
     ##print(data.frame(body), digits=2)
 }
+
+##
+#' @title print.matrix2
+#'
+#' @description Helper function to print a matrix; used by the print methods
+#'
+#' @param m Some matrix
+#'
+#' @keywords internal
+print.matrix2 <- function(m, header=NULL, digits=2, nsmall=2){
+    write.table(format(m, justify="right",
+                       digits=digits, nsmall=nsmall),
+                row.names=F, col.names=header, quote=F, sep="\t")
+    ##print(m, print.gap=3, right=T)
+}
+
 
 ##
 #' @title Plot Bounds

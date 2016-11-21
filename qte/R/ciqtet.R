@@ -1,3 +1,4 @@
+utils::globalVariables(c("yname", "treat", "treated", "x", "wname", "probs", "method", "treated", "untreated", "eachIter"))
 ####Cross-sectional QTET method using Firpo (2007)########
 #' @title compute.ci.qtet
 #'
@@ -5,6 +6,8 @@
 #' selection on observables
 #' 
 #' @inheritParams compute.ci.qte
+#'
+#' @import Hmisc
 #' 
 #' @keywords internal
 #' 
@@ -26,7 +29,7 @@ compute.ci.qtet = function(qp) {
                                               probs=probs, type="i/n")
 
 
-    qtt <- treated.firpo.quantiles - untreated.firpo.quantiles
+    qte <- treated.firpo.quantiles - untreated.firpo.quantiles
 
     
     n <- nrow(data)
@@ -100,6 +103,7 @@ compute.ci.qtet = function(qp) {
 #' (if requested) are computed using the bootstrap.
 #' 
 #' @inheritParams panel.qtet
+#' @inheritParams ci.qte
 #' @param x Vector of covariates.  Default is no covariates
 #' @param method Method to compute propensity score.  Default is logit; other
 #'  option is probit.
@@ -167,7 +171,7 @@ ci.qtet <- function(formla, xformla=NULL, x=NULL, weights=NULL, data,
                     probs=probs)
         return(out)
     } else {
-        return(firpo.qte)
+        return(firpo.qtet)
     }
 
 }

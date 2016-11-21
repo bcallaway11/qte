@@ -1,3 +1,4 @@
+utils::globalVariables(c("yname", "treat", "treated", "x", "wname", "probs", "method", "treated", "untreated", "eachIter"))
 ####Cross-sectional QTE method using Firpo (2007)########
 #' @title compute.ci.qte
 #'
@@ -6,6 +7,8 @@
 #' 
 #' @param qp QTEparams object containing the parameters passed to ciqte
 #'
+#' @import Hmisc
+#'
 #' @keywords internal
 #' 
 #' @return QTE object
@@ -13,18 +16,30 @@ compute.ci.qte <- function(qp) {
 
     setupData(qp)
     bootstrapiter <- qp$bootstrapiter
-    
+
+    ##don't use weights now
     ##no covariate att - will update if there are covariates
-    ate <- wtd.mean(treated[,yname], treated[,wname]) -
-        wtd.mean(untreated[,yname], untreated[,wname])
+    #ate <- wtd.mean(treated[,yname], treated[,wname]) -
+    #    wtd.mean(untreated[,yname], untreated[,wname])
 
-    treated.firpo.quantiles <- wtd.quantile(treated[,yname],
-                                            treated[,wname],
-                                            probs=probs, type="i/n")
-    untreated.firpo.quantiles <- wtd.quantile(untreated[,yname],
-                                              untreated[,wname],
-                                              probs=probs, type="i/n")
 
+    #treated.firpo.quantiles <- wtd.quantile(treated[,yname],
+    #                                        treated[,wname],
+    #                                        probs=probs,
+    #                                        normwt=TRUE)
+    #untreated.firpo.quantiles <- wtd.quantile(untreated[,yname],
+    #                                          untreated[,wname],
+    #                                          probs=probs,
+    #                                          normwt=TRUE)
+
+    ate <- getWeightedMean(treated[,yname], treated[,wname]) -
+        getWeightedMean(untreated[,yname], untreated[,wname])
+
+    treated.firpo.quantiles <- getWeightedQuantiles(probs, treated[,yname],
+                                                   treated[,wname])
+
+    untreated.firpo.quantiles <- getWeightedQuantiles(probs, untreated[,yname],
+                                                     untreated[,wname])
 
     qte <- treated.firpo.quantiles - untreated.firpo.quantiles
 
@@ -34,14 +49,14 @@ compute.ci.qte <- function(qp) {
     ##set these up to access later
     pscore.reg <- NULL
     if (!is.null(x)) {
+        p <- rep(nrow(treated)/(nrow(treated) + nrow(untreated)), n)
+        D <- data[,treat]
+        y <- data[,yname]
+        w <- data[,wname]
         ##estimate the propensity score
         pscore.reg <- glm(data[,treat] ~ as.matrix(data[,x]),
                           family=binomial(link=method))
         pscore <- fitted(pscore.reg)
-        p <- rep(nrow(treated)/(nrow(treated) + nrow(untreated)), n)
-        D <- data[,treat]
-        w <- data[,wname]
-        y <- data[,yname]
         ##there are alternatives for how to compute the quantiles of 
         ##treated outcomes for the treated group:
         ##1) compute quantiles directly
@@ -62,7 +77,9 @@ compute.ci.qte <- function(qp) {
         
         qte <- treated.firpo.quantiles - untreated.firpo.quantiles
 
-        ate <- wtd.mean(y, w*D/pscore) - wtd.mean(y, w*(1-D)/(1-pscore)) ##( ((D-pscore)*y) / (pscore*(1-pscore)) ) ##wtd.mean(y, weights=n*w*((D-pscore)/(pscore*(1-pscore)))##
+        ate <- getWeightedMean(y, treated.weights) -
+            getWeightedMean(y, untreated.weights)
+        #ate <- wtd.mean(y, w*D/pscore) - wtd.mean(y, w*(1-D)/(1-pscore)) ##( ((D-pscore)*y) / (pscore*(1-pscore)) ) ##wtd.mean(y, weights=n*w*((D-pscore)/(pscore*(1-pscore)))##
 
         ##Alternative method for calculating the distribution of each
         ##potential outcome using moment conditions / these could be
@@ -115,11 +132,12 @@ compute.ci.qte <- function(qp) {
 #' @param x Vector of covariates.  Default is no covariates
 #' @param method Method to compute propensity score.  Default is logit; other
 #'  option is probit.
-#' @param indsample Binary variable for whether to treat the samples as
-#'  independent or dependent.  This affects bootstrap standard errors.  In
-#'  the job training example, the samples are independent because they
-#'  are two samples collected independently and then merged.  If the data is
-#'  from the same source, usually should set this option to be FALSE.
+#' @param w an additional vector of sampling weights
+#' @param pl boolean for whether or not to compute bootstrap error in parallel.
+#'  Note that computing standard errors in parallel is a new feature and may
+#'  not work at all on Windows.
+#' @param cores the number of cores to use if bootstrap standard errors are
+#'  computed in parallel
 #' @param printIter For debugging only; should leave at default FALSE unless
 #'  you want to see a lot of output
 #'
@@ -148,14 +166,14 @@ compute.ci.qte <- function(qp) {
 #'
 #' @return QTE object
 #' @export
-ci.qte <- function(formla, xformla=NULL, x=NULL, data, weights=NULL,
+ci.qte <- function(formla, xformla=NULL, x=NULL, data, w=NULL,
                    probs=seq(0.05,0.95,0.05), se=TRUE,
                    iters=100, alp=0.05, plot=FALSE, method="logit",
                    retEachIter=FALSE, seedvec=NULL, 
                    printIter=FALSE, pl=FALSE, cores=2) {
 
-    qp <- QTEparams(formla, xformla, t=NULL, tmin1=NULL, tmin2=NULL, tname=NULL, data=data, idname=NULL, probs=probs, iters=iters, alp=alp, method=method, plot=plot, se=se, retEachIter=retEachIter, bootstrapiter=FALSE, seedvec=NULL, pl=pl, cores=cores)
-    setupData(qp) ##may be able to get rid of this too
+    qp <- QTEparams(formla, xformla, t=NULL, tmin1=NULL, tmin2=NULL, tname=NULL, data=data, w=w, idname=NULL, probs=probs, iters=iters, alp=alp, method=method, plot=plot, se=se, retEachIter=retEachIter, bootstrapiter=FALSE, seedvec=NULL, pl=pl, cores=cores)
+    ##setupData(qp) ##may be able to get rid of this too
 
     
     ##first calculate the actual estimate

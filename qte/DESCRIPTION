@@ -1,11 +1,22 @@
 Package: qte
 Type: Package
 Title: Quantile Treatment Effects
-Version: 1.0.2
-Date: 2015-04-23
+Version: 1.1.0
+Date: 2016-11-10
 Author: Brantly Callaway
-Maintainer: Brantly Callaway <brantly.m.callaway@vanderbilt.edu>
-Description: Provides several methods for computing the Quantile Treatment Effect (QTE) and Quantile Treatment Effect on the Treated (QTET).  The main cases covered are (i) Treatment is randomly assigned, (ii) Treatment is as good as randomly assigned after conditioning on some covariates (also called conditional independence or selection on observables), (iii) Identification is based on a Difference in Differences assumption (several varieties are available in the package).
+Maintainer: Brantly Callaway <brantly.callaway@temple.edu>
+Description: Provides several methods for computing the Quantile Treatment
+    Effect (QTE) and Quantile Treatment Effect on the Treated (QTET). The main cases
+    covered are (i) Treatment is randomly assigned, (ii) Treatment is as good as
+    randomly assigned after conditioning on some covariates (also called conditional
+    independence or selection on observables), (iii) Identification is based on a
+    Difference in Differences assumption (several varieties are available in the
+    package).
 Depends: R (>= 2.10)
+Imports: Hmisc, parallel, quantreg
 License: GPL-2
 LazyData: true
+RoxygenNote: 5.0.1
+Suggests: knitr,
+    rmarkdown
+VignetteBuilder: knitr

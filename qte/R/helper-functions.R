@@ -33,6 +33,24 @@ makeBalancedPanel <- function(data, idname, tname) {
     return(data)
 }
 
+#'@title makeDist
+#' 
+#' @description turn vectors of a values and their distribution function values
+#'  into an ecdf.  Vectors should be the same length and both increasing.
+#' 
+#' @param x vector of values
+#' @param Fx vector of the distribution function values
+#' 
+#' @keywords internal
+makeDist <- function(x, Fx) {
+    retF <- approxfun(x, Fx, method="constant",
+                      yleft=0, yright=1, f=0, ties="ordered")
+    class(retF) <- c("ecdf", "stepfun", class(retF))
+    assign("nobs", length(x), envir = environment(retF))
+    retF
+}
+
+
 #'@title checkfun
 #' 
 #' @description The check function used for optimizing to get quantiles
@@ -70,9 +88,18 @@ weighted.checkfun = function(q, cvec, tau, weights) {
 #' @param cvec a vector to compute quantiles for
 #' @param weights the weights, weighted.checkfun normalizes the weights
 #'  to sum to 1.
+#' @param norm normalize the weights so that they have mean of 1, default is
+#'  to normalize
 #' 
 #' @keywords internal
-getWeightedQuantile <- function(tau, cvec, weights) {
+getWeightedQuantile <- function(tau, cvec, weights=NULL, norm=TRUE) {
+    if (is.null(weights)) {
+        weights <- 1
+    }
+    mw <- mean(weights)
+    if (norm) {
+        weights <- weights / mw
+    }
     return(optimize(weighted.checkfun, 
                     lower=min(cvec),
                     upper=max(cvec),
@@ -88,7 +115,87 @@ getWeightedQuantile <- function(tau, cvec, weights) {
 #' @param cvec a vector to compute quantiles for
 #' @param weights the weights, weighted.checkfun normalizes the weights
 #'  to sum to 1.
+#' @param norm normalize the weights so that they have mean of 1, default is
+#'  to normalize
 #' 
-getWeightedQuantiles <- function(tau, cvec, weights) {
-    vapply(tau, getWeightedQuantile, 1.0, cvec=cvec, weights=weights)
+getWeightedQuantiles <- function(tau, cvec, weights=NULL, norm=TRUE) {
+    vapply(tau, getWeightedQuantile, 1.0, cvec=cvec, weights=weights, norm=norm)
+    ##wtd.quantile(cvec, weights=weights, probs=tau, normwt=T)
 }
+
+#'@title getWeightedMean
+#' 
+#' @description Get the mean applying some weights
+#' 
+#' @param y a vector to compute the mean for
+#' @param weights the vector of weights, can be NULL, then will just return mean
+#' @param norm normalize the weights so that they have mean of 1, default is
+#'  to normalize
+#' 
+#' @keywords internal
+getWeightedMean <- function(y, weights=NULL, norm=TRUE) {
+    if (is.null(weights)) {
+        weights <- 1
+    }
+    mw <- mean(weights)
+    if (norm) {
+        weights <- weights/mw
+    }
+    mean(weights*y)
+}
+
+#'@title getWeightedDf
+#' 
+#' @description Get the mean applying some weights
+#' 
+#' @param y a vector to compute the mean for
+#' @param y.seq an optional vector of values to compute the distribution function
+#'  for; the default is to use all unique values of y
+#' @param weights the vector of weights, can be NULL, then will just return mean
+#' @param norm normalize the weights so that they have mean of 1, default is
+#'  to normalize
+#' 
+#' @keywords internal
+getWeightedDf <- function(y, y.seq=NULL, weights=NULL, norm=TRUE) {
+    if (is.null(weights)) {
+        weights <- 1
+    }
+    mw <- mean(weights)
+    if (norm) {
+        weights <- weights/mw
+    }
+    if (is.null(y.seq)) {
+        y.seq <- unique(y)
+        y.seq <- y.seq[order(y.seq)]
+    }
+    dvals <- vapply(y.seq, FUN=function(x) { mean(weights*(y <= x)) }, 1.0)
+    makeDist(y.seq, dvals)
+}
+
+
+#'@title qte2mat
+#'
+#' @description Turn multiple qtes into a matrix for printing
+#'
+#' @param qteList a list of qte objects
+#' @param sset subset of qtes to keep
+#' @param se whether or not to include standard errors in the resulting matrix
+#' @param rnd how many disgits to round to
+#'
+#' @return matrix
+qtes2mat <- function(qteList, sset=NULL, se=TRUE, rnd=3) {
+    if (is.null(sset)) {
+        sset <- seq(1,length(qteList[[1]]$probs))
+    }
+    probs <- qteList[[1]]$probs[sset]
+    outmat <- matrix(nrow=2*length(qteList[[1]]$qte[sset]), ncol=length(qteList))
+    lqte <- lapply(qteList, function(x) { paste(round(x$qte[sset], rnd)) })
+    lqte.se <- lapply(qteList, function(x) { paste("(",round(x$qte.se[sset],rnd),")", sep="") })
+    for (i in 1:length(qteList)) {
+        outmat[,i] <- c(rbind(lqte[[i]], lqte.se[[i]]))
+    }
+    probsvals <- c(rbind(paste(probs), rep("", length(probs))))
+    outmat <- cbind(probsvals, outmat)
+    outmat
+}
+    

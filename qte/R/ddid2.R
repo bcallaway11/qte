@@ -1,0 +1,448 @@
+utils::globalVariables(c("yname", "treat", "treated", "x", "wname", "probs", "method", "treated", "untreated", "eachIter"))
+
+
+#####Two Period DDID#####
+##Idea here is that we can use information from a third period
+##to point identify counterfactual distribution of outcomes
+##for the treated group
+##call plot function, summary function, formula function, etc. later
+##add functionality to pass in pscore
+#' @title compute.ddid2
+#'
+#' @description
+#' \code{compute.ddid2} uses two periods of data (repeated cross sections
+#' or panel) to estimate the Quantile Treatment Effect on the Treated (QTET)
+#'
+#' @param qp QTEparams object containing the parameters passed to ciqte
+#'
+#' @importFrom quantreg rq
+#'
+#' @return QTE object
+#'
+#' @keywords internal
+compute.ddid2 <- function(qp) {
+
+    browser()
+
+    setupData(qp)
+    bootstrapiter <- qp$bootstrapiter
+
+
+    ##1) set up a dummy variable indicating whether the individual is 
+    ##treated in the last period.
+
+    ##a) get all the treated (in the last period) observations
+    treated.t = data[data[,tname]==t & data[,treat]==1,]
+    
+    ##b) set ever.treated to 1 if observation is treated in last period
+    ## don't think I need to do this anymore
+    ##data$ever.treated = data$treatment
+    ##data$ever.treated = 1*(data[,idname] %in% treated.t[,idname])  
+    ##ever.treated = "ever.treated"
+    ##treated.t$ever.treated = 1
+
+    ##Generate subsets of the panel data based on time period and
+    ##whether or not the observation is treated.  These will be used
+    ##to calculate distributions below.  
+    ##treated.tmin1 = data[ data[,tname] == tmin1 & 
+    ##    data[,ever.treated] == 1, ]
+    treated.tmin1 <- data[ data[,tname] == tmin1 & data[,treat]==1, ]
+    ##treated at t-2
+    
+    ##untreated at t
+    untreated.t = data[data[,tname]==t & data[,treat]==0,]
+    
+    ##untreated at t-1 & t-2
+    untreated.tmin1 = data[ data[,tname] == tmin1 &
+        data[,treat] == 0, ]
+
+    ##Sort data and rely on having a balanced panel to get the change
+    ## distributions right
+    if (panel) {
+        treated.t <- treated.t[order(treated.t[,idname]),]
+        treated.tmin1 <- treated.tmin1[order(treated.tmin1[,idname]),]
+        untreated.t <- untreated.t[order(untreated.t[,idname]),]
+        untreated.tmin1 <- untreated.tmin1[order(untreated.tmin1[,idname]),]
+    }
+    
+    ##3) Get the distributions that we need below
+    
+    ##a) Get distribution of y0.tmin2 | Dt=1
+    F.treated.t <- ecdf(treated.t[,yname])
+    F.treated.tmin1 <- ecdf(treated.tmin1[,yname])
+    F.untreated.t <- ecdf(untreated.t[,yname])
+    F.untreated.tmin1 <- ecdf(untreated.tmin1[,yname])
+
+    
+    ##b)
+    if (panel) {
+        F.untreated.change.t <- ecdf(untreated.t[,yname] -
+                                     untreated.tmin1[,yname])
+    } else {
+        nu <- min(nrow(untreated.t), nrow(untreated.tmin1))
+        if (nu == nrow(untreated.t)) {
+            ut <- untreated.t[,yname]
+            ut <- ut[order(-ut)] ##orders largest to smallest
+            ps <- seq(1,0,length.out=length(ut)) ##orders largest to smallest
+            utmin1 <- quantile(untreated.tmin1[,yname], probs=ps, type=1)
+            F.untreated.change.t <- ecdf(ut-utmin1)
+        } else {
+            utmin1 <- untreated.tmin1[,yname]
+            utmin1 <- utmin1[order(-utmin1)] ##orders largest to smallest
+            ps <- seq(1,0,length.out=length(utmin1)) ##orders largest to smallest
+            ut <- quantile(untreated.t[,yname], probs=ps, type=1)
+            F.untreated.change.t <- ecdf(ut-utmin1)
+        }
+    }
+    ##calculate the distribution of the change for the treated group;
+    ## this will be changed if there are covariates
+    F.treated.change.t <- F.untreated.change.t
+    
+
+    ##calculate the att; this will be changed if there are covariates
+    att = mean(treated.t[,yname]) - mean(treated.tmin1[,yname]) -
+        (mean(untreated.t[,yname]) - mean(untreated.tmin1[,yname]))
+
+    ##now compute the average over the treated observations
+    quantys1 <- quantile(F.treated.change.t,
+                         probs=F.untreated.change.t(untreated.t[,yname] -
+                             untreated.tmin1[,yname]), type=1)
+
+    quantys2 <- quantile(F.treated.tmin1,
+                         probs=F.untreated.tmin1(untreated.tmin1[,yname]),
+                         type=1)
+
+    y.seq <- (quantys1+quantys2)[order(quantys1 + quantys2)]
+
+    F.treated.t.cf.val <- vapply(y.seq,
+                                 FUN=function(y) { mean(1*(quantys1 + quantys2 <=
+                                     y)) }, FUN.VALUE=1)
+
+    F.treated.t.cf = approxfun(y.seq, F.treated.t.cf.val, method="constant",
+        yleft=0, yright=1, f=0, ties="ordered")
+    class(F.treated.t.cf) = c("ecdf", "stepfun", class(F.treated.t.cf))
+    assign("nobs", length(y.seq), envir = environment(F.treated.t.cf))
+
+    
+    ##functionality with covariates is not yet implemented
+    pscore.reg <- NULL #do this in case no covariates as we return this value
+    if (!(is.null(x))) {
+        ##Step 1: Propensity Score
+        ##set up the data to do the propensity score re-weighting
+        ##we need to bind the datasets back together to estimate pscore
+        ##TODO: this would only work for panel data
+        treated.t$changey = treated.t[,yname] - treated.tmin1[,yname]
+        treated.t$ytmin1 = treated.tmin1[,yname]
+        ##treated.tmin1$changey <- treated.tmin1[,yname] - treated.tmin2[,yname]
+        untreated.t$changey = untreated.t[,yname] - untreated.tmin1[,yname]
+        untreated.t$ytmin1 = untreated.tmin1[,yname]
+        ##untreated.tmin1$changey <- untreated.tmin1[,yname] -
+        ##    untreated.tmin2[,yname]
+        pscore.data = rbind(treated.t, untreated.t)
+        xmat = pscore.data[,x]
+        pscore.reg = glm(pscore.data[,treat] ~ as.matrix(xmat),
+            family=binomial(link="logit"))
+        pscore = fitted(pscore.reg)
+        pscore.data$pscore <- pscore
+        pD1 = nrow(treated.t)/nrow(untreated.t)
+        waits <- ((1-pD1)/pD1)*(pscore/(1-pscore))
+        pscore.data$waits <- waits
+
+        treated.t <- pscore.data[1:nrow(treated.t),]
+        untreated.t <- pscore.data[(nrow(treated.t)+1):nrow(pscore.data),]
+
+        ##Step 2: Distribution regression / quantile regression        
+        xmat0 <- as.matrix(untreated.tmin1[,x]) #drop intercept
+        xmat1 <- as.matrix(treated.tmin1[,x]) #drop intercept
+        ##yvals <- unique(untreated.tmin1[,yname])##quantile(F.untreated.tmin1, probs=seq(.01,.99,.01))
+        yvals <- unique(quantile(F.untreated.tmin1, probs=seq(.01,.99,.01)))
+        dr.list <- list()
+        formly1 <- "I(1*(y <= yvals[i])) ~ "
+        formly2 <- paste(x[-1], collapse=" + ")
+        formly <- paste(formly1, formly2, sep="")
+        formly <- as.formula(formly)
+        for (i in 1:length(yvals)) {
+            dr.list[[i]] <- glm(formly, data=untreated.tmin1, family=binomial(link=logit))
+        }
+
+        ##function to take in y0 and x and return F(y0|x)
+        F.untreated.tmin1.x <- function(y0, x) {
+            yval <- yvals[which.min(abs(yvals-y0))]
+            yidx <- which(yvals==yval)
+            predict(dr.list[[yidx]], newdata=x, type="response")
+        }
+       
+        tauvals <- seq(.01,.99,.01)
+        formlq1 <- "y ~"
+        formlq2 <- paste(x[-1], collapse=" + ")
+        formlq <- paste(formlq1, formlq2, sep="")
+        formlq <- as.formula(formlq)
+        qr <- rq(formlq, data=treated.tmin1, tau=tauvals)
+        round.ytmin1 <- round(untreated.tmin1[,yname],2)
+
+        ##function to take in tau and x and return F^-1(tau|x)
+        quant.treated.tmin1.x <- function(tau, x) {
+            tau.idx <- which.min(abs(tauvals-tau))
+            return(predict(qr, newdata=x)[tau.idx]) ##this step can probably be sped up because can predict all x's at the same time
+            ##also might be good to replace this with distribution regression
+            ## and then inverting because of the 0s.
+        }
+
+        ##function to get everything for single values of delta, y_t-1, and x
+        itfun <- function(dta,y) {
+            waits <- dta["waits"]
+            change <- dta["changey"]
+            ytmin1 <- dta["ytmin1"]
+            xx <- data.frame(t(dta[x[-1]]))
+            waits*1*(change + quant.treated.tmin1.x(F.untreated.tmin1.x(ytmin1, xx), xx) <= y)
+        }
+
+        itfun.y <- function(y) {
+            mean(apply(untreated.t, 1, itfun, y)) / mean(untreated.t$waits) ##the last division is to scale for estimated propensity score -- asymptotically it is equal to 1.
+        }
+
+        temp <- vapply(yvals, itfun.y, 1.0)
+
+        F.treated.t.cf = approxfun(yvals,
+            temp, method="constant",
+            yleft=0, yright=1, f=0, ties="ordered")
+        class(F.treated.t.cf) = c("ecdf", "stepfun",
+                 class(F.treated.t.cf))
+        assign("nobs", length(yvals), envir = environment(F.treated.t.cf))
+
+        ##compute the att using abadie-2005
+        ##TODO: this will only work for panel
+        att <- mean(((pscore.data$changey)/pD1)*(pscore.data[,treat] - pscore) /
+                    (1-pscore))
+        
+        ###above works I think
+
+    
+
+        ## xx <- data.frame(age=50)
+
+        ## ##get the conditional counterfactual distribution
+        ## to.yvals <- vapply(untreated.tmin1[,yname], FUN=function(x){yvals[which.min(abs(yvals-x))]}, 1.0)
+        ## to.yvals.idx <- vapply(to.yvals, function(x){which(yvals==x)}, 1.0)
+
+        ## inner.func <- function(xx) {
+        ##     F.treated.ytmin1.x <- vapply(to.yvals.idx, function(yidx) {predict(dr.list[[yidx]], newdata=xx, type="response")}, 1.0)
+        ##     tau.idx <- vapply(F.treated.ytmin1.x, function(x) {which.min(abs(tauvals-x))}, 1.0) ##find minimum between taus in the list and F.treated.ytmin1.x, kind of hack...
+        ##     y0tmin1.cf.x <- predict(qr, newdata=xx)[tau.idx]
+        ##     y0t.cf.x <- untreated.t[,yname] - untreated.tmin1[,yname] + y0tmin1.cf
+        ##     F.y0t.cf.x = ecdf(y0t.cf)
+        ##     return(F.y0t.cf.x)
+        ## }
+
+        ## temp <- apply(treated.t[,x], 1, inner.func)
+        
+        ## ll <- list()
+        ## for (i in 1:nrow(treated.t)) {
+        ##     ll[[i]] <- inner.func(treated.t[i,x])
+        ## }       
+    }
+
+
+
+
+
+    ##compare this to the actual outcomes
+    F.treated.t <- ecdf(treated.t[,yname])
+
+    qte <- quantile(F.treated.t, probs=probs) -
+        quantile(F.treated.t.cf, probs=probs)
+
+    if(plot) {
+        plot(probs, qte, type="l")
+    }
+    out <- QTE(F.treated.t=F.treated.t,
+               F.treated.tmin1=F.treated.tmin1,
+               F.untreated.change.t=F.untreated.change.t,
+               F.untreated.t=F.untreated.t,
+               F.untreated.tmin1=F.untreated.tmin1,
+               F.treated.t.cf=F.treated.t.cf,
+               qte=qte, pscore.reg=pscore.reg,  ate=att, probs=probs)
+    class(out) <- "QTE"
+    return(out)
+}
+
+
+
+
+#' @title ddid2
+#'
+#' @description \code{ddid2} computes the Quantile Treatment Effect
+#' on the Treated (QTET) using the method of Callaway, Li, and Oka (2015).  
+#'
+#' @param formla The formula y ~ d where y is the outcome and d is the
+#'  treatment indicator (d should be binary)
+#' @param xformla A optional one sided formula for additional covariates that
+#'  will be adjusted for.  E.g ~ age + education.  Additional covariates can
+#'  also be passed by name using the x paramater.
+#' @param t The 3rd time period in the sample (this is the name of the column)
+#' @param tmin1 The 2nd time period in the sample (this is the name of the
+#'  column)
+#' @param tname The name of the column containing the time periods
+#' @param data The name of the data.frame that contains the data
+#' @param panel Boolean indicating whether the data is panel or repeated cross
+#'  sections
+#' @param dropalwaystreated How to handle always treated observations
+#'  in panel data case (not currently used)
+#' @param idname The individual (cross-sectional unit) id name
+#' @param probs A vector of values between 0 and 1 to compute the QTET at
+#' @param iters The number of iterations to compute bootstrap standard errors.
+#'  This is only used if se=TRUE
+#' @param alp The significance level used for constructing bootstrap
+#'  confidence intervals
+#' @param method The method for estimating the propensity score when covariates
+#'  are included
+#' @param plot Boolean whether or not the estimated QTET should be plotted
+#' @param se Boolean whether or not to compute standard errors
+#' @param retEachIter Boolean whether or not to return list of results
+#'  from each iteration of the bootstrap procedure
+#' @param seedvec Optional value to set random seed; can possibly be used
+#'  in conjunction with bootstrapping standard errors.
+#'
+#' @examples
+#' ##load the data
+#' data(lalonde)
+#'
+#' ## Run the panel.qtet method on the experimental data with no covariates
+#' pq1 <- ddid2(re ~ treat, t=1978, tmin1=1975, tname="year",
+#'  x=NULL, data=lalonde.psid.panel, idname="id", se=FALSE,
+#'  probs=seq(0.05, 0.95, 0.05))
+#' summary(pq1)
+#'
+#' ## Run the panel.qtet method on the observational data with no covariates
+#' 
+#'
+#' @references
+#' Callaway, Brantly, Tong Li, and Tatsushi Oka.  ``Quantile Treatment Effects
+#' in Difference in Differences Models under Dependence Restrictions and with
+#' Only Two Time Periods.'' Working Paper, 2015.
+#'
+#' @return \code{QTE} object
+#' 
+#' @export
+ddid2 <- function(formla, xformla=NULL, t, tmin1,
+                      tname, data, panel=FALSE,
+                      dropalwaystreated=TRUE, idname, probs=seq(0.05,0.95,0.05),
+                      iters=100, alp=0.05, method="logit", plot=FALSE, se=TRUE,
+                      retEachIter=FALSE, seedvec=NULL, pl=NULL, cores=NULL) {
+
+
+    browser()
+
+    qp <- QTEparams(formla=formla, xformla=xformla, t=t, tmin1=tmin1,
+                    tname=tname, data=data, panel=panel,
+                    idname=idname, probs=probs,
+                    iters=iters, alp=alp, method=method,
+                    se=se, retEachIter=retEachIter, seedvec=seedvec,
+                    pl=pl, cores=cores)
+                    
+    
+    
+    ## maybe, move this to setupData
+    ##treated.t = data[data[,tname]==t & data[,treat]==1,]
+    ##treated.tmin1 = data[ data[,tname] == tmin1 & data[,treat] == 1, ]
+    ##untreated.t = data[data[,tname]==t & data[,treat]==0,]
+    ##untreated.tmin1 = data[ data[,tname] == tmin1 & data[,treat] == 0, ]
+
+    ##first calculate the actual estimate
+    pqte = compute.ddid2(qp)
+
+    if (se) {
+        ##now calculate the bootstrap confidence interval
+        eachIter = list()
+        ##Need to build dataset by sampling individuals, and then
+        ##taking all of their time periods
+        if (panel) {
+            treated.t <- treated.t[order(treated.t[,idname]),]
+            treated.tmin1 <- treated.tmin1[order(treated.tmin1[,idname]),]
+            untreated.t <- untreated.t[order(untreated.t[,idname]),]
+            untreated.tmin1 <- untreated.tmin1[order(untreated.tmin1[,idname]),]
+        }
+        nt <- nrow(treated.t)
+        nttmin1 <- nrow(treated.tmin1)
+        nu <- nrow(untreated.t)
+        nutmin1 <- nrow(untreated.tmin1)
+        ##out.bootdatalist <<- list()
+        for (i in 1:iters) {
+            ##reset boot.data
+            ##boot.data = data[0,]
+            if(!is.null(seedvec)) {
+                set.seed(seedvec[i])
+            }
+            randy.t <- sample(1:nt, nt, replace=T)
+            randy.ttmin1 <- sample(1:nttmin1, nttmin1, replace=T)
+            randy.u <- sample(1:nu, nu, replace=T)
+            randy.utmin1 <- sample(1:nutmin1, nutmin1, replace=T)
+            ##there has to be a way to do this faster, but go with the loop
+            ##for now
+            ##for (j in all.ids[randy]) {
+            ##    boot.data = rbind(boot.data, data[(data[,idname]==j),])
+            ##}
+            ##these.ids <- data[,idname][randy]
+            boot.data.treated.t <- treated.t[randy.t, ]
+            boot.data.untreated.t <- untreated.t[randy.u, ]
+            if (panel) {
+                boot.data.treated.tmin1 <- treated.tmin1[randy.t, ]
+                boot.data.untreated.tmin1 <- untreated.tmin1[randy.u, ]
+            } else { ## this samples repeated cross sections separately;
+                ## and I think implies independent sampling assumption
+                boot.data.treated.tmin1 <- treated.tmin1[randy.ttmin1, ]
+                boot.data.untreated.tmin1 <- untreated.tmin1[randy.utmin1, ]
+            }
+            boot.data <- rbind(boot.data.treated.t, boot.data.untreated.t,
+                               boot.data.treated.tmin1,
+                               boot.data.untreated.tmin1)
+            ##need to set the ids right
+            if (panel) {
+                boot.data[,idname] <- paste(boot.data[,idname],
+                                        c(seq(1, nt+nu), seq(1, nt+nu)),sep="-")
+            }
+            
+            ##boot.data = process.bootdata(boot.data, idname, uniqueid)
+            thisIter = compute.ddid2(formla=formla, t=t, tmin1=tmin1,
+                tname=tname, x=x, xformla=xformla, data=boot.data, panel=panel,
+                dropalwaystreated=dropalwaystreated,
+                idname=idname, probs=probs, 
+                method=method,
+                bootstrap.iter=TRUE)
+            eachIter[[i]] = thisIter
+                ##old
+                ##list(att=thisIter$att, qte=thisIter$qte,
+                ##        F.treated.t=thisIter$F.treated.t,
+                ##        F.treated.t.cf=thisIter$F.treated.t.cf)
+        }
+
+        SEobj <- computeSE(eachIter, pqte, alp=alp)
+
+        if(!retEachIter) {
+            eachIter=NULL
+        }
+
+        ##could return each bootstrap iteration w/ eachIter
+        ##but not currently doing that
+        out <- QTE(qte=pqte$qte, qte.upper=SEobj$qte.upper,
+                    qte.lower=SEobj$qte.lower, ate=pqte$ate,
+                    ate.upper=SEobj$ate.upper, ate.lower=SEobj$ate.lower,
+                    qte.se=SEobj$qte.se, ate.se=SEobj$ate.se,
+                    F.treated.t=pqte$F.treated.t,
+                    F.untreated.t=pqte$F.untreated.t,
+                    F.treated.t.cf=pqte$F.treated.t.cf,
+                    F.treated.tmin1=pqte$F.treated.tmin1,
+                    F.treated.tmin2=pqte$F.treated.tmin2,
+                    F.treated.change.tmin1=pqte$F.treated.change.tmin1,
+                    F.untreated.change.t=pqte$F.untreated.change.t,
+                    F.untreated.change.tmin1=pqte$F.untreated.change.tmin1,
+                    F.untreated.tmin1=pqte$F.untreated.tmin1,
+                    F.untreated.tmin2=pqte$F.untreated.tmin2,
+                    pscore.reg=pqte$pscore.reg,
+                    eachIterList=eachIter,
+                    probs=probs)
+        return(out)
+    } else {
+        return(pqte)
+    }
+}
