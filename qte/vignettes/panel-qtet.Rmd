@@ -1,3 +1,13 @@
+<script type="text/javascript" 
+        src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+    </script>
+    <script type="text/javascript">MathJax.Hub.Config({tex2jax: {processEscapes: true, 
+        processEnvironments: false, inlineMath: [ ['$','$'] ], 
+        displayMath: [ ['$$','$$'] ] }, 
+        asciimath2jax: {delimiters: [ ['$','$'] ] }, 
+        "HTML-CSS": {minScaleAdjust: 125 } });
+</script>
+
 # Estimating Quantile Treatment Effects using Callaway and Li (2016)
 
 We consider the case with exactly 3 periods of panel data: period 0, 1, and 2.  In period 0 and 1, no one is treated.  In period 2, some individuals are treated.  Whether or not an individual is treated depends on some covariates $X$.
