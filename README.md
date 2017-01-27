@@ -1,4 +1,0 @@
-qte
-===
-
-R qte package
