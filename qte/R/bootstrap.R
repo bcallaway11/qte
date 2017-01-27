@@ -14,15 +14,44 @@ bootiter <- function(i, qteparams, func) {
     seedvec <- qteparams$seedvec
     data <- qteparams$data
     n <- nrow(data)
+    tname <- qteparams$tname
+    t <- qteparams$t
+    tmin1 <- qteparams$tmin1
+    
     if(!is.null(seedvec)) {
         set.seed(seedvec[i])
     }
+
+    if (qteparams$panel) {
+        ids <- sample(unique(data$id), length(unique(data$id)), replace=T)
+        dta1 <- data[data[,tname] == t, ]
+        dta2 <- data[data[,tname] == tmin1, ]
+        n <- nrow(dta1)
+        if (nrow(dta1) != nrow(dta2)) {
+            warning("unexpected unbalanced panel")
+        }
+        boot.dta1 <- dta1[ids,]
+        boot.dta2 <- dta2[ids,] ##c(ids, n+ids),]
+        newids <- sample(seq(1, n), n)
+        boot.dta1$id <- newids
+        boot.dta2$id <- newids
+        boot.dta <- rbind(boot.dta1, boot.dta2)
+
+        
+        if (identical(temp,panel.qtet)) {
+            stop("need to add bootstrap functionality for 3 periods and panel.qtet case")
+        }
+
+    } else { ## we are not in the panel case
     
-    boot.data = data[0,]
-    randy = sample(1:n, n, replace=T)
-    boot.data <- data[randy,]
+        boot.dta = data[0,]
+        randy = sample(1:n, n, replace=T)
+        boot.dta <- data[randy,]
+    
+    }
+
     newqp <- qteparams
-    newqp$data <- boot.data
+    newqp$data <- boot.dta
     thisIter = func(newqp)
     thisIter$data <- NULL ##drop so that the size doesn't get too big
     return(thisIter)

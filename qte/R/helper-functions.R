@@ -13,24 +13,33 @@
 #' 
 #' @keywords internal
 makeBalancedPanel <- function(data, idname, tname) {
-    data=droplevels(data)
-    allt = unique(data[,tname])
-    allid = unique(data[,idname])
+    ## this is the old way
+    ##
+    ## data=droplevels(data)
+    ## allt = unique(data[,tname])
+    ## allid = unique(data[,idname])
     
-    ##loop over each id in the dataset
-    for (id in allid) {
-        ##get the number of time periods for that id
-        this.allt = unique(data[data[,idname]==id,tname])
+    ## ##loop over each id in the dataset
+    ## for (id in allid) {
+    ##     ##get the number of time periods for that id
+    ##     this.allt = unique(data[data[,idname]==id,tname])
         
-        ##check if its equal to the largest number of time
-        ##periods in the dataset
-        if (!(length(this.allt) == length(allt))) {
-            ##if it is fewer, then drop all observations
-            ##from that id from the dataset
-            data = data[!(data[,idname] == id),]
-        }
-    }
-    return(data)
+    ##     ##check if its equal to the largest number of time
+    ##     ##periods in the dataset
+    ##     if (!(length(this.allt) == length(allt))) {
+    ##         ##if it is fewer, then drop all observations
+    ##         ##from that id from the dataset
+    ##         data = data[!(data[,idname] == id),]
+    ##     }
+    ## }
+    ## return(data)
+
+    nt <- length(unique(data[,tname]))
+    agg <- aggregate(data[,idname], by=list(data[,idname]), length)
+    rightids <- agg[,1][agg[,2]==nt]
+    bp <- data[data[,idname] %in% rightids,]
+    return(bp)
+
 }
 
 #'@title makeDist
@@ -40,9 +49,18 @@ makeBalancedPanel <- function(data, idname, tname) {
 #' 
 #' @param x vector of values
 #' @param Fx vector of the distribution function values
+#' @param sorted boolean indicating whether or not x is already sorted;
+#'  computation is somewhat faster if already sorted
 #' 
 #' @keywords internal
-makeDist <- function(x, Fx) {
+makeDist <- function(x, Fx, sorted=FALSE) {
+    if (!sorted) {
+        tmat <- cbind(x, Fx)
+        tmat <- tmat[order(x),]
+        x <- tmat[,1]
+        Fx <- tmat[,2]
+    }
+    
     retF <- approxfun(x, Fx, method="constant",
                       yleft=0, yright=1, f=0, ties="ordered")
     class(retF) <- c("ecdf", "stepfun", class(retF))
@@ -198,4 +216,70 @@ qtes2mat <- function(qteList, sset=NULL, se=TRUE, rnd=3) {
     outmat <- cbind(probsvals, outmat)
     outmat
 }
+
+
+#'@title cs2panel
+#'
+#' @description Turn repeated cross sections data into panel data by imposing rank invariance; does not
+#'  that the inputs have the same length
+#'
+#' @param cs1 data frame, the first cross section
+#' @param cs2 data frame, the second cross section
+#' @param yname the name of the variable to calculate difference for (should be the same in each dataset)
+#' 
+#' @return the change in outcomes over time
+cs2panel <- function(cs1, cs2, yname) {
+    nu <- min(nrow(cs2), nrow(cs2))
+    if (nu == nrow(cs2)) {
+        ut <- cs2[,yname]
+        ut <- ut[order(-ut)] ##orders largest to smallest
+        ps <- seq(1,0,length.out=length(ut)) ##orders largest to smallest
+        utmin1 <- quantile(cs1[,yname], probs=ps, type=1)
+        ##F.untreated.change.t <- ecdf(ut-utmin1)
+    } else {
+        utmin1 <- cs2[,yname]
+        utmin1 <- utmin1[order(-utmin1)] ##orders largest to smallest
+        ps <- seq(1,0,length.out=length(utmin1)) ##orders largest to smallest
+        ut <- quantile(cs1[,yname], probs=ps, type=1)
+        ##F.untreated.change.t <- ecdf(ut-utmin1)
+    }
+    return(ut - utmin1)
+}
+
+require(formula.tools)
     
+dr.inner <- function(yval, formla, data) {
+    y <- lhs(formla)
+    x <- rhs(formla)
+    lhs(formla) <- substitute(I(y <= yval), list(y=y, yval=yval))
+    outreg <- glm(formla, data, family=binomial(link=logit))
+}
+
+#'@title dr
+#'
+#' @description Distribution Regression
+#' 
+#' @param formla the regression to run
+#' @param y.seq the values of y to run the regression on
+#' 
+#' @return 
+dr <- function(formla, data, y.seq) {
+    distreg <- lapply(y.seq, dr.inner, formla, data)
+    DR(y.seq, distreg)    
+}
+
+##function to take in y0 and x and return F(y0|x)
+dr.predict.inner <- function(y0, x, drobj) {
+    yval <- drobj$yvals[which.min(abs(drobj$yvals-y0))]
+    yidx <- which(drobj$yvals==yval)
+    predict(drobj$drlist[[yidx]], newdata=x, type="response")
+}
+
+##function to take a vector of ys and single x and return vector F(y|x)
+dr.predict <- function(y.seq, x, drobj) {
+    vapply(y.seq, dr.predict.inner, FUN.VALUE=1.0, x=x, drobj=drobj)
+}
+
+
+
+
