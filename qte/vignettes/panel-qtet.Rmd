@@ -1,12 +1,4 @@
-<script type="text/javascript" 
-        src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
-    </script>
-    <script type="text/javascript">MathJax.Hub.Config({tex2jax: {processEscapes: true, 
-        processEnvironments: false, inlineMath: [ ['$','$'] ], 
-        displayMath: [ ['$$','$$'] ] }, 
-        asciimath2jax: {delimiters: [ ['$','$'] ] }, 
-        "HTML-CSS": {minScaleAdjust: 125 } });
-</script>
+<script src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"></script>
 
 # Estimating Quantile Treatment Effects using Callaway and Li (2016)
 
