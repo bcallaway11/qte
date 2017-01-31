@@ -1,0 +1,23 @@
+reference:
+  - title: "Difference in Differences Methods"
+    desc: >
+      Functions for computing quantile treatment effects with access to
+      repeated observations over time
+    contents: 
+      - panel.qtet
+      - ddid2
+      - CiC
+      - QDiD
+  - title: "Selection on Observables"
+    desc: >
+      Functions for computing quantile treatment effects under the assumption
+      of selection on observables
+    contents:
+      - ci.qte
+      - ci.qtet
+articles:
+  - title: "R qte Tutorials"
+    desc: >
+      Additonal Details on qte methods
+    contents:
+      - panel-qtet

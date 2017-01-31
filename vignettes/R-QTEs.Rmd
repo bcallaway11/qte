@@ -11,7 +11,7 @@ vignette: >
 ---
 
 #Introduction
-
+<!--
 When evaluating the effect of a program, policymakers may be interested in more than just the average impact of the program.  For example, there may be cases where the mean net impact (benefit minus cost) is negative, but the program is still implemented because of the distributional impacts of the program.  One example from economics is the effect of a job training program.  Consider two job training programs that both have the same mean net impact which is negative.  If the first job training program tends to increase wages at the top of the wage distribution, it is likely to be rejected by policymakers.  On the other hand, if the second job training program tends to increase wages at the bottom of the wage distribution, it may be approved by policymakers.  Traditional methods, such as linear regression where the effect of participating in a program is constrained to be the same across all individuals are not suitable for distinguishing between these two types of programs.  Neither are methods that allow for treatment effect heterogeneity but identify only the average effect of participating in a program.  The distributional methods available in the R package QTE are useful in cases such as the above example where the researcher is interested in both allowing for treatment effect heterogeneity and understanding some aspect of the treatment effect heterogeneity.
 
 The idea that participating in a program can have a different effect on even observationally identical individuals has a long history in the econometrics literature [@heckman-robb-1985].  There has been much recent interest in studying treatment effect heterogeneity [@heckman-smith-clements-1997; @abbring-heckman-2007].  Although the QTE might not be the first choice parameter of interest for studying treatment effect heterogeneity, it is easier to identify as it only depends on the marginal distributions rather than the joint distribution.  In some cases the QTE is identical to the Quantiles of the Treatment Effect [@fan-park-2009] when individuals maintain their rank in the treated and untreated distributions and the QTE is increasing in $\tau$.  On the other hand, one can write down simply examples where the effect of treatment is heterogeneous across agents and the QTE is constant or where the QTE is not constant but there is no treatment effect heterogeneity.
@@ -70,6 +70,7 @@ Figure 3 shows the QTE for two simulated distributions.  The red distribution in
 #Identification and Estimation
 
 This section covers identification and estimation under the most commonly invoked assumptions for identifying the QTE or QTET.  But first, we give a brief description of the dataset used in the examples.
+
 
 ##Data
 
@@ -280,5 +281,7 @@ Finally, plots for all three methods are combined with the plot for the QTET com
  plot(jt.cic, ylim=c(-15000,15000), main="CiC")
  plot(jt.mdid, ylim=c(-15000,15000), main="MDiD")
 ```
+
+-->
 
 # References
