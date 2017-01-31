@@ -1,5 +1,12 @@
 ---
 output: github_document
+title: "README"
+author: "Brantly Callaway"
+date: "`r Sys.Date()`"
+vignette: >
+  %\VignetteIndexEntry{README}
+  %\VignetteEngine{knitr::rmarkdown}
+  \usepackage[utf8]{inputenc}
 ---
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
@@ -15,13 +22,13 @@ knitr::opts_chunk$set(
 The R `qte` package implements many methods used, especially in economics, to estimate quantile treatment effects.  These include the case where treatment is randomly assigned, under selection on observables, under a Difference in Differences Assumtpion.
 
 The package is available on CRAN and can be loaded as follows
-```{r}
-library(qte)
+```{r, eval=FALSE}
+  library(qte)
 ```
 
 The following example shows how to use the `ci.qte` method in the `qte` package using data about an experimental job training program.
 
-```{r}
+```{r, eval=FALSE}
 data(lalonde)
  jt.cia <- ci.qte(re78 ~ treat,
    xformla=~age + education + black + hispanic + married + nodegree,
