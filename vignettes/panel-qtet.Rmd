@@ -11,23 +11,50 @@ vignette: >
 
 # Estimating Quantile Treatment Effects using Callaway and Li (2016)
 
-123456
+The goal is to estimate the Quantile Treatment Effect on the Treated (QTET) which is given by
 
-We consider the case with exactly 3 periods of panel data: period 0, 1, and 2.  In period 0 and 1, no one is treated.  In period 2, some individuals are treated.  Whether or not an individual is treated depends on some covariates $X$.
+$$ F^{-1}_{Y_{1t}|D=1}(\tau) - F^{-1}_{Y_{0t}|D=1}(\tau) $$
 
-In this example, we consider the following data generating process:
+for $tau \in (0,1)$ and where $Y_{1t}$ are treated potential outcomes in period $t$, $Y_{0t}$ are untreated potential outcomes in period $t$ and $D$ indicates whether an individual is a member of the treated group or not.
 
-$$  Y_{it}(d) = \mu(d) + \theta_t \times x + v_i + \epsilon_{it} $$
+Thus, the key identification challenge is for the counterfactual distribution of untreated potential outcomes for the treated group $F_{Y_{0t}|D=1}(y)$ -- once we identify this, we can invert it to get the quantiles.
 
-where $\theta_t$ is a time period fixed effect, $v_i$ is an individual-specific fixed effect and $\epsilon_{it}$ is a noise term.  The QTT is constant across quantiles and given by $TE = \mu(1) - \mu(0)$.  $X$ is a binary covariate that is 0 for 1/3 of the population and 1 for everyone else.  Individuals with $X=1$ have a time trend given by $\theta_t$; there is no trend in outcomes for individuals with $X=1$.  The individual-specific fixed effects, we assume are distributed $N(d, d+1)$ and $\epsilon_{it} \sim N(0,1)$ and is iid.  Finally, we assume that $P(D=1|X=0)=2/3$ and $P(D=1|X=1) = 1/3$.
+We consider the case with three periods of panel data and where individuals are first treated in the last period -- period $t$.  In period $t-1$, $Y_{it-1} = Y_{i0t-1}$ and in period $t-2$, Y_{it-2} = Y_{i0t-2}$ for all individuals; that is, in the first two periods no one is treated so that we observe everyone's untreated potential outcomes.
+
+**Assumption 1 (Distributional Difference in Differences)**
+
+$$ \Delta Y_{0t} \independent D $$
+
+This is an extension of the most common mean DID assumption ($E[\Delta Y_{0t}|D=1] = E[\Delta Y_{0t}|D=0]$ to full independence.  But, unlike in the mean DID case, this assumption is not strong enough to point identify the QTET.  We also invoke the following additional assumption.
+
+**Assumption 2 (Copula Stability Assumption)**
+
+$$ C_{\Delta Y_{0t}, Y_{0t-1} | D=1}(u,v) = C_{\Delta Y_{0t-1}, Y_{0t-2} | D=1}(u,v)$
+
+The CSA says that if, in the periods before treatment, we observe the largest gains in outcomes going to, say, those at the top of the distribution, then in the current period, we would also observe the same thing.  Together, the Distributional DID Assumption and the Copula Stability Assumption imply that the counterfactual distribution of untreated potential outcomes for the treated group is identified.  It is given by
+
+$$ F_{Y_{0t}|D=1}(y) = E[1*\{F^{-1}_{\Delta Y_{t}|D=0}(F_{\Delta Y_{t-1}|D=1}(\Delta Y_{t-1})) + F^{-1}_{Y_{t-1}|D=1}(F^{-1}_{Y_{t-2}|D=1}(Y_{t-2})) \leq y | D=1] $$
+
+And then we can invert this to obtain the QTET.
+
+We also can allow the Distributional DID Assumption to hold conditional on covariates.  This may be important when the path of outcomes depends on covariates -- for example, the path of earnings even in the absence of treatment is likely to depend on education, experience, etc.  In this case, first step estimation depends on the propensity score, but is still straightforward.  The `panel.qtet` contains all the tools needed to do the estimation.
 
 ```{r}
-## Generate the data
+ ##load the data
+ data(lalonde)
 
-n <- 100 ## sample size
-te <- 1 ## treatment effect constant across quantiles
-thet2 <- 2 ## time effect in period 2
-thet1 <- 1 ## time effect in period 1 
-x <- sample(c(0,1), n, replace=T, prob=c(1/3,2/3)) ## a covariate
+ ## Run the panel.qtet method on the observational data with no covariates
+ pq1 <- panel.qtet(re ~ treat, t=1978, tmin1=1975, tmin2=1974, tname="year",
+  x=NULL, data=lalonde.psid.panel, idname="id", se=FALSE,
+  probs=seq(0.1, 0.9, 0.1))
+ summary(pq1)
 
+ ## Run the panel.qtet method on the observational data conditioning on
+ ## age, education, black, hispanic, married, and nodegree.
+ ## The propensity score will be estimated using the default logit method.
+ pq2 <- panel.qtet(re ~ treat, t=1978, tmin1=1975, tmin2=1974, tname="year",
+  xformla=~age + I(age^2) + education + black + hispanic + married + nodegree,
+  data=lalonde.psid.panel, idname="id", se=FALSE,
+  probs=seq(0.1, 0.9, 0.1))
+ summary(pq2)
 ```
