@@ -33,7 +33,7 @@ $$ C_{\Delta Y_{0t}, Y_{0t-1} | D=1}(u,v) = C_{\Delta Y_{0t-1}, Y_{0t-2} | D=1}(
 
 The CSA says that if, in the periods before treatment, we observe the largest gains in outcomes going to, say, those at the top of the distribution, then in the current period, we would also observe the same thing.  Together, the Distributional DID Assumption and the Copula Stability Assumption imply that the counterfactual distribution of untreated potential outcomes for the treated group is identified.  It is given by
 
-$$ F_{Y_{0t}|D=1}(y) = E[1*\{F^{-1}_{\Delta Y_{t}|D=0}(F_{\Delta Y_{t-1}|D=1}(\Delta Y_{t-1})) + F^{-1}_{Y_{t-1}|D=1}(F^{-1}_{Y_{t-2}|D=1}(Y_{t-2})) \leq y | D=1] $$
+$$ F_{Y_{0t}|D=1}(y) = E[1\{F^{-1}_{\Delta Y_{t}|D=0}(F_{\Delta Y_{t-1}|D=1}(\Delta Y_{t-1})) + F^{-1}_{Y_{t-1}|D=1}(F^{-1}_{Y_{t-2}|D=1}(Y_{t-2})) \leq y\} | D=1] $$
 
 And then we can invert this to obtain the QTET.
 

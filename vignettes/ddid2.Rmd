@@ -33,7 +33,7 @@ $$ C_{\Delta Y_{0t}, Y_{0t-1} | X=x,D=1}(u,v) = C_{\Delta Y_{0t}, Y_{0t-1} | X=x
 
 This assumption says that the dependence of the change in outcomes and the initial level of outcomes is the same for the treated group as the untreated group.  To make things concrete, consider the earnings example again.  The CI Assumption says that if we observe the biggest gains in earnings for the untreated group going to those with the highest initial earnings, then, in the absence of treatment, we would observe the same thing for the treated group.  Under Assumption 1 and Assumption 2,
 
-$$ F_{Y_{0t}|X=x,D=1}(y) = E[1*\{\Delta Y_t + F^{-1}_{Y_{t-1}|X=x,D=1}(F^{-1}_{Y_{t-1}|X=x,D=1}(Y_{t-1})) \leq y | X=x, D=0] $$
+$$ F_{Y_{0t}|X=x,D=1}(y) = E[1\{\Delta Y_t + F^{-1}_{Y_{t-1}|X=x,D=1}(F^{-1}_{Y_{t-1}|X=x,D=1}(Y_{t-1})) \leq y\} | X=x, D=0] $$
 
 And then we can invert this to obtain the CQTT.
 
