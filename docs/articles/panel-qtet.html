@@ -68,7 +68,7 @@
 <p>Thus, the key identification challenge is for the counterfactual distribution of untreated potential outcomes for the treated group <span class="math inline">\(F_{Y_{0t}|D=1}(y)\)</span> – once we identify this, we can invert it to get the quantiles.</p>
 <p>We consider the case with three periods of panel data and where individuals are first treated in the last period – period <span class="math inline">\(t\)</span>. In period <span class="math inline">\(t-1\)</span>, <span class="math inline">\(Y_{it-1} = Y_{i0t-1}\)</span> and in period <span class="math inline">\(t-2\)</span>, Y_{it-2} = Y_{i0t-2}$ for all individuals; that is, in the first two periods no one is treated so that we observe everyone’s untreated potential outcomes.</p>
 <p><strong>Assumption 1 (Distributional Difference in Differences)</strong></p>
-<p><span class="math display">\[ \Delta Y_{0t} \rlap D \]</span></p>
+<p><span class="math display">\[ \Delta Y_{0t} \perp D \]</span></p>
 <p>This is an extension of the most common mean DID assumption (<span class="math inline">\(E[\Delta Y_{0t}|D=1] = E[\Delta Y_{0t}|D=0]\)</span> to full independence. But, unlike in the mean DID case, this assumption is not strong enough to point identify the QTET. We also invoke the following additional assumption.</p>
 <p><strong>Assumption 2 (Copula Stability Assumption)</strong></p>
 <p><span class="math display">\[ C_{\Delta Y_{0t}, Y_{0t-1} | D=1}(u,v) = C_{\Delta Y_{0t-1}, Y_{0t-2} | D=1}(u,v) \]</span></p>
