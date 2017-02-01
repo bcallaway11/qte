@@ -23,7 +23,7 @@ We consider the case with three periods of panel data and where individuals are 
 
 **Assumption 1 (Distributional Difference in Differences)**
 
-$$ \Delta Y_{0t} \rlap D $$
+$$ \Delta Y_{0t} \perp D $$
 
 This is an extension of the most common mean DID assumption ($E[\Delta Y_{0t}|D=1] = E[\Delta Y_{0t}|D=0]$ to full independence.  But, unlike in the mean DID case, this assumption is not strong enough to point identify the QTET.  We also invoke the following additional assumption.
 
