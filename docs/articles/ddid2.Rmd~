@@ -1,0 +1,60 @@
+---
+title: "panel.qtet"
+author: "Brantly Callaway"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{panel.qtet}
+  %\VignetteEngine{knitr::rmarkdown}
+  \usepackage[utf8]{inputenc}
+---
+
+# Estimating Quantile Treatment Effects using Callaway and Li (2016)
+
+The goal is to estimate the Quantile Treatment Effect on the Treated (QTET) which is given by
+
+$$ F^{-1}_{Y_{1t}|D=1}(\tau) - F^{-1}_{Y_{0t}|D=1}(\tau) $$
+
+for $\tau \in (0,1)$ and where $Y_{1t}$ are treated potential outcomes in period $t$, $Y_{0t}$ are untreated potential outcomes in period $t$ and $D$ indicates whether an individual is a member of the treated group or not.
+
+Thus, the key identification challenge is for the counterfactual distribution of untreated potential outcomes for the treated group $F_{Y_{0t}|D=1}(y)$ -- once we identify this, we can invert it to get the quantiles.
+
+We consider the case with three periods of panel data and where individuals are first treated in the last period -- period $t$.  In period $t-1$, $Y_{it-1} = Y_{i0t-1}$ and in period $t-2$, Y_{it-2} = Y_{i0t-2}$ for all individuals; that is, in the first two periods no one is treated so that we observe everyone's untreated potential outcomes.
+
+**Assumption 1 (Distributional Difference in Differences)**
+
+$$ \Delta Y_{0t} \perp D $$
+
+This is an extension of the most common mean DID assumption ($E[\Delta Y_{0t}|D=1] = E[\Delta Y_{0t}|D=0]$ to full independence.  But, unlike in the mean DID case, this assumption is not strong enough to point identify the QTET.  We also invoke the following additional assumption.
+
+**Assumption 2 (Copula Stability Assumption)**
+
+$$ C_{\Delta Y_{0t}, Y_{0t-1} | D=1}(u,v) = C_{\Delta Y_{0t-1}, Y_{0t-2} | D=1}(u,v) $$
+
+The CSA says that if, in the periods before treatment, we observe the largest gains in outcomes going to, say, those at the top of the distribution, then in the current period, we would also observe the same thing.  Together, the Distributional DID Assumption and the Copula Stability Assumption imply that the counterfactual distribution of untreated potential outcomes for the treated group is identified.  It is given by
+
+$$ F_{Y_{0t}|D=1}(y) = E[1*\{F^{-1}_{\Delta Y_{t}|D=0}(F_{\Delta Y_{t-1}|D=1}(\Delta Y_{t-1})) + F^{-1}_{Y_{t-1}|D=1}(F^{-1}_{Y_{t-2}|D=1}(Y_{t-2})) \leq y | D=1] $$
+
+And then we can invert this to obtain the QTET.
+
+We also can allow the Distributional DID Assumption to hold conditional on covariates.  This may be important when the path of outcomes depends on covariates -- for example, the path of earnings even in the absence of treatment is likely to depend on education, experience, etc.  In this case, first step estimation depends on the propensity score, but is still straightforward.  The `panel.qtet` contains all the tools needed to do the estimation.
+
+```{r}
+ ##load the data
+ data(lalonde)
+
+ ## Run the panel.qtet method on the observational data with no covariates
+ pq1 <- panel.qtet(re ~ treat, t=1978, tmin1=1975, tmin2=1974, tname="year",
+  x=NULL, data=lalonde.psid.panel, idname="id", se=FALSE,
+  probs=seq(0.1, 0.9, 0.1))
+ summary(pq1)
+
+ ## Run the panel.qtet method on the observational data conditioning on
+ ## age, education, black, hispanic, married, and nodegree.
+ ## The propensity score will be estimated using the default logit method.
+ pq2 <- panel.qtet(re ~ treat, t=1978, tmin1=1975, tmin2=1974, tname="year",
+  xformla=~age + I(age^2) + education + black + hispanic + married + nodegree,
+  data=lalonde.psid.panel, idname="id", se=FALSE,
+  probs=seq(0.1, 0.9, 0.1))
+ summary(pq2)
+```

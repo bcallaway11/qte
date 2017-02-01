@@ -1,0 +1,51 @@
+---
+title: "ddid2"
+author: "Brantly Callaway"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{ddid2}
+  %\VignetteEngine{knitr::rmarkdown}
+  \usepackage[utf8]{inputenc}
+---
+
+# Estimating Quantile Treatment Effects using Callaway, Li, and Oka (2017)
+
+We are interested in estimating Conditional Quantile Treatment Effects on the Treated (QTT) with two periods of panel data (or repeated cross sections) under a Difference in Differences Assumption.  These are defined by 
+
+$$ CQTT_x(\tau) = F^{-1}_{Y_{1t}|X=x,D=1}(\tau) - F^{-1}_{Y_{0t}|X=x,D=1}(\tau) $$
+
+for $\tau \in (0,1)$ and where $Y_{1t}$ are treated potential outcomes in period $t$, $Y_{0t}$ are untreated potential outcomes in period $t$ and $D$ indicates whether an individual is a member of the treated group or not.  We are also thinking about the case where $X$ is discrete.
+
+The identification challenge is to obtain the counterfactual conditional distribution of untreated potential outcomes for the treated group: $F_{Y_{0t}|X=x, D=1}(y)$.  This method is built for the standard DID case where a researcher has access to two periods of data, no one is treated in the first period $t-1$, and the treated group is treated in period the last period $t$.
+
+**Assumption 1 (Distributional Difference in Differences)**
+
+$$ \Delta Y_{0t} \perp D | X$$
+
+This is an extension of the conditional  mean DID assumption ($E[\Delta Y_{0t}|X=x, D=1] = E[\Delta Y_{0t}|X=x,D=0]$ to full independence.  Relative to DID assumptions that are not conditional on $X$, this assumption is nice as it allows the path of outcomes to depend on covariates.  For example, suppose $Y$ is earnings.  The path of earnings, in the absence of some treatment, is likely to depend on covariates such as education and age.  If these are distributed differently across the treated and untreated groups, then an unconditional DID assumption is unlikely to hold, but Assumption 1 will.
+
+Alone, Assumption 1 is not strong enough to identify the CQTT.  We also impose the following additional assumption.
+
+**Assumption 2 (Copula Invariance Assumption)**
+
+$$ C_{\Delta Y_{0t}, Y_{0t-1} | X=x,D=1}(u,v) = C_{\Delta Y_{0t}, Y_{0t-1} | X=x,D=1}(u,v) $$
+
+This assumption says that the dependence of the change in outcomes and the initial level of outcomes is the same for the treated group as the untreated group.  To make things concrete, consider the earnings example again.  The CI Assumption says that if we observe the biggest gains in earnings for the untreated group going to those with the highest initial earnings, then, in the absence of treatment, we would observe the same thing for the treated group.  Under Assumption 1 and Assumption 2,
+
+$$ F_{Y_{0t}|X=x,D=1}(y) = E[1*\{\Delta Y_t + F^{-1}_{Y_{t-1}|X=x,D=1}(F^{-1}_{Y_{t-1}|X=x,D=1}(Y_{t-1})) \leq y | X=x, D=0] $$
+
+And then we can invert this to obtain the CQTT.
+
+The `ddid2` method contains the code to implement this method.  Here is an example.
+
+```{r}
+ ##load the data
+ data(lalonde)
+
+ ## Run the panel.qtet method on the experimental data with no covariates
+ dd1 <- ddid2(re ~ treat, t=1978, tmin1=1975, tname="year",
+  x=NULL, data=lalonde.psid.panel, idname="id", se=FALSE,
+  probs=seq(0.05, 0.95, 0.05))
+ summary(dd1)
+```
