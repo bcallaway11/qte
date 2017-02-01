@@ -15,7 +15,7 @@ The goal is to estimate the Quantile Treatment Effect on the Treated (QTET) whic
 
 $$ F^{-1}_{Y_{1t}|D=1}(\tau) - F^{-1}_{Y_{0t}|D=1}(\tau) $$
 
-for $tau \in (0,1)$ and where $Y_{1t}$ are treated potential outcomes in period $t$, $Y_{0t}$ are untreated potential outcomes in period $t$ and $D$ indicates whether an individual is a member of the treated group or not.
+for $\tau \in (0,1)$ and where $Y_{1t}$ are treated potential outcomes in period $t$, $Y_{0t}$ are untreated potential outcomes in period $t$ and $D$ indicates whether an individual is a member of the treated group or not.
 
 Thus, the key identification challenge is for the counterfactual distribution of untreated potential outcomes for the treated group $F_{Y_{0t}|D=1}(y)$ -- once we identify this, we can invert it to get the quantiles.
 
@@ -23,13 +23,13 @@ We consider the case with three periods of panel data and where individuals are 
 
 **Assumption 1 (Distributional Difference in Differences)**
 
-$$ \Delta Y_{0t} \independent D $$
+$$ \Delta Y_{0t} \rlap D $$
 
 This is an extension of the most common mean DID assumption ($E[\Delta Y_{0t}|D=1] = E[\Delta Y_{0t}|D=0]$ to full independence.  But, unlike in the mean DID case, this assumption is not strong enough to point identify the QTET.  We also invoke the following additional assumption.
 
 **Assumption 2 (Copula Stability Assumption)**
 
-$$ C_{\Delta Y_{0t}, Y_{0t-1} | D=1}(u,v) = C_{\Delta Y_{0t-1}, Y_{0t-2} | D=1}(u,v)$
+$$ C_{\Delta Y_{0t}, Y_{0t-1} | D=1}(u,v) = C_{\Delta Y_{0t-1}, Y_{0t-2} | D=1}(u,v) $$
 
 The CSA says that if, in the periods before treatment, we observe the largest gains in outcomes going to, say, those at the top of the distribution, then in the current period, we would also observe the same thing.  Together, the Distributional DID Assumption and the Copula Stability Assumption imply that the counterfactual distribution of untreated potential outcomes for the treated group is identified.  It is given by
 
