@@ -25,49 +25,72 @@ compute.spatt <- function(qp) {
     setupData(qp)
     bootstrapiter <- qp$bootstrapiter
 
-    browser()
-
- 
     ##calculate the att; this will be changed if there are covariates
-    att = weighted.mean(treated.t[,yname], treated.t[,wname]) -
-        weighted.mean(treated.tmin1[,yname], treated.tmin1[,wname]) -
-                                             (weighted.mean(untreated.t[,yname], untreated.t[,yname]) -
-                                              weighted.mean(untreated.tmin1[,yname], untreated.tmin1[,wname]))
+    att = getWeightedMean(treated.t[,yname], treated.t[,wname]) -
+        getWeightedMean(treated.tmin1[,yname], treated.tmin1[,wname]) -
+                                             (getWeightedMean(untreated.t[,yname], untreated.t[,wname]) -
+                                              getWeightedMean(untreated.tmin1[,yname], untreated.tmin1[,wname]))
 
-   
-    ##functionality with covariates is not yet implemented
-    pscore.reg <- NULL #do this in case no covariates as we return this value
-    if (!(is.null(x))) {
-        ntt <- nrow(treated.t)
-        nttmin1 <- nrow(treated.tmin1)
-        nut <- nrow(untreated.t)
-        nutmin1 <- nrow(untreated.tmin1)
-        p <- (ntt+nttmin1)/(ntt+nttmin1+nut+nutmin1)
-        D <- data[,treat]
-        T <- 1*(data[,tname]==t)
-        y <- data[,yname]
-        w <- data[,wname]
+    if(panel) {
+
+        dta <- panel2cs(data, yname, qp$idname, tname)
+        n <- nrow(dta)
+        D <- dta[,treat]
+        p <- sum(D)/n
+        dy <- dta$dy
         ##estimate the propensity score
         this.formla <- y ~ x
         lhs(this.formla) <- as.name(treat)
         rhs(this.formla) <- rhs(xformla)
-        pscore.reg <- glm(this.formla, data=data,
+        pscore.reg <- glm(this.formla, data=dta,
                           family=binomial(link=method))
         pscore <- fitted(pscore.reg) ## TODO: does this make sense for repeated cross sections;
         ## above, I am just pooling both periods.
 
-        lam <- (ntt+nut)/(ntt+nttmin1+nut+nutmin1) ## the fraction of observations in the last period
+        waits <- (D-pscore)/(p*(1-pscore))
 
-        waits1 <- (T-lam)/(lam*(1-lam))
-        waits2 <- (D-pscore)/(p*(1-pscore))
-        waits <- waits1 * waits2
 
         ##TODO: notice that we are not accounting for sampling weight
 
-        att <- getWeightedMean(y, waits)
+        att <- getWeightedMean(dy, waits, norm=FALSE)
 
-        ##att <- getWeightedMean(y, treated.weights) -
-        ##    getWeightedMean(y, untreated.weights)
+    } else {
+
+   
+    ##functionality with covariates is not yet implemented
+        pscore.reg <- NULL #do this in case no covariates as we return this value
+        if (!(is.null(x))) {
+            ntt <- nrow(treated.t)
+            nttmin1 <- nrow(treated.tmin1)
+            nut <- nrow(untreated.t)
+            nutmin1 <- nrow(untreated.tmin1)
+            p <- (ntt+nttmin1)/(ntt+nttmin1+nut+nutmin1)
+            D <- data[,treat]
+            T <- 1*(data[,tname]==t)
+            y <- data[,yname]
+            w <- data[,wname]
+            ##estimate the propensity score
+            this.formla <- y ~ x
+            lhs(this.formla) <- as.name(treat)
+            rhs(this.formla) <- rhs(xformla)
+            pscore.reg <- glm(this.formla, data=data,
+                              family=binomial(link=method))
+            pscore <- fitted(pscore.reg) ## TODO: does this make sense for repeated cross sections;
+            ## above, I am just pooling both periods.
+            
+            lam <- (ntt+nut)/(ntt+nttmin1+nut+nutmin1) ## the fraction of observations in the last period
+            
+            waits1 <- (T-lam)/(lam*(1-lam))
+            waits2 <- (D-pscore)/(p*(1-pscore))
+            waits <- waits1 * waits2
+            
+            ##TODO: notice that we are not accounting for sampling weight
+            
+            att <- getWeightedMean(y, waits)
+            
+            ##att <- getWeightedMean(y, treated.weights) -
+            ##    getWeightedMean(y, untreated.weights)
+        }
 
     }
 
@@ -142,7 +165,7 @@ spatt <- function(formla, xformla=NULL, t, tmin1,
     
     qp <- QTEparams(formla=formla, xformla=xformla, t=t, tmin1=tmin1,
                     tname=tname, data=data, panel=panel,
-                    idname=idname, probs=probs,
+                    idname=idname, probs=NULL,
                     iters=iters, alp=alp, method=method,
                     se=se, retEachIter=retEachIter, seedvec=seedvec,
                     pl=pl, cores=cores)
@@ -157,15 +180,15 @@ spatt <- function(formla, xformla=NULL, t, tmin1,
         ##bootstrap the standard errors
         SEobj <- bootstrap(qp, satt, compute.spatt)
 
-
-
+       
         ##could return each bootstrap iteration w/ eachIter
         ##but not currently doing that
-        out <- QTE(qte=NULL, pscore.reg=satt$pscore.reg, ate=satt$ate, probs=probs)
+        out <- QTE(qte=NULL, pscore.reg=satt$pscore.reg, ate=satt$ate,
+                   ate.se=SEobj$ate.se, probs=NULL)
                    
         return(out)
     } else {
-        return(pqte)
+        return(satt)
     }
 
 }

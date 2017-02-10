@@ -42,6 +42,76 @@ makeBalancedPanel <- function(data, idname, tname) {
 
 }
 
+
+#'@title panel2cs
+#' 
+#' @description panel2cs takes a 2 period dataset and turns it
+#'  into a cross sectional dataset.  The default functionality
+#'  is to keep all the variables from period 1
+#'  and add all the variables listed by name in timevars
+#'  from period 2 to those
+#' 
+#' @param data data.frame used in function
+#' @param timevars vector of names of variables to keep
+#' @param idname unique id
+#' @param tname time period name
+#' 
+#' @keywords internal
+panel2cs <- function(data, timevars, idname, tname) {
+
+    if (length(unique(data[,tname])) != 2) {
+        stop("panel2cs only for 2 periods of panel data")
+    }
+
+    data <- makeBalancedPanel(data, idname, tname) ## just in case
+    data <- data[order(data[,idname], data[,tname]),] ## put everything in the right order
+    ## so we can match it easily later on
+
+    tdta <- aggregate(data[,timevars], by=list(data[,idname]), FUN=function(x) { x[2] })
+
+    t1 <- unique(data[,tname])
+    t1 <- t1[order(t1)][1]
+    retdat <- subset(data, data[,tname]==t1)
+    retdat$yt1 <- tdta[,2]
+    retdat$dy <- retdat$yt1 - retdat$y
+    return(retdat)
+   
+}
+
+#'@title ids2rownum
+#' 
+#' @description ids2rownum takes a vector of ids and converts it t the right
+#'  row number in the dataset; ids should be unique in the dataset
+#'  that is, don't pass the function panel data with multiple same ids
+#' 
+#' @param ids vector of ids
+#' @param data data frame
+#' @param idname unique id
+#' 
+#' @keywords internal
+ids2rownum <- function(ids, data, idname) {
+    vapply(ids, id2rownum, 1.0, data=data, idname=idname)
+}
+
+
+#'@title ids2rownum
+#' 
+#' @description id2rownum takes an id and converts it t the right
+#'  row number in the dataset; ids should be unique in the dataset
+#'  that is, don't pass the function panel data with multiple same ids
+#' 
+#' @param ids vector of ids
+#' @param data data frame
+#' @param idname unique id
+#' 
+#' @keywords internal
+id2rownum <- function(id, data, idname) {
+    which(data[,idname] == id)
+}
+
+
+
+
 #'@title makeDist
 #' 
 #' @description turn vectors of a values and their distribution function values

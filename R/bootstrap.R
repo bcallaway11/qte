@@ -17,24 +17,26 @@ bootiter <- function(i, qteparams, func) {
     tname <- qteparams$tname
     t <- qteparams$t
     tmin1 <- qteparams$tmin1
+    idname <- qteparams$idname
+    data <- qteparams$data
     
     if(!is.null(seedvec)) {
         set.seed(seedvec[i])
     }
 
     if (qteparams$panel) {
-        ids <- sample(unique(data$id), length(unique(data$id)), replace=T)
+        ids <- sample(unique(data[,idname]), length(unique(data[,idname])), replace=T)
         dta1 <- data[data[,tname] == t, ]
         dta2 <- data[data[,tname] == tmin1, ]
         n <- nrow(dta1)
         if (nrow(dta1) != nrow(dta2)) {
             warning("unexpected unbalanced panel")
         }
-        boot.dta1 <- dta1[ids,]
-        boot.dta2 <- dta2[ids,] ##c(ids, n+ids),]
+        boot.dta1 <- dta1[ids2rownum(ids, dta1, idname),]
+        boot.dta2 <- dta2[ids2rownum(ids, dta2, idname),] ##c(ids, n+ids),]
         newids <- sample(seq(1, n), n)
-        boot.dta1$id <- newids
-        boot.dta2$id <- newids
+        boot.dta1[,idname] <- newids
+        boot.dta2[,idname] <- newids
         boot.dta <- rbind(boot.dta1, boot.dta2)
 
         
