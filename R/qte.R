@@ -52,15 +52,16 @@ compute.panel.qtet <- function(formla, xformla=NULL, t, tmin1, tmin2,
     yname="y"
     treat="treatment"
     data=cbind.data.frame(dta,data)
-    
+
     if (dropalwaystreated) {
         ##do nothing
     }
     
     if (!bootstrap.iter) {
-        ##first line gets the correct two years of data
-        data = subset(data, (data[,tname]==tmin1 | data[,tname]==t | 
-            data[,tname]==tmin2))
+        ##first line gets the correct three years of data
+        data = data[((data[,tname]==tmin1) | (data[,tname]==t) | (data[,tname]==tmin2)),]
+        ##data = subset(data, (data[,tname]==tmin1 | data[,tname]==t | 
+        ##    data[,tname]==tmin2))
         data = makeBalancedPanel(data, idname, tname)
     }
 
@@ -156,7 +157,6 @@ compute.panel.qtet <- function(formla, xformla=NULL, t, tmin1, tmin2,
     ##but no propensity score passed in, then this section estimates
     ##a propensity score using a simple logit on each of the variables
     ##entered additively.
-    ##browser()
     pscore.reg <- NULL #do this in case no covariates as we return this value
     if (!(is.null(x))) {
         ##set up the data to do the propensity score re-weighting
@@ -339,7 +339,6 @@ compute.panel.qtet <- function(formla, xformla=NULL, t, tmin1, tmin2,
 
             ##We use 2-step GMM
             ##1st stage GMM
-            ##browser()
             datamat <- cbind(xmat, d)
             ##need to set up some other variance matrix otherwise
             ##we will get singularities
@@ -451,8 +450,6 @@ compute.panel.qtet <- function(formla, xformla=NULL, t, tmin1, tmin2,
 
             ##TODO: this part is not complete
 
-            ##browser()
-            
             semipar.data <- data.frame(pscore.data[,treat],xmat)
             colnames(semipar.data)[1] <- "treatment"
 
@@ -637,7 +634,6 @@ compute.panel.qtet <- function(formla, xformla=NULL, t, tmin1, tmin2,
             h.new <- cross.validation(h.seq, d, x)
             
             cross.validation <- function(h.seq,y,x) {
-                ##browser()
                 cv.vals <- vapply(h.seq, FUN=cv.min1, FUN.VALUE=1, y=y, x=x)
                 return(h.seq[which.min(cv.vals)])
             }
@@ -914,7 +910,7 @@ panel.qtet <- function(formla, xformla=NULL, t, tmin1, tmin2,
                       dropalwaystreated=TRUE, idname, probs=seq(0.05,0.95,0.05),
                       iters=100, alp=0.05, method="logit", plot=FALSE, se=TRUE,
                       retEachIter=FALSE, seedvec=NULL) {
-    ##browser()
+
     form = as.formula(formla)
     dta = model.frame(terms(form,data=data),data=data) #or model.matrix
     colnames(dta) = c("y","treatment")
@@ -922,8 +918,7 @@ panel.qtet <- function(formla, xformla=NULL, t, tmin1, tmin2,
     treat="treatment"
     data=cbind.data.frame(dta,data)
 
-    data = subset(data, (data[,tname]==tmin1 | data[,tname]==t) |
-        data[,tname]==tmin2)
+    data = data[((data[,tname]==tmin1) | (data[,tname]==t) | (data[,tname]==tmin2)),]
     data = makeBalancedPanel(data, idname, tname)
 
     
@@ -948,6 +943,7 @@ panel.qtet <- function(formla, xformla=NULL, t, tmin1, tmin2,
         idname=idname, probs=probs,
         method=method)
 
+    
     if (se) {
         ##now calculate the bootstrap confidence interval
         eachIter = list()
@@ -1064,8 +1060,6 @@ compute.CiC <- function(formla, xformla=NULL, t, tmin1, tname, x=NULL, data,
     yname="y"
     treat="treatment"
     data=cbind.data.frame(dta,data)
-
-    ##browser()
 
     ## Setup x variables if using formula
     if (!(is.null(xformla))) {
@@ -2046,6 +2040,11 @@ plot.QTE <- function(x, plotate=FALSE, plot0=FALSE,
 #'  group in period t
 #' @param eachIterList An optional list of the outcome of each bootstrap
 #'  iteration
+#' @param inffunct The influence function for the treated group;
+#'  used for inference when there are multiple
+#'  periods and in the case with panel data.  It is needed for computing covariance
+#'  terms in the variance-covariance matrix.
+#' @param inffuncu The influence function for the untreated group
 #'
 #' @export
 QTE <- function(qte, ate=NULL, qte.se=NULL, qte.lower=NULL,
@@ -2060,7 +2059,7 @@ QTE <- function(qte, ate=NULL, qte.se=NULL, qte.lower=NULL,
                 F.untreated.tmin2=NULL,
                 condQ.treated.t=NULL,
                 condQ.treated.t.cf=NULL,
-                eachIterList=NULL) {
+                eachIterList=NULL, inffunct=NULL, inffuncu=NULL) {
     out <- list(qte=qte, ate=ate, qte.se=qte.se, qte.lower=qte.lower,
                 qte.upper=qte.upper, ate.se=ate.se, ate.lower=ate.lower,
                 ate.upper=ate.upper,
@@ -2076,7 +2075,9 @@ QTE <- function(qte, ate=NULL, qte.se=NULL, qte.lower=NULL,
                 F.untreated.tmin2=F.untreated.tmin2,
                 condQ.treated.t=condQ.treated.t,
                 condQ.treated.t.cf=condQ.treated.t.cf,
-                eachIterList=eachIterList)
+                eachIterList=eachIterList,
+                inffunct=inffunct,
+                inffuncu=inffuncu)
     class(out) <- "QTE"
     return(out)
 }

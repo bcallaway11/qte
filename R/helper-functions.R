@@ -162,8 +162,11 @@ checkfun <- function(a, tau) {
 #' 
 #' @keywords internal
 weighted.checkfun = function(q, cvec, tau, weights) {
-    w <- weights/(sum(weights))
-    retval = sum(w*checkfun(cvec-q, tau))
+    ## Old:
+    ##w <- weights/(sum(weights))
+    ##retval = sum(w*checkfun(cvec-q, tau))
+    w <- weights
+    retval <- mean(w*checkfun(cvec-q,tau))
     return(retval)
 }
 

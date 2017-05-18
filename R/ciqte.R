@@ -69,14 +69,14 @@ compute.ci.qte <- function(qp) {
         ##in this routine
 
         treated.weights = w * D / pscore
-        
+
         treated.firpo.quantiles <- getWeightedQuantiles(probs, y,
-                                                        treated.weights)
+                                                        treated.weights, norm=TRUE)
         
         untreated.weights = w * (1-D) /  (1-pscore)
 
         untreated.firpo.quantiles <- getWeightedQuantiles(probs, y,
-                                                          untreated.weights)
+                                                          untreated.weights, norm=TRUE)
         
         qte <- treated.firpo.quantiles - untreated.firpo.quantiles
 
