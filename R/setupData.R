@@ -9,10 +9,9 @@
 #' @param qteParams object holding the function parameters
 #'
 #' @keywords internal
-#'
-#' @export
 #' 
 #' @return qteData object holding data to be used in QTE functions
+#' @export
 setupData <- function(qteParams) {
 
     formla <- qteParams$formla
