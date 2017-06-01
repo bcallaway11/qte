@@ -2,7 +2,7 @@
 % Please edit documentation in R/helper-functions.R
 \name{qtes2mat}
 \alias{qtes2mat}
-\title{qte2mat}
+\title{qtes2mat}
 \usage{
 qtes2mat(qteList, sset = NULL, se = TRUE, rnd = 3)
 }
