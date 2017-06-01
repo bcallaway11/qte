@@ -4,7 +4,7 @@
 \alias{getWeightedQuantile}
 \title{getWeightedQuantile}
 \usage{
-getWeightedQuantile(tau, cvec, weights)
+getWeightedQuantile(tau, cvec, weights = NULL, norm = TRUE)
 }
 \arguments{
 \item{tau}{between 0 and 1, ex. .5 implies get the median}
@@ -13,9 +13,11 @@ getWeightedQuantile(tau, cvec, weights)
 
 \item{weights}{the weights, weighted.checkfun normalizes the weights
 to sum to 1.}
+
+\item{norm}{normalize the weights so that they have mean of 1, default is
+to normalize}
 }
 \description{
 Finds the quantile by optimizing the weighted check function
 }
 \keyword{internal}
-

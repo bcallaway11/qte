@@ -115,4 +115,3 @@ summary(pq3)
 Callaway, Brantly and Tong Li.  ``Quantile Treatment Effects in Difference
  in Differences Models with Panel Data.'' Working Paper, 2015.
 }
-

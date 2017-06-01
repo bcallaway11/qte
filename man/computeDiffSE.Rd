@@ -30,4 +30,3 @@ Takes two sets of initial estimates and bootstrap
  errors because, even though the estimates are cleanly identified, they
  are still estimated).
 }
-

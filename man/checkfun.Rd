@@ -15,4 +15,3 @@ checkfun(a, tau)
 The check function used for optimizing to get quantiles
 }
 \keyword{internal}
-

@@ -46,4 +46,3 @@ work for the Change in Changes model
 of Athey and Imbens, 2006.
 }
 \keyword{internal}
-

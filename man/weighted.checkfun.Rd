@@ -18,4 +18,3 @@ to sum to 1.}
 Weights the check function
 }
 \keyword{internal}
-

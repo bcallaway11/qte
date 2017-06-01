@@ -10,7 +10,9 @@ QTE(qte, ate = NULL, qte.se = NULL, qte.lower = NULL, qte.upper = NULL,
   F.untreated.t = NULL, F.treated.t.cf = NULL, F.treated.tmin1 = NULL,
   F.treated.tmin2 = NULL, F.treated.change.tmin1 = NULL,
   F.untreated.change.t = NULL, F.untreated.change.tmin1 = NULL,
-  F.untreated.tmin1 = NULL, F.untreated.tmin2 = NULL, eachIterList = NULL)
+  F.untreated.tmin1 = NULL, F.untreated.tmin2 = NULL,
+  condQ.treated.t = NULL, condQ.treated.t.cf = NULL, eachIterList = NULL,
+  inffunct = NULL, inffuncu = NULL)
 }
 \arguments{
 \item{qte}{The Quantile Treatment Effect at each value of probs}
@@ -76,11 +78,23 @@ in period tmin1}
 \item{F.untreated.tmin2}{Distribution of outcomes for the untreated group
 in period tmin2}
 
+\item{condQ.treated.t}{Conditional quantiles for the treated group in
+period t}
+
+\item{condQ.treated.t.cf}{Counterfactual conditional quantiles for the treated
+group in period t}
+
 \item{eachIterList}{An optional list of the outcome of each bootstrap
 iteration}
+
+\item{inffunct}{The influence function for the treated group;
+used for inference when there are multiple
+periods and in the case with panel data.  It is needed for computing covariance
+terms in the variance-covariance matrix.}
+
+\item{inffuncu}{The influence function for the untreated group}
 }
 \description{
 Main class of objects.  A \code{QTE} object is returned by
  all of the methods that compute the QTE or QTET.
 }
-

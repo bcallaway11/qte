@@ -22,4 +22,3 @@ SE object
  errors for methods in the qte package
 }
 \keyword{internal}
-

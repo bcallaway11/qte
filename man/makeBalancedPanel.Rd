@@ -18,4 +18,3 @@ This function drops observations from data.frame
  that are not part of balanced panel data set.
 }
 \keyword{internal}
-

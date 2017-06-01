@@ -4,7 +4,7 @@
 \alias{ci.qte}
 \title{ci.qte}
 \usage{
-ci.qte(formla, xformla = NULL, x = NULL, data, weights = NULL,
+ci.qte(formla, xformla = NULL, x = NULL, data, w = NULL,
   probs = seq(0.05, 0.95, 0.05), se = TRUE, iters = 100, alp = 0.05,
   plot = FALSE, method = "logit", retEachIter = FALSE, seedvec = NULL,
   printIter = FALSE, pl = FALSE, cores = 2)
@@ -21,7 +21,7 @@ also be passed by name using the x paramater.}
 
 \item{data}{The name of the data.frame that contains the data}
 
-\item{weights}{an additional vector of sampling weights}
+\item{w}{an additional vector of sampling weights}
 
 \item{probs}{A vector of values between 0 and 1 to compute the QTET at}
 
@@ -89,4 +89,3 @@ summary(q2)
 Firpo, Sergio.   ``Efficient Semiparametric Estimation of Quantile Treatment
  Effects.'' Econometrica 75.1, pp. 259-276, 2015.
 }
-

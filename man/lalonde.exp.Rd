@@ -10,4 +10,3 @@ The cross sectional verion of the experimental part of the
  is loaded with all the datasets with the command \code{data(lalonde)}
 }
 \keyword{datasets}
-

@@ -45,4 +45,3 @@ LaLonde, Robert.  ``Evaluating the Econometric Evaluations of
  (\url{http://cran.r-project.org/web/packages/causalsens/causalsens.pdf})
 }
 \keyword{datasets}
-

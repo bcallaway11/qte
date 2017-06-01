@@ -19,8 +19,6 @@ also be passed by name using the x paramater.}
 
 \item{x}{Vector of covariates.  Default is no covariates}
 
-\item{weights}{an additional vector of sampling weights}
-
 \item{data}{The name of the data.frame that contains the data}
 
 \item{probs}{A vector of values between 0 and 1 to compute the QTET at}
@@ -95,4 +93,3 @@ summary(q2)
 Firpo, Sergio.   ``Efficient Semiparametric Estimation of Quantile Treatment
  Effects.'' Econometrica 75.1, pp. 259-276, 2015.
 }
-

@@ -95,4 +95,3 @@ Athey, Susan and Guido Imbens.  ``Identification and Inference in Nonlinear
  Difference-in-Differences Models.'' Econometrica 74.2, pp. 431-497,
  2006.
 }
-

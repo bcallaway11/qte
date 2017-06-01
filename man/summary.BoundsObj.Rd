@@ -18,4 +18,3 @@ summary.BoundsObj Object
 \code{summary.BoundsObj} is an object for holding
 \code{bounds} results
 }
-

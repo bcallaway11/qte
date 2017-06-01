@@ -95,4 +95,3 @@ Athey, Susan and Guido Imbens.  ``Identification and Inference in Nonlinear
 Thuysbaert, Bram.  ``Distributional Comparisons in Difference in Differences
  Models.'' Working Paper, 2007.
 }
-

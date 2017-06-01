@@ -42,4 +42,3 @@ in panel data case (not currently used)}
 Internal function for computing the actual value for MDiD
 }
 \keyword{internal}
-

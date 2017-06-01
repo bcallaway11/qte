@@ -61,4 +61,3 @@ Fan, Yanqin and Zhengfei Yu.  ``Partial Identification of Distributional
  and Quantile Treatment Effects in Difference-in-Differences Models.''
  Economics Letters 115.3, pp.511-515, 2012.
 }
-

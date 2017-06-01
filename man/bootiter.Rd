@@ -22,4 +22,3 @@ SE object
 \code{bootiter} that computes a single bootstrap iteration
 }
 \keyword{internal}
-

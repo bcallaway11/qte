@@ -23,4 +23,3 @@ Helper function to compute the upper bound in bounds method.
  It is usually called by vapply function
 }
 \keyword{internal}
-

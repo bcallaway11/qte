@@ -16,5 +16,3 @@ qteData object holding data to be used in QTE functions
 \code{setupData} sets up the data to use in each
  compute method in the QTE package
 }
-\keyword{internal}
-

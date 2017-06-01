@@ -17,4 +17,3 @@ QTE object
 on observables
 }
 \keyword{internal}
-

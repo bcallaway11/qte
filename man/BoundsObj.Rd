@@ -35,4 +35,3 @@ by the bounds method}
 An object of results from computing bounds
 }
 \keyword{internal}
-

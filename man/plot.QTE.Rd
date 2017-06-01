@@ -44,4 +44,3 @@ set based on the values that the QTE takes}
 \description{
 Plots a QTE Object
 }
-

@@ -26,4 +26,3 @@ SE(qte.se = NULL, ate.se = NULL, qte.upper = NULL, qte.lower = NULL,
 Class for Standard Error Objects
 }
 \keyword{internal}
-

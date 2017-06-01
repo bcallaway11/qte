@@ -14,4 +14,3 @@
 \description{
 \code{summary.QTE} summarizes QTE objects
 }
-

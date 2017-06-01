@@ -4,7 +4,7 @@
 \alias{getWeightedQuantiles}
 \title{getWeightedQuantile}
 \usage{
-getWeightedQuantiles(tau, cvec, weights)
+getWeightedQuantiles(tau, cvec, weights = NULL, norm = TRUE)
 }
 \arguments{
 \item{tau}{a vector of values between 0 and 1}
@@ -13,9 +13,11 @@ getWeightedQuantiles(tau, cvec, weights)
 
 \item{weights}{the weights, weighted.checkfun normalizes the weights
 to sum to 1.}
+
+\item{norm}{normalize the weights so that they have mean of 1, default is
+to normalize}
 }
 \description{
 Finds multiple quantiles by repeatedly calling
  getWeightedQuantile
 }
-

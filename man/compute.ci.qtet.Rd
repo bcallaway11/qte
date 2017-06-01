@@ -17,4 +17,3 @@ QTE object
 selection on observables
 }
 \keyword{internal}
-

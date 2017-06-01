@@ -13,4 +13,3 @@
 Helper function to print a matrix; used by the print methods
 }
 \keyword{internal}
-

@@ -5,8 +5,8 @@
 \title{QTEparams}
 \usage{
 QTEparams(formla, xformla = NULL, t = NULL, tmin1 = NULL, tmin2 = NULL,
-  tname = NULL, data, weights = NULL, idname = NULL, probs, alp = NULL,
-  method = NULL, plot = NULL, se = NULL, iters = NULL,
+  tname = NULL, data, panel = FALSE, w = NULL, idname = NULL, probs,
+  alp = NULL, method = NULL, plot = NULL, se = NULL, iters = NULL,
   retEachIter = NULL, bootstrapiter = NULL, seedvec = NULL, pl = NULL,
   cores = NULL)
 }
@@ -25,7 +25,7 @@ QTEparams(formla, xformla = NULL, t = NULL, tmin1 = NULL, tmin2 = NULL,
 
 \item{data}{The name of the data frame}
 
-\item{weights}{Additional (usually sampling) weights}
+\item{w}{Additional (usually sampling) weights}
 
 \item{idname}{The name of the id column used with panel data (not always used)}
 
@@ -60,4 +60,3 @@ in parallel}
 \code{QTEparams} is an object that contains all the
  parameters passed to QTE methods
 }
-
