@@ -55,8 +55,8 @@ compute.ci.qte <- function(qp) {
         w <- data[,wname]
         ##estimate the propensity score
         this.formla <- y ~ x
-        lhs(this.formla) <- as.name(treat)
-        rhs(this.formla) <- rhs(xformla)
+        formula.tools::lhs(this.formla) <- as.name(treat)
+        formula.tools::rhs(this.formla) <- formula.tools::rhs(xformla)
         pscore.reg <- glm(this.formla, data=data,
                           family=binomial(link=method))
         pscore <- fitted(pscore.reg)
