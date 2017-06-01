@@ -8,8 +8,6 @@
 #' @inheritParams panel.qtet
 #' @param qteParams object holding the function parameters
 #'
-#' @keywords internal
-#' 
 #' @return qteData object holding data to be used in QTE functions
 #' @export
 setupData <- function(qteParams) {
