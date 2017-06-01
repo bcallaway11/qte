@@ -53,6 +53,25 @@ bootse.diffquantiles <- function(qteobj, hightau, lowtau) {
     se <- sd(unlist(bootvals))
 }
 
+#'@title diffQ
+#'
+#' @description ## takes a single set of quantiles
+#' (not qtes as in diffquantiles)
+#'  and returns the difference between particular ones
+#'
+#' @param qvec vector of quantiles
+#' @param tauvec vector of tau (should be same length as qvec)
+#' @param hightau upper quantile
+#' @param lowtau lower quantile
+#'
+#' @return scalar difference between quantiles
+#' @export
+diffQ <- function(qvec, tauvec, hightau, lowtau) {
+    which.highq <- which(tauvec == hightau)
+    which.lowqte <- which(tauvec == lowtau)
+    return(qvec[which.highqte] - qvec[which.lowqte])
+}
+
 
 
 ##make tables using R's texreg package
