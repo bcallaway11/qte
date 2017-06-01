@@ -12,7 +12,8 @@ Description: Provides several methods for computing the Quantile Treatment
     Difference in Differences assumption (several varieties are available in the
     package).
 Depends: R (>= 2.10)
-Imports: Hmisc, parallel, quantreg
+Imports: Hmisc, parallel, quantreg, BMisc
+Remotes: bcallaway11/BMisc
 License: GPL-2
 LazyData: true
 RoxygenNote: 6.0.0
