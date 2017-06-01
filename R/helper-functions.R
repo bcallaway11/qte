@@ -69,7 +69,7 @@ bootse.diffquantiles <- function(qteobj, hightau, lowtau) {
 diffQ <- function(qvec, tauvec, hightau, lowtau) {
     which.highq <- which(tauvec == hightau)
     which.lowqte <- which(tauvec == lowtau)
-    return(qvec[which.highqte] - qvec[which.lowqte])
+    return(qvec[which.highq] - qvec[which.lowq])
 }
 
 
