@@ -16,7 +16,7 @@ Imports: Hmisc, parallel, quantreg, BMisc, formula.tools
 Remotes: bcallaway11/BMisc
 License: GPL-2
 LazyData: true
-RoxygenNote: 6.0.0
+RoxygenNote: 6.0.1
 Suggests: knitr,
     rmarkdown
 VignetteBuilder: knitr

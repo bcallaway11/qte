@@ -8,6 +8,7 @@
 #' @param rnd how many disgits to round to
 #'
 #' @return matrix
+#' @export
 qtes2mat <- function(qteList, sset=NULL, se=TRUE, rnd=3) {
     if (is.null(sset)) {
         sset <- seq(1,length(qteList[[1]]$probs))
@@ -22,6 +23,35 @@ qtes2mat <- function(qteList, sset=NULL, se=TRUE, rnd=3) {
     probsvals <- c(rbind(paste(probs), rep("", length(probs))))
     outmat <- cbind(probsvals, outmat)
     outmat
+}
+
+
+#'@title ggplot.qte
+#'
+#' @description Makes somewhat nicer plots of quantile treatment effects
+#'  by using ggplot
+#'
+#' @param qteobj a QTE object
+#'
+#' @return a ggplot object
+#' @export
+ggplot.qte <- function(qteobj) {
+    cmat <- data.frame(tau, qte=qteobj$qte, qte.se=qteobj$qte.se)
+    qp <- ggplot(data=cmat, aes(tau, qte, ymax=qte+1.96*qte.se,
+                                ymin=qte-1.96*qte.se)) +
+        geom_line(aes(tau, qte)) +
+        geom_line(aes(tau, qte+1.96*qte.se), linetype="dashed") +
+        geom_line(aes(tau, qte-1.96*qte.se), linetype="dashed") +
+                                        #geom_errorbar(size=.3, width=.02) + 
+        geom_hline(yintercept=0) + 
+        geom_point(aes(tau, qte)) +
+        scale_y_continuous("Union Earnings Premium", limits=c(-.4, .4)) +
+        scale_x_continuous("tau", limits=c(0,1), breaks=c(.1,.3,.5,.7,.9)) + 
+        theme_classic() +
+        theme(panel.border = element_rect(colour = 'black', size=1,
+                                          fill=NA,
+                                          linetype='solid'))
+    qp
 }
 
 ##functions to get median (or specified quantile)
