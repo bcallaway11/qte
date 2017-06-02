@@ -26,7 +26,7 @@ qtes2mat <- function(qteList, sset=NULL, se=TRUE, rnd=3) {
 }
 
 
-#'@title ggplot.qte
+#'@title ggqte
 #'
 #' @description Makes somewhat nicer plots of quantile treatment effects
 #'  by using ggplot
@@ -37,7 +37,7 @@ qtes2mat <- function(qteList, sset=NULL, se=TRUE, rnd=3) {
 #'
 #' @return a ggplot object
 #' @export
-ggplot.qte <- function(qteobj) {
+ggqte <- function(qteobj) {
     cmat <- data.frame(tau, qte=qteobj$qte, qte.se=qteobj$qte.se)
     qp <- ggplot2::ggplot(data=cmat, aes(tau, qte, ymax=qte+1.96*qte.se,
                                 ymin=qte-1.96*qte.se)) +
