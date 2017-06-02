@@ -16,6 +16,7 @@ utils::globalVariables(c("yname", "treat", "treated", "x", "wname", "probs", "me
 #' @param qp QTEparams object containing the parameters passed to ddid2
 #'
 #' @importFrom quantreg rq
+#' @import BMisc
 #'
 #' @return QTE object
 #'
