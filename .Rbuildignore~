@@ -1,0 +1,7 @@
+^README\.Rmd$
+^_pkgdown\.yml$
+^cran-comments\.md$
+^qte\.Rproj$
+^docs$
+
+^R/imports\.R$

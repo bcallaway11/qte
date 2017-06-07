@@ -26,6 +26,8 @@ column)}
 
 \item{data}{The name of the data.frame that contains the data}
 
+\item{w}{an additional vector of sampling weights}
+
 \item{panel}{Boolean indicating whether the data is panel or repeated cross
 sections}
 
@@ -50,15 +52,12 @@ from each iteration of the bootstrap procedure}
 \item{seedvec}{Optional value to set random seed; can possibly be used
 in conjunction with bootstrapping standard errors.}
 
-\item{x}{An optional vector of covariates (the name of the columns).
-Covariates can also be passed in formulat notation using the
-xformla paramter.}
+\item{pl}{boolean for whether or not to compute bootstrap error in parallel.
+Note that computing standard errors in parallel is a new feature and may
+not work at all on Windows.}
 
-\item{dropalwaystreated}{How to handle always treated observations
-in panel data case (not currently used)}
-
-\item{weights}{additional (usually sampling) weights to be applied (not yet
-implemented)}
+\item{cores}{the number of cores to use if bootstrap standard errors are
+computed in parallel}
 }
 \value{
 \code{QTE} object

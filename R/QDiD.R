@@ -1,4 +1,4 @@
-utils::globalVariables(c("yname", "treat", "treated", "x", "wname", "probs", "method", "treated", "untreated", "eachIter"))
+utils::globalVariables(c("yname", "treat", "treated.t", "treated.tmin1", "untreated.t", "untreated.tmin1", "x", "wname", "probs", "method", "eachIter", "xformla"))
 
 
 ###Quantile Difference-in-Differences
@@ -36,16 +36,16 @@ compute.QDiD <- function(qp) {
     
     ##5) Compute Quantiles
     ##a) Quantiles of observed distribution
-    q1 = quantile(treated.t[,yname],probs=probs)
-    q0 = quantile(treated.tmin1[,yname] ,probs=probs) + quantile(untreated.t[,yname] ,probs=probs) - quantile(untreated.tmin1[,yname] ,probs=probs)
+    q1 = stats::quantile(treated.t[,yname],probs=probs)
+    q0 = stats::quantile(treated.tmin1[,yname] ,probs=probs) + stats::quantile(untreated.t[,yname] ,probs=probs) - stats::quantile(untreated.tmin1[,yname] ,probs=probs)
     
    
     ##7) Estimate ATT using A-I
      att = mean(treated.t[,yname]) - ( mean(treated.tmin1[,yname]) +
-         mean(quantile(untreated.t[,yname],
-                  probs=ecdf(treated.tmin1[,yname])(treated.tmin1[,yname]))) -
-         mean(quantile(untreated.tmin1[,yname],
-                       probs=ecdf(treated.tmin1[,yname])(treated.tmin1[,yname]))) )
+         mean(stats::quantile(untreated.t[,yname],
+                  probs=stats::ecdf(treated.tmin1[,yname])(treated.tmin1[,yname]))) -
+         mean(stats::quantile(untreated.tmin1[,yname],
+                       probs=stats::ecdf(treated.tmin1[,yname])(treated.tmin1[,yname]))) )
    
 
     ##now with covariates
@@ -53,11 +53,10 @@ compute.QDiD <- function(qp) {
     condQ.treated.t.qr <- NULL
     condQ.treated.t.cf.qr <- NULL
     if(!is.null(x)) {
-        require(quantreg)
-        
+                
         this.formla <- y ~ x ##just set up dummy formula first
-        lhs(this.formla) <- as.name(yname)
-        rhs(this.formla) <- rhs(xformla)
+        formula.tools::lhs(this.formla) <- as.name(yname)
+        formula.tools::rhs(this.formla) <- formula.tools::rhs(xformla)
 
         ##condF.untreated.tmin1 <- dr(this.formla, untreated.tmin1,
         ##                            unique(untreated.tmin1[,yname]))
@@ -98,13 +97,13 @@ compute.QDiD <- function(qp) {
         
         condQ.treated.t.cf.qr <- list()
         condQ.treated.t.cf.qr$tau <- tau ##this should be the same as for treated.t and it is the last thing that is set, so ok
-        condQ.treated.t.cf.qr$coefficients <- coef(condQ.treated.tmin1.qr) + coef(condQ.untreated.t.qr) -
-            coef(condQ.untreated.tmin1.qr)
+        condQ.treated.t.cf.qr$coefficients <- stats::coef(condQ.treated.tmin1.qr) + stats::coef(condQ.untreated.t.qr) -
+            stats::coef(condQ.untreated.tmin1.qr)
         condQ.treated.t.cf.qr$terms <- condQ.treated.tmin1.qr$terms
         class(condQ.treated.t.cf.qr) <- "rqs"
 
         ## average the conditional distribution
-        condF.dist <- predict(condQ.treated.t.cf.qr, newdata=treated.t,
+        condF.dist <- stats::predict(condQ.treated.t.cf.qr, newdata=treated.t,
                               type="Fhat", stepfun=TRUE)
 
         yvals <- unique(treated.t[,yname])
@@ -126,12 +125,12 @@ compute.QDiD <- function(qp) {
         uncFvals <- uncFvals[order(uncFvals)]
         uncF <- makeDist(yvals, uncFvals, TRUE)
 
-        q0 <- quantile(uncF, probs, type=1)
+        q0 <- stats::quantile(uncF, probs, type=1)
                 
         
         condQTT <- list()
         condQTT$tau <- probs
-        condQTT$coefficients <- coef(condQ.treated.t.qr) - coef(condQ.treated.t.cf.qr)
+        condQTT$coefficients <- stats::coef(condQ.treated.t.qr) - stats::coef(condQ.treated.t.cf.qr)
         class(condQTT) <- "rqs"
     }
 
@@ -157,6 +156,7 @@ compute.QDiD <- function(qp) {
 #' based on these quasi-residuals.
 #' @inheritParams panel.qtet
 #' @inheritParams CiC
+#' @inheritParams ci.qte
 #' 
 #' @references
 #' Athey, Susan and Guido Imbens.  ``Identification and Inference in Nonlinear

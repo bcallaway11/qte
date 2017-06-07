@@ -1,4 +1,4 @@
-utils::globalVariables(c("yname", "treat", "treated", "x", "wname", "probs", "method", "treated", "untreated", "eachIter"))
+utils::globalVariables(c("yname", "treat", "panel", "treated.t", "treated.tmin1", "untreated.t", "untreated.tmin1", "F.treated.t", "F.treated.tmin1", "F.untreated.t", "F.untreated.tmin1", "xformla", "data", "x", "wname", "probs", "method", "eachIter"))
 
 
 #####Two Period DDID#####
@@ -34,7 +34,7 @@ compute.ddid2 <- function(qp) {
         untreated.change.t <- cs2panel(untreated.t, untreated.tmin1, yname)
     }
 
-    F.untreated.change.t <- ecdf(untreated.change.t)
+    F.untreated.change.t <- stats::ecdf(untreated.change.t)
     ##calculate the distribution of the change for the treated group;
     ## this will be changed if there are covariates
     F.treated.change.t <- F.untreated.change.t
@@ -52,7 +52,7 @@ compute.ddid2 <- function(qp) {
 
     quantys1 <- untreated.change.t
 
-    quantys2 <- quantile(F.treated.tmin1,
+    quantys2 <- stats::quantile(F.treated.tmin1,
                          probs=F.untreated.tmin1(untreated.tmin1[,yname]),
                          type=1)
 
@@ -69,176 +69,145 @@ compute.ddid2 <- function(qp) {
 
         stop("method not implemented with covariates")
 
-        this.formla <- y ~ x ##just set up dummy formula first
-        lhs(this.formla) <- as.name(yname)
-        rhs(this.formla) <- rhs(xformla)
+        ## this.formla <- y ~ x ##just set up dummy formula first
+        ## stats::lhs(this.formla) <- as.name(yname)
+        ## stats::rhs(this.formla) <- stats::rhs(xformla)
 
-        ##condF.untreated.tmin1 <- dr(this.formla, untreated.tmin1,
-        ##                            unique(untreated.tmin1[,yname]))
+        ## tauu <- seq(0,1, length.out=nrow(untreated.tmin1))
 
-        tauu <- seq(0,1, length.out=nrow(untreated.tmin1))
-
-        condQ.untreated.tmin1.qr <- rq(this.formla, tau=tauu,
-                                       data=untreated.tmin1)
+        ## condQ.untreated.tmin1.qr <- rq(this.formla, tau=tauu,
+        ##                                data=untreated.tmin1)
         
-        condF.untreated.tmin1 <- predict(condQ.untreated.tmin1.qr,
-                                         newdata=untreated.tmin1,
-                                         stepfun=T, type="Fhat")
+        ## condF.untreated.tmin1 <- stats::predict(condQ.untreated.tmin1.qr,
+        ##                                  newdata=untreated.tmin1,
+        ##                                  stepfun=T, type="Fhat")
 
-        qs <- c()
-        for (i in 1:nrow(untreated.tmin1)) {
-            qs[i] <- condF.untreated.tmin1[[i]](untreated.tmin1[,yname][i])
-        }
+        ## qs <- c()
+        ## for (i in 1:nrow(untreated.tmin1)) {
+        ##     qs[i] <- condF.untreated.tmin1[[i]](untreated.tmin1[,yname][i])
+        ## }
 
-        tauu1 <- seq(0,1,length.out=nrow(untreated.t))
-        condQ.untreated.t.qr <- rq(this.formla, tau=tauu1, data=untreated.t)
+        ## tauu1 <- seq(0,1,length.out=nrow(untreated.t))
+        ## condQ.untreated.t.qr <- rq(this.formla, tau=tauu1, data=untreated.t)
 
-        condQ.untreated.t <- predict(condQ.untreated.t.qr,
-                                       newdata=untreated.tmin1,
-                                       stepfun=T, type="Qhat")
-        quantys1 <- c()
-        for (i in 1:nrow(untreated.tmin1)) {
-            quantys1[i] <- condQ.untreated.t[[i]](qs[i])
-        }
+        ## condQ.untreated.t <- stats::predict(condQ.untreated.t.qr,
+        ##                                newdata=untreated.tmin1,
+        ##                                stepfun=T, type="Qhat")
+        ## quantys1 <- c()
+        ## for (i in 1:nrow(untreated.tmin1)) {
+        ##     quantys1[i] <- condQ.untreated.t[[i]](qs[i])
+        ## }
 
-        taut <- seq(0,1,length.out=nrow(treated.tmin1))
-        condQ.treated.tmin1.qr <- rq(this.formla, tau=taut, data=treated.tmin1)
+        ## taut <- seq(0,1,length.out=nrow(treated.tmin1))
+        ## condQ.treated.tmin1.qr <- rq(this.formla, tau=taut, data=treated.tmin1)
 
-        condQ.treated.tmin1 <- predict(condQ.treated.tmin1.qr,
-                                       newdata=untreated.tmin1,
-                                       stepfun=T, type="Qhat")
-        quantys2 <- c()
-        for (i in 1:nrow(untreated.tmin1)) {
-            quantys2[i] <- condQ.treated.tmin1[[i]](qs[i])
-        }
+        ## condQ.treated.tmin1 <- stats::predict(condQ.treated.tmin1.qr,
+        ##                                newdata=untreated.tmin1,
+        ##                                stepfun=T, type="Qhat")
+        ## quantys2 <- c()
+        ## for (i in 1:nrow(untreated.tmin1)) {
+        ##     quantys2[i] <- condQ.treated.tmin1[[i]](qs[i])
+        ## }
 
-        innerdf <- untreated.tmin1
-        innerdf$y <- quantys1+quantys2-untreated.tmin1[,yname]
+        ## innerdf <- untreated.tmin1
+        ## innerdf$y <- quantys1+quantys2-untreated.tmin1[,yname]
                               
-        condQ.treated.t.cf.qr <- rq(this.formla, tau=tauu, data=innerdf)
+        ## condQ.treated.t.cf.qr <- rq(this.formla, tau=tauu, data=innerdf)
 
-        taut1 <- seq(0,1,length.out=nrow(treated.t))
-        condQ.treated.t.qr <- rq(this.formla, tau=taut1, data=treated.t)
+        ## taut1 <- seq(0,1,length.out=nrow(treated.t))
+        ## condQ.treated.t.qr <- rq(this.formla, tau=taut1, data=treated.t)
 
-        ##condqte <- predict(condQ.treated.t.qr, newdata=data.frame(sex="Female"),
-        ##                   stepfun=T, type="Qhat")(probs) -
-        ##            predict(condQ.treated.t.cf.qr, newdata=data.frame(sex="Female"),
-        ##                    stepfun=T, type="Qhat")(probs)
 
-        return(list(condQ.treated.t.qr=condQ.treated.t.qr,
-                    condQ.treated.t.cf.qr=condQ.treated.t.cf.qr))
+
+        ## return(list(condQ.treated.t.qr=condQ.treated.t.qr,
+        ##             condQ.treated.t.cf.qr=condQ.treated.t.cf.qr))
                                                  
                                           
 
 
-        temp <- dr.predict(untreated.tmin1[,yname], data.frame(sex="Female"), condF.untreated.tmin1)
+        ## ## temp <- dr.predict(untreated.tmin1[,yname], data.frame(sex="Female"), condF.untreated.tmin1)
 
-        temp2 <- dr.predict(untreated.tmin1[,yname], data.frame(sex="Male"), condF.untreated.tmin1)
+        ## ## temp2 <- dr.predict(untreated.tmin1[,yname], data.frame(sex="Male"), condF.untreated.tmin1)
 
 
-        plot(makeDist(untreated.tmin1[,yname], temp))
-        plot(predict(condQ.untreated.tmin1, newdata=data.frame(sex="Female"),
-                     stepfun=T, type="Fhat"), add=T, col="blue")
-
-        
-        plot(makeDist(untreated.tmin1[,yname], temp2), col="blue", add=T)
-
+        ## ## graphics::plot(makeDist(untreated.tmin1[,yname], temp))
+        ## ## plot(predict(condQ.untreated.tmin1, newdata=data.frame(sex="Female"),
+        ## ##              stepfun=T, type="Fhat"), add=T, col="blue")
 
         
-
-
-
-
-
-
+        ## ## plot(makeDist(untreated.tmin1[,yname], temp2), col="blue", add=T)
 
 
         
+
+
+
+
+
+
+
+
         
-         ##Step 2: Distribution regression / quantile regression        
-        xmat0 <- as.matrix(untreated.tmin1[,x]) #drop intercept
-        xmat1 <- as.matrix(treated.tmin1[,x]) #drop intercept
-        ##yvals <- unique(untreated.tmin1[,yname])##quantile(F.untreated.tmin1, probs=seq(.01,.99,.01))
-        yvals <- unique(quantile(F.untreated.tmin1, probs=seq(.01,.99,.01)))
-        dr.list <- list()
-        formly1 <- "I(1*(y <= yvals[i])) ~ "
-        formly2 <- paste(x[-1], collapse=" + ")
-        formly <- paste(formly1, formly2, sep="")
-        formly <- as.formula(formly)
-        for (i in 1:length(yvals)) {
-            dr.list[[i]] <- glm(formly, data=untreated.tmin1, family=binomial(link=logit))
-        }
+        
+        ##  ##Step 2: Distribution regression / quantile regression        
+        ## xmat0 <- as.matrix(untreated.tmin1[,x]) #drop intercept
+        ## xmat1 <- as.matrix(treated.tmin1[,x]) #drop intercept
+
+        ## yvals <- unique(stats::quantile(F.untreated.tmin1, probs=seq(.01,.99,.01)))
+        ## dr.list <- list()
+        ## formly1 <- "I(1*(y <= yvals[i])) ~ "
+        ## formly2 <- paste(x[-1], collapse=" + ")
+        ## formly <- paste(formly1, formly2, sep="")
+        ## formly <- as.formula(formly)
+        ## for (i in 1:length(yvals)) {
+        ##     dr.list[[i]] <- glm(formly, data=untreated.tmin1, family=binomial(link=logit))
+        ## }
 
         
        
-        tauvals <- seq(.01,.99,.01)
-        formlq1 <- "y ~"
-        formlq2 <- paste(x[-1], collapse=" + ")
-        formlq <- paste(formlq1, formlq2, sep="")
-        formlq <- as.formula(formlq)
-        qr <- rq(formlq, data=treated.tmin1, tau=tauvals)
-        round.ytmin1 <- round(untreated.tmin1[,yname],2)
+        ## tauvals <- seq(.01,.99,.01)
+        ## formlq1 <- "y ~"
+        ## formlq2 <- paste(x[-1], collapse=" + ")
+        ## formlq <- paste(formlq1, formlq2, sep="")
+        ## formlq <- as.formula(formlq)
+        ## qr <- rq(formlq, data=treated.tmin1, tau=tauvals)
+        ## round.ytmin1 <- round(untreated.tmin1[,yname],2)
 
-        ##function to take in tau and x and return F^-1(tau|x)
-        quant.treated.tmin1.x <- function(tau, x) {
-            tau.idx <- which.min(abs(tauvals-tau))
-            return(predict(qr, newdata=x)[tau.idx]) ##this step can probably be sped up because can predict all x's at the same time
-            ##also might be good to replace this with distribution regression
-            ## and then inverting because of the 0s.
-        }
-
-        ##function to get everything for single values of delta, y_t-1, and x
-        itfun <- function(dta,y) {
-            waits <- dta["waits"]
-            change <- dta["changey"]
-            ytmin1 <- dta["ytmin1"]
-            xx <- data.frame(t(dta[x[-1]]))
-            waits*1*(change + quant.treated.tmin1.x(F.untreated.tmin1.x(ytmin1, xx), xx) <= y)
-        }
-
-        itfun.y <- function(y) {
-            mean(apply(untreated.t, 1, itfun, y)) / mean(untreated.t$waits) ##the last division is to scale for estimated propensity score -- asymptotically it is equal to 1.
-        }
-
-        temp <- vapply(yvals, itfun.y, 1.0)
-
-        F.treated.t.cf = approxfun(yvals,
-            temp, method="constant",
-            yleft=0, yright=1, f=0, ties="ordered")
-        class(F.treated.t.cf) = c("ecdf", "stepfun",
-                 class(F.treated.t.cf))
-        assign("nobs", length(yvals), envir = environment(F.treated.t.cf))
-
-        ##compute the att using abadie-2005
-        ##TODO: this will only work for panel
-        att <- mean(((pscore.data$changey)/pD1)*(pscore.data[,treat] - pscore) /
-                    (1-pscore))
-        
-        ###above works I think
-
-    
-
-        ## xx <- data.frame(age=50)
-
-        ## ##get the conditional counterfactual distribution
-        ## to.yvals <- vapply(untreated.tmin1[,yname], FUN=function(x){yvals[which.min(abs(yvals-x))]}, 1.0)
-        ## to.yvals.idx <- vapply(to.yvals, function(x){which(yvals==x)}, 1.0)
-
-        ## inner.func <- function(xx) {
-        ##     F.treated.ytmin1.x <- vapply(to.yvals.idx, function(yidx) {predict(dr.list[[yidx]], newdata=xx, type="response")}, 1.0)
-        ##     tau.idx <- vapply(F.treated.ytmin1.x, function(x) {which.min(abs(tauvals-x))}, 1.0) ##find minimum between taus in the list and F.treated.ytmin1.x, kind of hack...
-        ##     y0tmin1.cf.x <- predict(qr, newdata=xx)[tau.idx]
-        ##     y0t.cf.x <- untreated.t[,yname] - untreated.tmin1[,yname] + y0tmin1.cf
-        ##     F.y0t.cf.x = ecdf(y0t.cf)
-        ##     return(F.y0t.cf.x)
+        ## ##function to take in tau and x and return F^-1(tau|x)
+        ## quant.treated.tmin1.x <- function(tau, x) {
+        ##     tau.idx <- which.min(abs(tauvals-tau))
+        ##     return(predict(qr, newdata=x)[tau.idx]) ##this step can probably be sped up because can predict all x's at the same time
+        ##     ##also might be good to replace this with distribution regression
+        ##     ## and then inverting because of the 0s.
         ## }
 
-        ## temp <- apply(treated.t[,x], 1, inner.func)
+        ## ##function to get everything for single values of delta, y_t-1, and x
+        ## itfun <- function(dta,y) {
+        ##     waits <- dta["waits"]
+        ##     change <- dta["changey"]
+        ##     ytmin1 <- dta["ytmin1"]
+        ##     xx <- data.frame(t(dta[x[-1]]))
+        ##     waits*1*(change + quant.treated.tmin1.x(F.untreated.tmin1.x(ytmin1, xx), xx) <= y)
+        ## }
+
+        ## itfun.y <- function(y) {
+        ##     mean(apply(untreated.t, 1, itfun, y)) / mean(untreated.t$waits) ##the last division is to scale for estimated propensity score -- asymptotically it is equal to 1.
+        ## }
+
+        ## temp <- vapply(yvals, itfun.y, 1.0)
+
+        ## F.treated.t.cf = stats::approxfun(yvals,
+        ##     temp, method="constant",
+        ##     yleft=0, yright=1, f=0, ties="ordered")
+        ## class(F.treated.t.cf) = c("ecdf", "stepfun",
+        ##          class(F.treated.t.cf))
+        ## assign("nobs", length(yvals), envir = environment(F.treated.t.cf))
+
+        ## ##compute the att using abadie-2005
+        ## ##TODO: this will only work for panel
+        ## att <- mean(((pscore.data$changey)/pD1)*(pscore.data[,treat] - pscore) /
+        ##             (1-pscore))
         
-        ## ll <- list()
-        ## for (i in 1:nrow(treated.t)) {
-        ##     ll[[i]] <- inner.func(treated.t[i,x])
-        ## }       
     }
 
 
@@ -246,10 +215,10 @@ compute.ddid2 <- function(qp) {
 
 
     ##compare this to the actual outcomes
-    F.treated.t <- ecdf(treated.t[,yname])
+    F.treated.t <- stats::ecdf(treated.t[,yname])
 
-    qte <- quantile(F.treated.t, probs=probs) -
-        quantile(F.treated.t.cf, probs=probs)
+    qte <- stats::quantile(F.treated.t, probs=probs) -
+        stats::quantile(F.treated.t.cf, probs=probs)
 
     out <- QTE(F.treated.t=F.treated.t,
                F.treated.tmin1=F.treated.tmin1,
@@ -270,6 +239,7 @@ compute.ddid2 <- function(qp) {
 #' @description \code{ddid2} computes the Quantile Treatment Effect
 #' on the Treated (QTET) using the method of Callaway, Li, and Oka (2015).  
 #'
+#' @inheritParams ci.qte
 #' @param formla The formula y ~ d where y is the outcome and d is the
 #'  treatment indicator (d should be binary)
 #' @param xformla A optional one sided formula for additional covariates that

@@ -4,9 +4,9 @@
 \alias{ci.qtet}
 \title{ci.qtet}
 \usage{
-ci.qtet(formla, xformla = NULL, x = NULL, weights = NULL, data,
-  probs = seq(0.05, 0.95, 0.05), se = TRUE, iters = 100, alp = 0.05,
-  plot = FALSE, method = "logit", retEachIter = FALSE, seedvec = NULL,
+ci.qtet(formla, xformla = NULL, w = NULL, data, probs = seq(0.05, 0.95,
+  0.05), se = TRUE, iters = 100, alp = 0.05, plot = FALSE,
+  method = "logit", retEachIter = FALSE, seedvec = NULL,
   indsample = TRUE, printIter = FALSE, pl = FALSE, cores = 2)
 }
 \arguments{
@@ -17,7 +17,7 @@ treatment indicator (d should be binary)}
 will be adjusted for.  E.g ~ age + education.  Additional covariates can
 also be passed by name using the x paramater.}
 
-\item{x}{Vector of covariates.  Default is no covariates}
+\item{w}{an additional vector of sampling weights}
 
 \item{data}{The name of the data.frame that contains the data}
 

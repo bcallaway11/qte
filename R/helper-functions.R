@@ -38,6 +38,9 @@ qtes2mat <- function(qteList, sset=NULL, se=TRUE, rnd=3) {
 #' @return a ggplot object
 #' @export
 ggqte <- function(qteobj) {
+    tau <- qteobj$probs
+    qte <- qteobj$qte
+    qte.se <- qteobj$qte.se
     cmat <- data.frame(tau, qte=qteobj$qte, qte.se=qteobj$qte.se)
     qp <- ggplot2::ggplot(data=cmat, aes(tau, qte, ymax=qte+1.96*qte.se,
                                 ymin=qte-1.96*qte.se)) +
@@ -82,7 +85,7 @@ diffquantiles <- function(qteobj, hightau, lowtau) {
 ##must be called with a qteobj with retEachIter set to true
 bootse.diffquantiles <- function(qteobj, hightau, lowtau) {
     bootvals <- lapply(qteobj$eachIterList, diffquantiles, hightau, lowtau)
-    se <- sd(unlist(bootvals))
+    se <- stats::sd(unlist(bootvals))
 }
 
 #'@title diffQ
@@ -107,7 +110,16 @@ diffQ <- function(qvec, tauvec, hightau, lowtau) {
 
 
 ##make tables using R's texreg package
-require(texreg)
+#'@title diffQ
+#'
+#' @description ## takes a single set of quantiles
+#' (not qtes as in diffquantiles)
+#'  and returns the difference between particular ones
+#'
+#' @param qteobj A QTE object
+#' @param tau Optional vector of taus to texreg results for
+#' @param reportAte Whether or not texreg the ATE (or ATT) as well
+#'
 qteToTexreg <- function(qteobj, tau=NULL, reportAte=T) {
     if (is.null(tau)) {
         tau <- qteobj$probs
@@ -125,13 +137,13 @@ qteToTexreg <- function(qteobj, tau=NULL, reportAte=T) {
         ate.se <- qteobj$ate.se
     }
     if (reportAte) {
-        createTexreg(c(paste(tau), "ate"),
+        texreg::createTexreg(c(paste(tau), "ate"),
                      c(qte, ate),
                      c(qte.se, ate.se),
                      2*pnorm(-c(abs(qte/qte.se),
                                 abs(ate/ate.se))))
     } else {
-        createTexreg(paste(tau),
+        texreg::createTexreg(paste(tau),
                      qte,
                      qte.se,
                      2*pnorm(-c(abs(qte/qte.se))))

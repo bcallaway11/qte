@@ -26,8 +26,8 @@
 bounds <- function(formla, xformla=NULL, t, tmin1, tname, x=NULL,data,
                    dropalwaystreated=TRUE, idname, plot=F,
                    probs=seq(0.05,0.95,0.05)) {
-    form = as.formula(formla)
-    dta = model.frame(terms(form,data=data),data=data) #or model.matrix
+    form = stats::as.formula(formla)
+    dta = stats::model.frame(stats::terms(form,data=data),data=data) #or model.matrix
     colnames(dta) = c("y","treatment")
     yname="y"
     treat="treatment"
@@ -35,9 +35,9 @@ bounds <- function(formla, xformla=NULL, t, tmin1, tname, x=NULL,data,
 
     ## Setup x variables if using formula
     if (!(is.null(xformla))) {
-        x <- colnames(model.matrix(terms(as.formula(xformla)), data=data))
+        x <- colnames(stats::model.matrix(terms(stats::as.formula(xformla)), data=data))
         data <- cbind(data[,c(yname,treat,idname,tname)],
-                      model.matrix(terms(as.formula(xformla)), data=data))
+                      stats::model.matrix(terms(stats::as.formula(xformla)), data=data))
     }
     
     ##drop the always treated.  Note that this also relies
@@ -79,16 +79,16 @@ bounds <- function(formla, xformla=NULL, t, tmin1, tname, x=NULL,data,
     
     
     ##First, get distribution Y_1t | Dt=1
-    F.treated.t = ecdf(treated.t[,yname])
+    F.treated.t = stats::ecdf(treated.t[,yname])
     
 
-    F.treated.tmin1 = ecdf(treated.tmin1[,yname]) #as long as 
+    F.treated.tmin1 = stats::ecdf(treated.tmin1[,yname]) #as long as 
 
-    F.treated.change = ecdf(treated.t[,yname]-treated.tmin1[,yname])
+    F.treated.change = stats::ecdf(treated.t[,yname]-treated.tmin1[,yname])
     ##Actually -- don't think you need that...
     
     ##2c) Get the distribution of the change in outcomes for the never treated
-    F.untreated.change.t = ecdf(untreated.t[,yname]-untreated.tmin1[,yname])
+    F.untreated.change.t = stats::ecdf(untreated.t[,yname]-untreated.tmin1[,yname])
 
     ##for comparison, compute att first
     att = mean(treated.t[,yname]) - mean(treated.tmin1[,yname]) -
@@ -101,9 +101,9 @@ bounds <- function(formla, xformla=NULL, t, tmin1, tname, x=NULL,data,
         untreated.t$changey = untreated.t[,yname] - untreated.tmin1[,yname]
         pscore.data = rbind(treated.t, untreated.t)
         xmat = pscore.data[,x]
-        pscore.reg = glm(pscore.data[,treat] ~ as.matrix(xmat),
-            family=binomial(link="logit"))
-        pscore = fitted(pscore.reg)
+        pscore.reg = stats::glm(pscore.data[,treat] ~ as.matrix(xmat),
+            family=stats::binomial(link="logit"))
+        pscore = stats::fitted(pscore.reg)
         pscore.data$pscore <- pscore
         pD1 = nrow(treated.t)/nrow(untreated.t)
         pval <- pD1
@@ -120,7 +120,7 @@ bounds <- function(formla, xformla=NULL, t, tmin1, tname, x=NULL,data,
         
         pscore.data1 = pscore.data[order(pscore.data$changey),]
 
-        F.untreated.change.t = approxfun(pscore.data1$changey,
+        F.untreated.change.t = stats::approxfun(pscore.data1$changey,
             pscore.data1$distvals, method="constant",
             yleft=0, yright=1, f=0, ties="ordered")
         class(F.untreated.change.t) = c("ecdf", "stepfun",
@@ -147,7 +147,7 @@ bounds <- function(formla, xformla=NULL, t, tmin1, tname, x=NULL,data,
         F.change.treated=F.untreated.change.t,
         F.treated.tmin1=F.treated.tmin1,
         y=posvals)
-    F.lb <- approxfun(supy, lbs, method="constant",
+    F.lb <- stats::approxfun(supy, lbs, method="constant",
                       yleft=0, yright=1, f=0, ties="ordered")
     class(F.lb) = c("ecdf", "stepfun", class(F.lb))
     assign("nobs", length(supy), envir = environment(F.lb))
@@ -156,7 +156,7 @@ bounds <- function(formla, xformla=NULL, t, tmin1, tname, x=NULL,data,
         F.change.treated=F.untreated.change.t,
         F.treated.tmin1=F.treated.tmin1,
         y=posvals)
-    F.ub <- approxfun(supy, ubs, method="constant",
+    F.ub <- stats::approxfun(supy, ubs, method="constant",
                       yleft=0, yright=1, f=0, ties="ordered")
     class(F.ub) = c("ecdf", "stepfun", class(F.ub))
     assign("nobs", length(supy), envir = environment(F.ub))
@@ -164,26 +164,26 @@ bounds <- function(formla, xformla=NULL, t, tmin1, tname, x=NULL,data,
     
     ##get upper bound quantiles for unobserved untreated observations
     ##these are opposite from lower bound / upper bound on distribution
-    ub.quantiles = quantile(F.lb, probs=probs)
+    ub.quantiles = stats::quantile(F.lb, probs=probs)
     
     ##get lower bound quantiles for unobserved untreated observations
-    lb.quantiles = quantile(F.ub, probs=probs)
+    lb.quantiles = stats::quantile(F.ub, probs=probs)
     
     ##plot bounds on qte
     ## because we are subtracting, the lower bound for the qte
     ## will occur at the upper bound of the quantiles of untreated
     ## distribution, and the upper bound will occur at the lower
     ## bound of the quantiles of the untreated distribution.
-    lb.qte = as.numeric(quantile(treated.t[,yname],probs=probs) - 
+    lb.qte = as.numeric(stats::quantile(treated.t[,yname],probs=probs) - 
         ub.quantiles)
-    ub.qte = as.numeric(quantile(treated.t[,yname],probs=probs) - 
+    ub.qte = as.numeric(stats::quantile(treated.t[,yname],probs=probs) - 
         lb.quantiles)
     if (plot) {
         plot(probs, lb.qte, 
              type="l", lty=2, xlab="tau", ylab="QTE",
              ylim=c(-2.5,2.5))
-        lines(probs, ub.qte, lty=2)
-        abline(a=att, b=0, col="blue")
+        graphics::lines(probs, ub.qte, lty=2)
+        graphics::abline(a=att, b=0, col="blue")
     }    
     return(BoundsObj(lbs=lbs,ubs=ubs, ub.quantiles=ub.quantiles,
                 lb.quantiles=lb.quantiles, ub.qte=ub.qte,
@@ -295,12 +295,12 @@ plot.BoundsObj <- function(x, plotate=FALSE, plot0=FALSE,
     plot(bounds.obj$probs, bounds.obj$lb.qte, type="l",
          ylim=ylim,
          xlab="tau", ylab="QTET", col=qtecol,...)
-    lines(bounds.obj$probs, bounds.obj$ub.qte, col=qtecol)
+    graphics::lines(bounds.obj$probs, bounds.obj$ub.qte, col=qtecol)
     if (plotate) {
-        abline(h=bounds.obj$att, col=atecol, ...)
+        graphics::abline(h=bounds.obj$att, col=atecol, ...)
     }
     if (plot0) {
-        abline(h=0, col=col0)
+        graphics::abline(h=0, col=col0)
     }
 
     if (uselegend) {

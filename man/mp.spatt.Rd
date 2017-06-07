@@ -9,6 +9,53 @@ mp.spatt(formla, xformla = NULL, data, tname, w = NULL, panel = FALSE,
   method = "logit", plot = FALSE, se = TRUE, retEachIter = FALSE,
   seedvec = NULL, pl = FALSE, cores = 2)
 }
+\arguments{
+\item{formla}{The formula y ~ d where y is the outcome and d is the
+treatment indicator (d should be binary)}
+
+\item{xformla}{A optional one sided formula for additional covariates that
+will be adjusted for.  E.g ~ age + education.  Additional covariates can
+also be passed by name using the x paramater.}
+
+\item{data}{The name of the data.frame that contains the data}
+
+\item{tname}{The name of the column containing the time periods}
+
+\item{w}{an additional vector of sampling weights}
+
+\item{panel}{Boolean indicating whether the data is panel or repeated cross
+sections}
+
+\item{idname}{The individual (cross-sectional unit) id name}
+
+\item{first.treat.name}{Give the column name of the variable that forms groups based on when an observation is first treated}
+
+\item{iters}{The number of iterations to compute bootstrap standard errors.
+This is only used if se=TRUE}
+
+\item{alp}{The significance level used for constructing bootstrap
+confidence intervals}
+
+\item{method}{The method for estimating the propensity score when covariates
+are included}
+
+\item{plot}{Boolean whether or not the estimated QTET should be plotted}
+
+\item{se}{Boolean whether or not to compute standard errors}
+
+\item{retEachIter}{Boolean whether or not to return list of results
+from each iteration of the bootstrap procedure}
+
+\item{seedvec}{Optional value to set random seed; can possibly be used
+in conjunction with bootstrapping standard errors.}
+
+\item{pl}{boolean for whether or not to compute bootstrap error in parallel.
+Note that computing standard errors in parallel is a new feature and may
+not work at all on Windows.}
+
+\item{cores}{the number of cores to use if bootstrap standard errors are
+computed in parallel}
+}
 \value{
 \code{QTE} object
 }

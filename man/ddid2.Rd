@@ -52,6 +52,13 @@ from each iteration of the bootstrap procedure}
 
 \item{seedvec}{Optional value to set random seed; can possibly be used
 in conjunction with bootstrapping standard errors.}
+
+\item{pl}{boolean for whether or not to compute bootstrap error in parallel.
+Note that computing standard errors in parallel is a new feature and may
+not work at all on Windows.}
+
+\item{cores}{the number of cores to use if bootstrap standard errors are
+computed in parallel}
 }
 \value{
 \code{QTE} object

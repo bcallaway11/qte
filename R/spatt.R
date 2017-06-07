@@ -1,4 +1,6 @@
-utils::globalVariables(c("yname", "treat", "treated", "x", "wname", "probs", "method", "treated", "untreated", "eachIter"))
+utils::globalVariables(c("yname", "treat", "x", "xformla", "panel", "data", "wname", "probs", "method", "treated.t", "treated.tmin1", "untreated.t", "untreated.tmin1", "tname", "eachIter"))
+
+
 
 
 #####Semiparametric Difference in Differences#####
@@ -40,8 +42,8 @@ compute.spatt <- function(qp) {
         dy <- dta$dy
         ##estimate the propensity score
         this.formla <- y ~ x
-        lhs(this.formla) <- as.name(treat)
-        rhs(this.formla) <- rhs(xformla)
+        formula.tools::lhs(this.formla) <- as.name(treat)
+        formula.tools::rhs(this.formla) <- formula.tools::rhs(xformla)
         pscore.reg <- glm(this.formla, data=dta,
                           family=binomial(link=method))
         pscore <- fitted(pscore.reg) ## TODO: does this make sense for repeated cross sections;
@@ -71,8 +73,8 @@ compute.spatt <- function(qp) {
             w <- data[,wname]
             ##estimate the propensity score
             this.formla <- y ~ x
-            lhs(this.formla) <- as.name(treat)
-            rhs(this.formla) <- rhs(xformla)
+            formula.tools::lhs(this.formla) <- as.name(treat)
+            formula.tools::rhs(this.formla) <- formula.tools::rhs(xformla)
             pscore.reg <- glm(this.formla, data=data,
                               family=binomial(link=method))
             pscore <- fitted(pscore.reg) ## TODO: does this make sense for repeated cross sections;
@@ -105,7 +107,7 @@ compute.spatt <- function(qp) {
 #' @description \code{spatt} computes the Average Treatment Effect on the
 #'  Treated (ATT) using the method of Abadie (2005)
 #'
-#' @inheritparams ciqte
+#' @inheritParams ci.qte
 #' @param formla The formula y ~ d where y is the outcome and d is the
 #'  treatment indicator (d should be binary)
 #' @param xformla A optional one sided formula for additional covariates that
@@ -115,14 +117,9 @@ compute.spatt <- function(qp) {
 #' @param tmin1 The 2nd time period in the sample (this is the name of the
 #'  column)
 #' @param tname The name of the column containing the time periods
-#' @param x An optional vector of covariates (the name of the columns).
-#'  Covariates can also be passed in formulat notation using the
-#'  xformla paramter.
 #' @param data The name of the data.frame that contains the data
 #' @param panel Boolean indicating whether the data is panel or repeated cross
 #'  sections
-#' @param dropalwaystreated How to handle always treated observations
-#'  in panel data case (not currently used)
 #' @param idname The individual (cross-sectional unit) id name
 #' @param iters The number of iterations to compute bootstrap standard errors.
 #'  This is only used if se=TRUE
@@ -136,8 +133,6 @@ compute.spatt <- function(qp) {
 #'  from each iteration of the bootstrap procedure
 #' @param seedvec Optional value to set random seed; can possibly be used
 #'  in conjunction with bootstrapping standard errors.
-#' @param weights additional (usually sampling) weights to be applied (not yet
-#'  implemented)
 #'
 #' @examples
 #' ##load the data
@@ -262,7 +257,9 @@ spatt <- function(formla, xformla=NULL, t, tmin1,
 #'  extending the method of Abadie (2005).  This method relies on once individuals are treated
 #'  they remain in the treated state for the duration.
 #'
-#' @inheritparams spatt
+#' @param first.treat.name Give the column name of the variable that forms groups based on when an observation is first treated
+#'
+#' @inheritParams spatt
 #'
 #' @return \code{QTE} object
 #' 

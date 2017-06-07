@@ -1,4 +1,4 @@
-utils::globalVariables(c("yname", "treat", "treated", "x", "wname", "probs", "method", "treated", "untreated", "eachIter"))
+utils::globalVariables(c("yname", "treat", "treated", "x", "xformla", "data", "wname", "probs", "method", "treated", "untreated", "eachIter"))
 ####Cross-sectional QTE method using Firpo (2007)########
 #' @title compute.ci.qte
 #'

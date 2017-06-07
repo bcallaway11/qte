@@ -39,11 +39,6 @@ bootiter <- function(i, qteparams, func) {
         boot.dta2[,idname] <- newids
         boot.dta <- rbind(boot.dta1, boot.dta2)
 
-        
-        if (identical(temp,panel.qtet)) {
-            stop("need to add bootstrap functionality for 3 periods and panel.qtet case")
-        }
-
     } else { ## we are not in the panel case
     
         boot.dta = data[0,]

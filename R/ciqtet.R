@@ -1,4 +1,4 @@
-utils::globalVariables(c("yname", "treat", "treated", "x", "wname", "probs", "method", "treated", "untreated", "eachIter"))
+utils::globalVariables(c("yname", "treat", "treated", "x", "xformla", "data", "wname", "probs", "method", "treated", "untreated", "eachIter"))
 ####Cross-sectional QTET method using Firpo (2007)########
 #' @title compute.ci.qtet
 #'
@@ -40,13 +40,17 @@ compute.ci.qtet = function(qp) {
     if (!is.null(x)) {
 
         ##estimate the propensity score
-        pscore.reg <- glm(data[,treat] ~ as.matrix(data[,x]),
-                          family=binomial(link=method))
-        pscore <- fitted(pscore.reg)
-        p = rep(nrow(treated)/(nrow(treated) + nrow(untreated)), n)
         D <- data[,treat]
         y <- data[,yname]
         w <- data[,wname]
+        this.formla <- y ~ x
+        formula.tools::lhs(this.formla) <- as.name(treat)
+        formula.tools::rhs(this.formla) <- formula.tools::rhs(xformla)
+        pscore.reg <- glm(this.formla, data=data,
+                          family=binomial(link=method))
+        pscore <- fitted(pscore.reg)
+        pscore <- fitted(pscore.reg)
+        p = rep(nrow(treated)/(nrow(treated) + nrow(untreated)), n)
         ##there are alternatives for how to compute the quantiles of 
         ##treated outcomes for the treated group:
         ##1) compute quantiles directly
@@ -104,7 +108,6 @@ compute.ci.qtet = function(qp) {
 #' 
 #' @inheritParams panel.qtet
 #' @inheritParams ci.qte
-#' @param x Vector of covariates.  Default is no covariates
 #' @param method Method to compute propensity score.  Default is logit; other
 #'  option is probit.
 #' @param indsample Binary variable for whether to treat the samples as
@@ -140,7 +143,7 @@ compute.ci.qtet = function(qp) {
 #'
 #' @return QTE object
 #' @export
-ci.qtet <- function(formla, xformla=NULL, x=NULL, weights=NULL, data,
+ci.qtet <- function(formla, xformla=NULL, w=NULL, data,
                     probs=seq(0.05,0.95,0.05), se=TRUE,
                  iters=100, alp=0.05, plot=FALSE, method="logit",
                  retEachIter=FALSE, seedvec=NULL, indsample=TRUE,

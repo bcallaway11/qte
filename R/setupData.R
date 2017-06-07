@@ -19,8 +19,8 @@ setupData <- function(qteParams) {
     probs <- qteParams$probs
     method <- qteParams$method
     
-    form <- as.formula(formla)
-    dta <- model.frame(terms(form,data=data),data=data) #or model.matrix
+    form <- stats::as.formula(formla)
+    dta <- stats::model.frame(stats::terms(form,data=data),data=data) #or model.matrix
     colnames(dta) <- c("y","treatment")
     yname <- "y"
     idname <- qteParams$idname
@@ -84,10 +84,10 @@ setupData <- function(qteParams) {
         ##3) Get the distributions that we need below
         
         ##a) Get distribution of y0.tmin2 | Dt=1
-        F.treated.t <- ecdf(treated.t[,yname])
-        F.treated.tmin1 <- ecdf(treated.tmin1[,yname])
-        F.untreated.t <- ecdf(untreated.t[,yname])
-        F.untreated.tmin1 <- ecdf(untreated.tmin1[,yname])
+        F.treated.t <- stats::ecdf(treated.t[,yname])
+        F.treated.tmin1 <- stats::ecdf(treated.tmin1[,yname])
+        F.untreated.t <- stats::ecdf(untreated.t[,yname])
+        F.untreated.tmin1 <- stats::ecdf(untreated.tmin1[,yname])
 
         
         assign("treated.t", treated.t, envir=env)

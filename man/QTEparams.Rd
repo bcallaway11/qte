@@ -25,6 +25,8 @@ QTEparams(formla, xformla = NULL, t = NULL, tmin1 = NULL, tmin2 = NULL,
 
 \item{data}{The name of the data frame}
 
+\item{panel}{Whether or not the data is panel}
+
 \item{w}{Additional (usually sampling) weights}
 
 \item{idname}{The name of the id column used with panel data (not always used)}

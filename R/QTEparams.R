@@ -11,6 +11,7 @@
 #' @param tmin2 The 2nd to last pre-treatment period (not always used)
 #' @param tname The name of the column containing time periods (not always used)
 #' @param data The name of the data frame
+#' @param panel Whether or not the data is panel
 #' @param w Additional (usually sampling) weights
 #' @param idname The name of the id column used with panel data (not always used)
 #' @param probs Which quantiles to produce quantile treatment effects for

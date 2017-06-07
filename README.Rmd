@@ -36,3 +36,5 @@ data(lalonde)
    probs=seq(0.05,0.95,0.05), se=T)
  summary(jt.cia)
 ```
+
+More examples and details about other functions in the package can be found at the package's [website](http://bcallaway11.github.io/qte/)

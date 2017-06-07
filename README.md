@@ -1,7 +1,7 @@
 README
 ================
 Brantly Callaway
-2017-02-01
+2017-06-07
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 The R `qte` package implements many methods used, especially in economics, to estimate quantile treatment effects. These include the case where treatment is randomly assigned, under selection on observables, under a Difference in Differences Assumtpion.
@@ -22,3 +22,5 @@ data(lalonde)
    probs=seq(0.05,0.95,0.05), se=T)
  summary(jt.cia)
 ```
+
+More examples and details about other functions in the package can be found at the package's [website](http://bcallaway11.github.io/qte/)
