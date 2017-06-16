@@ -37,7 +37,7 @@ qtes2mat <- function(qteList, sset=NULL, se=TRUE, rnd=3) {
 #'
 #' @return a ggplot object
 #' @export
-ggqte <- function(qteobj) {
+ggqte <- function(qteobj, ylab="", xbreaks=c(.1,.3,.5,.7,.9)) {
     tau <- qteobj$probs
     qte <- qteobj$qte
     qte.se <- qteobj$qte.se
@@ -50,8 +50,8 @@ ggqte <- function(qteobj) {
                                         #geom_errorbar(size=.3, width=.02) + 
         ggplot2::geom_hline(yintercept=0) + 
         ggplot2::geom_point(aes(tau, qte)) +
-        ggplot2::scale_y_continuous("Union Earnings Premium", limits=c(-.4, .4)) +
-        ggplot2::scale_x_continuous("tau", limits=c(0,1), breaks=c(.1,.3,.5,.7,.9)) + 
+        ggplot2::scale_y_continuous(ylab, limits=c(-.4, .4)) +
+        ggplot2::scale_x_continuous("tau", limits=c(0,1), breaks=xbreaks) + 
         ggplot2::theme_classic() +
         ggplot2::theme(panel.border = element_rect(colour = 'black', size=1,
                                           fill=NA,
