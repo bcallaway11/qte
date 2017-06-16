@@ -57,7 +57,7 @@ ggqte <- function(qteobj, main="", ylab="", ylim=NULL, ybreaks=NULL, xbreaks=c(.
         ggplot2::theme(panel.border = element_rect(colour = 'black', size=1,
                                           fill=NA,
                                           linetype='solid'),
-                       plot.title = element.text(hjust=0.5))
+                       plot.title = element_text(hjust=0.5))
     qp
 }
 
