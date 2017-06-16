@@ -50,7 +50,7 @@ ggqte <- function(qteobj, main="", ylab="", ylim=NULL, ybreaks=NULL, xbreaks=c(.
         ##geom_errorbar(size=.3, width=.02) + 
         ggplot2::geom_hline(yintercept=0) + 
         ggplot2::geom_point(aes(tau, qte)) +
-        ggplot2::labs(main) + 
+        ggplot2::ggtitle(main) + 
         ggplot2::scale_y_continuous(ylab, limits=ylim, breaks=ybreaks) +
         ggplot2::scale_x_continuous("tau", limits=c(0,1), breaks=xbreaks) + 
         ggplot2::theme_classic() +
