@@ -53,7 +53,7 @@ ggqte <- function(qteobj, main="", ylab="", ylim=NULL, ybreaks=NULL, xbreaks=c(.
         ggplot2::ggtitle(main) + 
         ggplot2::scale_y_continuous(ylab, limits=ylim, breaks=ybreaks) + ##, limits) +
         ggplot2::scale_x_continuous("tau", limits=c(0,1), breaks=xbreaks) + 
-        ggplot2::theme_classic() +
+        ##ggplot2::theme_classic() +
         ggplot2::theme(panel.border = element_rect(colour = 'black', size=1,
                                           fill=NA,
                                           linetype='solid'))
