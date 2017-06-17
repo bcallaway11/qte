@@ -34,7 +34,12 @@ qtes2mat <- function(qteList, sset=NULL, se=TRUE, rnd=3) {
 #' @import ggplot2
 #'
 #' @param qteobj a QTE object
-#'
+#' @param main optional title
+#' @param ylab optional y axis label
+#' @param ylim optional limits of y axis
+#' @param ybreaks optional breaks in y axis
+#' @param xbreaks optional breaks in x axis
+#' 
 #' @return a ggplot object
 #' @export
 ggqte <- function(qteobj, main="", ylab="", ylim=NULL, ybreaks=NULL, xbreaks=c(.1,.3,.5,.7,.9)) {
