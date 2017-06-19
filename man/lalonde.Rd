@@ -42,6 +42,6 @@ LaLonde, Robert.  ``Evaluating the Econometric Evaluations of
  @source The dataset comes from Lalonde (1986) and has been studied in much
  subsequent work.  The \code{qte} package uses a version from the
  \code{causalsens} package
- (\url{http://cran.r-project.org/web/packages/causalsens/causalsens.pdf})
+ (\url{https://CRAN.R-project.org/package=causalsens})
 }
 \keyword{datasets}

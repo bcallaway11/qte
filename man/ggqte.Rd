@@ -9,6 +9,16 @@ ggqte(qteobj, main = "", ylab = "", ylim = NULL, ybreaks = NULL,
 }
 \arguments{
 \item{qteobj}{a QTE object}
+
+\item{main}{optional title}
+
+\item{ylab}{optional y axis label}
+
+\item{ylim}{optional limits of y axis}
+
+\item{ybreaks}{optional breaks in y axis}
+
+\item{xbreaks}{optional breaks in x axis}
 }
 \value{
 a ggplot object

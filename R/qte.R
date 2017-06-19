@@ -2146,7 +2146,7 @@ SE <- function(qte.se=NULL, ate.se=NULL, qte.upper=NULL, qte.lower=NULL,
 #'  @source The dataset comes from Lalonde (1986) and has been studied in much
 #'  subsequent work.  The \code{qte} package uses a version from the
 #'  \code{causalsens} package
-#'  (\url{http://cran.r-project.org/web/packages/causalsens/causalsens.pdf})
+#'  (\url{https://CRAN.R-project.org/package=causalsens})
 #' @keywords datasets
 NULL
 
