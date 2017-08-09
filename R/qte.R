@@ -1150,11 +1150,12 @@ compute.CiC <- function(formla, xformla=NULL, t, tmin1, tname, x=NULL, data,
     
     ##3a) use this to compute counterfactual distribution
     F.treatedcf.tval = F.treated.tmin1(ai.inner)
-    
-    F.treatedcf.t = approxfun(y.seq, F.treatedcf.tval, method="constant",
-        yleft=0, yright=1, f=0, ties="ordered")
-    class(F.treatedcf.t) = c("ecdf", "stepfun", class(F.treatedcf.t))
-    assign("nobs", length(ai.inner), envir = environment(F.treatedcf.t))
+
+    F.treatedcf.t <- BMisc::makeDist(y.seq, F.treatedcf.tval)
+    ##F.treatedcf.t = approxfun(y.seq, F.treatedcf.tval, method="constant",
+    ##    yleft=0, yright=1, f=0, ties="ordered")
+    ##class(F.treatedcf.t) = c("ecdf", "stepfun", class(F.treatedcf.t))
+    ##assign("nobs", length(ai.inner), envir = environment(F.treatedcf.t))
     
     ##5) Compute Quantiles
     ##a) Quantiles of observed distribution
@@ -1175,9 +1176,11 @@ compute.CiC <- function(formla, xformla=NULL, t, tmin1, tname, x=NULL, data,
         abline(a=att, b=0)
     }
 
-     
     out <- QTE(F.treated.t = F.treated.t, F.treated.t.cf = F.treatedcf.t,
-                ate=att, qte=(q1-q0), probs=probs)
+               F.treated.tmin1=F.treated.tmin1,
+               F.untreated.t=F.untreated.t,
+               F.untreated.tmin1=F.untreated.tmin1,
+               ate=att, qte=(q1-q0), probs=probs)
     class(out) <- "QTE"
     
     return(out)
