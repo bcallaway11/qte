@@ -1374,11 +1374,16 @@ CiC <- function(formla, xformla=NULL, t, tmin1, tname, x=NULL,data,
         }
 
         out <- QTE(qte=cic$qte, qte.upper=SEobj$qte.upper,
+                   F.treated.t=cic$F.treated.t,
+                   F.untreated.t=cic$F.untreated.t,
+                   F.treated.t.cf=cic$F.treated.t.cf,
+                   F.treated.tmin1=cic$F.treated.tmin1,
+                   F.untreated.tmin1=cic$F.untreated.tmin1,
                    qte.lower=SEobj$qte.lower, ate=cic$ate,
-                    ate.upper=SEobj$ate.upper, ate.lower=SEobj$ate.lower,
-                    qte.se=SEobj$qte.se, ate.se=SEobj$ate.se,
-                    eachIterList=eachIter,
-                    probs=probs)
+                   ate.upper=SEobj$ate.upper, ate.lower=SEobj$ate.lower,
+                   qte.se=SEobj$qte.se, ate.se=SEobj$ate.se,
+                   eachIterList=eachIter,
+                   probs=probs)
         return(out)
     } else {
         return(cic)
