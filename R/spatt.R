@@ -54,7 +54,7 @@ compute.spatt <- function(qp) {
 
         ##TODO: notice that we are not accounting for sampling weight
 
-        att <- getWeightedMean(dy, waits, norm=TRUE)
+        att <- getWeightedMean(dy, waits, norm=FALSE)
 
     } else {
 
