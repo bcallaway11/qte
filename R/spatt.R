@@ -30,8 +30,8 @@ compute.spatt <- function(qp) {
     ##calculate the att; this will be changed if there are covariates
     att = getWeightedMean(treated.t[,yname], treated.t[,wname]) -
         getWeightedMean(treated.tmin1[,yname], treated.tmin1[,wname]) -
-                                             (getWeightedMean(untreated.t[,yname], untreated.t[,wname]) -
-                                              getWeightedMean(untreated.tmin1[,yname], untreated.tmin1[,wname]))
+        (getWeightedMean(untreated.t[,yname], untreated.t[,wname]) -
+         getWeightedMean(untreated.tmin1[,yname], untreated.tmin1[,wname]))
 
     if(panel) {
 
@@ -54,7 +54,7 @@ compute.spatt <- function(qp) {
 
         ##TODO: notice that we are not accounting for sampling weight
 
-        att <- getWeightedMean(dy, waits, norm=FALSE)
+        att <- getWeightedMean(dy, waits, norm=TRUE)
 
     } else {
 
