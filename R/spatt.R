@@ -49,7 +49,10 @@ compute.spatt <- function(qp) {
         pscore <- fitted(pscore.reg) ## TODO: does this make sense for repeated cross sections;
         ## above, I am just pooling both periods.
 
-        waits <- (D-pscore)/(p*(1-pscore))
+        ## waits <- (D-pscore)/(p*(1-pscore))  ## this way does not normalize
+
+        uwait <- (1-D)*pscore/(p*(1-pscore))
+        waits <- D/p - uwait / mean(uwait) 
 
 
         ##TODO: notice that we are not accounting for sampling weight
