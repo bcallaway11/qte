@@ -212,8 +212,9 @@ spatt <- function(formla, xformla=NULL, t, tmin1,
 
         att <- satt$ate
 
-        w0 <- (D-pscore)/(p*(1-pscore))
-
+        ##w0 <- (D-pscore)/(p*(1-pscore))
+        uwait <- (1-D)*pscore/(p*(1-pscore))
+        w0 <- D/p - uwait / mean(uwait)
 
         ## instead of bootstrap, compute these analytically
         v1 <- w0*dy - att

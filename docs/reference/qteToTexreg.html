@@ -6,7 +6,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>print.matrix1 — print.matrix1 • qte</title>
+<title>diffQ — qteToTexreg • qte</title>
 
 <!-- jquery -->
 <script src="https://code.jquery.com/jquery-3.1.0.min.js" integrity="sha384-nrOSfDHtoPMzJHjVTdCopGqIqeYETSXhZDFyniQ8ZHcVy08QesyHcnOUpMpqnmWq" crossorigin="anonymous"></script>
@@ -93,23 +93,31 @@
       <div class="row">
   <div class="col-md-9 contents">
     <div class="page-header">
-    <h1>print.matrix1</h1>
+    <h1>diffQ</h1>
     </div>
 
     
-    <p>Helper function to print a matrix; used by the print methods</p>
+    <p>## takes a single set of quantiles
+(not qtes as in diffquantiles)
+ and returns the difference between particular ones</p>
     
 
-    <pre class="usage"><span class='co'># S3 method for matrix1</span>
-<span class='fu'>print</span>(<span class='no'>m</span>, <span class='kw'>probs</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>header</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>digits</span> <span class='kw'>=</span> <span class='fl'>2</span>,
-  <span class='kw'>nsmall</span> <span class='kw'>=</span> <span class='fl'>2</span>)</pre>
+    <pre class="usage"><span class='fu'>qteToTexreg</span>(<span class='no'>qteobj</span>, <span class='kw'>tau</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>reportAte</span> <span class='kw'>=</span> <span class='no'>T</span>)</pre>
     
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a> Arguments</h2>
     <table class="ref-arguments">
     <colgroup><col class="name" /><col class="desc" /></colgroup>
     <tr>
-      <th>m</th>
-      <td><p>Some matrix</p></td>
+      <th>qteobj</th>
+      <td><p>A QTE object</p></td>
+    </tr>
+    <tr>
+      <th>tau</th>
+      <td><p>Optional vector of taus to texreg results for</p></td>
+    </tr>
+    <tr>
+      <th>reportAte</th>
+      <td><p>Whether or not texreg the ATE (or ATT) as well</p></td>
     </tr>
     </table>
     

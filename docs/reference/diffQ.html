@@ -6,7 +6,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>print.matrix1 — print.matrix1 • qte</title>
+<title>diffQ — diffQ • qte</title>
 
 <!-- jquery -->
 <script src="https://code.jquery.com/jquery-3.1.0.min.js" integrity="sha384-nrOSfDHtoPMzJHjVTdCopGqIqeYETSXhZDFyniQ8ZHcVy08QesyHcnOUpMpqnmWq" crossorigin="anonymous"></script>
@@ -93,25 +93,41 @@
       <div class="row">
   <div class="col-md-9 contents">
     <div class="page-header">
-    <h1>print.matrix1</h1>
+    <h1>diffQ</h1>
     </div>
 
     
-    <p>Helper function to print a matrix; used by the print methods</p>
+    <p>## takes a single set of quantiles
+(not qtes as in diffquantiles)
+ and returns the difference between particular ones</p>
     
 
-    <pre class="usage"><span class='co'># S3 method for matrix1</span>
-<span class='fu'>print</span>(<span class='no'>m</span>, <span class='kw'>probs</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>header</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>digits</span> <span class='kw'>=</span> <span class='fl'>2</span>,
-  <span class='kw'>nsmall</span> <span class='kw'>=</span> <span class='fl'>2</span>)</pre>
+    <pre class="usage"><span class='fu'>diffQ</span>(<span class='no'>qvec</span>, <span class='no'>tauvec</span>, <span class='no'>hightau</span>, <span class='no'>lowtau</span>)</pre>
     
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a> Arguments</h2>
     <table class="ref-arguments">
     <colgroup><col class="name" /><col class="desc" /></colgroup>
     <tr>
-      <th>m</th>
-      <td><p>Some matrix</p></td>
+      <th>qvec</th>
+      <td><p>vector of quantiles</p></td>
+    </tr>
+    <tr>
+      <th>tauvec</th>
+      <td><p>vector of tau (should be same length as qvec)</p></td>
+    </tr>
+    <tr>
+      <th>hightau</th>
+      <td><p>upper quantile</p></td>
+    </tr>
+    <tr>
+      <th>lowtau</th>
+      <td><p>lower quantile</p></td>
     </tr>
     </table>
+    
+    <h2 class="hasAnchor" id="value"><a class="anchor" href="#value"></a>Value</h2>
+
+    <p>scalar difference between quantiles</p>
     
 
   </div>
@@ -119,7 +135,9 @@
     <h2>Contents</h2>
     <ul class="nav nav-pills nav-stacked">
       <li><a href="#arguments">Arguments</a></li>
-                </ul>
+      
+      <li><a href="#value">Value</a></li>
+          </ul>
 
   </div>
 </div>

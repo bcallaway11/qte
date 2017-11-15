@@ -6,7 +6,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>compute.panel.qte — compute.panel.qtet • qte</title>
+<title>mp.spatt — mp.spatt • qte</title>
 
 <!-- jquery -->
 <script src="https://code.jquery.com/jquery-3.1.0.min.js" integrity="sha384-nrOSfDHtoPMzJHjVTdCopGqIqeYETSXhZDFyniQ8ZHcVy08QesyHcnOUpMpqnmWq" crossorigin="anonymous"></script>
@@ -93,84 +93,109 @@
       <div class="row">
   <div class="col-md-9 contents">
     <div class="page-header">
-    <h1>compute.panel.qte</h1>
+    <h1>mp.spatt</h1>
     </div>
 
     
-    <p><code>compute.panel.qte</code> uses third period of data,
-combined with Distributional
-Difference in Differences assumption (Fan and Yu, 2012)
-to point identify QTET.</p>
+    <p><code>mp.spatt</code> computes the ATT in the case where there are more
+ than two periods of data and allowing for treatment to occur at different points in time
+ extending the method of Abadie (2005).  This method relies on once individuals are treated
+ they remain in the treated state for the duration.</p>
     
 
-    <pre class="usage"><span class='fu'>compute.panel.qtet</span>(<span class='no'>formla</span>, <span class='kw'>xformla</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='no'>t</span>, <span class='no'>tmin1</span>, <span class='no'>tmin2</span>, <span class='no'>tname</span>, <span class='kw'>x</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
-  <span class='no'>data</span>, <span class='kw'>dropalwaystreated</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>, <span class='no'>idname</span>, <span class='kw'>probs</span> <span class='kw'>=</span> <span class='fu'>seq</span>(<span class='fl'>0.05</span>, <span class='fl'>0.95</span>, <span class='fl'>0.05</span>),
-  <span class='kw'>bootstrap.iter</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>, <span class='kw'>plot</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>, <span class='kw'>method</span> <span class='kw'>=</span> <span class='fu'>c</span>(<span class='st'>"logit"</span>, <span class='st'>"GMM"</span>,
-  <span class='st'>"semiparametric"</span>, <span class='st'>"simulation"</span>, <span class='st'>"direct"</span>), <span class='kw'>ydiscrete</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>)</pre>
+    <pre class="usage"><span class='fu'>mp.spatt</span>(<span class='no'>formla</span>, <span class='kw'>xformla</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='no'>data</span>, <span class='no'>tname</span>, <span class='kw'>w</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>panel</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>,
+  <span class='kw'>idname</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='no'>first.treat.name</span>, <span class='kw'>iters</span> <span class='kw'>=</span> <span class='fl'>100</span>, <span class='kw'>alp</span> <span class='kw'>=</span> <span class='fl'>0.05</span>,
+  <span class='kw'>method</span> <span class='kw'>=</span> <span class='st'>"logit"</span>, <span class='kw'>plot</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>, <span class='kw'>se</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>, <span class='kw'>retEachIter</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>,
+  <span class='kw'>seedvec</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>pl</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>, <span class='kw'>cores</span> <span class='kw'>=</span> <span class='fl'>2</span>)</pre>
     
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a> Arguments</h2>
     <table class="ref-arguments">
     <colgroup><col class="name" /><col class="desc" /></colgroup>
     <tr>
       <th>formla</th>
-      <td><p>outcome variable on treatment</p></td>
+      <td><p>The formula y ~ d where y is the outcome and d is the
+treatment indicator (d should be binary)</p></td>
     </tr>
     <tr>
-      <th>t</th>
-      <td><p>last time period</p></td>
+      <th>xformla</th>
+      <td><p>A optional one sided formula for additional covariates that
+will be adjusted for.  E.g ~ age + education.  Additional covariates can
+also be passed by name using the x paramater.</p></td>
     </tr>
     <tr>
-      <th>tmin1</th>
-      <td><p>middle time period</p></td>
+      <th>data</th>
+      <td><p>The name of the data.frame that contains the data</p></td>
     </tr>
     <tr>
-      <th>tmin2</th>
-      <td><p>initial time period</p></td>
+      <th>tname</th>
+      <td><p>The name of the column containing the time periods</p></td>
     </tr>
     <tr>
-      <th>x</th>
-      <td><p>additional covariates if using propensity score
-reweighting technique</p></td>
+      <th>w</th>
+      <td><p>an additional vector of sampling weights</p></td>
     </tr>
     <tr>
-      <th>dropalwaystreated</th>
-      <td><p>boolean indicating whether in true panel data
-context (when treatment can occur in any period) whether or
-not previously treated observations should be dropped from the sample.
-This functionality is not currently implemented</p></td>
+      <th>panel</th>
+      <td><p>Boolean indicating whether the data is panel or repeated cross
+sections</p></td>
     </tr>
     <tr>
       <th>idname</th>
-      <td><p>an id that identifies individual units over time</p></td>
+      <td><p>The individual (cross-sectional unit) id name</p></td>
     </tr>
     <tr>
-      <th>probs</th>
-      <td><p>the values at which the quantile treatment effects
-should be computed</p></td>
+      <th>first.treat.name</th>
+      <td><p>Give the column name of the variable that forms groups based on when an observation is first treated</p></td>
     </tr>
     <tr>
-      <th>bootstrap.iter</th>
-      <td><p>boolean passed that is passed in when this
-method is used to compute standard errors</p></td>
+      <th>iters</th>
+      <td><p>The number of iterations to compute bootstrap standard errors.
+This is only used if se=TRUE</p></td>
     </tr>
     <tr>
-      <th>plot</th>
-      <td><p>Binary indicating whether or not to plot the object</p></td>
+      <th>alp</th>
+      <td><p>The significance level used for constructing bootstrap
+confidence intervals</p></td>
     </tr>
     <tr>
       <th>method</th>
-      <td><p>How to estimate the propensity score</p></td>
+      <td><p>The method for estimating the propensity score when covariates
+are included</p></td>
     </tr>
     <tr>
-      <th>ydiscrete</th>
-      <td><p>Used to indicate whether the outcome has any
-discrete parts in the distribution</p></td>
+      <th>plot</th>
+      <td><p>Boolean whether or not the estimated QTET should be plotted</p></td>
+    </tr>
+    <tr>
+      <th>se</th>
+      <td><p>Boolean whether or not to compute standard errors</p></td>
+    </tr>
+    <tr>
+      <th>retEachIter</th>
+      <td><p>Boolean whether or not to return list of results
+from each iteration of the bootstrap procedure</p></td>
+    </tr>
+    <tr>
+      <th>seedvec</th>
+      <td><p>Optional value to set random seed; can possibly be used
+in conjunction with bootstrapping standard errors.</p></td>
+    </tr>
+    <tr>
+      <th>pl</th>
+      <td><p>boolean for whether or not to compute bootstrap error in parallel.
+Note that computing standard errors in parallel is a new feature and may
+not work at all on Windows.</p></td>
+    </tr>
+    <tr>
+      <th>cores</th>
+      <td><p>the number of cores to use if bootstrap standard errors are
+computed in parallel</p></td>
     </tr>
     </table>
     
     <h2 class="hasAnchor" id="value"><a class="anchor" href="#value"></a>Value</h2>
 
-    <p>QTE object</p>
+    <p><code>QTE</code> object</p>
     
 
   </div>

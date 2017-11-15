@@ -6,7 +6,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>print.matrix1 — print.matrix1 • qte</title>
+<title>ggqte — ggqte • qte</title>
 
 <!-- jquery -->
 <script src="https://code.jquery.com/jquery-3.1.0.min.js" integrity="sha384-nrOSfDHtoPMzJHjVTdCopGqIqeYETSXhZDFyniQ8ZHcVy08QesyHcnOUpMpqnmWq" crossorigin="anonymous"></script>
@@ -93,25 +93,49 @@
       <div class="row">
   <div class="col-md-9 contents">
     <div class="page-header">
-    <h1>print.matrix1</h1>
+    <h1>ggqte</h1>
     </div>
 
     
-    <p>Helper function to print a matrix; used by the print methods</p>
+    <p>Makes somewhat nicer plots of quantile treatment effects
+ by using ggplot</p>
     
 
-    <pre class="usage"><span class='co'># S3 method for matrix1</span>
-<span class='fu'>print</span>(<span class='no'>m</span>, <span class='kw'>probs</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>header</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>digits</span> <span class='kw'>=</span> <span class='fl'>2</span>,
-  <span class='kw'>nsmall</span> <span class='kw'>=</span> <span class='fl'>2</span>)</pre>
+    <pre class="usage"><span class='fu'>ggqte</span>(<span class='no'>qteobj</span>, <span class='kw'>main</span> <span class='kw'>=</span> <span class='st'>""</span>, <span class='kw'>ylab</span> <span class='kw'>=</span> <span class='st'>""</span>, <span class='kw'>ylim</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>ybreaks</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
+  <span class='kw'>xbreaks</span> <span class='kw'>=</span> <span class='fu'>c</span>(<span class='fl'>0.1</span>, <span class='fl'>0.3</span>, <span class='fl'>0.5</span>, <span class='fl'>0.7</span>, <span class='fl'>0.9</span>))</pre>
     
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a> Arguments</h2>
     <table class="ref-arguments">
     <colgroup><col class="name" /><col class="desc" /></colgroup>
     <tr>
-      <th>m</th>
-      <td><p>Some matrix</p></td>
+      <th>qteobj</th>
+      <td><p>a QTE object</p></td>
+    </tr>
+    <tr>
+      <th>main</th>
+      <td><p>optional title</p></td>
+    </tr>
+    <tr>
+      <th>ylab</th>
+      <td><p>optional y axis label</p></td>
+    </tr>
+    <tr>
+      <th>ylim</th>
+      <td><p>optional limits of y axis</p></td>
+    </tr>
+    <tr>
+      <th>ybreaks</th>
+      <td><p>optional breaks in y axis</p></td>
+    </tr>
+    <tr>
+      <th>xbreaks</th>
+      <td><p>optional breaks in x axis</p></td>
     </tr>
     </table>
+    
+    <h2 class="hasAnchor" id="value"><a class="anchor" href="#value"></a>Value</h2>
+
+    <p>a ggplot object</p>
     
 
   </div>
@@ -119,7 +143,9 @@
     <h2>Contents</h2>
     <ul class="nav nav-pills nav-stacked">
       <li><a href="#arguments">Arguments</a></li>
-                </ul>
+      
+      <li><a href="#value">Value</a></li>
+          </ul>
 
   </div>
 </div>
