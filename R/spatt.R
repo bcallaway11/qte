@@ -156,10 +156,10 @@ compute.spatt <- function(qp) {
 #' 
 #' @export
 spatt <- function(formla, xformla=NULL, t, tmin1,
-                      tname, data, w=NULL, panel=FALSE,
-                      idname=NULL, 
-                      iters=100, alp=0.05, method="logit", plot=FALSE, se=TRUE,
-                      retEachIter=FALSE, seedvec=NULL, pl=FALSE, cores=2) {
+                  tname, data, w=NULL, panel=FALSE,
+                  idname=NULL, 
+                  iters=100, alp=0.05, method="logit", plot=FALSE, se=TRUE,
+                  retEachIter=FALSE, seedvec=NULL, pl=FALSE, cores=2) {
     
     qp <- QTEparams(formla=formla, xformla=xformla, t=t, tmin1=tmin1,
                     tname=tname, data=data, panel=panel,
@@ -223,7 +223,7 @@ spatt <- function(formla, xformla=NULL, t, tmin1,
         Aw <- g(x,thet)^2/(G(x,thet)*(1-G(x,thet)))
         A <- t(Aw*x)%*%x/n
 
-        v2 <- as.numeric(t(a)%*%solve(A)%*%t(x))
+        v2 <- as.numeric(t(a)%*%solve(A)%*%t(x))  ##***is this right?***
 
         V <- mean((v1-v2)^2)
 
@@ -271,6 +271,8 @@ spatt <- function(formla, xformla=NULL, t, tmin1,
 mp.spatt <- function(formla, xformla=NULL, data, tname, w=NULL, panel=FALSE,
                      idname=NULL, first.treat.name,
                      iters=100, alp=0.05, method="logit", plot=FALSE, se=TRUE,
+                     bstrap=FALSE, biters=100,
+                     cband=FALSE, citers=100,
                      retEachIter=FALSE, seedvec=NULL, pl=FALSE, cores=2) {
 
 
@@ -296,14 +298,22 @@ mp.spatt <- function(formla, xformla=NULL, data, tname, w=NULL, panel=FALSE,
     for (f in 1:flen) {
         satt <- list()
         for (t in 1:(tlen-1)) {
-            disdat <- data[(data[,tname]==tlist[t+1] | data[,tname]==tlist[t]) &
+            pret <- t
+            if (flist[f]<=tlist[(t+1)]) {
+                pret <- tail(which(tlist < flist[f]),1) ## remember, this is just an index
+                print(paste("current period:", tlist[t+1]))
+                print(paste("current group:", flist[f]))
+                print(paste("set pretreatment period to be", tlist[pret]))
+            }
+            disdat <- data[(data[,tname]==tlist[t+1] | data[,tname]==tlist[pret]) &
                            (data[,first.treat.name]==0 | data[,first.treat.name]==flist[f]),]
             disdat <- droplevels(disdat)
-            satt[[t]] <- c(spatt(formla, xformla, t=tlist[t+1], tmin1=tlist[t],
+            satt[[t]] <- c(spatt(formla, xformla, t=tlist[t+1], tmin1=tlist[pret],
                       tname=tname, data=disdat, w=w, panel=panel,
                       idname=idname, 
                       iters=iters, alp=alp, method=method, plot=plot, se=se,
-                      retEachIter=retEachIter, seedvec=seedvec, pl=pl, cores=cores), year=tlist[(t+1)])
+                      retEachIter=retEachIter, seedvec=seedvec, pl=pl, cores=cores),
+                      group=flist[f], year=tlist[(t+1)], post=1*(flist[f]<=tlist[(t+1)]))
         }
         fatt[[f]] <- c(satt, group=flist[f])
     }
@@ -320,7 +330,7 @@ mp.spatt <- function(formla, xformla=NULL, data, tname, w=NULL, panel=FALSE,
             iflist[[i]] <- fl[[i]]$inffunct
         }
         return(iflist)
-    }   
+    }
 
     ## because we'll eventually scale up by sqrt(n), not sqrt(n_0 + n_g), we need to make some adjustment
     ## for that.  that's what is happing here
@@ -335,11 +345,13 @@ mp.spatt <- function(formla, xformla=NULL, data, tname, w=NULL, panel=FALSE,
     ## handle variance for treated group(s); it should be block diagonal and stored in vt
     d <- flen*(tlen-1)
     vt <- matrix(0, nrow=d, ncol=d)
+    psiitout <- list()
     for (f in 1:flen) {
         print(paste("group:",fatt[[f]]$group))
         psiit <- getIFt(fatt[[f]])
         psiit <- simplify2array(psiit)
         psiit <- psiit/sqrt(pf[f])
+        psiitout[[f]] <- psiit
         startpos <- (f-1)*(tlen-1) + 1
         endpos <- startpos + (tlen-1) - 1
         vt[startpos:endpos, startpos:endpos] <- t(psiit)%*%psiit
@@ -370,6 +382,22 @@ mp.spatt <- function(formla, xformla=NULL, data, tname, w=NULL, panel=FALSE,
     ## overall variance is the mean of the variance for the treated groups and untreated groups
     V <- (vt+vu)/n
 
+    browser()
+    
+    if (bstrap) {
+        bout <- lapply(1:biters, FUN=function(b) {
+            ift <- do.call(magic::adiag, psiitout)
+            ifunc <- rbind(ift, psiiu)
+            clustertime <- FALSE
+            Ub <- sample(c(-1,1), n, replace=T)
+            mb <- Ub*(ifunc)
+            Vb <- t(mb)%*%mb / n
+            Vb
+        })
+        V <- apply(simplify2array(bout), c(1,2), mean)
+    }
+
+
     ## TODO: handle case with repeated cross sections; this part is conceptually easier because many
     ##  off-diagonal (though not all) will be 0.
 
@@ -388,8 +416,16 @@ mp.spatt <- function(formla, xformla=NULL, data, tname, w=NULL, panel=FALSE,
             i <- i + 1
         }
     }
-    
-    
 
-    return(list(group=group, t=t, att=att, V=V))
+    c <- qnorm(1-alp/2)
+    if (cband) {
+        Sig <- matrix(0, nrow=nrow(V), ncol=ncol(V))
+        diag(Sig) <- diag(V)
+        Siggy <- expm::sqrtm(solve(Sig))
+        ZB <- MASS::mvrnorm(citers, rep(0,nrow(V)), V)
+        KSB <- apply(ZB %*% Siggy, 1, max)
+        c <- quantile(KSB, 1-alp, type=7)
+    }
+
+    return(list(group=group, t=t, att=att, V=V, c=c))
 }

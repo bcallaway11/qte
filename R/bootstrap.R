@@ -83,12 +83,14 @@ bootstrap <- function(qteparams, qteest, func) {
 
     eachIter <- list()
 
-    if (pl) {
-        eachIter <- mclapply(1:iters, bootiter, qteparams=qteparams, func=func,
-                             mc.cores=cores)
-    } else {
-        eachIter <- lapply(1:iters, bootiter, qteparams=qteparams, func=func)
-    }
+    eachIter <- pblapply(1:iters, bootiter, qteparams=qteparams,
+                         func=func, cl=cores)
+    ## if (pl) {
+    ##     eachIter <- mclapply(1:iters, bootiter, qteparams=qteparams, func=func,
+    ##                          mc.cores=cores)
+    ## } else {
+    ##     eachIter <- lapply(1:iters, bootiter, qteparams=qteparams, func=func)
+    ## }
 
     SEobj <- computeSE(eachIter, qteest, alp=alp)
 

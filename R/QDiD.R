@@ -64,6 +64,7 @@ compute.QDiD <- function(qp) {
         tau <- probs
 
         taut <- seq(0,1, length.out=nrow(treated.t))
+        taut <- seq(.01,.99,.01)
 
         uncondQTT <- TRUE
 
