@@ -382,19 +382,22 @@ mp.spatt <- function(formla, xformla=NULL, data, tname, w=NULL, panel=FALSE,
     ## overall variance is the mean of the variance for the treated groups and untreated groups
     V <- (vt+vu)/n
 
-    browser()
     
     if (bstrap) {
         bout <- lapply(1:biters, FUN=function(b) {
             ift <- do.call(magic::adiag, psiitout)
             ifunc <- rbind(ift, psiiu)
-            clustertime <- FALSE
+            browser()
+            clustervars <- c() 
             Ub <- sample(c(-1,1), n, replace=T)
             mb <- Ub*(ifunc)
-            Vb <- t(mb)%*%mb / n
-            Vb
+            n <- nrow(mb)
+            apply(mb,2,sum)/sqrt(n)
+            ##Vb <- t(mb)%*%mb / n
+            ##Vb
         })
-        V <- apply(simplify2array(bout), c(1,2), mean)
+        bres <- t(simplify2array(bout))
+        V <- cov(bres)
     }
 
 
