@@ -34,7 +34,6 @@ compute.spatt <- function(qp) {
          getWeightedMean(untreated.tmin1[,yname], untreated.tmin1[,wname]))
 
     if(panel) {
-
         dta <- panel2cs(data, yname, qp$idname, tname)
         n <- nrow(dta)
         D <- dta[,treat]
@@ -86,7 +85,8 @@ compute.spatt <- function(qp) {
             lam <- (ntt+nut)/(ntt+nttmin1+nut+nutmin1) ## the fraction of observations in the last period
             
             waits1 <- (T-lam)/(lam*(1-lam))
-            waits2 <- (D-pscore)/(p*(1-pscore))
+            uwait <- (1-D)*psocre/(p*(1-pscore))
+            waits2 <- D/p - uwait/mean(uwait) ##(D-pscore)/(p*(1-pscore))
             waits <- waits1 * waits2
             
             ##TODO: notice that we are not accounting for sampling weight
@@ -100,7 +100,6 @@ compute.spatt <- function(qp) {
     }
 
     out <- QTE(qte=NULL, pscore.reg=pscore.reg,  ate=att, probs=NULL)
-    class(out) <- "QTE"
     return(out)
 }
 
@@ -173,7 +172,7 @@ spatt <- function(formla, xformla=NULL, t, tmin1,
 
     if (se) {
 
-        print("at some point make sure weights are right, because they don't sum to 1; it may be ok because it is putting together E[Y_1] and E[Y_0]")
+        ##print("at some point make sure weights are right, because they don't sum to 1; it may be ok because it is putting together E[Y_1] and E[Y_0]")
 
         ## x nxk matrix
         ## thet kx1 vector
@@ -195,7 +194,7 @@ spatt <- function(formla, xformla=NULL, t, tmin1,
             as.numeric(gval)
         }
 
-
+        
 
         setupData(qp)
 
@@ -219,33 +218,36 @@ spatt <- function(formla, xformla=NULL, t, tmin1,
         ## instead of bootstrap, compute these analytically
         v1 <- w0*dy - att
 
-        a <- apply((w0*g(x,thet))*x,2,mean) ##should be kx1
-        Aw <- g(x,thet)^2/(G(x,thet)*(1-G(x,thet)))
+        a <- apply(as.numeric((1-D)*g(x,thet)/(p*(1-pscore)^2)*dy)*x,2,mean)##apply((w0*g(x,thet))*x,2,mean) ##should be kx1
+        Aw <- g(x,thet)^2 / (G(x,thet)*(1-G(x,thet)))
         A <- t(Aw*x)%*%x/n
+        s <- g(x,thet)*(D-G(x,thet)) / (G(x,thet)*(1-G(x,thet))) * x
 
-        v2 <- as.numeric(t(a)%*%solve(A)%*%t(x))  ##***is this right?***
+        v2 <- as.numeric(t(a)%*%solve(A)%*%t(s))  ##***is this right?***
 
         V <- mean((v1-v2)^2)
 
         SEobj <- SE(ate.se=sqrt(V)/sqrt(n))
 
-        
         ##qp$bootstrapiter <- TRUE
 
         ##bootstrap the standard errors
         ##SEobj <- bootstrap(qp, satt, compute.spatt)
 
-        v1t <- v1[dta[,treat]==1]
-        v1u <- v1[dta[,treat]==0]
-        v2t <- v2[dta[,treat]==1]
-        v2u <- v2[dta[,treat]==0]
+        ## v1t <- v1[dta[,treat]==1]
+        ## v1u <- v1[dta[,treat]==0]
+        ## v2t <- v2[dta[,treat]==1]
+        ## v2u <- v2[dta[,treat]==0]
 
+        
+        ##inffunct=(v1t-v2t), inffuncu=(v1u-v2u), 
        
         ##could return each bootstrap iteration w/ eachIter
         ##but not currently doing that
-        out <- QTE(qte=NULL, pscore.reg=satt$pscore.reg, ate=satt$ate,
-                   ate.se=SEobj$ate.se, probs=NULL, inffunct=(v1t-v2t), inffuncu=(v1u-v2u))
-                   
+        ##TODO: set this back to being a QTE object
+        out <- list(qte=NULL, pscore.reg=satt$pscore.reg, ate=satt$ate,
+                   ate.se=SEobj$ate.se, probs=NULL, inffunc=(v1-v2))
+        class(out) <- "QTE"
         return(out)
     } else {
         return(satt)
@@ -254,181 +256,3 @@ spatt <- function(formla, xformla=NULL, t, tmin1,
 }
 
 
-#' @title mp.spatt
-#'
-#' @description \code{mp.spatt} computes the ATT in the case where there are more
-#'  than two periods of data and allowing for treatment to occur at different points in time
-#'  extending the method of Abadie (2005).  This method relies on once individuals are treated
-#'  they remain in the treated state for the duration.
-#'
-#' @param first.treat.name Give the column name of the variable that forms groups based on when an observation is first treated
-#'
-#' @inheritParams spatt
-#'
-#' @return \code{QTE} object
-#' 
-#' @export
-mp.spatt <- function(formla, xformla=NULL, data, tname, w=NULL, panel=FALSE,
-                     idname=NULL, first.treat.name,
-                     iters=100, alp=0.05, method="logit", plot=FALSE, se=TRUE,
-                     bstrap=FALSE, biters=100,
-                     cband=FALSE, citers=100,
-                     retEachIter=FALSE, seedvec=NULL, pl=FALSE, cores=2) {
-
-
-    ##TODO: make this handle passing in treatment indicators in a more "natural" way
-    
-    ##figure out the dates and make balanced panel
-    tlist <- unique(data[,tname])[order(unique(data[,tname]))] ## this is going to be from smallest to largest
-
-    flist <- unique(data[,first.treat.name])[order(unique(data[,first.treat.name]))]
-    flist <- flist[flist>0]
-
-    if (!is.numeric(tlist)) {
-        warning("not guaranteed to order time periods correclty if they are not numeric")
-    }
-    tlen <- length(tlist)
-    flen <- length(flist)
-    if (panel) {
-        data <- makeBalancedPanel(data, idname, tname)
-    }
-
-    ## get all the results; importantly this now returns the influence functions
-    fatt <- list()
-    for (f in 1:flen) {
-        satt <- list()
-        for (t in 1:(tlen-1)) {
-            pret <- t
-            if (flist[f]<=tlist[(t+1)]) {
-                pret <- tail(which(tlist < flist[f]),1) ## remember, this is just an index
-                print(paste("current period:", tlist[t+1]))
-                print(paste("current group:", flist[f]))
-                print(paste("set pretreatment period to be", tlist[pret]))
-            }
-            disdat <- data[(data[,tname]==tlist[t+1] | data[,tname]==tlist[pret]) &
-                           (data[,first.treat.name]==0 | data[,first.treat.name]==flist[f]),]
-            disdat <- droplevels(disdat)
-            satt[[t]] <- c(spatt(formla, xformla, t=tlist[t+1], tmin1=tlist[pret],
-                      tname=tname, data=disdat, w=w, panel=panel,
-                      idname=idname, 
-                      iters=iters, alp=alp, method=method, plot=plot, se=se,
-                      retEachIter=retEachIter, seedvec=seedvec, pl=pl, cores=cores),
-                      group=flist[f], year=tlist[(t+1)], post=1*(flist[f]<=tlist[(t+1)]))
-        }
-        fatt[[f]] <- c(satt, group=flist[f])
-    }
-
-
-    ## need to handle influence functions separately for treated and control groups.  For treated groups,
-    ##  they will be independent of other treated groups (i.e. those first receiving treatment
-    ##  at a different time.
-    ##  for the untreated group, it shows up in every att calculation so need to account for this correlations
-    getIFt <- function(fl) {
-        iflist <- list()
-        for (i in 1:(length(fl)-1)) {
-            print(paste("year",fl[[i]]$year))
-            iflist[[i]] <- fl[[i]]$inffunct
-        }
-        return(iflist)
-    }
-
-    ## because we'll eventually scale up by sqrt(n), not sqrt(n_0 + n_g), we need to make some adjustment
-    ## for that.  that's what is happing here
-    n <- sum(data[,tname]==tlist[[1]]) ## this is not right, need to account for different sizes across group-years
-
-    nf <- vapply(flist, function(x) { sum(data[,first.treat.name]==x & data[,tname]==tlist[[1]]) }, 1.0 )
-    n0 <- n - sum(nf)
-    p0f <- (nf + n0)/n
-    p0 <- n0/n
-    pf <- nf/n
-
-    ## handle variance for treated group(s); it should be block diagonal and stored in vt
-    d <- flen*(tlen-1)
-    vt <- matrix(0, nrow=d, ncol=d)
-    psiitout <- list()
-    for (f in 1:flen) {
-        print(paste("group:",fatt[[f]]$group))
-        psiit <- getIFt(fatt[[f]])
-        psiit <- simplify2array(psiit)
-        psiit <- psiit/sqrt(pf[f])
-        psiitout[[f]] <- psiit
-        startpos <- (f-1)*(tlen-1) + 1
-        endpos <- startpos + (tlen-1) - 1
-        vt[startpos:endpos, startpos:endpos] <- t(psiit)%*%psiit
-    }
-
-    
-    ## next handle variance for control group;  every space should be filled
-    getIFu <- function(fatt) {
-        iflist <- list()
-        i <- 1
-        for (f in 1:length(fatt)) {
-            print(paste("group:",fatt[[f]]$group))
-            for (s in 1:(length(fatt[[f]])-1)) {
-                print(paste("year:",fatt[[f]][[s]]$year))
-                iflist[[i]] <- fatt[[f]][[s]]$inffuncu
-                i <- i + 1
-            }
-        }
-        return(iflist)
-    }
-    
-    psiiu <- getIFu(fatt)
-    psiiu <- simplify2array(psiiu)
-    psiiu <- psiiu/sqrt(p0)
-
-    vu <- t(psiiu)%*%psiiu
-
-    ## overall variance is the mean of the variance for the treated groups and untreated groups
-    V <- (vt+vu)/n
-
-    
-    if (bstrap) {
-        bout <- lapply(1:biters, FUN=function(b) {
-            ift <- do.call(magic::adiag, psiitout)
-            ifunc <- rbind(ift, psiiu)
-            browser()
-            clustervars <- c() 
-            Ub <- sample(c(-1,1), n, replace=T)
-            mb <- Ub*(ifunc)
-            n <- nrow(mb)
-            apply(mb,2,sum)/sqrt(n)
-            ##Vb <- t(mb)%*%mb / n
-            ##Vb
-        })
-        bres <- t(simplify2array(bout))
-        V <- cov(bres)
-    }
-
-
-    ## TODO: handle case with repeated cross sections; this part is conceptually easier because many
-    ##  off-diagonal (though not all) will be 0.
-
-    ## get the actual estimates
-
-
-    group <- c()
-    t    <- c()
-    att <- c()
-    i <- 1
-    for (f in 1:length(fatt)) {
-        for (s in 1:(length(fatt[[f]])-1)) {
-            group[i] <- fatt[[f]]$group
-            t[i] <- fatt[[f]][[s]]$year
-            att[i] <- fatt[[f]][[s]]$ate
-            i <- i + 1
-        }
-    }
-
-    c <- qnorm(1-alp/2)
-    if (cband) {
-        Sig <- matrix(0, nrow=nrow(V), ncol=ncol(V))
-        diag(Sig) <- diag(V)
-        Siggy <- expm::sqrtm(solve(Sig))
-        ZB <- MASS::mvrnorm(citers, rep(0,nrow(V)), V)
-        KSB <- apply(ZB %*% Siggy, 1, max)
-        c <- quantile(KSB, 1-alp, type=7)
-    }
-
-    return(list(group=group, t=t, att=att, V=V, c=c))
-}
