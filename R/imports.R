@@ -4,5 +4,6 @@
 #' @name QTE
 #' @import graphics
 #' @import stats
+#' @import pbapply
 #' @importFrom utils write.table tail
 NULL

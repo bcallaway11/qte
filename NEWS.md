@@ -13,3 +13,5 @@ vignette: >
   * Added ddid2 method to compute quantile treatment effects under a Difference in Differences assumption following the procedure of Callaway and Li, 2016.
   * Include covariates for all methods using formulas (xformla parameter) instead of passing in names
   * Improvements to bootstrapping standard errors
+  * Some extensions to computing the ATT by itself in \code{spatt}
+  * Preliminary version of multi period ATT moved to \code{did} package

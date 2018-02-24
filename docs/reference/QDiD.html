@@ -237,29 +237,29 @@ computed in parallel</p></td>
 <span class='no'>qd1</span> <span class='kw'>&lt;-</span> <span class='fu'>QDiD</span>(<span class='no'>re</span> ~ <span class='no'>treat</span>, <span class='kw'>t</span><span class='kw'>=</span><span class='fl'>1978</span>, <span class='kw'>tmin1</span><span class='kw'>=</span><span class='fl'>1975</span>, <span class='kw'>tname</span><span class='kw'>=</span><span class='st'>"year"</span>,
  <span class='kw'>xformla</span><span class='kw'>=</span>~<span class='no'>age</span> + <span class='fu'>I</span>(<span class='no'>age</span>^<span class='fl'>2</span>) + <span class='no'>education</span> + <span class='no'>black</span> + <span class='no'>hispanic</span> + <span class='no'>married</span> + <span class='no'>nodegree</span>,
  <span class='kw'>data</span><span class='kw'>=</span><span class='no'>lalonde.psid.panel</span>, <span class='kw'>idname</span><span class='kw'>=</span><span class='st'>"id"</span>, <span class='kw'>se</span><span class='kw'>=</span><span class='fl'>FALSE</span>,
- <span class='kw'>probs</span><span class='kw'>=</span><span class='fu'>seq</span>(<span class='fl'>0.05</span>, <span class='fl'>0.95</span>, <span class='fl'>0.05</span>))</div><div class='output co'>#&gt; <span class='warning'>Warning: Solution may be nonunique</span></div><div class='output co'>#&gt; <span class='warning'>Warning: Solution may be nonunique</span></div><div class='output co'>#&gt; <span class='warning'>Warning: Solution may be nonunique</span></div><div class='output co'>#&gt; <span class='warning'>Warning: Solution may be nonunique</span></div><div class='output co'>#&gt; <span class='warning'>Warning: Solution may be nonunique</span></div><div class='input'><span class='fu'>summary</span>(<span class='no'>qd1</span>)</div><div class='output co'>#&gt; 
+ <span class='kw'>probs</span><span class='kw'>=</span><span class='fu'>seq</span>(<span class='fl'>0.05</span>, <span class='fl'>0.95</span>, <span class='fl'>0.05</span>))</div><div class='output co'>#&gt; <span class='warning'>Warning: Solution may be nonunique</span></div><div class='output co'>#&gt; <span class='warning'>Warning: Solution may be nonunique</span></div><div class='output co'>#&gt; <span class='warning'>Warning: Solution may be nonunique</span></div><div class='output co'>#&gt; <span class='warning'>Warning: Solution may be nonunique</span></div><div class='output co'>#&gt; <span class='warning'>Warning: Solution may be nonunique</span></div><div class='output co'>#&gt; <span class='warning'>Warning: Solution may be nonunique</span></div><div class='output co'>#&gt; <span class='warning'>Warning: Solution may be nonunique</span></div><div class='input'><span class='fu'>summary</span>(<span class='no'>qd1</span>)</div><div class='output co'>#&gt; 
 #&gt; Quantile Treatment Effect:
 #&gt; 		
 #&gt; tau	QTE
 #&gt; 0.05	   0.00
 #&gt; 0.1	-289.79
 #&gt; 0.15	-289.79
-#&gt; 0.2	-289.79
-#&gt; 0.25	-258.44
+#&gt; 0.2	-485.23
+#&gt; 0.25	-161.97
 #&gt; 0.3	-124.46
-#&gt; 0.35	 251.40
-#&gt; 0.4	 877.47
+#&gt; 0.35	  81.04
+#&gt; 0.4	 763.41
 #&gt; 0.45	1642.33
 #&gt; 0.5	2068.29
-#&gt; 0.55	2546.12
+#&gt; 0.55	2242.71
 #&gt; 0.6	3169.52
-#&gt; 0.65	3832.00
-#&gt; 0.7	3349.44
+#&gt; 0.65	3965.33
+#&gt; 0.7	3931.76
 #&gt; 0.75	3731.45
-#&gt; 0.8	3815.44
-#&gt; 0.85	4001.90
-#&gt; 0.9	4460.30
-#&gt; 0.95	2822.10
+#&gt; 0.8	4207.19
+#&gt; 0.85	4425.46
+#&gt; 0.9	5182.06
+#&gt; 0.95	4945.10
 #&gt; 
 #&gt; Average Treatment Effect:	1684.96</div><div class='input'>
 </div></pre>

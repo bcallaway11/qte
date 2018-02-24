@@ -85,7 +85,7 @@ compute.spatt <- function(qp) {
             lam <- (ntt+nut)/(ntt+nttmin1+nut+nutmin1) ## the fraction of observations in the last period
             
             waits1 <- (T-lam)/(lam*(1-lam))
-            uwait <- (1-D)*psocre/(p*(1-pscore))
+            uwait <- (1-D)*pscore/(p*(1-pscore))
             waits2 <- D/p - uwait/mean(uwait) ##(D-pscore)/(p*(1-pscore))
             waits <- waits1 * waits2
             
@@ -166,7 +166,6 @@ spatt <- function(formla, xformla=NULL, t, tmin1,
                     iters=iters, alp=alp, method=method,
                     se=se, retEachIter=retEachIter, seedvec=seedvec,
                     pl=pl, cores=cores)
-                    
     
     satt = compute.spatt(qp)
 
