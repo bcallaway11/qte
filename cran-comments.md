@@ -9,4 +9,4 @@
 
 ## Downstream dependencies
 
-There are no downstream dependencies.
+There were no issues checking all reverse dependencies.
