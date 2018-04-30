@@ -215,17 +215,15 @@ spatt <- function(formla, xformla=NULL, t, tmin1,
 
         psit <- twait*(dy - mean(twait*dy))
 
+        browser()
+
         M <- as.matrix(apply(as.matrix(((1-D)/(1-pscore))^2 * g(x,thet) * (dy - mean(uwait*dy)) * x), 2, mean) / mean(uwait1))
         A1 <- g(x,thet)^2/(pscore*(1-pscore))
         A1 <- (t(A1*x)%*%x/n)
         A2 <- (((D-pscore)*g(x,thet)/(pscore*(1-pscore)))*x)
-        A <- A2%*%solve(A1)
-        psiu <- uwait*(dy - mean(uwait*dy)) + A%*%M
+        A <- A2%*%A1
+        psiu1 <- uwait*(dy - mean(uwait*dy)) + A%*%M
 
-        
-        V <- mean((psit-psiu)^2)
-
-        SEobj <- SE(ate.se=sqrt(V)/sqrt(n))
         
         ## old code
         ## uwait <- (1-D)*pscore/(p*(1-pscore))
@@ -247,7 +245,7 @@ spatt <- function(formla, xformla=NULL, t, tmin1,
 
         ##TODO: set this back to being a QTE object
         out <- list(qte=NULL, pscore.reg=satt$pscore.reg, ate=satt$ate,
-                   ate.se=SEobj$ate.se, probs=NULL, inffunc=(psit-psiu))
+                   ate.se=SEobj$ate.se, probs=NULL, inffunc=(v1-v2))
         class(out) <- "QTE"
         return(out)
     } else {

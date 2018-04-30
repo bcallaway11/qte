@@ -1137,30 +1137,29 @@ compute.CiC <- function(formla, xformla=NULL, t, tmin1, tname, x=NULL, data,
     
     F.untreated.tmin1 = ecdf(untreated.tmin1[,yname])
 
-    y.seq <- sort(unique(treated.t[,yname])) #TODO: make sure this is right
+    ##y.seq <- sort(unique(treated.t[,yname])) #TODO: make sure this is right
     
     ##2) compute F^-1_untreated.tmin1
-    Finv.untreated.tmin1 <- function(ps) {
-        return(quantile(untreated.tmin1[,yname],probs=ps))
-    }
-    ai.inner = Finv.untreated.tmin1(F.untreated.t(y.seq))
+    ##Finv.untreated.tmin1 <- function(ps) {
+    ##    return(quantile(untreated.tmin1[,yname],probs=ps,type=1))
+    ##}
+    ##ai.inner = Finv.untreated.tmin1(F.untreated.t(y.seq))
     
     ##3) compute distribution Y_0tmin | Dt=1
     F.treated.tmin1 = ecdf(treated.tmin1[,yname])
     
     ##3a) use this to compute counterfactual distribution
-    F.treatedcf.tval = F.treated.tmin1(ai.inner)
+    ##F.treatedcf.tval = F.treated.tmin1(ai.inner)
 
-    F.treatedcf.t <- BMisc::makeDist(y.seq, F.treatedcf.tval)
-    ##F.treatedcf.t = approxfun(y.seq, F.treatedcf.tval, method="constant",
-    ##    yleft=0, yright=1, f=0, ties="ordered")
-    ##class(F.treatedcf.t) = c("ecdf", "stepfun", class(F.treatedcf.t))
-    ##assign("nobs", length(ai.inner), envir = environment(F.treatedcf.t))
-    
+    ##F.treatedcf.t <- BMisc::makeDist(y.seq, F.treatedcf.tval)
+
+    F.treatedcf.t <- ecdf(quantile(untreated.t[,yname],
+        probs=F.untreated.tmin1(treated.tmin1[,yname])))
+        
     ##5) Compute Quantiles
     ##a) Quantiles of observed distribution
-    q1 = quantile(treated.t[,yname],probs=probs)
-    q0 = quantile(F.treatedcf.t,probs=probs)
+    q1 = quantile(treated.t[,yname],probs=probs,type=1)
+    q0 = quantile(F.treatedcf.t,probs=probs,type=1)
     
     ##6) Plot QTE
     if (plot) {
