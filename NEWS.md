@@ -9,7 +9,10 @@ vignette: >
   \usepackage[utf8]{inputenc}
 ---
 
-# qte 1.2.2
+# qte 1.2.3 
+  * Now using empirical quantiles in CiC method
+
+# qte 1.2.2 (current CRAN version)
   * Some bug fixes to CiC method
 
 # qte 1.2

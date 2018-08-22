@@ -1,6 +1,6 @@
 Package: qte
 Title: Quantile Treatment Effects
-Version: 1.2.2
+Version: 1.2.3
 Date: 2018-02-23
 Authors@R: person("Brantly", "Callaway", email="brantly.callaway@temple.edu",
   	          role=c("aut","cre"))

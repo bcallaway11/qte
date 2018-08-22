@@ -1154,7 +1154,7 @@ compute.CiC <- function(formla, xformla=NULL, t, tmin1, tname, x=NULL, data,
     ##F.treatedcf.t <- BMisc::makeDist(y.seq, F.treatedcf.tval)
 
     F.treatedcf.t <- ecdf(quantile(untreated.t[,yname],
-        probs=F.untreated.tmin1(treated.tmin1[,yname])))
+        probs=F.untreated.tmin1(treated.tmin1[,yname]), type=1))
         
     ##5) Compute Quantiles
     ##a) Quantiles of observed distribution
@@ -1168,7 +1168,7 @@ compute.CiC <- function(formla, xformla=NULL, t, tmin1, tname, x=NULL, data,
     
     ##7) Estimate ATT using A-I
     att = mean(treated.t[,yname]) - mean(quantile(untreated.t[,yname],
-        probs=F.untreated.tmin1(treated.tmin1[,yname]))) #See A-I p.441 Eq. 16
+        probs=F.untreated.tmin1(treated.tmin1[,yname]),type=1)) #See A-I p.441 Eq. 16
     
     ##add this to the plot
     if (plot) {
