@@ -164,14 +164,15 @@ ci.qtet <- function(formla, xformla=NULL, w=NULL, data,
         SEobj <- bootstrap(qp, firpo.qtet, compute.ci.qtet)
 
         out <- QTE(qte=firpo.qtet$qte, qte.upper=SEobj$qte.upper,
-                    qte.lower=SEobj$qte.lower, ate=firpo.qtet$ate,
-                    ate.upper=SEobj$ate.upper, ate.lower=SEobj$ate.lower,
-                    qte.se=SEobj$qte.se, ate.se=SEobj$ate.se,
-                    pscore.reg=firpo.qtet$pscore.reg,
-                    F.treated.t=firpo.qtet$F.treated.t,
-                    F.treated.t.cf=firpo.qtet$F.treated.t.cf,
-                    eachIterList=eachIter,
-                    probs=probs)
+                   qte.lower=SEobj$qte.lower, ate=firpo.qtet$ate,
+                   ate.upper=SEobj$ate.upper, ate.lower=SEobj$ate.lower,
+                   qte.se=SEobj$qte.se, ate.se=SEobj$ate.se,
+                   c=SEobj$c,
+                   pscore.reg=firpo.qtet$pscore.reg,
+                   F.treated.t=firpo.qtet$F.treated.t,
+                   F.treated.t.cf=firpo.qtet$F.treated.t.cf,
+                   eachIterList=eachIter,
+                   probs=probs)
         return(out)
     } else {
         return(firpo.qtet)

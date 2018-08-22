@@ -39,19 +39,23 @@ qtes2mat <- function(qteList, sset=NULL, se=TRUE, rnd=3) {
 #' @param ylim optional limits of y axis
 #' @param ybreaks optional breaks in y axis
 #' @param xbreaks optional breaks in x axis
+#' @param setype options are "pointwise", "uniform" or both; pointwise confidence
+#'  intervals cover the QTE at each particular point with a fixed probability,
+#'  uniform confidence bands cover the entire curve with a fixed
+#'  probability.  Uniform confidence bands will tend to be wider.  The option
+#'  "both" will plot both types of confidence intervals
 #' 
 #' @return a ggplot object
 #' @export
-ggqte <- function(qteobj, main="", ylab="", ylim=NULL, ybreaks=NULL, xbreaks=c(.1,.3,.5,.7,.9)) {
+ggqte <- function(qteobj, main="", ylab="", ylim=NULL, ybreaks=NULL, xbreaks=c(.1,.3,.5,.7,.9), setype="pointwise") {
     tau <- qteobj$probs
     qte <- qteobj$qte
     qte.se <- qteobj$qte.se
+    c <- qteobj$c
     cmat <- data.frame(tau, qte=qteobj$qte, qte.se=qteobj$qte.se)
     qp <- ggplot2::ggplot(data=cmat, aes(tau, qte, ymax=qte+1.96*qte.se,
                                 ymin=qte-1.96*qte.se)) +
         ggplot2::geom_line(aes(tau, qte)) +
-        ggplot2::geom_line(aes(tau, qte+1.96*qte.se), linetype="dashed") +
-        ggplot2::geom_line(aes(tau, qte-1.96*qte.se), linetype="dashed") +
         ##geom_errorbar(size=.3, width=.02) + 
         ggplot2::geom_hline(yintercept=0) + 
         ggplot2::geom_point(aes(tau, qte)) +
@@ -63,6 +67,15 @@ ggqte <- function(qteobj, main="", ylab="", ylim=NULL, ybreaks=NULL, xbreaks=c(.
                                           fill=NA,
                                           linetype='solid'),
                        plot.title = element_text(hjust=0.5))
+    if (!is.null(qte.se)) {
+        if (setype == "both" | setype == "pointwise") {
+            qp <- qp + ggplot2::geom_line(aes(tau, qte+1.96*qte.se), linetype="dashed")
+            qp <- qp + ggplot2::geom_line(aes(tau, qte-1.96*qte.se), linetype="dashed")
+        }
+        if (setype == "both" | setype == "uniform") {
+            qp <-  qp + ggplot2::geom_line(aes(tau, qte+c*qte.se), linetype="dashed") + ggplot2::geom_line(aes(tau, qte-c*qte.se), linetype="dashed")
+        }
+    }
     qp
 }
 

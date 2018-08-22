@@ -6,10 +6,10 @@
 ##for the treated group
 ##call plot function, summary function, formula function, etc. later
 ##add functionality to pass in pscore
-#' @title compute.panel.qte
+#' @title compute.panel.qtet
 #'
 #' @description
-#' \code{compute.panel.qte} uses third period of data,
+#' \code{compute.panel.qtet} uses third period of data,
 #' combined with Distributional
 #' Difference in Differences assumption (Fan and Yu, 2012)
 #' to point identify QTET.
@@ -997,10 +997,6 @@ panel.qtet <- function(formla, xformla=NULL, t, tmin1, tmin2,
                 method=method,
                 bootstrap.iter=TRUE)
             eachIter[[i]] = thisIter
-                ##old
-                ##list(att=thisIter$att, qte=thisIter$qte,
-                ##        F.treated.t=thisIter$F.treated.t,
-                ##        F.treated.t.cf=thisIter$F.treated.t.cf)
         }
 
         SEobj <- computeSE(eachIter, pqte, alp=alp)
@@ -1012,22 +1008,23 @@ panel.qtet <- function(formla, xformla=NULL, t, tmin1, tmin2,
         ##could return each bootstrap iteration w/ eachIter
         ##but not currently doing that
         out <- QTE(qte=pqte$qte, qte.upper=SEobj$qte.upper,
-                    qte.lower=SEobj$qte.lower, ate=pqte$ate,
-                    ate.upper=SEobj$ate.upper, ate.lower=SEobj$ate.lower,
-                    qte.se=SEobj$qte.se, ate.se=SEobj$ate.se,
-                    F.treated.t=pqte$F.treated.t,
-                    F.untreated.t=pqte$F.untreated.t,
-                    F.treated.t.cf=pqte$F.treated.t.cf,
-                    F.treated.tmin1=pqte$F.treated.tmin1,
-                    F.treated.tmin2=pqte$F.treated.tmin2,
-                    F.treated.change.tmin1=pqte$F.treated.change.tmin1,
-                    F.untreated.change.t=pqte$F.untreated.change.t,
-                    F.untreated.change.tmin1=pqte$F.untreated.change.tmin1,
-                    F.untreated.tmin1=pqte$F.untreated.tmin1,
-                    F.untreated.tmin2=pqte$F.untreated.tmin2,
-                    pscore.reg=pqte$pscore.reg,
-                    eachIterList=eachIter,
-                    probs=probs)
+                   qte.lower=SEobj$qte.lower, ate=pqte$ate,
+                   ate.upper=SEobj$ate.upper, ate.lower=SEobj$ate.lower,
+                   qte.se=SEobj$qte.se, ate.se=SEobj$ate.se,
+                   c=SEobj$c,
+                   F.treated.t=pqte$F.treated.t,
+                   F.untreated.t=pqte$F.untreated.t,
+                   F.treated.t.cf=pqte$F.treated.t.cf,
+                   F.treated.tmin1=pqte$F.treated.tmin1,
+                   F.treated.tmin2=pqte$F.treated.tmin2,
+                   F.treated.change.tmin1=pqte$F.treated.change.tmin1,
+                   F.untreated.change.t=pqte$F.untreated.change.t,
+                   F.untreated.change.tmin1=pqte$F.untreated.change.tmin1,
+                   F.untreated.tmin1=pqte$F.untreated.tmin1,
+                   F.untreated.tmin2=pqte$F.untreated.tmin2,
+                   pscore.reg=pqte$pscore.reg,
+                   eachIterList=eachIter,
+                   probs=probs)
         return(out)
     } else {
         return(pqte)
@@ -1381,6 +1378,7 @@ CiC <- function(formla, xformla=NULL, t, tmin1, tname, x=NULL,data,
                    qte.lower=SEobj$qte.lower, ate=cic$ate,
                    ate.upper=SEobj$ate.upper, ate.lower=SEobj$ate.lower,
                    qte.se=SEobj$qte.se, ate.se=SEobj$ate.se,
+                   c=SEobj$c,
                    eachIterList=eachIter,
                    probs=probs)
         return(out)
@@ -1809,6 +1807,12 @@ computeSE <- function(bootIters, qteobj, alp=0.05) {
     qte.mat = do.call(rbind,lapply(all.qte, FUN=as.numeric, ncol=length(all.qte[[1]]), byrow=TRUE))
     ##standard error
     qte.se <- apply(qte.mat, FUN=sd, MARGIN=2)
+
+    sigmahalf <- (apply(qte.mat, 2, function(b) quantile(b, .75, type=1)) -
+    apply(qte.mat, 2, function(b) quantile(b, .25, type=1))) / (qnorm(.75) - qnorm(.25))
+
+    cb <- apply(qte.mat, 1, function(q) max(abs((q-qte)/sigmahalf)))
+    c <- quantile(cb, .95, type=1)
     ## qte se by quantiles
     ##sorted.qtemat = apply(qte.mat, 2, sort)
     ##qte.upper = sorted.qtemat[round((1-alp/2)*iters),]
@@ -1818,7 +1822,8 @@ computeSE <- function(bootIters, qteobj, alp=0.05) {
     qte.lower <- qte - qnorm(1-alp/2)*qte.se
 
     out <- SE(ate.se=ate.se, ate.upper=ate.upper, ate.lower=ate.lower,
-                qte.se=qte.se, qte.upper=qte.upper, qte.lower=qte.lower)
+              qte.se=qte.se, qte.upper=qte.upper, qte.lower=qte.lower,
+              c=c)
     return(out)
 }
 
@@ -1944,6 +1949,8 @@ plot.QTE <- function(x, plotate=FALSE, plot0=FALSE,
                          legendcol=NULL,
                          legloc="topright", ...) {
 
+    warning("This method is no longer supported.  Try the \"ggqte\" function instead")
+    
     qte.obj <- x
 
     if (is.null(qte.obj$alp)) {
@@ -2016,6 +2023,8 @@ plot.QTE <- function(x, plotate=FALSE, plot0=FALSE,
 #' @param ate.upper Upper confidence interval for the ATE (it is based on the
 #'  bootstrap confidence interval -- not the se -- so it may not be symmetric
 #'  about the ATE
+#' @param c The critical value from a KS-type statistic used for creating
+#'  uniform confidence bands
 #' @param pscore.reg The results of propensity score regression, if specified
 #' @param probs The values for which the qte is computed
 #' @param type Takes the values "On the Treated" or "Population" to indicate
@@ -2056,7 +2065,7 @@ plot.QTE <- function(x, plotate=FALSE, plot0=FALSE,
 #' @export
 QTE <- function(qte, ate=NULL, qte.se=NULL, qte.lower=NULL,
                 qte.upper=NULL, ate.se=NULL, ate.lower=NULL, ate.upper=NULL,
-                pscore.reg=NULL, probs, type="On the Treated",
+                c=NULL, pscore.reg=NULL, probs, type="On the Treated",
                 F.treated.t=NULL, F.untreated.t=NULL, F.treated.t.cf=NULL,
                 F.treated.tmin1=NULL, F.treated.tmin2=NULL,
                 F.treated.change.tmin1=NULL,
@@ -2069,7 +2078,7 @@ QTE <- function(qte, ate=NULL, qte.se=NULL, qte.lower=NULL,
                 eachIterList=NULL, inffunct=NULL, inffuncu=NULL) {
     out <- list(qte=qte, ate=ate, qte.se=qte.se, qte.lower=qte.lower,
                 qte.upper=qte.upper, ate.se=ate.se, ate.lower=ate.lower,
-                ate.upper=ate.upper,
+                ate.upper=ate.upper, c=c,
                 pscore.reg=pscore.reg, probs=probs,
                 type=type, F.treated.t=F.treated.t, F.untreated.t=F.untreated.t,
                 F.treated.t.cf=F.treated.t.cf,
@@ -2099,15 +2108,17 @@ QTE <- function(qte, ate=NULL, qte.se=NULL, qte.lower=NULL,
 #' @param qte.lower The QTE lower CI
 #' @param ate.upper The ATE upper CI
 #' @param ate.lower The ATE lower CI
+#' @param c The critical value from a KS-type statistic used for creating
+#'  uniform confidence bands
 #' @param probs The values at which the QTE is computed
 #'
 #' @keywords internal
 SE <- function(qte.se=NULL, ate.se=NULL, qte.upper=NULL, qte.lower=NULL,
-               ate.upper=NULL, ate.lower=NULL, probs=NULL) {
+               ate.upper=NULL, ate.lower=NULL, c=NULL, probs=NULL) {
 
     out <- list(qte.se=qte.se, qte.upper=qte.upper, qte.lower=qte.lower,
                 ate.se=ate.se, ate.upper=ate.upper, ate.lower=ate.lower,
-                probs=probs)
+                c=c, probs=probs)
     class(out) <- "SE"
     return(out)
 }

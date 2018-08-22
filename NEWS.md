@@ -11,6 +11,7 @@ vignette: >
 
 # qte 1.2.3 
   * Now using empirical quantiles in CiC method
+  * Added code for computing uniform confidence bands in panel.qtet method
 
 # qte 1.2.2 (current CRAN version)
   * Some bug fixes to CiC method
