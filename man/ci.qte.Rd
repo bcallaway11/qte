@@ -7,11 +7,12 @@
 ci.qte(formla, xformla = NULL, x = NULL, data, w = NULL,
   probs = seq(0.05, 0.95, 0.05), se = TRUE, iters = 100,
   alp = 0.05, method = "logit", retEachIter = FALSE,
-  seedvec = NULL, printIter = FALSE, pl = FALSE, cores = 2)
+  printIter = FALSE, pl = FALSE, cores = 2)
 }
 \arguments{
 \item{formla}{The formula y ~ d where y is the outcome and d is the
-treatment indicator (d should be binary)}
+treatment indicator (d should be binary), d should be equal to one
+in all time periods for individuals that are eventually treated}
 
 \item{xformla}{A optional one sided formula for additional covariates that
 will be adjusted for.  E.g ~ age + education.  Additional covariates can
@@ -19,7 +20,7 @@ also be passed by name using the x paramater.}
 
 \item{x}{Vector of covariates.  Default is no covariates}
 
-\item{data}{The name of the data.frame that contains the data}
+\item{data}{A data.frame containing all the variables used}
 
 \item{w}{an additional vector of sampling weights}
 
@@ -37,10 +38,9 @@ confidence intervals}
 option is probit.}
 
 \item{retEachIter}{Boolean whether or not to return list of results
-from each iteration of the bootstrap procedure}
-
-\item{seedvec}{Optional value to set random seed; can possibly be used
-in conjunction with bootstrapping standard errors.}
+from each iteration of the bootstrap procedure (default is FALSE).
+This is potentially useful for debugging but can cause errors due
+to running out of memory.}
 
 \item{printIter}{For debugging only; should leave at default FALSE unless
 you want to see a lot of output}

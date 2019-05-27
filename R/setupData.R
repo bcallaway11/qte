@@ -159,6 +159,7 @@ setupData <- function(qteParams) {
     assign("t", t, envir=env)
     assign("tmin1", tmin1, envir=env)
     assign("tmin2", tmin2, envir=env)
+    assign("idname", idname, envir=env)
     assign("panel", panel, envir=env)
     
 }

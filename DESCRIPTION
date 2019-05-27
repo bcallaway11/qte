@@ -13,10 +13,11 @@ Imports: Hmisc,
     formula.tools,
     ggplot2,
     texreg,
-    pbapply
+    pbapply,
+    knitr
 License: GPL-2
 LazyData: true
 RoxygenNote: 6.1.1
-Suggests: knitr,
-    rmarkdown
+Encoding: UTF-8
+Suggests: rmarkdown
 VignetteBuilder: knitr

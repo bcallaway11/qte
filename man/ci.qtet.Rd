@@ -6,12 +6,13 @@
 \usage{
 ci.qtet(formla, xformla = NULL, w = NULL, data, probs = seq(0.05,
   0.95, 0.05), se = TRUE, iters = 100, alp = 0.05,
-  method = "logit", retEachIter = FALSE, seedvec = NULL,
-  indsample = TRUE, printIter = FALSE, pl = FALSE, cores = 2)
+  method = "logit", retEachIter = FALSE, indsample = TRUE,
+  printIter = FALSE, pl = FALSE, cores = 2)
 }
 \arguments{
 \item{formla}{The formula y ~ d where y is the outcome and d is the
-treatment indicator (d should be binary)}
+treatment indicator (d should be binary), d should be equal to one
+in all time periods for individuals that are eventually treated}
 
 \item{xformla}{A optional one sided formula for additional covariates that
 will be adjusted for.  E.g ~ age + education.  Additional covariates can
@@ -19,7 +20,7 @@ also be passed by name using the x paramater.}
 
 \item{w}{an additional vector of sampling weights}
 
-\item{data}{The name of the data.frame that contains the data}
+\item{data}{A data.frame containing all the variables used}
 
 \item{probs}{A vector of values between 0 and 1 to compute the QTET at}
 
@@ -35,10 +36,9 @@ confidence intervals}
 option is probit.}
 
 \item{retEachIter}{Boolean whether or not to return list of results
-from each iteration of the bootstrap procedure}
-
-\item{seedvec}{Optional value to set random seed; can possibly be used
-in conjunction with bootstrapping standard errors.}
+from each iteration of the bootstrap procedure (default is FALSE).
+This is potentially useful for debugging but can cause errors due
+to running out of memory.}
 
 \item{indsample}{Binary variable for whether to treat the samples as
 independent or dependent.  This affects bootstrap standard errors.  In

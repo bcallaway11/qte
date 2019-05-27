@@ -39,6 +39,7 @@ QTEparams <- function(formla, xformla=NULL, t=NULL, tmin1=NULL, tmin2=NULL,
                       alp=NULL, method=NULL, plot=NULL, se=NULL, iters=NULL,
                       retEachIter=NULL, bootstrapiter=NULL, seedvec=NULL,
                       pl=NULL, cores=NULL) {
+    
     out <- list(formla=formla, xformla=xformla, t=t, tmin1=tmin1,
                 tmin2=tmin2, tname=tname, data=data, panel=panel, w=w,
                 idname=idname, probs=probs, alp=alp, method=method,

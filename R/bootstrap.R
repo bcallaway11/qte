@@ -88,6 +88,8 @@ bootstrap <- function(qteparams, qteest, func) {
     pl <- qteparams$pl
     cores <- qteparams$cores
 
+    browser()
+    
     eachIter <- list()
 
     eachIter <- pblapply(1:iters, bootiter, qteparams=qteparams,

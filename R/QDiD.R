@@ -1,6 +1,3 @@
-utils::globalVariables(c("yname", "treat", "treated.t", "treated.tmin1", "untreated.t", "untreated.tmin1", "x", "wname", "probs", "method", "eachIter", "xformla"))
-
-
 ###Quantile Difference-in-Differences
 ##Note that you need to pass in data where treated status is noted in
 ##every period.  Data is form of (year-individual-outcome-x-evertreated)
@@ -171,27 +168,20 @@ compute.QDiD <- function(qp) {
 #' 
 #' @export
 QDiD <- function(formla, xformla=NULL, t, tmin1, tname, x=NULL,data,
-                 dropalwaystreated=TRUE, panel=FALSE, se=TRUE,
+                 panel=FALSE, se=TRUE,
                  idname=NULL, method=NULL,
-                 uniqueid=NULL, alp=0.05, probs=seq(0.05,0.95,0.05), iters=100,
-                 retEachIter=FALSE, seedvec=NULL, printIter=F,
+                 alp=0.05, probs=seq(0.05,0.95,0.05), iters=100,
+                 retEachIter=FALSE, 
                  pl=FALSE, cores=NULL) {
 
     qp <- QTEparams(formla=formla, xformla=xformla, t=t, tmin1=tmin1,
                     tname=tname, data=data, panel=panel,
                     idname=idname, probs=probs,
                     iters=iters, bootstrapiter=FALSE, alp=alp, method=method,
-                    se=se, retEachIter=retEachIter, seedvec=seedvec,
+                    se=se, retEachIter=retEachIter, 
                     pl=pl, cores=cores)
     
     
-    
-    ## maybe, move this to setupData
-    ##treated.t = data[data[,tname]==t & data[,treat]==1,]
-    ##treated.tmin1 = data[ data[,tname] == tmin1 & data[,treat] == 1, ]
-    ##untreated.t = data[data[,tname]==t & data[,treat]==0,]
-    ##untreated.tmin1 = data[ data[,tname] == tmin1 & data[,treat] == 0, ]
-
     ##first calculate the actual estimate
     qdid = compute.QDiD(qp)
 

@@ -82,7 +82,7 @@
       <h1>panel.qtet</h1>
                         <h4 class="author">Brantly Callaway</h4>
             
-            <h4 class="date">2019-05-23</h4>
+            <h4 class="date">2019-05-27</h4>
       
       
       <div class="hidden name"><code>panel-qtet.Rmd</code></div>
@@ -118,23 +118,9 @@
  pq1 &lt;-<span class="st"> </span><span class="kw"><a href="../reference/panel.qtet.html">panel.qtet</a></span>(re ~<span class="st"> </span>treat, <span class="dt">t=</span><span class="dv">1978</span>, <span class="dt">tmin1=</span><span class="dv">1975</span>, <span class="dt">tmin2=</span><span class="dv">1974</span>, <span class="dt">tname=</span><span class="st">"year"</span>,
   <span class="dt">x=</span><span class="ot">NULL</span>, <span class="dt">data=</span>lalonde.psid.panel, <span class="dt">idname=</span><span class="st">"id"</span>, <span class="dt">se=</span><span class="ot">FALSE</span>,
   <span class="dt">probs=</span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/seq">seq</a></span>(<span class="fl">0.1</span>, <span class="fl">0.9</span>, <span class="fl">0.1</span>))
- <span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/summary">summary</a></span>(pq1)</code></pre></div>
-<pre><code>## 
-## Quantile Treatment Effect:
-##      
-## tau  QTE
-## 0.1   1987.35
-## 0.2  -7366.04
-## 0.3  -7992.15
-## 0.4  -6597.37
-## 0.5  -4702.88
-## 0.6  -2741.80
-## 0.7   -771.12
-## 0.8    580.00
-## 0.9   -250.77
-## 
-## Average Treatment Effect:    2326.51</code></pre>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"> ## Run the panel.qtet method on the observational data conditioning on
+ <span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/summary">summary</a></span>(pq1)
+
+ ## Run the panel.qtet method on the observational data conditioning on
  ## age, education, black, hispanic, married, and nodegree.
  ## The propensity score will be estimated using the default logit method.
  pq2 &lt;-<span class="st"> </span><span class="kw"><a href="../reference/panel.qtet.html">panel.qtet</a></span>(re ~<span class="st"> </span>treat, <span class="dt">t=</span><span class="dv">1978</span>, <span class="dt">tmin1=</span><span class="dv">1975</span>, <span class="dt">tmin2=</span><span class="dv">1974</span>, <span class="dt">tname=</span><span class="st">"year"</span>,
@@ -142,21 +128,6 @@
   <span class="dt">data=</span>lalonde.psid.panel, <span class="dt">idname=</span><span class="st">"id"</span>, <span class="dt">se=</span><span class="ot">FALSE</span>,
   <span class="dt">probs=</span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/seq">seq</a></span>(<span class="fl">0.1</span>, <span class="fl">0.9</span>, <span class="fl">0.1</span>))
  <span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/summary">summary</a></span>(pq2)</code></pre></div>
-<pre><code>## 
-## Quantile Treatment Effect:
-##      
-## tau  QTE
-## 0.1   1762.13
-## 0.2  -7254.06
-## 0.3  -6311.01
-## 0.4  -4916.23
-## 0.5  -3021.75
-## 0.6  -1060.66
-## 0.7    910.01
-## 0.8   2526.64
-## 0.9   1629.48
-## 
-## Average Treatment Effect:    2960.76</code></pre>
 </div>
   </div>
 

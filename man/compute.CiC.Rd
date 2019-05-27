@@ -4,39 +4,7 @@
 \alias{compute.CiC}
 \title{athey.imbens}
 \usage{
-compute.CiC(formla, xformla = NULL, t, tmin1, tname, x = NULL, data,
-  dropalwaystreated = TRUE, panel = FALSE, idname = NULL,
-  uniqueid = NULL, probs = seq(0.05, 0.95, 0.05))
-}
-\arguments{
-\item{formla}{The formula y ~ d where y is the outcome and d is the
-treatment indicator (d should be binary)}
-
-\item{xformla}{A optional one sided formula for additional covariates that
-will be adjusted for.  E.g ~ age + education.  Additional covariates can
-also be passed by name using the x paramater.}
-
-\item{t}{The 3rd time period in the sample (this is the name of the column)}
-
-\item{tmin1}{The 2nd time period in the sample (this is the name of the
-column)}
-
-\item{tname}{The name of the column containing the time periods}
-
-\item{x}{An optional vector of covariates (the name of the columns).
-Covariates can also be passed in formulat notation using the
-xformla paramter.}
-
-\item{data}{The name of the data.frame that contains the data}
-
-\item{dropalwaystreated}{How to handle always treated observations
-in panel data case (not currently used)}
-
-\item{idname}{The individual (cross-sectional unit) id name}
-
-\item{uniqueid}{Not sure what this does}
-
-\item{probs}{A vector of values between 0 and 1 to compute the QTET at}
+compute.CiC(qp)
 }
 \description{
 \code{compute.CiC} does the computational

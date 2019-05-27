@@ -82,7 +82,7 @@
       <h1>Quantile Treatment Effects in R: The qte Package</h1>
                         <h4 class="author">Brantly Callaway</h4>
             
-            <h4 class="date">2019-05-23</h4>
+            <h4 class="date">2019-05-27</h4>
       
       
       <div class="hidden name"><code>R-QTEs.Rmd</code></div>
@@ -343,29 +343,12 @@ Note that these types of methods only identify the QTET (not the QTE). <span cla
 <h3 class="hasAnchor">
 <a href="#estimation-3" class="anchor"></a>Estimation</h3>
 <p>The QTET for participating in the job training program is estimated using each of the three methods QDiD, CiC, and MDiD next.</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"> jt.qdid &lt;-<span class="st"> </span><span class="kw"><a href="../reference/QDiD.html">QDiD</a></span>(re ~<span class="st"> </span>treat, <span class="dt">t=</span><span class="dv">1978</span>, <span class="dt">tmin1=</span><span class="dv">1975</span>,
-   <span class="dt">tname=</span><span class="st">"year"</span>, <span class="dt">idname=</span><span class="st">"id"</span>,
-   <span class="dt">xformla=</span>~age +<span class="st"> </span>education +<span class="st"> </span>black +<span class="st"> </span>hispanic +<span class="st"> </span>married +<span class="st"> </span>nodegree,
-   <span class="dt">data=</span>lalonde.psid.panel,
-   <span class="dt">probs=</span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/seq">seq</a></span>(<span class="fl">0.05</span>,<span class="fl">0.95</span>,<span class="fl">0.05</span>), <span class="dt">se=</span>T, <span class="dt">iters=</span><span class="dv">10</span>, <span class="dt">panel=</span>T)
-
- jt.cic &lt;-<span class="st"> </span><span class="kw"><a href="../reference/CiC.html">CiC</a></span>(re ~<span class="st"> </span>treat, <span class="dt">t=</span><span class="dv">1978</span>, <span class="dt">tmin1=</span><span class="dv">1975</span>,
-   <span class="dt">tname=</span><span class="st">"year"</span>, <span class="dt">idname=</span><span class="st">"id"</span>,
-   <span class="dt">xformla=</span>~age +<span class="st"> </span>education +<span class="st"> </span>black +<span class="st"> </span>hispanic +<span class="st"> </span>married +<span class="st"> </span>nodegree,
-   <span class="dt">data=</span>lalonde.psid.panel,
-   <span class="dt">probs=</span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/seq">seq</a></span>(<span class="fl">0.05</span>,<span class="fl">0.95</span>,<span class="fl">0.05</span>), <span class="dt">se=</span>T, <span class="dt">iters=</span><span class="dv">10</span>, <span class="dt">panel=</span>T)
-
- jt.mdid &lt;-<span class="st"> </span><span class="kw"><a href="../reference/MDiD.html">MDiD</a></span>(re ~<span class="st"> </span>treat, <span class="dt">t=</span><span class="dv">1978</span>, <span class="dt">tmin1=</span><span class="dv">1975</span>,
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"> jt.cic &lt;-<span class="st"> </span><span class="kw"><a href="../reference/CiC.html">CiC</a></span>(re ~<span class="st"> </span>treat, <span class="dt">t=</span><span class="dv">1978</span>, <span class="dt">tmin1=</span><span class="dv">1975</span>,
    <span class="dt">tname=</span><span class="st">"year"</span>, <span class="dt">idname=</span><span class="st">"id"</span>,
    <span class="dt">xformla=</span>~age +<span class="st"> </span>education +<span class="st"> </span>black +<span class="st"> </span>hispanic +<span class="st"> </span>married +<span class="st"> </span>nodegree,
    <span class="dt">data=</span>lalonde.psid.panel,
    <span class="dt">probs=</span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/seq">seq</a></span>(<span class="fl">0.05</span>,<span class="fl">0.95</span>,<span class="fl">0.05</span>), <span class="dt">se=</span>T, <span class="dt">iters=</span><span class="dv">10</span>, <span class="dt">panel=</span>T)</code></pre></div>
 <p>Finally, plots for all three methods are combined with the plot for the QTET coming from the experimental data</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"> <span class="kw"><a href="https://www.rdocumentation.org/packages/graphics/topics/par">par</a></span>(<span class="dt">mfrow=</span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/c">c</a></span>(<span class="dv">2</span>,<span class="dv">2</span>))
- <span class="kw"><a href="https://www.rdocumentation.org/packages/graphics/topics/plot">plot</a></span>(jt.rand, <span class="dt">ylim=</span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/c">c</a></span>(-<span class="dv">15000</span>,<span class="dv">15000</span>), <span class="dt">main=</span><span class="st">"Experimental"</span>)
- <span class="kw"><a href="https://www.rdocumentation.org/packages/graphics/topics/plot">plot</a></span>(jt.qdid, <span class="dt">ylim=</span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/c">c</a></span>(-<span class="dv">15000</span>,<span class="dv">15000</span>), <span class="dt">main=</span><span class="st">"QDiD"</span>)
- <span class="kw"><a href="https://www.rdocumentation.org/packages/graphics/topics/plot">plot</a></span>(jt.cic, <span class="dt">ylim=</span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/c">c</a></span>(-<span class="dv">15000</span>,<span class="dv">15000</span>), <span class="dt">main=</span><span class="st">"CiC"</span>)
- <span class="kw"><a href="https://www.rdocumentation.org/packages/graphics/topics/plot">plot</a></span>(jt.mdid, <span class="dt">ylim=</span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/c">c</a></span>(-<span class="dv">15000</span>,<span class="dv">15000</span>), <span class="dt">main=</span><span class="st">"MDiD"</span>)</code></pre></div>
 </div>
 </div>
 </div>

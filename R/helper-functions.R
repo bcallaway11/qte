@@ -52,9 +52,12 @@ ggqte <- function(qteobj, main="", ylab="", ylim=NULL, ybreaks=NULL, xbreaks=c(.
     qte <- qteobj$qte
     qte.se <- qteobj$qte.se
     c <- qteobj$c
-    cmat <- data.frame(tau, qte=qteobj$qte, qte.se=qteobj$qte.se)
-    qp <- ggplot2::ggplot(data=cmat, aes(tau, qte, ymax=qte+1.96*qte.se,
-                                ymin=qte-1.96*qte.se)) +
+    if (!is.null(qte.se)) {
+        cmat <- data.frame(tau, qte=qteobj$qte, qte.se=qteobj$qte.se)
+    } else {
+        cmat <- data.frame(tau, qte=qteobj$qte)
+    }
+    qp <- ggplot2::ggplot(data=cmat, aes(tau, qte)) +
         ggplot2::geom_line(aes(tau, qte)) +
         ##geom_errorbar(size=.3, width=.02) + 
         ggplot2::geom_hline(yintercept=0) + 
@@ -64,8 +67,8 @@ ggqte <- function(qteobj, main="", ylab="", ylim=NULL, ybreaks=NULL, xbreaks=c(.
         ggplot2::scale_x_continuous("tau", limits=c(0,1), breaks=xbreaks) + 
         ggplot2::theme_classic() +
         ggplot2::theme(panel.border = element_rect(colour = 'black', size=1,
-                                          fill=NA,
-                                          linetype='solid'),
+                                                   fill=NA,
+                                                   linetype='solid'),
                        plot.title = element_text(hjust=0.5))
     if (!is.null(qte.se)) {
         if (setype == "both" | setype == "pointwise") {

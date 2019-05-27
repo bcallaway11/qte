@@ -130,76 +130,13 @@ of Athey and Imbens, 2006.</p>
     
     </div>
 
-    <pre class="usage"><span class='fu'>compute.CiC</span>(<span class='no'>formla</span>, <span class='kw'>xformla</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='no'>t</span>, <span class='no'>tmin1</span>, <span class='no'>tname</span>, <span class='kw'>x</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='no'>data</span>,
-  <span class='kw'>dropalwaystreated</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>, <span class='kw'>panel</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>, <span class='kw'>plot</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>,
-  <span class='kw'>idname</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>uniqueid</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>probs</span> <span class='kw'>=</span> <span class='fu'><a href='https://www.rdocumentation.org/packages/base/topics/seq'>seq</a></span>(<span class='fl'>0.05</span>, <span class='fl'>0.95</span>, <span class='fl'>0.05</span>))</pre>
-    
-    <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
-    <table class="ref-arguments">
-    <colgroup><col class="name" /><col class="desc" /></colgroup>
-    <tr>
-      <th>formla</th>
-      <td><p>The formula y ~ d where y is the outcome and d is the
-treatment indicator (d should be binary)</p></td>
-    </tr>
-    <tr>
-      <th>xformla</th>
-      <td><p>A optional one sided formula for additional covariates that
-will be adjusted for.  E.g ~ age + education.  Additional covariates can
-also be passed by name using the x paramater.</p></td>
-    </tr>
-    <tr>
-      <th>t</th>
-      <td><p>The 3rd time period in the sample (this is the name of the column)</p></td>
-    </tr>
-    <tr>
-      <th>tmin1</th>
-      <td><p>The 2nd time period in the sample (this is the name of the
-column)</p></td>
-    </tr>
-    <tr>
-      <th>tname</th>
-      <td><p>The name of the column containing the time periods</p></td>
-    </tr>
-    <tr>
-      <th>x</th>
-      <td><p>An optional vector of covariates (the name of the columns).
-Covariates can also be passed in formulat notation using the
-xformla paramter.</p></td>
-    </tr>
-    <tr>
-      <th>data</th>
-      <td><p>The name of the data.frame that contains the data</p></td>
-    </tr>
-    <tr>
-      <th>dropalwaystreated</th>
-      <td><p>How to handle always treated observations
-in panel data case (not currently used)</p></td>
-    </tr>
-    <tr>
-      <th>plot</th>
-      <td><p>Boolean whether or not the estimated QTET should be plotted</p></td>
-    </tr>
-    <tr>
-      <th>idname</th>
-      <td><p>The individual (cross-sectional unit) id name</p></td>
-    </tr>
-    <tr>
-      <th>uniqueid</th>
-      <td><p>Not sure what this does</p></td>
-    </tr>
-    <tr>
-      <th>probs</th>
-      <td><p>A vector of values between 0 and 1 to compute the QTET at</p></td>
-    </tr>
-    </table>
-    
+    <pre class="usage"><span class='fu'>compute.CiC</span>(<span class='no'>qp</span>)</pre>
+        
 
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="sidebar">
     <h2>Contents</h2>
     <ul class="nav nav-pills nav-stacked">
-      <li><a href="#arguments">Arguments</a></li>
                 </ul>
 
   </div>

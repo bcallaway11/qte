@@ -14,135 +14,15 @@
 #' Difference in Differences assumption (Fan and Yu, 2012)
 #' to point identify QTET.
 #' 
-#' @param formla outcome variable on treatment
-#' @param t last time period
-#' @param tmin1 middle time period
-#' @param tmin2 initial time period
-#' @param x additional covariates if using propensity score
-#' reweighting technique
-#' @param dropalwaystreated boolean indicating whether in true panel data
-#' context (when treatment can occur in any period) whether or
-#' not previously treated observations should be dropped from the sample.
-#' This functionality is not currently implemented
-#' @param idname an id that identifies individual units over time
-#' @param probs the values at which the quantile treatment effects
-#' should be computed
-#' @param bootstrap.iter boolean passed that is passed in when this
-#' method is used to compute standard errors
-#' @param method How to estimate the propensity score
-#' @param ydiscrete Used to indicate whether the outcome has any
-#'  discrete parts in the distribution
-#'
+#' @inheritParams compute.ci.qte
+#' 
 #' @return QTE object
 #'
-#' @keywords internal
-compute.panel.qtet <- function(qp) {## function(formla, xformla=NULL, t, tmin1, tmin2,
-                      ##          tname, x=NULL, data, 
-                      ##          dropalwaystreated=TRUE, idname,
-                      ##          probs=seq(0.05,0.95,0.05),
-                      ##          bootstrap.iter=FALSE,
-                      ##          plot=FALSE,
-                      ##          method=c("logit","GMM","semiparametric",
-                      ##              "simulation","direct"),
-                      ##          ydiscrete=FALSE) {
-    ## form = as.formula(formla)
-    ## dta = model.frame(terms(form,data=data),data=data) #or model.matrix
-    ## colnames(dta) = c("y","treatment")
-    ## yname="y"
-    ## treat="treatment"
-    ## data=cbind.data.frame(dta,data)
-
-    ## if (dropalwaystreated) {
-    ##     ##do nothing
-    ## }
+#' @export 
+compute.panel.qtet <- function(qp) {
     
-    ## if (!bootstrap.iter) {
-    ##     ##first line gets the correct three years of data
-    ##     data = data[((data[,tname]==tmin1) | (data[,tname]==t) | (data[,tname]==tmin2)),]
-    ##     ##data = subset(data, (data[,tname]==tmin1 | data[,tname]==t | 
-    ##     ##    data[,tname]==tmin2))
-    ##     data = makeBalancedPanel(data, idname, tname)
-    ## }
-
-    ## ##set up the x variables
-    ## ##if (!(is.null(xformla))) {
-    ## ##    x <- colnames(model.frame(terms(as.formula(xformla)), data=data))
-    ## ##    data <- cbind(data[,c(yname,treat,idname,tname)],
-    ## ##                  model.frame(terms(as.formula(xformla)), data=data))
-    ## ##}
-
-    ## if (!(is.null(xformla))) {
-    ##     x <- colnames(model.matrix(terms(as.formula(xformla)), data=data))
-    ##     data <- cbind(data[,c(yname,treat,idname,tname)],
-    ##                   model.matrix(terms(as.formula(xformla)), data=data))
-    ## }
-    
-    ## ##just to make sure the factors are working ok
-    ## data = droplevels(data)
-    
-    ## ##1) set up a dummy variable indicating whether the individual is 
-    ## ##treated in the last period.
-    
-    ## ##a) get all the treated (in the last period) observations
-    ## treated.t = data[data[,tname]==t & data[,treat]==1,]
-    
-    ## ##b) set ever.treated to 1 if observation is treated in last period
-    ## data$ever.treated = data$treatment
-    ## data$ever.treated = 1*(data[,idname] %in% treated.t[,idname])  
-    ## ever.treated = "ever.treated"
-    ## treated.t$ever.treated = 1
-
-    ## ##Generate subsets of the panel data based on time period and
-    ## ##whether or not the observation is treated.  These will be used
-    ## ##to calculate distributions below.  
-    ## treated.tmin1 = data[ data[,tname] == tmin1 & 
-    ##     data[,ever.treated] == 1, ]
-    ## ##treated at t-2
-    ## treated.tmin2 = data[ data[,tname] == tmin2 &
-    ##     data[,ever.treated] == 1, ]
-    
-    ## ##untreated at t
-    ## untreated.t = data[data[,tname]==t & data[,treat]==0,]
-    
-    ## ##untreated at t-1 & t-2
-    ## untreated.tmin1 = data[ data[,tname] == tmin1 &
-    ##     data[,ever.treated] == 0, ]
-    ## untreated.tmin2 = data[ data[,tname] == tmin2 &
-    ##     data[,ever.treated] == 0, ]
-
-    ## ##Sort data and rely on having a balanced panel to get the change
-    ## ## distributions right
-    ## treated.t <- treated.t[order(treated.t[,idname]),]
-    ## treated.tmin1 <- treated.tmin1[order(treated.tmin1[,idname]),]
-    ## treated.tmin2 <- treated.tmin2[order(treated.tmin2[,idname]),]
-    ## untreated.t <- untreated.t[order(untreated.t[,idname]),]
-    ## untreated.tmin1 <- untreated.tmin1[order(untreated.tmin1[,idname]),]
-    ## untreated.tmin2 <- untreated.tmin2[order(untreated.tmin2[,idname]),]
-    
-    ## ##3) Get the distributions that we need below
-    
-    ## ##a) Get distribution of y0.tmin2 | Dt=1
-    ## F.treated.tmin1 <- ecdf(treated.tmin1[,yname])
-
-    ## F.treated.tmin2 <- ecdf(treated.tmin2[,yname])
-
-    ## F.untreated.t <- ecdf(untreated.t[,yname])
-
-    ## F.untreated.tmin1 <- ecdf(untreated.tmin1[,yname])
-
-    ## F.untreated.tmin2 <- ecdf(untreated.tmin2[,yname])
-    
-    ## ##b) Get distribution of y0.tmin1 - y0tmin2 | Dt=1
-    ## F.treated.change.tmin1 <- ecdf(treated.tmin1[,yname] -
-    ##                                treated.tmin2[,yname])
-
-    ## F.untreated.change.t <- ecdf(untreated.t[,yname] -
-    ##                              untreated.tmin1[,yname])
-
-    ## F.untreated.change.tmin1 <- ecdf(untreated.tmin1[,yname] -
-    ##                                  untreated.tmin2[,yname])
-
     setupData(qp)
+
 
     ##calculate the distribution of the change for the treated group;
     ## this will be changed if there are covariates
@@ -172,541 +52,47 @@ compute.panel.qtet <- function(qp) {## function(formla, xformla=NULL, t, tmin1, 
         untreated.t$changey = untreated.t[,yname] - untreated.tmin1[,yname]
         untreated.tmin1$changey <- untreated.tmin1[,yname] -
             untreated.tmin2[,yname]
-        pscore.data = rbind(treated.t, untreated.t)
-        xmat = pscore.data[,x]
-        pscore.reg = glm(pscore.data[,treat] ~ as.matrix(xmat),
-            family=binomial(link="logit"))
-        pscore = fitted(pscore.reg)
-        pscore.data$pscore <- pscore
+        pscore.data  <-  rbind(treated.tmin2, untreated.tmin2)
+        this.formla <- y ~ x
+        formula.tools::lhs(this.formla) <- as.name(treat)
+        formula.tools::rhs(this.formla) <- formula.tools::rhs(xformla)
+        pscore.reg <- glm(this.formla, data=pscore.data,
+                          family=binomial(link="logit"))
+        pscore <- fitted(pscore.reg)
+
+        
+
+        ## calculate ATT and QTT
+        dtat <- rbind.data.frame(treated.t, untreated.t)
+        dtat$pscore <- pscore
         pD1 = nrow(treated.t)/nrow(untreated.t)
-        pval <- pD1
 
         ##this contains the support of the change in y
-        p.dy.seq <- unique(pscore.data$changey)
+        p.dy.seq <- unique(dtat$changey)
         p.dy.seq <- p.dy.seq[order(p.dy.seq)]
         distvals <- rep(0, length(p.dy.seq))
         for (i in 1:length(p.dy.seq)) {
-            distvals[i] <- mean(1*(pscore.data$changey <= p.dy.seq[i])*
-                             (1-pscore.data[,treat])*pscore/((1-pscore)*pD1)) /
-                 mean( (1-pscore.data[,treat])*pscore/((1-pscore)*pD1) )
+            distvals[i] <- getWeightedMean( 1*(dtat$changey <= p.dy.seq[i]), (1-dtat[,treat])*pscore/((1-pscore)*pD1), norm=TRUE)
+                ## mean(1*(pscore.data$changey <= p.dy.seq[i])*
+                 ##             (1-pscore.data[,treat])*pscore/((1-pscore)*pD1)) /
+                 ## mean( (1-pscore.data[,treat])*pscore/((1-pscore)*pD1) )
         }
         
-        F.untreated.change.t = approxfun(p.dy.seq,
-            distvals, method="constant",
-            yleft=0, yright=1, f=0, ties="ordered")
-        class(F.untreated.change.t) = c("ecdf", "stepfun",
-                 class(F.untreated.change.t))
-        assign("nobs", length(p.dy.seq), envir = environment(F.untreated.change.t))
+        F.untreated.change.t  <- makeDist(p.dy.seq, distvals)## = approxfun(p.dy.seq,
+        ##     distvals, method="constant",
+        ##     yleft=0, yright=1, f=0, ties="ordered")
+        ## class(F.untreated.change.t) = c("ecdf", "stepfun",
+        ##          class(F.untreated.change.t))
+        ## assign("nobs", length(p.dy.seq), envir = environment(F.untreated.change.t))
 
-        ## OLD: Delete unless new code introduces bugs
-        ##p.dy.seq = pscore.data$changey #unique(pscore.data$changey)
-        ##distvals is the value of the distribution of the change
-        ## in untreated potential outcomes for the treated group
-        ##distvals = rep(0,length(p.dy.seq))
-        ##for (dy in p.dy.seq) {
-        ##    distvals[which(dy==p.dy.seq)] = mean(1*(pscore.data$changey<=dy)*
-        ##                (1-pscore.data[,treat])*pscore/((1-pscore)*pD1))
-        ##}
-        ##pscore.data$distvals = distvals
+            
         
-        ##pscore.data1 = pscore.data[order(pscore.data$changey),]
-
-        ##F.untreated.change.t = approxfun(pscore.data1$changey,
-        ##    pscore.data1$distvals, method="constant",
-        ##    yleft=0, yright=1, f=0, ties="ordered")
-        ##class(F.untreated.change.t) = c("ecdf", "stepfun",
-        ##         class(F.untreated.change.t))
-        ##assign("nobs", length(p.dy.seq), envir = environment(F.untreated.change.t))
-
-        
-
-        if (method=="GMM") {
-            ##idea is to jointly estimate the propensity score, the probability
-            ##of treatment and the parameters of the logit model
-            ##this function return logit cdf
-            G <- function(z) {
-                exp(z)/(1+exp(z))
-            }
-
-            ##this function returns the logit pdf
-            g <- function(z) {
-                exp(z)/((1+exp(z))^2)
-            }
-
-            ##return the derivative of the logit pdf
-            g.prime <- function(z) {
-                (1-2*G(z))*g(z)
-            }
-
-            ##function that returns logit score for given parameter thet
-            ##y is a vector of outcomes (1 or 0)
-            ##x is a matrix of control variables of same dimension as thet
-            logit.score <- function(thet, yvec, xmat) {
-                ##as.numeric((yvec-G(xmat%*%thet))*g(xmat%*%thet) /
-                ##(G(xmat%*%thet)*(1-G(xmat%*%thet)))) * xmat
-                ##this should be the same as above but simplified
-                ##I have double checked that they are the same
-                as.numeric((yvec-G(xmat%*%thet)))*xmat
-            }
-
-            logit.hessian.i <- function(thet, xi) {
-                xi <- as.matrix(xi)
-                -g(t(xi)%*%thet)*xi%*%t(xi)
-            }
-
-            H.i <- function(thet, datavec) {
-                x <- datavec[1:(length(datavec)-1)]
-                d <- datavec[length(datavec)]
-                x <- as.matrix(x)
-                bet <- thet[1:(length(thet)-1)]
-                p <- thet[length(thet)]
-
-####
-                ##bet <- thet
-                
-                m11 <- as.numeric(-g(t(x)%*%bet))*x%*%t(x)
-                m12 <- as.matrix(rep(0,length(bet)))
-                m21 <- 0
-                m22 <- 1
-                m31 <- as.numeric(-(1-d)/p*g(t(x)%*%bet)/((1-G(t(x)%*%bet))^2))*t(x)
-                m32 <- (1-d)/p^2*G(t(x)%*%bet)/(1-G(t(x)%*%bet))
-                ##m41 <-
-                m1 <- rbind(m11, m21, m31)
-                m2 <- rbind(m12, m22, m32)
-                m <- cbind(m1,m2)
-                return(m)
-            }
-
-            H.i1 <- function(datavec, thet) {
-                H.i(thet, datavec)
-            }
-
-            ##datamat should contain xmat then dvec
-            H <- function(thet, datamat) {
-                ##apply(X=datamat[1:2,], MARGIN=1, FUN=H.i1, thet=thet)
-                datalist <- as.list(data.frame(t(datamat)))
-                H.ilist <- lapply(datalist, FUN=H.i1, thet=thet)
-                ##TODO: this is where I left off, above gets the value
-                ##of the Hessian matrix for each individual
-                ##Now, I think just need to average over all individuals
-                apply(simplify2array(H.ilist), c(1,2), mean)
-            }
-
-            
-
-            xmat <- cbind(1,as.matrix(xmat))
-            d <- pscore.data[,treat]
-            x <- as.matrix(xmat)
-
-            ##now estimate moment conditions with gmm
-            ##returns matrix of moment conditions for particular
-            ##value of parameters
-            moments <- function(thet, datamat) {
-                bet <- as.matrix(thet[1:(length(thet)-1)])
-                p <- thet[length(thet)]
-
-###
-                ##bet <- thet
-
-                N <- nrow(xmat)
-                x <- datamat[,1:(ncol(datamat)-1)]
-                d <- datamat[,ncol(datamat)]
-                pscore <- G(x%*%bet)
-                
-                m1 <- logit.score(bet, d, x)
-                m2 <- p - d #m2 <- rep(p - mean(d),N)
-                m3 <- 1 - ((1-d)*pscore/((1-pscore)*p))
-
-                m <- cbind(m1,m2,m3)
-                return(m)
-            }
-
-            gmm.gradient <- function(thet, datamat, W) {
-                moments <- moments(thet, datamat)
-                moments <- as.matrix(apply(moments, MARGIN=2, FUN=mean))
-                2*t(H(thet,datamat))%*%W%*%moments
-
-###
-                ##2*moments
-            }
-
-            ##this is the function that we actually minimize
-            minfun <- function(params,datamat,W=NULL) {
-                moments <- apply(moments(params, datamat), MARGIN=2, FUN=mean)
-                ##mout <- moments
-                if (is.null(W)) {
-                    W <- diag(length(moments))
-                }
-                out <- t(moments) %*% W %*% moments
-                grad <- gmm.gradient(params, datamat, W)
-                attributes(out) <- list(gradient=grad)
-                return(out)                
-            }
-
-            ##We use 2-step GMM
-            ##1st stage GMM
-            datamat <- cbind(xmat, d)
-            ##need to set up some other variance matrix otherwise
-            ##we will get singularities
-            varmat <- matrix(nrow=(ncol(datamat)+1), ncol=(ncol(datamat)+1))
-            varmat1 <- var(datamat)
-            varmat[1:ncol(datamat), 1:ncol(datamat)] <- varmat1
-            varmat[ncol(datamat)+1,] = varmat[,ncol(datamat)+1] = 0
-            varmat[1,1]=1
-            varmat[ncol(datamat)+1, ncol(datamat)+1] = 0.001
-
-            optout <- nlm(f=minfun, p=c(rep(0,ncol(xmat)),0.5), datamat=datamat,
-                          W=solve(varmat),
-                          check.analyticals=T)
-            ##optout <- optim(par=c(rep(0,ncol(xmat))), fn=minfun,
-            ##                datamat=datamat)
-            ##                control=list(maxit=5000))
-            params <- optout$estimate
-            mom <- moments(params, datamat)
-            ##throw a warning if the last moment doesn't get adjusted away from
-            ##1
-            lastmom.val <- tail(apply(mom,2,mean),1)
-            if (lastmom.val == 1) {
-                warning("Likely that matrix inversion will fail and cause is that the value of the last moment does not get adjusted away from 1; decrease passed in variance of that moment to fix")
-            }
-            N <- nrow(mom)
-            Omeg <- (1/N) * (t(mom) %*% mom)
-            
-            ## Estimate GMM
-            maxiters <- 10 #use this in testing to keep from taking too long
-            currentiter <- 1
-            tol <- 0.1 #set this for tolerance in continuously updated GMM
-            ##while(T) {
-            ##    params <- optout$esimate #params from previous loop
-            ##    mom <- moments(params) #this will be nxk
-            ##    N <- nrow(mom)
-            optout <- nlm(p=params, f=minfun,
-                          W=solve(Omeg), datamat=datamat)
-            params <- optout$estimate
-
-            ##     if (norm(as.matrix(params - optout$par), "f") < tol) {
-            ##         break
-            ##     }
-
-            ##     if (currentiter >= maxiters) {
-            ##         warning("breaking out of gmm because reached max iterations")
-            ##         break
-            ##     }
-
-            ##     currentiter <- currentiter + 1        
-            ## }
-
-            ##create summary statistics for gmm
-            pscore.params <- params
-            N <- nrow(mom)
-            k <- length(params) - 1 #this is the # logit params
-            m <- k + 1 # this is the number of moment conditions
-            bet <- pscore.params[1:k]
-            p <- pscore.params[m]
-            d <- pscore.data[,treat]
-            x <- as.matrix(xmat)
-            Omeg.o <- (1/N) * t(mom) %*% mom
-            G.o11 <- (1/N) * t(logit.score(bet, d, x)) %*% logit.score(bet,d,x)
-            G.o21 <- t(as.matrix(rep(0,k)))
-            G.o31 <-  t(as.matrix(
-                apply(as.vector(((1-d) * g(x%*%bet) * p)/((1-G(x%*%bet))^2 * p^2))
-                      * x, MARGIN=2, FUN=mean))) #this should come back 1xk
-            G.o12 <- rep(0,k)
-            G.o22 <- 1
-            G.o32 <- mean(((1-d) * G(x%*%bet))/((1-G(x%*%bet)) * p^2))
-
-            G.o1 <- cbind(G.o11, G.o12)
-            G.o2 <- cbind(G.o21, G.o22)
-            G.o3 <- cbind(G.o31, G.o32)
-
-            G.o <- rbind(G.o1, G.o2, G.o3)
-
-            V <- solve(t(G.o) %*% solve(Omeg.o) %*% G.o)
-            se <- sqrt(diag(V)/N)
-
-            pscore.sum <- cbind(params, se, t=params/se)
-
-            g.bar <- as.matrix(apply(mom, MARGIN=2, FUN=mean))
-            j.stat <- N * t(g.bar) %*% solve(Omeg.o) %*% g.bar
-            
-            pscore.reg <- list(pscore.sum, j.stat)
-            
-            pscore <- G(xmat%*%optout$estimate[1:ncol(xmat)])
-            
-            pval <- optout$estimate[ncol(xmat)+1]
-            dy.seq <- seq(min(pscore.data$changey), max(pscore.data$changey),
-                          length.out=500)
-            F.val <- vapply(dy.seq, FUN=function(x) {
-                (1/nrow(pscore.data)) *
-                    sum((1-pscore.data[,treat])*
-                        pscore*(1*(pscore.data$changey<=x)) /
-                        ((1 - pscore)*pval))}, FUN.VALUE=1)
-            F.untreated.change.t = approxfun(dy.seq, F.val, method="constant",
-                yleft=0, yright=1, f=0, ties="ordered")
-            class(F.untreated.change.t) = c("ecdf", "stepfun", class(F.untreated.change.t))
-            assign("nobs", length(dy.seq), envir = environment(F.untreated.change.t))
-
-            pscore.data$pscore <- pscore
-            
-            ##pval <- p
-
-            ##finally, use semiparametric (single-index) method of Klein-Spady
-            ##to  estimate propensity score
-        } else if(method=="semiparametric") {
-
-            ##TODO: this part is not complete
-
-            semipar.data <- data.frame(pscore.data[,treat],xmat)
-            colnames(semipar.data)[1] <- "treatment"
-
-            ## renumber the rows, we use this below for leave-one-out
-            rownames(semipar.data) <- 1:nrow(semipar.data)
-            
-            ##semipar.bws <- npcdensbw(treatmen ~ ., data=semipar.data)
-            ##semipar.model <- npindex(treatment ~ .,
-            ##                         method="kleinspady",
-            ##                         gradients=T,
-            ##                         data=semipar.data)
-            ##will probably need to code this myself in order to
-            ##bootstrap (esp. considering how long it takes
-            
-            ##this is the kernel function
-            ##u can be scalar or vector of length n
-            ##return is vector of length n
-            ##bandwidth should be passed in as part of u
-            ##e.g. u=(x-X_i)/h
-            k <- function(u, method="Epanechnikov") {
-                ##return(dnorm(u))
-                ##use epanechnikov kernel
-                if (method=="Gaussian") {
-                    return(dnorm(u))
-                }
-                ##return(0.75*(1-u^2)*(abs(u)<=1))
-                return((0.75/sqrt(5))*(1-0.2*u^2)*(u^2 < 5))
-            }
-
-            ##convolution kernel for least square cross validation
-            ##k.bar <- function(u) {
-            ##    exp(-u^2/4)/sqrt(4*pi)
-            ##}
-
-            ##umat should be nxk, and should already be adjusted by bandwidth, etc
-            ##return is nx1
-            K <- function(umat, method="Epanechnikov") {
-                umat <- as.matrix(umat)
-                apply(k(umat), MARGIN=1, FUN=prod, method=method)
-            }
-
-            ##umat should be nxk, and should already be adjust by bandwidth, etc
-            ##return is nx1
-            ##K.bar <- function(umat) {
-            ##                            #apply k.
-            ##    umat <- as.matrix(umat) #in case something is passed as vector
-            ##    apply(k.bar(umat), MARGIN=1, FUN=prod)
-            ##}
-
-            ##add functionality to leave one observation out
-            ##do we want to make it 0 and keep n the same
-            ## or just drop it and make n=n-1
-            leave.one.out.vec <- function(xvec, oneout.pos) {
-                ##old
-                ##outvec <- xvec
-                ##outvec[oneout.pos] <- 0
-
-                xvec[-oneout.pos]
-            }
-
-            leave.one.out.df <- function(df, oneout.pos) {
-                df[-oneout.pos,]
-            }
-
-            ##as a first step, do cross validation to get bandwidths
-            ##H is a px1 vector of bandwidths
-            ##cross.validation <- function(H,xmat) {
-            ##    xmat <- as.matrix(xmat)
-            ##    xmati <- xmat
-            ##    xmatj <- xmat
-            
-            ##    out1 <- (1/(N^2*prod(H))) *
-            ##        sum(apply(xmati, MARGIN=1, FUN=function(z) {
-            ##            sum(K.bar(t((1/H)*t((z - xmatj))))) } ))
-
-            ##    out2 <- (1/(N*(N-1)*prod(H))) *
-            ##        sum(apply(xmati, MARGIN=1, FUN=function(z) {
-            ##            sum(c(K(t((1/H)*t((z - xmatj)))),
-            ##                  rep(-K(rep(0,ncol(xmatj)))))) } ))
-
-            ##    out <- out1 - out2
-            
-            ##    return(out)
-            ##}
-
-            ##do some trimming
-            ##semipar.data$J <- 1 ## indicator for whether or not should be dropped
-
-
-            ##perhaps start with the plug-in bandwidths
-            ##bws.obj <- nlm(f=cross.validation, p=rep(1, ncol(xmat)), xmat=xmat)
-
-            ##below is the code for implementing the klein spady estimator
-            ##this computes the leave-one-out estimator of G(.)
-            G.noti <- function(xbeti, rownumberi, J, x, bet, y, h,
-                               method="Epanechnikov") {
-                xbet <- x%*%bet
-                i <- rownumberi
-                ##semipar.data.noti <- leave.one.out.df(semipar.data,rownumberi)
-                ##make sure that the density is not too small
-                ##dens <- k((xbet[-i] - xbeti)/h, method=method)
-                ##J <- 1*(dens > 2*h)
-                
-                numerator <- sum(y[-i] * J[-i] * k((xbet[-i] - xbeti)/h,
-                                                   method=method))
-                denominator <- sum(J[-i] * k((xbet[-i] - xbeti)/h,
-                                             method=method))
-                return(numerator/denominator)
-                ##sum(c(k((x%*%bet - xbeti)/h)*y, -k(0)*y[which(xbeti==x%*%bet &
-                ##                                              yi == y)[1]])) /
-                ##                                                  sum(c(k((x%*%bet - xbeti)/h),-k(0)))
-            }
-
-            dens.noti <- function(xbeti, rownumberi, J, x, bet, y, h,
-                                  method="Epanechnikov") {
-                xbet <- x%*%bet
-                i <- rownumberi
-                ##semipar.data.noti <- leave.one.out.df(semipar.data,rownumberi)
-                ##make sure that the density is not too small
-                n <- length(y)
-                dens <- (1/(n*h))*sum(k((xbet[-i] - xbeti)/h, method=method))
-                return(dens)
-                ##sum(c(k((x%*%bet - xbeti)/h)*y, -k(0)*y[which(xbeti==x%*%bet &
-                ##                                              yi == y)[1]])) /
-                ##                                                  sum(c(k((x%*%bet - xbeti)/h),-k(0)))
-            }
-
-            dens <- function(z, x, bet, h, J) {
-                xbet <- x%*%bet
-                ##i <- rownumberi
-                ##semipar.data.noti <- leave.one.out.df(semipar.data,rownumberi)
-                dens <- (1/(n*h)) * sum(J * k((z - xbet)/h))
-                return(dens)
-            }
-
-            
-            log.lik <- function(bet, y, x, h, J, method="Epanechnikov") {
-                ##TODO: this needs to be generalized
-                ##normalize coefficient on age to be -1
-                bet <- as.matrix(c(-1, bet))
-                G.est <- mapply(G.noti, x%*%bet,
-                                as.numeric(rownames(semipar.data)),
-                                MoreArgs=list(J=J, x=x, bet=bet, y=y, h=h,
-                                    method=method))
-                ##g.est <- vapply(X=cbind(y,x%*%bet), FUN=g.noti, FUN.VALUE=1.0, x=x, bet=bet,
-                ##               y=y, h=h)
-                sum((y * log(G.est) + (1-y)*log(1-G.est))[J==1]) ##J==1 part does some trimming
-            }
-
-            n <- nrow(semipar.data)
-            d <- semipar.data[,treat]
-            x <- as.matrix(semipar.data[,-1])
-            J <- rep(1, nrow(semipar.data))
-
-            ##somehow need to select the bandwidth
-
-            ##preliminary estimate for trimming
-            startvals <- c(-.5,26,24,-20,8,36,3)
-            h1 <- sd(x%*%as.matrix(c(-1,startvals))) * 1.06 * n^(-1/5)
-            prelim.reg <- nlm(f=log.lik, p=startvals, y=d,
-                              x=x, h=h1, J=J, method="Gaussian")
-            bet <- as.matrix(c(-1, prelim.reg$estimate))
-            
-            f.prelim <- mapply(dens.noti, x%*%bet,
-                               as.numeric(rownames(semipar.data)),
-                               MoreArgs=list(J=J, x=x, bet=bet, y=d, h=h1))
-            ##this line views small values of preliminary density estimate
-            f.prelim <- cbind(x%*%bet, f.prelim)[order(f.prelim),]
-
-            ##these lines plots the density estimate
-            ## temp <- seq(min(x%*%bet), max(x%*%bet), length.out=500)
-            ## plot(temp, vapply(temp, FUN=dens, FUN.VALUE=1, x=x, bet=bet, h=h1, J=J), type="l")
-            droprows <- as.numeric(rownames(f.prelim[f.prelim[,2]<.0025,]))
-            J[droprows] <- 0
-
-            
-            ##first, get something like rule of thumb
-            ##h <- sd(x[,1]*-1) * 2.34 * n^(-1/5)
-            ##h <- sd(x%*%as.matrix(c(-1,2))) * 2.34 * n^(-1/5)
-            h <-  sd(x%*%bet)*2.34*n^(-1/5)
-            h.seq <- seq(h, 10*h, length.out=5)
-            h.new <- cross.validation(h.seq, d, x)
-            
-            cross.validation <- function(h.seq,y,x) {
-                cv.vals <- vapply(h.seq, FUN=cv.min1, FUN.VALUE=1, y=y, x=x)
-                return(h.seq[which.min(cv.vals)])
-            }
-            
-            cv.min <- function(h, y, x) {
-                ##bet <- as.matrix(c(-1, nlm(f=log.lik, p=rep(1,ncol(xmat)-1), y=y,
-                ##             x=x, h=h, J=J)$estimate))
-                est <- nlm(f=log.lik, p=bet[-1], y=y, x=x, h=h, J=J)
-                bet <- as.matrix(c(-1,est$estimate))
-                G.est <- mapply(G.noti, x%*%bet,
-                                as.numeric(rownames(semipar.data)), 
-                                MoreArgs=list(J=J, x=x, bet=bet, y=y, h=h))
-                return(list(cv=sum((y-G.est)^2), est=est, bet=bet))
-            }
-            cv.min1 <- function(h, y, x) {
-                return(cv.min(h,y,x)$cv)
-            }
-            
-            h <- 50
-            pscore.reg <- nlm(f=log.lik, p=rep(1,ncol(xmat)-1), y=d,
-                              x=x, h=h, J=J)
-
-            ##once we have estimated parameters, use them to construct \hat{p}
-            bet <- c(-1, pscore.reg$estimate)
-
-            ##z is the value that we wish to evaluate at
-            ##other parameters are already set up
-            G1 <- function(z, x, bet, y, h, J) {
-                xbet <- x%*%bet
-                ##i <- rownumberi
-                ##semipar.data.noti <- leave.one.out.df(semipar.data,rownumberi)
-                numerator <- sum(y * J * k((z - xbet)/h))
-                denominator <- sum(J * k((z - xbet)/h))
-                return(numerator/denominator)
-            }
-
-            pscore <- vapply(x%*%bet, FUN=G1, FUN.VALUE=1, x, bet, y=d, h, J)
-            dy.seq <- seq(min(pscore.data$changey), max(pscore.data$changey),
-                          length.out=500)
-            F.val <- vapply(dy.seq, FUN=function(x) {
-                (1/nrow(pscore.data)) *
-                    sum((1-pscore.data[,treat]) *
-                        pscore*(1*(pscore.data$changey<x)) /
-                        ((1 - pscore)*pval))}, FUN.VALUE=1)
-            F.untreated.change.t = approxfun(dy.seq, F.val, method="constant",
-                yleft=0, yright=1, f=0, ties="ordered")
-            class(F.untreated.change.t) = c("ecdf", "stepfun",
-                     class(F.untreated.change.t))
-            assign("nobs", length(dy.seq),
-                   envir = environment(F.untreated.change.t))
-
-            ##finally, get the actual distribution
-            ##N <- nrow(x)
-            ##h <- 100
-            ##xbet.seq <- seq(min(x%*%pscore.reg$estimate),
-            ##                max(x%*%pscore.reg$estimate), length.out=100)
-            ##G.seq <- vapply(xbet.seq, FUN=function(z) {
-            ##    (1/N)*sum(1*(x%*%pscore.reg$estimate <= z)) }, FUN.VALUE=1.0)
-            ##g.seq <- vapply(xbet.seq, FUN=function(z) {
-            ##    (1/(N*h))* sum(k((x%*%pscore.reg$estimate - z)/h)) }, FUN.VALUE=1.0)
-            
-        }
 
         ##after we have the propensity score (regardless of method)
         ##use it to estimate the att using abadie's method.
-        att <- mean(((pscore.data$changey)/pval)*(pscore.data[,treat] - pscore) /
-                    (1-pscore))
+        att <- getWeightedMean(y=dtat$changey,
+                               weights=(dtat[,treat]-pscore)/((1-pscore)*pD1), norm=TRUE)## mean(((pscore.data$changey)/pval)*(pscore.data[,treat] - pscore) /
+               ##      (1-pscore))
 
         ## update the lag of the untreated change so that we can
         ## do pre-testing if desired
@@ -720,66 +106,19 @@ compute.panel.qtet <- function(qp) {## function(formla, xformla=NULL, t, tmin1, 
         }
         pscore.data.tmin1$distvals <- distvals.tmin1
         pscore.data1.tmin1 <- pscore.data.tmin1[order(pscore.data.tmin1$changey),]
-        F.untreated.change.tmin1 = approxfun(pscore.data1.tmin1$changey,
-            pscore.data1.tmin1$distvals, method="constant",
-            yleft=0, yright=1, f=0, ties="ordered")
-        class(F.untreated.change.tmin1) = c("ecdf", "stepfun",
-                 class(F.untreated.change.tmin1))
-        assign("nobs", length(posvals.seq), envir = environment(F.untreated.change.tmin1))
+        F.untreated.change.tmin1 <- makeDist(pscore.data1.tmin1$changey,
+                                             pscore.data1.tmin1$distvals)
+        ## F.untreated.change.tmin1 = approxfun(pscore.data1.tmin1$changey,
+        ##     pscore.data1.tmin1$distvals, method="constant",
+        ##     yleft=0, yright=1, f=0, ties="ordered")
+        ## class(F.untreated.change.tmin1) = c("ecdf", "stepfun",
+        ##          class(F.untreated.change.tmin1))
+        ## assign("nobs", length(posvals.seq), envir = environment(F.untreated.change.tmin1))
         
     }
 
 
-    ## when y is discrete, the QTET is (possibly) only partially identified.
-    ##some code to produce bounds with discrete distributions
-    ## if (ydiscrete) {
-    ##     F.alt <- function(x) {
-    ##         return(vapply(x, FUN=function(y) { mean( 1*(x<y)) }, FUN.VALUE=1.0))
-    ##     }
-
-    ##     F.to.ecdf <- function(x,F) {
-    ##         vec <- order(x)
-    ##         x <- x[vec]
-    ##         F <- F[vec] #this makes sure that they still go together
-    ##         F.ecdf = approxfun(x, F, method="constant",
-    ##             yleft=0, yright=1, f=0, ties="ordered")
-    ##         class(F.ecdf) = c("ecdf", "stepfun", class(F.ecdf))
-    ##         assign("nobs", length(x), envir = environment(F.ecdf))
-    ##         return(F.ecdf)
-    ##     }
-
-    ##     ##TODO: double check this function, but I think it is working
-    ##     quantile.alt <- function(F.ecdf,probs=c(0,0.25,0.5,0.75,1)) {
-    ##         x <- knots(F.ecdf)
-    ##         x <- x[order(x)]                              #here
-    ##         out <- vapply(probs, FUN=function(p) {x[which(p<=F.ecdf(x))[1]]}, FUN.VALUE=1.0)
-    ##         out[is.na(out)] <- max(x) #correct small amount at very top of dist.
-    ##         return(out)                    
-    ##     }
-
-    ##     F.treated.tmin2.alt <- F.to.ecdf(treated.tmin2[,yname],
-    ##                                      F.alt(treated.tmin2[,yname]))
-    ##     F.treated.change.tmin1.alt <- F.to.ecdf(treated.tmin1[,yname]-
-    ##                                             treated.tmin2[,yname],
-    ##                                             F.alt(treated.tmin1[,yname]-
-    ##                                                   treated.tmin2[,yname]))
-        
-    ##     quantys1.alt <- quantile(F.treated.tmin1,
-    ##                              probs=F.treated.tmin2.alt(treated.tmin2[,yname]))
-
-    ##     quantys2.alt <- quantile(F.untreated.change.t,
-    ##                              probs=F.treated.change.tmin1.alt(treated.tmin1[,yname] - treated.tmin2[,yname]))
-
-    ##     y.seq <- seq(min(c(quantys1.alt+quantys2.alt,quantys1+quantys2)),
-    ##                  max(c(quantys1.alt+quantys2.alt,quantys1+quantys2)),
-    ##                  length.out=500)
-
-    ##     ##TODO: add some code (very similar to below) to actually calculate the
-    ##     ##bounds when y is discrete.
-
-    ## }
-
-    ##now compute the average over the treated observations
+    ##compute counterfactual distribution
     quantys1 <- quantile(F.treated.tmin1,
                          probs=F.treated.tmin2(treated.tmin2[,yname]))
 
@@ -793,20 +132,15 @@ compute.panel.qtet <- function(qp) {## function(formla, xformla=NULL, t, tmin1, 
                                  FUN=function(y) { mean(1*(quantys2 <=
                                      y - quantys1)) }, FUN.VALUE=1)
 
-    F.treated.t.cf = approxfun(y.seq, F.treated.t.cf.val, method="constant",
-        yleft=0, yright=1, f=0, ties="ordered")
-    class(F.treated.t.cf) = c("ecdf", "stepfun", class(F.treated.t.cf))
-    assign("nobs", length(y.seq), envir = environment(F.treated.t.cf))
-
-    ##compare this to the actual outcomes
+    F.treated.t.cf <- makeDist(y.seq, F.treated.t.cf.val)
+    
+    ##QTE
     F.treated.t <- ecdf(treated.t[,yname])
 
     qte <- quantile(F.treated.t, probs=probs) -
         quantile(F.treated.t.cf, probs=probs)
 
-    ## if(plot) {
-    ##     plot(probs, qte, type="l")
-    ## }
+
     out <- QTE(F.treated.t=F.treated.t,
                F.treated.tmin1=F.treated.tmin1,
                F.treated.tmin2=F.treated.tmin2,
@@ -847,35 +181,34 @@ compute.panel.qtet <- function(qp) {## function(formla, xformla=NULL, t, tmin1, 
 #' for each cross sectional unit need to be passed to the method.
 #'
 #' @param formla The formula y ~ d where y is the outcome and d is the
-#'  treatment indicator (d should be binary)
+#'  treatment indicator (d should be binary), d should be equal to one
+#'  in all time periods for individuals that are eventually treated
 #' @param xformla A optional one sided formula for additional covariates that
 #'  will be adjusted for.  E.g ~ age + education.  Additional covariates can
 #'  also be passed by name using the x paramater.
-#' @param t The 3rd time period in the sample (this is the name of the column)
-#' @param tmin1 The 2nd time period in the sample (this is the name of the
-#'  column)
-#' @param tmin2 The 1st time period in the sample (this is the name of the
-#'  column)
+#' @param t The 3rd time period in the sample.  Treated individuals should
+#'  be treated in this time period and untreated individuals should not be
+#'  treated.  The code attempts to enforce this condition, but it is good
+#'  try to handle this outside the panel.qtet method.
+#' @param tmin1 The 2nd time period in the sample.  This should be a
+#'  pre-treatment period for all individuals in the sample.
+#' @param tmin2 The 1st time period in the sample.  This should be a
+#'  pre-treatment period for all individuals in the sample.
 #' @param tname The name of the column containing the time periods
-#' @param x An optional vector of covariates (the name of the columns).
-#'  Covariates can also be passed in formulat notation using the
-#'  xformla paramter.
-#' @param data The name of the data.frame that contains the data
-#' @param dropalwaystreated How to handle always treated observations
-#'  in panel data case (not currently used)
+#' @param data A data.frame containing all the variables used
 #' @param idname The individual (cross-sectional unit) id name
 #' @param probs A vector of values between 0 and 1 to compute the QTET at
 #' @param iters The number of iterations to compute bootstrap standard errors.
 #'  This is only used if se=TRUE
 #' @param alp The significance level used for constructing bootstrap
 #'  confidence intervals
-#' @param method The method for estimating the propensity score when covariates
-#'  are included
+#' @param method The method for including covariates, should either be "QR"
+#'  for quantile regression or "pscore" for propensity score
 #' @param se Boolean whether or not to compute standard errors
 #' @param retEachIter Boolean whether or not to return list of results
-#'  from each iteration of the bootstrap procedure
-#' @param seedvec Optional value to set random seed; can possibly be used
-#'  in conjunction with bootstrapping standard errors.
+#'  from each iteration of the bootstrap procedure (default is FALSE).
+#'  This is potentially useful for debugging but can cause errors due
+#'  to running out of memory.
 #' @param pl Whether or not to compute standard errors in parallel
 #' @param cores Number of cores to use if computing in parallel
 #'
@@ -885,13 +218,13 @@ compute.panel.qtet <- function(qp) {## function(formla, xformla=NULL, t, tmin1, 
 #'
 #' ## Run the panel.qtet method on the experimental data with no covariates
 #' pq1 <- panel.qtet(re ~ treat, t=1978, tmin1=1975, tmin2=1974, tname="year",
-#'  x=NULL, data=lalonde.exp.panel, idname="id", se=FALSE,
+#'  data=lalonde.exp.panel, idname="id", se=FALSE,
 #'  probs=seq(0.05, 0.95, 0.05))
 #' summary(pq1)
 #'
 #' ## Run the panel.qtet method on the observational data with no covariates
 #' pq2 <- panel.qtet(re ~ treat, t=1978, tmin1=1975, tmin2=1974, tname="year",
-#'  x=NULL, data=lalonde.psid.panel, idname="id", se=FALSE,
+#'  data=lalonde.psid.panel, idname="id", se=FALSE,
 #'  probs=seq(0.05, 0.95, 0.05))
 #' summary(pq2)
 #'
@@ -907,131 +240,82 @@ compute.panel.qtet <- function(qp) {## function(formla, xformla=NULL, t, tmin1, 
 #'
 #' @references
 #' Callaway, Brantly and Tong Li.  ``Quantile Treatment Effects in Difference
-#'  in Differences Models with Panel Data.'' Working Paper, 2015.
+#'  in Differences Models with Panel Data.'' Working Paper, 2019.
 #'
 #' @return \code{QTE} object
 #' 
 #' @export
 panel.qtet <- function(formla, xformla=NULL, t, tmin1, tmin2,
-                      tname, x=NULL, data, 
-                      dropalwaystreated=TRUE, idname, probs=seq(0.05,0.95,0.05),
-                      iters=100, alp=0.05, method="logit", se=TRUE,
-                      retEachIter=FALSE, seedvec=NULL, pl=FALSE, cores=NULL) {
+                      tname, data, 
+                      idname, probs=seq(0.05,0.95,0.05),
+                      iters=100, alp=0.05, method=c("QR","pscore"), se=TRUE,
+                      retEachIter=FALSE, pl=FALSE, cores=NULL) {
 
-    
+    method <- method[1]
+    method <- "pscore"
+
+    ## drop obs that are not in period t, tmin1, tmin2
+    pren <- nrow(data)
+    data <- data[data[,tname] %in%c(t,tmin1,tmin2),]
+    if (!(nrow(data) == pren)) {
+        warning(paste0("dropping ", pren-nrow(data), " observations that are not in period: ", t, ", ", tmin1, ", ", tmin2, "..."))
+    }
+
+    ## make a balanced panel
+    pren <- nrow(data)
+    data <- makeBalancedPanel( data, idname, tname )
+    if (!(nrow(data) == pren)) {
+        warning(paste0("enforcing balanced panel condition...\n  this drops ", (pren - nrow(data))/3, " observations..."))
+    }
+
     qp <- QTEparams(formla=formla, xformla=xformla,
                     t=t, tmin1=tmin1, tmin2=tmin2,
                     tname=tname, data=data,
                     idname=idname, probs=probs,
                     iters=iters, alp=alp, method=method,
-                    se=se, retEachIter=retEachIter, seedvec=seedvec,
-                    pl=pl, cores=cores, panel=TRUE)
-    ## form = as.formula(formla)
-    ## dta = model.frame(terms(form,data=data),data=data) #or model.matrix
-    ## colnames(dta) = c("y","treatment")
-    ## yname="y"
-    ## treat="treatment"
-    ## data=cbind.data.frame(dta,data)
-
-    ## data = data[((data[,tname]==tmin1) | (data[,tname]==t) | (data[,tname]==tmin2)),]
-    ## data = makeBalancedPanel(data, idname, tname)
+                    se=se, retEachIter=retEachIter, 
+                    pl=pl, cores=cores, panel=TRUE, bootstrapiter=FALSE)
+    
 
     
-    ## if (dropalwaystreated) {
-    ##     ##does nothing
-    ## }
+    ## Do some error handling for common cases...
+
+    ## setup the data as build on this a bit...
+    setupData(qp)
     
-    ## ##just to make sure the factors are working ok
-    ## data = droplevels(data)
-    ## ##
-    ## treated.t = data[data[,tname]==t & data[,treat]==1,]
-    ## treated.tmin1 = data[ data[,tname] == tmin1 & data[,treat] == 1, ]
-    ## treated.tmin2 = data[ data[,tname] == tmin2 & data[,treat] == 1, ]
-    ## untreated.t = data[data[,tname]==t & data[,treat]==0,]
-    ## untreated.tmin1 = data[ data[,tname] == tmin1 & data[,treat] == 0, ]
-    ## untreated.tmin2 = data[ data[,tname] == tmin2 & data[,treat] == 0, ]
+    ## 1) give warning if covariates appear to vary over time
+    if (is.null(xformla)) xformla1 <- ~1 else xformla1 <- xformla
+    dft <- model.frame(xformla1, data=rbind.data.frame(treated.t, untreated.t))
+    dftmin1 <- model.frame(xformla1, data=rbind.data.frame(treated.tmin1, untreated.tmin1))
+    dftmin2 <- model.frame(xformla1, data=rbind.data.frame(treated.tmin2, untreated.tmin2))                              
+    if ( !(identical(dftmin2, dftmin1) & identical(dftmin2, dft))) {
+        warning("covariates appear to vary over time...\n  only conditioning on first period covariates...\n  this is recommended practice, but worth noting...")
+    }
+
+    ## 2) some basic error handling about treated group being constant over time
+    if ( (nrow(treated.tmin2) == 0 | nrow(treated.tmin1) == 0) ) {
+        stop("Treatment status should be equal to 1 for all individuals in the treated group -- that is, individuals that ever become treated")
+    }
+
+    if ( !(all.equal( treated.t[,idname], treated.tmin1[,idname]) &
+           all.equal( treated.t[,idname], treated.tmin2[,idname])) ) {
+        stop("The composition of the treated group is changing over time...\n  The treated group should consistent of observations that are first treated in the last period...\n  The treatment variable should be set equal to 1 in all time periods for this group... \n Individuals that are treated before the last time period should be removed from the dataset as treatment effects are not identified for this group...")
+    }
 
     ##first calculate the actual estimate
-    pqte = compute.panel.qtet(qp)## compute.panel.qtet(formla=formla, t=t, tmin1=tmin1, tmin2=tmin2, 
-        ## tname=tname, x=x, xformla=xformla, data=data,
-        ## dropalwaystreated=dropalwaystreated,
-        ## idname=idname, probs=probs,
-        ## method=method)
+    pqte = compute.panel.qtet(qp)
 
-    
+
+    ## compute standard errors if so desired
     if (se) {
 
         qp$bootstrapiter <- TRUE
 
         ##bootstrap the standard errors
+        ## the bootstrap method does this generically
         SEobj <- bootstrap(qp, pqte, compute.panel.qtet)
 
-
-        ## ##now calculate the bootstrap confidence interval
-        ## eachIter = list()
-        ## ##Need to build dataset by sampling individuals, and then
-        ## ##taking all of their time periods
-        ## treated.t <- treated.t[order(treated.t[,idname]),]
-        ## treated.tmin1 <- treated.tmin1[order(treated.tmin1[,idname]),]
-        ## treated.tmin2 <- treated.tmin2[order(treated.tmin2[,idname]),]
-        ## untreated.t <- untreated.t[order(untreated.t[,idname]),]
-        ## untreated.tmin1 <- untreated.tmin1[order(untreated.tmin1[,idname]),]
-        ## untreated.tmin2 <- untreated.tmin2[order(untreated.tmin2[,idname]),]
-        ## nt <- nrow(treated.t)
-        ## nu <- nrow(untreated.t)
-        ## ##out.bootdatalist <<- list()
-        ## if (is.null(pl)) {
-        ##     cores <- 1
-        ## }
-        ## eachIter <- pbapply::pblapply(1:iters, function(i) {
-        ##     ##reset boot.data
-        ##     ##boot.data = data[0,]
-        ##     if(!is.null(seedvec)) {
-        ##         set.seed(seedvec[i])
-        ##     }
-        ##     randy.t = sample(1:nt, nt, replace=T)
-        ##     randy.u <- sample(1:nu, nu, replace=T)
-        ##     ##there has to be a way to do this faster, but go with the loop
-        ##     ##for now
-        ##     ##for (j in all.ids[randy]) {
-        ##     ##    boot.data = rbind(boot.data, data[(data[,idname]==j),])
-        ##     ##}
-        ##     ##these.ids <- data[,idname][randy]
-        ##     boot.data.treated.t <- treated.t[randy.t, ]
-        ##     boot.data.treated.tmin1 <- treated.tmin1[randy.t, ]
-        ##     boot.data.treated.tmin2 <- treated.tmin2[randy.t, ]        
-        ##     boot.data.untreated.t <- untreated.t[randy.u, ]
-        ##     boot.data.untreated.tmin1 <- untreated.tmin1[randy.u, ]
-        ##     boot.data.untreated.tmin2 <- untreated.tmin2[randy.u, ]        
-        ##     boot.data <- rbind(boot.data.treated.t, boot.data.untreated.t,
-        ##                        boot.data.treated.tmin1,
-        ##                        boot.data.untreated.tmin1,
-        ##                        boot.data.treated.tmin2,
-        ##                        boot.data.untreated.tmin2)
-        ##     ##need to set the ids right
-        ##     boot.data[,idname] <- paste(boot.data[,idname],
-        ##                                 c(seq(1, nt+nu), seq(1, nt+nu),
-        ##                                   seq(1, nt+nu)),sep="-")
-            
-        ##     ##boot.data = process.bootdata(boot.data, idname, uniqueid)
-        ##     thisIter = compute.panel.qtet(## formla=formla, t=t, tmin1=tmin1,
-        ##         ## tmin2=tmin2, 
-        ##         ## tname=tname, x=x, xformla=xformla, data=boot.data,
-        ##         ## dropalwaystreated=dropalwaystreated,
-        ##         ## idname=idname, probs=probs, 
-        ##         ## method=method,
-        ##         ## bootstrap.iter=TRUE)
-        ##     eachIter[[i]] = thisIter
-        ## })
-
-        ## SEobj <- computeSE(eachIter, pqte, alp=alp)
-
-        ## if(!retEachIter) {
-        ##     eachIter=NULL
-        ## }
-
-        ##could return each bootstrap iteration w/ eachIter
-        ##but not currently doing that
+        ## set the results
         out <- QTE(qte=pqte$qte, qte.upper=SEobj$qte.upper,
                    qte.lower=SEobj$qte.lower, ate=pqte$ate,
                    ate.upper=SEobj$ate.upper, ate.lower=SEobj$ate.lower,
@@ -1055,313 +339,6 @@ panel.qtet <- function(formla, xformla=NULL, t, tmin1, tmin2,
         return(pqte)
     }
 }
-
-
-
-
-
-
-
-
-###Mean Difference-in-Differences
-##Note that you need to pass in data where treated status is noted in
-##every period.  Data is form of (year-individual-outcome-x-evertreated)
-#' @title compute.MDiD
-#'
-#' @description Internal function for computing the actual value for MDiD
-#' 
-#' @inheritParams panel.qtet
-#'
-#' @keywords internal
-compute.MDiD <- function(formla, xformla=NULL, t, tmin1, tname, x=NULL, data,
-                         dropalwaystreated=TRUE, panel=FALSE, 
-                         idname=NULL, uniqueid=NULL, probs=seq(0.05,0.95,0.05)) {
-    form = as.formula(formla)
-    dta = model.frame(terms(form,data=data),data=data) #or model.matrix
-    colnames(dta) = c("y","treatment")
-    yname="y"
-    treat="treatment"
-    data=cbind.data.frame(dta,data)
-
-    ## Setup x variables if using formula
-    if (!(is.null(xformla))) {
-        ##in this case, we need to drop the intercept
-        x <- colnames(model.matrix(terms(as.formula(xformla)), data=data))[-1]
-        data <- cbind(data[,c(yname,treat,idname,tname)],
-                      model.matrix(terms(as.formula(xformla)), data=data))[,c(1:4, 6:(5+length(x)))]
-    }
-
-    ##drop the always treated.  Note that this also relies
-    ##on no "switchback" or no return to untreated status
-    ##after joining treatment.
-    ##first line gets the correct two years of data
-    data = subset(data, (data[,tname]==tmin1 | data[,tname]==t))
-
-    if (panel) {
-        data = makeBalancedPanel(data, idname, tname)
-    }
-    
-    ##TODO: THIS DOESN'T WORK
-    if (dropalwaystreated) {
-        ##Idea is to drop observations that are never in the controll group
-        ##Not implemented
-    }
-    
-    ##just to make sure the factors are working ok
-    data = droplevels(data)
-
-    ##adjust for covariates
-    ##after adjustment then everything should proceed as before
-    if (!(is.null(x))) {
-        cov.data <- data
-        cov.data$group <- as.factor(paste(cov.data[,treat],
-                                          cov.data[,tname],sep="-"))
-        group <- "group"
-        xmat = cov.data[,x]
-        first.stage <- lm(cov.data[,yname] ~ -1 + cov.data[,group] +
-                          as.matrix(xmat))
-        ##get residuals not including group dummies
-        bet <- coef(first.stage)[5:length(coef(first.stage))]
-        yfit <- cov.data[,yname] - as.matrix(xmat)%*%bet
-        data[,yname] <- yfit
-    }    
-
-    
-    ##Setup each of the datasets used below
-    ##a) get all the treated (in the last period) observations
-    treated.t = data[data[,tname]==t & data[,treat]==1,]
-    
-    ##b) set ever.treated to 1 if observation is treated in last period
-    ##Try not to use this b/c won't work in the case with repeated cross sections
-    ##data$ever.treated = data$treatment
-    ##data$ever.treated = 1*(data[,idname] %in% treated.t[,idname])  
-    ##ever.treated = "ever.treated"
-    
-    ##Setup each of the datasets used below
-    ##treated.t = subset(data, data[,treat]==1 & data[,tname]==t)
-    ##just get the lagged value of y; otherwise keep the same
-    ##dataset.  Note: this will not work if there are x covariates;
-    ##well, could follow similar procedure, but as is, would
-    ##require some modification.
-    treated.tmin1 = data[ data[,tname] == tmin1 & data[,treat] == 1, ]
-    ##this is right
-    untreated.t = data[data[,tname]==t & data[,treat]==0,]
-    ##get lagged of untreated y
-    untreated.tmin1 = data[ data[,tname] == tmin1 & data[,treat] == 0, ]
-    
-    ##5) Compute Quantiles
-    ##a) Quantiles of observed distribution
-    q1 = quantile(treated.t[,yname],probs=probs)
-    q0 = quantile(treated.tmin1[,yname] ,probs=probs) + mean(untreated.t[,yname]) - mean(untreated.tmin1[,yname])
-    
-    
-    ##7) Estimate ATT using MDID
-    att = mean(treated.t[,yname]) - ( mean(treated.tmin1[,yname]) + mean(untreated.t[,yname]) - mean(untreated.tmin1[,yname]) )
-    
-        
-    out <- QTE(ate=att, qte=(q1-q0),probs=probs)
-    
-    return(out)
-}
-
-##MDiD is a function that computes bootstrap
-##standard errors for quantile treatment effects
-#' @title Mean Difference in Differences
-#' 
-#' @description \code{MDiD} is a Difference in Differences type method for
-#' computing the QTET.
-#'
-#' The method can accommodate conditioning on covariates though it does so
-#' in a restrictive way:  It specifies a linear model for outcomes conditional
-#' on group-time dummies and covariates.  Then, after residualizing (see details
-#' in Athey and Imbens (2006)), it computes the Change in Changes model
-#' based on these quasi-residuals.
-#' 
-#' @inheritParams panel.qtet
-#' @inheritParams CiC
-#' 
-#' @examples
-#' ## load the data
-#' data(lalonde)
-#'
-#' ## Run the Mean Difference in Differences method conditioning on
-#' ## age, education, black, hispanic, married, and nodegree
-#' md1 <- MDiD(re ~ treat, t=1978, tmin1=1975, tname="year",
-#'  xformla=~age + I(age^2) + education + black + hispanic + married + nodegree,
-#'  data=lalonde.psid.panel, idname="id", se=FALSE,
-#'  probs=seq(0.05, 0.95, 0.05))
-#' summary(md1)
-#' 
-#' @references
-#' Athey, Susan and Guido Imbens.  ``Identification and Inference in Nonlinear
-#'  Difference-in-Differences Models.'' Econometrica 74.2, pp. 431-497,
-#'  2006.
-#'
-#' Thuysbaert, Bram.  ``Distributional Comparisons in Difference in Differences
-#'  Models.'' Working Paper, 2007.
-#'
-#' @return A \code{QTE} object
-#' 
-#' @export
-MDiD <- function(formla, xformla=NULL, t, tmin1, tname, x=NULL,data,
-                 dropalwaystreated=TRUE, panel=FALSE, se=TRUE,
-                 idname=NULL, 
-                 uniqueid=NULL, alp=0.05, probs=seq(0.05,0.95,0.05), iters=100,
-                 retEachIter=FALSE, seedvec=NULL, printIter=F) {
-    form = as.formula(formla)
-    dta = model.frame(terms(form,data=data),data=data) #or model.matrix
-    colnames(dta) = c("y","treatment")
-    yname="y"
-    treat="treatment"
-    data=cbind.data.frame(dta,data)
-
-    ##drop the always treated.  Note that this also relies
-    ##on no "switchback" or no return to untreated status
-    ##after joining treatment.
-    ##first line gets the correct two years of data
-    data = subset(data, (data[,tname]==tmin1 | data[,tname]==t))
-
-    if (panel) {
-        if (is.null(idname)) {
-            stop("Must provide idname when using panel option")
-        }
-        data = makeBalancedPanel(data, idname, tname)
-    }
-    
-    ##TODO: THIS DOESN'T WORK
-    if (dropalwaystreated) {
-        ##Idea is to drop observations that are never in the controll group
-        ##Not implemented
-    }
-    
-    ##just to make sure the factors are working ok
-    data = droplevels(data)
-
-    ##Setup each of the datasets used below
-    ##a) get all the treated (in the last period) observations
-    treated.t = data[data[,tname]==t & data[,treat]==1,]
-    treated.tmin1 = data[ data[,tname] == tmin1 & data[,treat] == 1, ]
-    untreated.t = data[data[,tname]==t & data[,treat]==0,]
-    untreated.tmin1 = data[ data[,tname] == tmin1 & data[,treat] == 0, ]
-
-    ##first calculate the actual estimate
-    mdid = compute.MDiD(formla, xformla, t, tmin1, tname, x, data,
-        dropalwaystreated, panel, idname, uniqueid, probs)
-
-    if(se) {
-        ##now calculate the bootstrap confidence interval
-        eachIter = list()
-        ##Need to build dataset by sampling individuals, and then
-        ##taking all of their time periods
-        ##when it's a panel make draws by individual
-        if (panel) {
-            ##all.ids = unique(data[,idname])
-            ##here we rely on having a balanced panel to get the right obs.
-            treated.t <- treated.t[order(treated.t[,idname]),]
-            treated.tmin1 <- treated.tmin1[order(treated.tmin1[,idname]),]
-            untreated.t <- untreated.t[order(untreated.t[,idname]),]
-            untreated.tmin1 <- untreated.tmin1[order(untreated.tmin1[,idname]),]
-            nt <- nrow(treated.t)
-            nu <- nrow(untreated.t)
-            ##out.bootdatalist <<- list()
-            for (i in 1:iters) {
-                if(!is.null(seedvec)) {
-                    set.seed(seedvec[i])
-                }
-                ##reset boot.data
-                ##boot.data = data[0,]
-                randy.t = sample(1:nt, nt, replace=T)
-                randy.u <- sample(1:nu, nu, replace=T)
-                ##there has to be a way to do this faster, but go with the loop
-                ##for now
-                ##for (j in all.ids[randy]) {
-                ##    boot.data = rbind(boot.data, data[(data[,idname]==j),])
-                ##}
-                ##these.ids <- data[,idname][randy]
-                boot.data.treated.t <- treated.t[randy.t, ]
-                boot.data.treated.tmin1 <- treated.tmin1[randy.t, ]
-                boot.data.untreated.t <- untreated.t[randy.u, ]
-                boot.data.untreated.tmin1 <- untreated.tmin1[randy.u, ]
-                boot.data <- rbind(boot.data.treated.t, boot.data.untreated.t,
-                                   boot.data.treated.tmin1,
-                                   boot.data.untreated.tmin1)
-                ##boot.data = process.bootdata(boot.data, idname, uniqueid)
-                ##out.bootdatalist[[i]] <<- boot.data
-                thisIter = compute.MDiD(formla, xformla, t, tmin1, tname,
-                    x, boot.data, 
-                    dropalwaystreated, panel=F, idname, uniqueid, probs)
-                ##already have a balanced panel so can increase speed by calling
-                ##with panel option set to F.
-                eachIter[[i]] = QTE(ate = thisIter$ate, qte=thisIter$qte,
-                            probs=probs)
-
-                if (printIter==T) {
-                    print(i)
-                }
-            }
-        } else { #make draws within each sample
-            treated.t = data[data[,tname]==t & data[,treat]==1,]
-            treated.tmin1 = data[data[,tname]==tmin1 & data[,treat]==1,]
-            untreated.t = data[data[,tname]==t & data[,treat]==0,]
-
-            untreated.tmin1 = data[data[,tname]==tmin1 & data[,treat]==0,]
-
-            for (i in 1:iters) {
-                if(!is.null(seedvec)) {
-                    set.seed(seedvec[i])
-                }
-                n <- nrow(treated.t)
-                ran <- sample(1:n, n, replace=T)
-                boot.treated.t <- treated.t[ran,]
-
-                n <- nrow(treated.tmin1)
-                ran <- sample(1:n, n, replace=T)
-                boot.treated.tmin1 <- treated.tmin1[ran,]
-
-                n <- nrow(untreated.t)
-                ran <- sample(1:n, n, replace=T)
-                boot.untreated.t <- untreated.t[ran,]
-
-                n <- nrow(untreated.tmin1)
-                ran <- sample(1:n, n, replace=T)
-                boot.untreated.tmin1 <- untreated.tmin1[ran,]
-
-                boot.data <- rbind(boot.treated.t, boot.untreated.t,
-                                   boot.treated.tmin1, boot.untreated.tmin1)
-                thisIter = compute.MDiD(formla, xformla, t, tmin1, tname,
-                    x, boot.data, 
-                    dropalwaystreated, panel, idname, uniqueid, probs)
-                eachIter[[i]] = QTE(ate = thisIter$ate, qte=thisIter$qte,
-                            probs=probs)
-
-                if (printIter==T) {
-                    print(i)
-                }
-            }
-            
-        }
-
-        SEobj <- computeSE(eachIter, mdid, alp=alp)
-
-        if(!retEachIter) {
-            eachIter=NULL
-        }
-
-        out <- QTE(qte=mdid$qte, qte.upper=SEobj$qte.upper,
-                   qte.lower=SEobj$qte.lower, ate=mdid$ate,
-                    ate.upper=SEobj$ate.upper, ate.lower=SEobj$ate.lower,
-                    qte.se=SEobj$qte.se, ate.se=SEobj$ate.se,
-                    eachIterList=eachIter,
-                    probs=probs)
-        return(out)
-    } else {
-        return(mdid)
-    }
-}
-
-
-
-
 
 
 ######GENERAL HELPER FUNCTIONS#######
@@ -1472,8 +449,13 @@ computeSE <- function(bootIters, qteobj, alp=0.05) {
     qte.se <- apply(qte.mat, FUN=sd, MARGIN=2)
 
     sigmahalf <- (apply(qte.mat, 2, function(b) quantile(b, .75, type=1)) -
-    apply(qte.mat, 2, function(b) quantile(b, .25, type=1))) / (qnorm(.75) - qnorm(.25))
+                  apply(qte.mat, 2, function(b) quantile(b, .25, type=1))) / (qnorm(.75) - qnorm(.25))
 
+    ## this seems to work a bit better in practice when some QTEs are 0
+    if (any(sigmahalf==0)) {
+        sigmahalf <- apply(qte.mat, 2, sd)
+        sigmahalf <- sapply(1:length(qte), function(i) max(sigmahalf[i], .000000001))
+    }
     cb <- apply(qte.mat, 1, function(q) max(abs((q-qte)/sigmahalf)))
     c <- quantile(cb, .95, type=1)
     ## qte se by quantiles

@@ -7,34 +7,7 @@
 compute.panel.qtet(qp)
 }
 \arguments{
-\item{formla}{outcome variable on treatment}
-
-\item{t}{last time period}
-
-\item{tmin1}{middle time period}
-
-\item{tmin2}{initial time period}
-
-\item{x}{additional covariates if using propensity score
-reweighting technique}
-
-\item{dropalwaystreated}{boolean indicating whether in true panel data
-context (when treatment can occur in any period) whether or
-not previously treated observations should be dropped from the sample.
-This functionality is not currently implemented}
-
-\item{idname}{an id that identifies individual units over time}
-
-\item{probs}{the values at which the quantile treatment effects
-should be computed}
-
-\item{bootstrap.iter}{boolean passed that is passed in when this
-method is used to compute standard errors}
-
-\item{method}{How to estimate the propensity score}
-
-\item{ydiscrete}{Used to indicate whether the outcome has any
-discrete parts in the distribution}
+\item{qp}{QTEparams object containing the parameters passed to ciqte}
 }
 \value{
 QTE object
@@ -45,4 +18,3 @@ combined with Distributional
 Difference in Differences assumption (Fan and Yu, 2012)
 to point identify QTET.
 }
-\keyword{internal}

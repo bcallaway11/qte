@@ -138,8 +138,8 @@ and minimizes a check function to compute the QTET.  Standard errors
 
     <pre class="usage"><span class='fu'>ci.qte</span>(<span class='no'>formla</span>, <span class='kw'>xformla</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>x</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='no'>data</span>, <span class='kw'>w</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
   <span class='kw'>probs</span> <span class='kw'>=</span> <span class='fu'><a href='https://www.rdocumentation.org/packages/base/topics/seq'>seq</a></span>(<span class='fl'>0.05</span>, <span class='fl'>0.95</span>, <span class='fl'>0.05</span>), <span class='kw'>se</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>, <span class='kw'>iters</span> <span class='kw'>=</span> <span class='fl'>100</span>,
-  <span class='kw'>alp</span> <span class='kw'>=</span> <span class='fl'>0.05</span>, <span class='kw'>plot</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>, <span class='kw'>method</span> <span class='kw'>=</span> <span class='st'>"logit"</span>, <span class='kw'>retEachIter</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>,
-  <span class='kw'>seedvec</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>printIter</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>, <span class='kw'>pl</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>, <span class='kw'>cores</span> <span class='kw'>=</span> <span class='fl'>2</span>)</pre>
+  <span class='kw'>alp</span> <span class='kw'>=</span> <span class='fl'>0.05</span>, <span class='kw'>method</span> <span class='kw'>=</span> <span class='st'>"logit"</span>, <span class='kw'>retEachIter</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>,
+  <span class='kw'>printIter</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>, <span class='kw'>pl</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>, <span class='kw'>cores</span> <span class='kw'>=</span> <span class='fl'>2</span>)</pre>
     
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
@@ -147,7 +147,8 @@ and minimizes a check function to compute the QTET.  Standard errors
     <tr>
       <th>formla</th>
       <td><p>The formula y ~ d where y is the outcome and d is the
-treatment indicator (d should be binary)</p></td>
+treatment indicator (d should be binary), d should be equal to one
+in all time periods for individuals that are eventually treated</p></td>
     </tr>
     <tr>
       <th>xformla</th>
@@ -161,7 +162,7 @@ also be passed by name using the x paramater.</p></td>
     </tr>
     <tr>
       <th>data</th>
-      <td><p>The name of the data.frame that contains the data</p></td>
+      <td><p>A data.frame containing all the variables used</p></td>
     </tr>
     <tr>
       <th>w</th>
@@ -186,10 +187,6 @@ This is only used if se=TRUE</p></td>
 confidence intervals</p></td>
     </tr>
     <tr>
-      <th>plot</th>
-      <td><p>Boolean whether or not the estimated QTET should be plotted</p></td>
-    </tr>
-    <tr>
       <th>method</th>
       <td><p>Method to compute propensity score.  Default is logit; other
 option is probit.</p></td>
@@ -197,12 +194,9 @@ option is probit.</p></td>
     <tr>
       <th>retEachIter</th>
       <td><p>Boolean whether or not to return list of results
-from each iteration of the bootstrap procedure</p></td>
-    </tr>
-    <tr>
-      <th>seedvec</th>
-      <td><p>Optional value to set random seed; can possibly be used
-in conjunction with bootstrapping standard errors.</p></td>
+from each iteration of the bootstrap procedure (default is FALSE).
+This is potentially useful for debugging but can cause errors due
+to running out of memory.</p></td>
     </tr>
     <tr>
       <th>printIter</th>

@@ -4,37 +4,34 @@
 \alias{panel.qtet}
 \title{panel.qtet}
 \usage{
-panel.qtet(formla, xformla = NULL, t, tmin1, tmin2, tname, x = NULL,
-  data, dropalwaystreated = TRUE, idname, probs = seq(0.05, 0.95,
-  0.05), iters = 100, alp = 0.05, method = "logit", se = TRUE,
-  retEachIter = FALSE, seedvec = NULL, pl = FALSE, cores = NULL)
+panel.qtet(formla, xformla = NULL, t, tmin1, tmin2, tname, data, idname,
+  probs = seq(0.05, 0.95, 0.05), iters = 100, alp = 0.05,
+  method = c("QR", "pscore"), se = TRUE, retEachIter = FALSE,
+  pl = FALSE, cores = NULL)
 }
 \arguments{
 \item{formla}{The formula y ~ d where y is the outcome and d is the
-treatment indicator (d should be binary)}
+treatment indicator (d should be binary), d should be equal to one
+in all time periods for individuals that are eventually treated}
 
 \item{xformla}{A optional one sided formula for additional covariates that
 will be adjusted for.  E.g ~ age + education.  Additional covariates can
 also be passed by name using the x paramater.}
 
-\item{t}{The 3rd time period in the sample (this is the name of the column)}
+\item{t}{The 3rd time period in the sample.  Treated individuals should
+be treated in this time period and untreated individuals should not be
+treated.  The code attempts to enforce this condition, but it is good
+try to handle this outside the panel.qtet method.}
 
-\item{tmin1}{The 2nd time period in the sample (this is the name of the
-column)}
+\item{tmin1}{The 2nd time period in the sample.  This should be a
+pre-treatment period for all individuals in the sample.}
 
-\item{tmin2}{The 1st time period in the sample (this is the name of the
-column)}
+\item{tmin2}{The 1st time period in the sample.  This should be a
+pre-treatment period for all individuals in the sample.}
 
 \item{tname}{The name of the column containing the time periods}
 
-\item{x}{An optional vector of covariates (the name of the columns).
-Covariates can also be passed in formulat notation using the
-xformla paramter.}
-
-\item{data}{The name of the data.frame that contains the data}
-
-\item{dropalwaystreated}{How to handle always treated observations
-in panel data case (not currently used)}
+\item{data}{A data.frame containing all the variables used}
 
 \item{idname}{The individual (cross-sectional unit) id name}
 
@@ -46,16 +43,15 @@ This is only used if se=TRUE}
 \item{alp}{The significance level used for constructing bootstrap
 confidence intervals}
 
-\item{method}{The method for estimating the propensity score when covariates
-are included}
+\item{method}{The method for including covariates, should either be "QR"
+for quantile regression or "pscore" for propensity score}
 
 \item{se}{Boolean whether or not to compute standard errors}
 
 \item{retEachIter}{Boolean whether or not to return list of results
-from each iteration of the bootstrap procedure}
-
-\item{seedvec}{Optional value to set random seed; can possibly be used
-in conjunction with bootstrapping standard errors.}
+from each iteration of the bootstrap procedure (default is FALSE).
+This is potentially useful for debugging but can cause errors due
+to running out of memory.}
 
 \item{pl}{Whether or not to compute standard errors in parallel}
 
@@ -92,13 +88,13 @@ data(lalonde)
 
 ## Run the panel.qtet method on the experimental data with no covariates
 pq1 <- panel.qtet(re ~ treat, t=1978, tmin1=1975, tmin2=1974, tname="year",
- x=NULL, data=lalonde.exp.panel, idname="id", se=FALSE,
+ data=lalonde.exp.panel, idname="id", se=FALSE,
  probs=seq(0.05, 0.95, 0.05))
 summary(pq1)
 
 ## Run the panel.qtet method on the observational data with no covariates
 pq2 <- panel.qtet(re ~ treat, t=1978, tmin1=1975, tmin2=1974, tname="year",
- x=NULL, data=lalonde.psid.panel, idname="id", se=FALSE,
+ data=lalonde.psid.panel, idname="id", se=FALSE,
  probs=seq(0.05, 0.95, 0.05))
 summary(pq2)
 
@@ -115,5 +111,5 @@ summary(pq3)
 }
 \references{
 Callaway, Brantly and Tong Li.  ``Quantile Treatment Effects in Difference
- in Differences Models with Panel Data.'' Working Paper, 2015.
+ in Differences Models with Panel Data.'' Working Paper, 2019.
 }

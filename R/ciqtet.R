@@ -146,10 +146,10 @@ compute.ci.qtet = function(qp) {
 ci.qtet <- function(formla, xformla=NULL, w=NULL, data,
                     probs=seq(0.05,0.95,0.05), se=TRUE,
                  iters=100, alp=0.05, method="logit",
-                 retEachIter=FALSE, seedvec=NULL, indsample=TRUE,
+                 retEachIter=FALSE, indsample=TRUE,
                  printIter=FALSE, pl=FALSE, cores=2) {
 
-    qp <- QTEparams(formla, xformla, t=NULL, tmin1=NULL, tmin2=NULL, tname=NULL, data=data, idname=NULL, probs=probs, iters=iters, alp=alp, method=method, se=se, retEachIter=retEachIter, bootstrapiter=FALSE, seedvec=NULL, pl=pl, cores=cores)
+    qp <- QTEparams(formla, xformla, t=NULL, tmin1=NULL, tmin2=NULL, tname=NULL, data=data, idname=NULL, probs=probs, iters=iters, alp=alp, method=method, se=se, retEachIter=retEachIter, bootstrapiter=FALSE, pl=pl, cores=cores)
     setupData(qp) ##may be able to get rid of this too
 
     

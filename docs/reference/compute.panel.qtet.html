@@ -132,69 +132,14 @@ to point identify QTET.</p>
     
     </div>
 
-    <pre class="usage"><span class='fu'>compute.panel.qtet</span>(<span class='no'>formla</span>, <span class='kw'>xformla</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='no'>t</span>, <span class='no'>tmin1</span>, <span class='no'>tmin2</span>, <span class='no'>tname</span>,
-  <span class='kw'>x</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='no'>data</span>, <span class='kw'>dropalwaystreated</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>, <span class='no'>idname</span>, <span class='kw'>probs</span> <span class='kw'>=</span> <span class='fu'><a href='https://www.rdocumentation.org/packages/base/topics/seq'>seq</a></span>(<span class='fl'>0.05</span>,
-  <span class='fl'>0.95</span>, <span class='fl'>0.05</span>), <span class='kw'>bootstrap.iter</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>, <span class='kw'>plot</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>,
-  <span class='kw'>method</span> <span class='kw'>=</span> <span class='fu'><a href='https://www.rdocumentation.org/packages/base/topics/c'>c</a></span>(<span class='st'>"logit"</span>, <span class='st'>"GMM"</span>, <span class='st'>"semiparametric"</span>, <span class='st'>"simulation"</span>, <span class='st'>"direct"</span>),
-  <span class='kw'>ydiscrete</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>)</pre>
+    <pre class="usage"><span class='fu'>compute.panel.qtet</span>(<span class='no'>qp</span>)</pre>
     
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
     <colgroup><col class="name" /><col class="desc" /></colgroup>
     <tr>
-      <th>formla</th>
-      <td><p>outcome variable on treatment</p></td>
-    </tr>
-    <tr>
-      <th>t</th>
-      <td><p>last time period</p></td>
-    </tr>
-    <tr>
-      <th>tmin1</th>
-      <td><p>middle time period</p></td>
-    </tr>
-    <tr>
-      <th>tmin2</th>
-      <td><p>initial time period</p></td>
-    </tr>
-    <tr>
-      <th>x</th>
-      <td><p>additional covariates if using propensity score
-reweighting technique</p></td>
-    </tr>
-    <tr>
-      <th>dropalwaystreated</th>
-      <td><p>boolean indicating whether in true panel data
-context (when treatment can occur in any period) whether or
-not previously treated observations should be dropped from the sample.
-This functionality is not currently implemented</p></td>
-    </tr>
-    <tr>
-      <th>idname</th>
-      <td><p>an id that identifies individual units over time</p></td>
-    </tr>
-    <tr>
-      <th>probs</th>
-      <td><p>the values at which the quantile treatment effects
-should be computed</p></td>
-    </tr>
-    <tr>
-      <th>bootstrap.iter</th>
-      <td><p>boolean passed that is passed in when this
-method is used to compute standard errors</p></td>
-    </tr>
-    <tr>
-      <th>plot</th>
-      <td><p>Binary indicating whether or not to plot the object</p></td>
-    </tr>
-    <tr>
-      <th>method</th>
-      <td><p>How to estimate the propensity score</p></td>
-    </tr>
-    <tr>
-      <th>ydiscrete</th>
-      <td><p>Used to indicate whether the outcome has any
-discrete parts in the distribution</p></td>
+      <th>qp</th>
+      <td><p>QTEparams object containing the parameters passed to ciqte</p></td>
     </tr>
     </table>
     
