@@ -5,10 +5,10 @@
 \title{Quantile Difference in Differences}
 \usage{
 QDiD(formla, xformla = NULL, t, tmin1, tname, x = NULL, data,
-  dropalwaystreated = TRUE, panel = FALSE, se = TRUE, idname = NULL,
-  method = NULL, uniqueid = NULL, alp = 0.05, probs = seq(0.05, 0.95,
-  0.05), iters = 100, retEachIter = FALSE, seedvec = NULL,
-  printIter = F, pl = FALSE, cores = NULL)
+  dropalwaystreated = TRUE, panel = FALSE, se = TRUE,
+  idname = NULL, method = NULL, uniqueid = NULL, alp = 0.05,
+  probs = seq(0.05, 0.95, 0.05), iters = 100, retEachIter = FALSE,
+  seedvec = NULL, printIter = F, pl = FALSE, cores = NULL)
 }
 \arguments{
 \item{formla}{The formula y ~ d where y is the outcome and d is the
@@ -62,12 +62,9 @@ in conjunction with bootstrapping standard errors.}
 
 \item{printIter}{Boolean only used for debugging}
 
-\item{pl}{boolean for whether or not to compute bootstrap error in parallel.
-Note that computing standard errors in parallel is a new feature and may
-not work at all on Windows.}
+\item{pl}{Whether or not to compute standard errors in parallel}
 
-\item{cores}{the number of cores to use if bootstrap standard errors are
-computed in parallel}
+\item{cores}{Number of cores to use if computing in parallel}
 }
 \value{
 QTE Object

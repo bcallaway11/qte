@@ -4,8 +4,8 @@
 \alias{ci.qtet}
 \title{ci.qtet}
 \usage{
-ci.qtet(formla, xformla = NULL, w = NULL, data, probs = seq(0.05, 0.95,
-  0.05), se = TRUE, iters = 100, alp = 0.05, plot = FALSE,
+ci.qtet(formla, xformla = NULL, w = NULL, data, probs = seq(0.05,
+  0.95, 0.05), se = TRUE, iters = 100, alp = 0.05,
   method = "logit", retEachIter = FALSE, seedvec = NULL,
   indsample = TRUE, printIter = FALSE, pl = FALSE, cores = 2)
 }
@@ -31,8 +31,6 @@ This is only used if se=TRUE}
 \item{alp}{The significance level used for constructing bootstrap
 confidence intervals}
 
-\item{plot}{Boolean whether or not the estimated QTET should be plotted}
-
 \item{method}{Method to compute propensity score.  Default is logit; other
 option is probit.}
 
@@ -51,12 +49,9 @@ from the same source, usually should set this option to be FALSE.}
 \item{printIter}{For debugging only; should leave at default FALSE unless
 you want to see a lot of output}
 
-\item{pl}{boolean for whether or not to compute bootstrap error in parallel.
-Note that computing standard errors in parallel is a new feature and may
-not work at all on Windows.}
+\item{pl}{Whether or not to compute standard errors in parallel}
 
-\item{cores}{the number of cores to use if bootstrap standard errors are
-computed in parallel}
+\item{cores}{Number of cores to use if computing in parallel}
 }
 \value{
 QTE object

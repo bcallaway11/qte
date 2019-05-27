@@ -4,11 +4,11 @@
 \alias{QTEparams}
 \title{QTEparams}
 \usage{
-QTEparams(formla, xformla = NULL, t = NULL, tmin1 = NULL, tmin2 = NULL,
-  tname = NULL, data, panel = FALSE, w = NULL, idname = NULL, probs,
-  alp = NULL, method = NULL, plot = NULL, se = NULL, iters = NULL,
-  retEachIter = NULL, bootstrapiter = NULL, seedvec = NULL, pl = NULL,
-  cores = NULL)
+QTEparams(formla, xformla = NULL, t = NULL, tmin1 = NULL,
+  tmin2 = NULL, tname = NULL, data, panel = FALSE, w = NULL,
+  idname = NULL, probs, alp = NULL, method = NULL, plot = NULL,
+  se = NULL, iters = NULL, retEachIter = NULL,
+  bootstrapiter = NULL, seedvec = NULL, pl = NULL, cores = NULL)
 }
 \arguments{
 \item{formla}{Should be some y on treatment variable}

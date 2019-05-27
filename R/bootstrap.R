@@ -17,6 +17,7 @@ bootiter <- function(i, qteparams, func) {
     tname <- qteparams$tname
     t <- qteparams$t
     tmin1 <- qteparams$tmin1
+    tmin2 <- qteparams$tmin2
     idname <- qteparams$idname
     data <- qteparams$data
     
@@ -38,6 +39,12 @@ bootiter <- function(i, qteparams, func) {
         boot.dta1[,idname] <- newids
         boot.dta2[,idname] <- newids
         boot.dta <- rbind(boot.dta1, boot.dta2)
+        if (!is.null(tmin2)) {
+            dta3 <- data[data[,tname] == tmin2, ]
+            boot.dta3 <- dta3[ids2rownum(ids, dta3, idname),]
+            boot.dta3[,idname] <- newids
+            boot.dta <- rbind(boot.dta, boot.dta3)
+        }
 
     } else { ## we are not in the panel case
     

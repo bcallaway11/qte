@@ -2,12 +2,9 @@
 % Please edit documentation in R/qte.R
 \name{compute.panel.qtet}
 \alias{compute.panel.qtet}
-\title{compute.panel.qte}
+\title{compute.panel.qtet}
 \usage{
-compute.panel.qtet(formla, xformla = NULL, t, tmin1, tmin2, tname, x = NULL,
-  data, dropalwaystreated = TRUE, idname, probs = seq(0.05, 0.95, 0.05),
-  bootstrap.iter = FALSE, plot = FALSE, method = c("logit", "GMM",
-  "semiparametric", "simulation", "direct"), ydiscrete = FALSE)
+compute.panel.qtet(qp)
 }
 \arguments{
 \item{formla}{outcome variable on treatment}
@@ -34,8 +31,6 @@ should be computed}
 \item{bootstrap.iter}{boolean passed that is passed in when this
 method is used to compute standard errors}
 
-\item{plot}{Binary indicating whether or not to plot the object}
-
 \item{method}{How to estimate the propensity score}
 
 \item{ydiscrete}{Used to indicate whether the outcome has any
@@ -45,7 +40,7 @@ discrete parts in the distribution}
 QTE object
 }
 \description{
-\code{compute.panel.qte} uses third period of data,
+\code{compute.panel.qtet} uses third period of data,
 combined with Distributional
 Difference in Differences assumption (Fan and Yu, 2012)
 to point identify QTET.

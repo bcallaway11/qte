@@ -5,7 +5,7 @@
 \title{compute.MDiD}
 \usage{
 compute.MDiD(formla, xformla = NULL, t, tmin1, tname, x = NULL, data,
-  dropalwaystreated = TRUE, panel = FALSE, plot = FALSE, idname = NULL,
+  dropalwaystreated = TRUE, panel = FALSE, idname = NULL,
   uniqueid = NULL, probs = seq(0.05, 0.95, 0.05))
 }
 \arguments{
@@ -31,8 +31,6 @@ xformla paramter.}
 
 \item{dropalwaystreated}{How to handle always treated observations
 in panel data case (not currently used)}
-
-\item{plot}{Boolean whether or not the estimated QTET should be plotted}
 
 \item{idname}{The individual (cross-sectional unit) id name}
 

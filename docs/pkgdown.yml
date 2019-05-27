@@ -1,0 +1,8 @@
+pandoc: 1.16.0.2
+pkgdown: 1.3.0
+pkgdown_sha: ~
+articles:
+  R-QTEs: R-QTEs.html
+  ddid2: ddid2.html
+  panel-qtet: panel-qtet.html
+

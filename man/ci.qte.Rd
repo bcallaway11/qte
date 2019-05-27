@@ -5,9 +5,9 @@
 \title{ci.qte}
 \usage{
 ci.qte(formla, xformla = NULL, x = NULL, data, w = NULL,
-  probs = seq(0.05, 0.95, 0.05), se = TRUE, iters = 100, alp = 0.05,
-  plot = FALSE, method = "logit", retEachIter = FALSE, seedvec = NULL,
-  printIter = FALSE, pl = FALSE, cores = 2)
+  probs = seq(0.05, 0.95, 0.05), se = TRUE, iters = 100,
+  alp = 0.05, method = "logit", retEachIter = FALSE,
+  seedvec = NULL, printIter = FALSE, pl = FALSE, cores = 2)
 }
 \arguments{
 \item{formla}{The formula y ~ d where y is the outcome and d is the
@@ -32,8 +32,6 @@ This is only used if se=TRUE}
 
 \item{alp}{The significance level used for constructing bootstrap
 confidence intervals}
-
-\item{plot}{Boolean whether or not the estimated QTET should be plotted}
 
 \item{method}{Method to compute propensity score.  Default is logit; other
 option is probit.}

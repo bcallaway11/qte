@@ -24,7 +24,7 @@
 #' 
 #' @export
 bounds <- function(formla, xformla=NULL, t, tmin1, tname, x=NULL,data,
-                   dropalwaystreated=TRUE, idname, plot=F,
+                   dropalwaystreated=TRUE, idname, 
                    probs=seq(0.05,0.95,0.05)) {
     form = stats::as.formula(formla)
     dta = stats::model.frame(stats::terms(form,data=data),data=data) #or model.matrix
@@ -178,13 +178,13 @@ bounds <- function(formla, xformla=NULL, t, tmin1, tname, x=NULL,data,
         ub.quantiles)
     ub.qte = as.numeric(stats::quantile(treated.t[,yname],probs=probs) - 
         lb.quantiles)
-    if (plot) {
-        plot(probs, lb.qte, 
-             type="l", lty=2, xlab="tau", ylab="QTE",
-             ylim=c(-2.5,2.5))
-        graphics::lines(probs, ub.qte, lty=2)
-        graphics::abline(a=att, b=0, col="blue")
-    }    
+    ## if (plot) {
+    ##     plot(probs, lb.qte, 
+    ##          type="l", lty=2, xlab="tau", ylab="QTE",
+    ##          ylim=c(-2.5,2.5))
+    ##     graphics::lines(probs, ub.qte, lty=2)
+    ##     graphics::abline(a=att, b=0, col="blue")
+    ## }    
     return(BoundsObj(lbs=lbs,ubs=ubs, ub.quantiles=ub.quantiles,
                 lb.quantiles=lb.quantiles, ub.qte=ub.qte,
                 lb.qte = lb.qte, att=att, probs=probs))

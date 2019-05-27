@@ -13,7 +13,7 @@
 #'
 #' @keywords internal
 compute.CiC <- function(formla, xformla=NULL, t, tmin1, tname, x=NULL, data,
-                dropalwaystreated=TRUE, panel=FALSE, plot=FALSE,
+                dropalwaystreated=TRUE, panel=FALSE, 
                 idname=NULL, uniqueid=NULL, probs=seq(0.05,0.95,0.05)) {
     form = as.formula(formla)
     dta = model.frame(terms(form,data=data),data=data) #or model.matrix
@@ -121,21 +121,11 @@ compute.CiC <- function(formla, xformla=NULL, t, tmin1, tname, x=NULL, data,
     ##a) Quantiles of observed distribution
     q1 = quantile(treated.t[,yname],probs=probs,type=1)
     q0 = quantile(F.treatedcf.t,probs=probs,type=1)
-    
-    ##6) Plot QTE
-    if (plot) {
-        plot(probs, q1-q0, type="l")
-    }
-    
+        
     ##7) Estimate ATT using A-I
     att = mean(treated.t[,yname]) - mean(quantile(untreated.t[,yname],
         probs=F.untreated.tmin1(treated.tmin1[,yname]),type=1)) #See A-I p.441 Eq. 16
     
-    ##add this to the plot
-    if (plot) {
-        abline(a=att, b=0)
-    }
-
     out <- QTE(F.treated.t = F.treated.t, F.treated.t.cf = F.treatedcf.t,
                F.treated.tmin1=F.treated.tmin1,
                F.untreated.t=F.untreated.t,
@@ -191,7 +181,7 @@ compute.CiC <- function(formla, xformla=NULL, t, tmin1, tname, x=NULL, data,
 #' @export
 CiC <- function(formla, xformla=NULL, t, tmin1, tname, x=NULL,data,
                 dropalwaystreated=TRUE, panel=FALSE,
-                plot=FALSE, se=TRUE, idname=NULL, 
+                se=TRUE, idname=NULL, 
                 uniqueid=NULL, alp=0.05, probs=seq(0.05,0.95,0.05), iters=100,
                 retEachIter=FALSE, seedvec=NULL, printIter=F) {
     form = as.formula(formla)
@@ -232,7 +222,7 @@ CiC <- function(formla, xformla=NULL, t, tmin1, tname, x=NULL,data,
 
     ##first calculate the actual estimate
     cic = compute.CiC(formla, xformla, t, tmin1, tname, x, data,
-        dropalwaystreated, panel, plot=FALSE, idname, uniqueid, probs)
+        dropalwaystreated, panel, idname, uniqueid, probs)
 
     if (se) {
         ##now calculate the bootstrap confidence interval
@@ -275,7 +265,7 @@ CiC <- function(formla, xformla=NULL, t, tmin1, tname, x=NULL,data,
                 ##out.bootdatalist[[i]] <<- boot.data
                 thisIter = compute.CiC(formla, xformla, t, tmin1, tname,
                     x, boot.data, 
-                    dropalwaystreated, panel=F, plot=FALSE, idname, uniqueid, probs)
+                    dropalwaystreated, panel=F, idname, uniqueid, probs)
                 ##already have a balanced panel so can increase speed by calling
                 ##with panel option set to F.
                 eachIter[[i]] = QTE(ate = thisIter$ate, qte=thisIter$qte,
@@ -316,7 +306,7 @@ CiC <- function(formla, xformla=NULL, t, tmin1, tname, x=NULL,data,
                                    boot.treated.tmin1, boot.untreated.tmin1)
                 thisIter = compute.CiC(formla, xformla, t, tmin1, tname,
                     x, boot.data, 
-                    dropalwaystreated, panel, plot=FALSE, idname, uniqueid, probs)
+                    dropalwaystreated, panel, idname, uniqueid, probs)
                 eachIter[[i]] = QTE(ate = thisIter$ate, qte=thisIter$qte,
                             probs=probs)
 

@@ -5,8 +5,7 @@
 \title{bounds}
 \usage{
 bounds(formla, xformla = NULL, t, tmin1, tname, x = NULL, data,
-  dropalwaystreated = TRUE, idname, plot = F, probs = seq(0.05, 0.95,
-  0.05))
+  dropalwaystreated = TRUE, idname, probs = seq(0.05, 0.95, 0.05))
 }
 \arguments{
 \item{formla}{The formula y ~ d where y is the outcome and d is the
@@ -33,8 +32,6 @@ xformla paramter.}
 in panel data case (not currently used)}
 
 \item{idname}{The individual (cross-sectional unit) id name}
-
-\item{plot}{Boolean whether or not the estimated QTET should be plotted}
 
 \item{probs}{A vector of values between 0 and 1 to compute the QTET at}
 }

@@ -4,18 +4,18 @@
 \name{QTE}
 \alias{QTE}
 \alias{QTE-package}
-\alias{QTE}
 \title{qte: A package for computating quantile treatment effects}
 \usage{
-QTE(qte, ate = NULL, qte.se = NULL, qte.lower = NULL, qte.upper = NULL,
-  ate.se = NULL, ate.lower = NULL, ate.upper = NULL, pscore.reg = NULL,
-  probs, type = "On the Treated", F.treated.t = NULL,
-  F.untreated.t = NULL, F.treated.t.cf = NULL, F.treated.tmin1 = NULL,
+QTE(qte, ate = NULL, qte.se = NULL, qte.lower = NULL,
+  qte.upper = NULL, ate.se = NULL, ate.lower = NULL,
+  ate.upper = NULL, c = NULL, pscore.reg = NULL, probs,
+  type = "On the Treated", F.treated.t = NULL, F.untreated.t = NULL,
+  F.treated.t.cf = NULL, F.treated.tmin1 = NULL,
   F.treated.tmin2 = NULL, F.treated.change.tmin1 = NULL,
   F.untreated.change.t = NULL, F.untreated.change.tmin1 = NULL,
   F.untreated.tmin1 = NULL, F.untreated.tmin2 = NULL,
-  condQ.treated.t = NULL, condQ.treated.t.cf = NULL, eachIterList = NULL,
-  inffunct = NULL, inffuncu = NULL)
+  condQ.treated.t = NULL, condQ.treated.t.cf = NULL,
+  eachIterList = NULL, inffunct = NULL, inffuncu = NULL)
 }
 \arguments{
 \item{qte}{The Quantile Treatment Effect at each value of probs}
@@ -42,6 +42,9 @@ about the ATE}
 \item{ate.upper}{Upper confidence interval for the ATE (it is based on the
 bootstrap confidence interval -- not the se -- so it may not be symmetric
 about the ATE}
+
+\item{c}{The critical value from a KS-type statistic used for creating
+uniform confidence bands}
 
 \item{pscore.reg}{The results of propensity score regression, if specified}
 
@@ -98,8 +101,6 @@ terms in the variance-covariance matrix.}
 \item{inffuncu}{The influence function for the untreated group}
 }
 \description{
-qte: A package for computating quantile treatment effects
-
 Main class of objects.  A \code{QTE} object is returned by
  all of the methods that compute the QTE or QTET.
 }

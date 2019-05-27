@@ -1,0 +1,1 @@
+utils::globalVariables(c("yname", "treat", "panel", "treated.t", "treated.tmin1", "untreated.t", "untreated.tmin1", "F.treated.t", "F.treated.tmin1", "F.untreated.t", "F.untreated.tmin1", "xformla", "data", "x", "wname", "probs", "method", "eachIter"))

@@ -1,6 +1,3 @@
-utils::globalVariables(c("yname", "treat", "panel", "treated.t", "treated.tmin1", "untreated.t", "untreated.tmin1", "F.treated.t", "F.treated.tmin1", "F.untreated.t", "F.untreated.tmin1", "xformla", "data", "x", "wname", "probs", "method", "eachIter"))
-
-
 #####Two Period DDID#####
 ##Idea here is that we can use information from a third period
 ##to point identify counterfactual distribution of outcomes
@@ -25,20 +22,6 @@ compute.ddid2 <- function(qp) {
 
     setupData(qp)
     bootstrapiter <- qp$bootstrapiter
-
-    ##b)
-    if (panel) {
-        untreated.change.t <- untreated.t[,yname] - untreated.tmin1[,yname]
-
-    } else {
-        untreated.change.t <- cs2panel(untreated.t, untreated.tmin1, yname)
-    }
-
-    F.untreated.change.t <- stats::ecdf(untreated.change.t)
-    ##calculate the distribution of the change for the treated group;
-    ## this will be changed if there are covariates
-    F.treated.change.t <- F.untreated.change.t
-    
 
     ##calculate the att; this will be changed if there are covariates
     att = mean(treated.t[,yname]) - mean(treated.tmin1[,yname]) -
@@ -334,12 +317,12 @@ ddid2 <- function(formla, xformla=NULL, t, tmin1,
                    F.untreated.t=pqte$F.untreated.t,
                    F.treated.t.cf=pqte$F.treated.t.cf,
                    F.treated.tmin1=pqte$F.treated.tmin1,
-                   F.treated.tmin2=pqte$F.treated.tmin2,
-                   F.treated.change.tmin1=pqte$F.treated.change.tmin1,
+                   ##F.treated.tmin2=pqte$F.treated.tmin2,
+                   ##F.treated.change.tmin1=pqte$F.treated.change.tmin1,
                    F.untreated.change.t=pqte$F.untreated.change.t,
-                   F.untreated.change.tmin1=pqte$F.untreated.change.tmin1,
+                   ##F.untreated.change.tmin1=pqte$F.untreated.change.tmin1,
                    F.untreated.tmin1=pqte$F.untreated.tmin1,
-                   F.untreated.tmin2=pqte$F.untreated.tmin2,
+                   ##F.untreated.tmin2=pqte$F.untreated.tmin2,
                    pscore.reg=pqte$pscore.reg,
                    eachIterList=eachIter,
                    probs=probs)

@@ -20,4 +20,6 @@ articles:
     desc: >
       Additonal Details on qte methods
     contents:
+      - R-QTEs
       - panel-qtet
+      - ddid2

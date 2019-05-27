@@ -63,7 +63,11 @@ setupData <- function(qteParams) {
     if (!is.null(tname)) {
 
         if (panel) {
+            ndta <- nrow(data)
             data <- makeBalancedPanel(data, idname, tname)
+            if (nrow(data) != ndta) {
+                warning("forcing data to be balanced panel")
+            }
         }
 
         treated.t <- data[ data[,tname] == t & data[,treat]==1, ]
@@ -80,6 +84,17 @@ setupData <- function(qteParams) {
             untreated.t <- untreated.t[order(untreated.t[,idname]),]
             untreated.tmin1 <- untreated.tmin1[order(untreated.tmin1[,idname]),]
         }
+
+        ##b)
+        if (panel) {
+            untreated.change.t <- untreated.t[,yname] - untreated.tmin1[,yname]
+            
+        } else {
+            ## be careful here as it invokes rank invariance 
+            untreated.change.t <- cs2panel(untreated.t, untreated.tmin1, yname)
+        }
+
+        F.untreated.change.t <- stats::ecdf(untreated.change.t)
         
         ##3) Get the distributions that we need below
         
@@ -94,10 +109,13 @@ setupData <- function(qteParams) {
         assign("treated.tmin1", treated.tmin1, envir=env)
         assign("untreated.t", untreated.t, envir=env)
         assign("untreated.tmin1", untreated.tmin1, envir=env)
+        assign("untreated.change.t", untreated.change.t, envir=env)
         assign("F.treated.t", F.treated.t, envir=env)
         assign("F.treated.tmin1", F.treated.tmin1, envir=env)
         assign("F.untreated.t", F.untreated.t, envir=env)
         assign("F.untreated.tmin1", F.untreated.tmin1, envir=env)
+        assign("F.untreated.change.t", F.untreated.change.t, envir=env)
+        
 
         if (!is.null(tmin2)) {
             treated.tmin2 <- data[ data[,tname] == tmin2 & data[,treat]==1, ]
@@ -105,6 +123,14 @@ setupData <- function(qteParams) {
             if (panel) {
                 treated.tmin2 <- treated.tmin2[order(treated.tmin2[,idname]),]
                 untreated.tmin2 <- untreated.tmin2[order(untreated.tmin2[,idname]),]
+                untreated.change.tmin1 <- untreated.tmin1[,yname] - untreated.tmin2[,yname]
+                treated.change.tmin1  <- treated.tmin1[,yname] - treated.tmin2[,yname]
+                F.untreated.change.tmin1 <- ecdf(untreated.change.tmin1)
+                F.treated.change.tmin1 <- ecdf(treated.change.tmin1)
+                assign("untreated.change.tmin1", untreated.change.tmin1, envir=env)
+                assign("treated.change.tmin1", treated.change.tmin1, envir=env)
+                assign("F.untreated.change.tmin1", F.untreated.change.tmin1, envir=env)
+                assign("F.treated.change.tmin1", F.treated.change.tmin1, envir=env)
             }
             F.treated.tmin2 <- ecdf(treated.tmin2[,yname])
             F.untreated.tmin2 <- ecdf(untreated.tmin2[,yname])

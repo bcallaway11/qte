@@ -171,11 +171,11 @@ compute.ci.qte <- function(qp) {
 #' @export
 ci.qte <- function(formla, xformla=NULL, x=NULL, data, w=NULL,
                    probs=seq(0.05,0.95,0.05), se=TRUE,
-                   iters=100, alp=0.05, plot=FALSE, method="logit",
+                   iters=100, alp=0.05, method="logit",
                    retEachIter=FALSE, seedvec=NULL, 
                    printIter=FALSE, pl=FALSE, cores=2) {
 
-    qp <- QTEparams(formla, xformla, t=NULL, tmin1=NULL, tmin2=NULL, tname=NULL, data=data, w=w, idname=NULL, probs=probs, iters=iters, alp=alp, method=method, plot=plot, se=se, retEachIter=retEachIter, bootstrapiter=FALSE, seedvec=NULL, pl=pl, cores=cores)
+    qp <- QTEparams(formla, xformla, t=NULL, tmin1=NULL, tmin2=NULL, tname=NULL, data=data, w=w, idname=NULL, probs=probs, iters=iters, alp=alp, method=method, se=se, retEachIter=retEachIter, bootstrapiter=FALSE, seedvec=NULL, pl=pl, cores=cores)
     ##setupData(qp) ##may be able to get rid of this too
 
     

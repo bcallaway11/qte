@@ -4,8 +4,9 @@
 \alias{SE}
 \title{SE}
 \usage{
-SE(qte.se = NULL, ate.se = NULL, qte.upper = NULL, qte.lower = NULL,
-  ate.upper = NULL, ate.lower = NULL, probs = NULL)
+SE(qte.se = NULL, ate.se = NULL, qte.upper = NULL,
+  qte.lower = NULL, ate.upper = NULL, ate.lower = NULL, c = NULL,
+  probs = NULL)
 }
 \arguments{
 \item{qte.se}{The QTE Standard Error}
@@ -19,6 +20,9 @@ SE(qte.se = NULL, ate.se = NULL, qte.upper = NULL, qte.lower = NULL,
 \item{ate.upper}{The ATE upper CI}
 
 \item{ate.lower}{The ATE lower CI}
+
+\item{c}{The critical value from a KS-type statistic used for creating
+uniform confidence bands}
 
 \item{probs}{The values at which the QTE is computed}
 }

@@ -5,9 +5,9 @@
 \title{Mean Difference in Differences}
 \usage{
 MDiD(formla, xformla = NULL, t, tmin1, tname, x = NULL, data,
-  dropalwaystreated = TRUE, panel = FALSE, se = TRUE, plot = FALSE,
-  idname = NULL, uniqueid = NULL, alp = 0.05, probs = seq(0.05, 0.95,
-  0.05), iters = 100, retEachIter = FALSE, seedvec = NULL,
+  dropalwaystreated = TRUE, panel = FALSE, se = TRUE,
+  idname = NULL, uniqueid = NULL, alp = 0.05, probs = seq(0.05,
+  0.95, 0.05), iters = 100, retEachIter = FALSE, seedvec = NULL,
   printIter = F)
 }
 \arguments{
@@ -38,8 +38,6 @@ in panel data case (not currently used)}
 panel.  This is used for computing bootstrap standard errors correctly.}
 
 \item{se}{Boolean whether or not to compute standard errors}
-
-\item{plot}{Boolean whether or not the estimated QTET should be plotted}
 
 \item{idname}{The individual (cross-sectional unit) id name}
 

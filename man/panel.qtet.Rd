@@ -4,10 +4,10 @@
 \alias{panel.qtet}
 \title{panel.qtet}
 \usage{
-panel.qtet(formla, xformla = NULL, t, tmin1, tmin2, tname, x = NULL, data,
-  dropalwaystreated = TRUE, idname, probs = seq(0.05, 0.95, 0.05),
-  iters = 100, alp = 0.05, method = "logit", plot = FALSE, se = TRUE,
-  retEachIter = FALSE, seedvec = NULL)
+panel.qtet(formla, xformla = NULL, t, tmin1, tmin2, tname, x = NULL,
+  data, dropalwaystreated = TRUE, idname, probs = seq(0.05, 0.95,
+  0.05), iters = 100, alp = 0.05, method = "logit", se = TRUE,
+  retEachIter = FALSE, seedvec = NULL, pl = FALSE, cores = NULL)
 }
 \arguments{
 \item{formla}{The formula y ~ d where y is the outcome and d is the
@@ -49,8 +49,6 @@ confidence intervals}
 \item{method}{The method for estimating the propensity score when covariates
 are included}
 
-\item{plot}{Boolean whether or not the estimated QTET should be plotted}
-
 \item{se}{Boolean whether or not to compute standard errors}
 
 \item{retEachIter}{Boolean whether or not to return list of results
@@ -58,6 +56,10 @@ from each iteration of the bootstrap procedure}
 
 \item{seedvec}{Optional value to set random seed; can possibly be used
 in conjunction with bootstrapping standard errors.}
+
+\item{pl}{Whether or not to compute standard errors in parallel}
+
+\item{cores}{Number of cores to use if computing in parallel}
 }
 \value{
 \code{QTE} object
