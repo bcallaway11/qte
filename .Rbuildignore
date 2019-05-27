@@ -1,10 +1,7 @@
-..Rcheck
-^Meta$
 ^README\.Rmd$
 ^_pkgdown\.yml$
 ^cran-comments\.md$
 ^qte\.Rproj$
 ^docs$
 ^revdep$
-^inst$
 ^R/old-code$
