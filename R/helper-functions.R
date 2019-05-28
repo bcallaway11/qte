@@ -47,7 +47,7 @@ qtes2mat <- function(qteList, sset=NULL, se=TRUE, rnd=3) {
 #' 
 #' @return a ggplot object
 #' @export
-ggqte <- function(qteobj, main="", ylab="", ylim=NULL, ybreaks=NULL, xbreaks=c(.1,.3,.5,.7,.9), setype="pointwise") {
+ggqte <- function(qteobj, main="", ylab="QTE", ylim=NULL, ybreaks=NULL, xbreaks=c(.1,.3,.5,.7,.9), setype="pointwise") {
     tau <- qteobj$probs
     qte <- qteobj$qte
     qte.se <- qteobj$qte.se
@@ -62,14 +62,23 @@ ggqte <- function(qteobj, main="", ylab="", ylim=NULL, ybreaks=NULL, xbreaks=c(.
         ##geom_errorbar(size=.3, width=.02) + 
         ggplot2::geom_hline(yintercept=0) + 
         ggplot2::geom_point(aes(tau, qte)) +
-        ggplot2::ggtitle(main) + 
-        ggplot2::scale_y_continuous(ylab, limits=ylim, breaks=ybreaks) +
+        ggplot2::ggtitle(main) +
         ggplot2::scale_x_continuous("tau", limits=c(0,1), breaks=xbreaks) + 
         ggplot2::theme_classic() +
         ggplot2::theme(panel.border = element_rect(colour = 'black', size=1,
                                                    fill=NA,
                                                    linetype='solid'),
                        plot.title = element_text(hjust=0.5))
+    if ( is.null(ylim) & is.null(ybreaks) ) {
+        qp <- qp + ggplot2::scale_y_continuous(ylab)
+    } else if ( is.null(ylim) & !is.null(ybreaks) ) {
+        qp  <- qp + ggplot2::scale_y_continuous(ylab, breaks=ybreaks)
+    } else if ( !is.null(ylim) & is.null(ybreaks) ) {
+        qp  <- qp + ggplot2::scale_y_continuous(ylab, limits=ylim)
+    } else {
+        ggplot2::scale_y_continuous(ylab, limits=ylim, breaks=ybreaks)
+    }
+    
     if (!is.null(qte.se)) {
         if (setype == "both" | setype == "pointwise") {
             qp <- qp + ggplot2::geom_line(aes(tau, qte+1.96*qte.se), linetype="dashed")

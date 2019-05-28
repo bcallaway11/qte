@@ -30,7 +30,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">qte</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">1.2.3</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">1.3.0</span>
       </span>
     </div>
 
@@ -192,25 +192,25 @@ There are many examples of programs that fit into this category. The example tha
 ## 0.05    0.00    0.00
 ## 0.1     0.00    0.00
 ## 0.15    0.00    0.00
-## 0.2     0.00  102.47
-## 0.25  338.65  290.76
-## 0.3   846.40  303.00
-## 0.35 1451.51  686.81
-## 0.4  1177.72  868.37
-## 0.45 1396.08  766.23
-## 0.5  1123.55  876.29
-## 0.55 1181.54  627.01
-## 0.6  1466.51  766.16
-## 0.65 2115.04  691.68
-## 0.7  1795.12 1091.51
-## 0.75 2347.49  678.87
-## 0.8  2278.12 1182.57
-## 0.85 2178.28 1189.80
-## 0.9  3239.60 1759.35
-## 0.95 3979.62 2644.45
+## 0.2     0.00  148.33
+## 0.25  338.65  340.73
+## 0.3   846.40  517.90
+## 0.35 1451.51  613.91
+## 0.4  1177.72  761.01
+## 0.45 1396.08 1015.36
+## 0.5  1123.55 1006.70
+## 0.55 1181.54  906.84
+## 0.6  1466.51  933.35
+## 0.65 2115.04  871.14
+## 0.7  1795.12 1173.84
+## 0.75 2347.49 1147.68
+## 0.8  2278.12 1232.95
+## 0.85 2178.28 1651.39
+## 0.9  3239.60 1952.23
+## 0.95 3979.62 2911.32
 ## 
 ## Average Treatment Effect:    1794.34
-##   Std. Error:        671.75</code></pre>
+##   Std. Error:        629.60</code></pre>
 <p>The QTET can also be plotted with the <code>ggqte</code> command.</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="../reference/ggqte.html">ggqte</a></span>(jt.rand)</code></pre></div>
 <p><img src="R-QTEs_files/figure-html/unnamed-chunk-6-1.png" width="700"></p>
@@ -252,28 +252,28 @@ There are many examples of programs that fit into this category. The example tha
 ## Quantile Treatment Effect:
 ##      
 ## tau  QTE Std. Error
-## 0.05      0.00      204.66
-## 0.1       0.00      596.96
-## 0.15  -2955.45     1973.69
-## 0.2   -7447.74     1753.65
-## 0.25  -8754.13     1970.20
-## 0.3   -9632.81     2476.15
-## 0.35 -10499.12     2463.26
-## 0.4  -11313.14     2585.05
-## 0.45 -12583.22     3341.96
-## 0.5  -13397.72     3619.39
-## 0.55 -13619.18     3228.34
-## 0.6  -12500.73     3310.57
-## 0.65 -12703.25     3209.91
-## 0.7  -14180.98     2868.29
-## 0.75 -16545.34     2086.61
-## 0.8  -18614.16     1612.30
-## 0.85 -21397.01     1131.57
-## 0.9  -25253.39     1301.84
-## 0.95 -29856.92     1776.39
+## 0.05      0.00        0.00
+## 0.1       0.00        0.00
+## 0.15  -2955.45     1114.23
+## 0.2   -7447.74     1169.95
+## 0.25  -8754.13     1497.13
+## 0.3   -9632.81     1442.68
+## 0.35 -10499.12     1555.19
+## 0.4  -11313.14     1288.79
+## 0.45 -12583.22     1224.45
+## 0.5  -13397.72     1356.63
+## 0.55 -13619.18     2648.03
+## 0.6  -12500.73     3062.27
+## 0.65 -12703.25     3031.17
+## 0.7  -14180.98     2819.07
+## 0.75 -16545.34     2084.99
+## 0.8  -18614.16     1846.01
+## 0.85 -21397.01     1347.84
+## 0.9  -25253.39     1987.09
+## 0.95 -29856.92     3478.03
 ## 
 ## Average Treatment Effect:    -13115.59
-##   Std. Error:        1674.89</code></pre>
+##   Std. Error:        1118.39</code></pre>
 <p>and the QTE can be plotted</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"> <span class="kw"><a href="../reference/ggqte.html">ggqte</a></span>(jt.cia)</code></pre></div>
 <p><img src="R-QTEs_files/figure-html/unnamed-chunk-8-1.png" width="700"></p>
@@ -299,27 +299,27 @@ There are many examples of programs that fit into this category. The example tha
 ##      
 ## tau  QTE Std. Error
 ## 0.05      0.00        0.00
-## 0.1       0.00        0.00
-## 0.15   -218.70       92.21
-## 0.2   -1034.41     1021.90
-## 0.25  -2025.71     1499.35
-## 0.3   -3586.78     2128.45
-## 0.35  -4459.40     1577.70
-## 0.4   -5067.52      755.41
-## 0.45  -4988.25      715.26
-## 0.5   -4659.23      766.28
-## 0.55  -4612.01      864.20
-## 0.6   -5144.90     1202.49
-## 0.65  -4715.92     1074.74
-## 0.7   -5150.22      862.33
-## 0.75  -5884.24     1276.15
-## 0.8   -6985.32     1854.23
-## 0.85  -8235.10     1879.34
-## 0.9  -10575.45     2459.72
-## 0.95 -10782.01     2184.43
+## 0.1       0.00       69.16
+## 0.15   -218.70      428.66
+## 0.2   -1034.41     1142.00
+## 0.25  -2025.71     1815.62
+## 0.3   -3586.78     2139.53
+## 0.35  -4459.40     2197.64
+## 0.4   -5067.52     2033.41
+## 0.45  -4988.25     1232.98
+## 0.5   -4659.23     1502.62
+## 0.55  -4612.01     1473.36
+## 0.6   -5144.90     1335.83
+## 0.65  -4715.92     1308.45
+## 0.7   -5150.22     1352.12
+## 0.75  -5884.24     1928.22
+## 0.8   -6985.32     1773.60
+## 0.85  -8235.10     2294.08
+## 0.9  -10575.45     3046.19
+## 0.95 -10782.01     2209.54
 ## 
 ## Average Treatment Effect:    9708.90
-##   Std. Error:        977.71</code></pre>
+##   Std. Error:        1247.95</code></pre>
 <p>Finally, the QTET is plotted</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"> <span class="kw"><a href="../reference/ggqte.html">ggqte</a></span>(jt.ciat)</code></pre></div>
 <p><img src="R-QTEs_files/figure-html/unnamed-chunk-10-1.png" width="700"></p>
@@ -365,33 +365,33 @@ Note that these types of methods only identify the QTET (not the QTE). <span cla
 ## debug: eachIter &lt;- NULL
 ## debug: assign("eachIter", eachIter, envir = env)
 ## debug: return(SEobj)</code></pre>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"> <span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/summary">summary</a></span>(jt.cia)</code></pre></div>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"> <span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/summary">summary</a></span>(jt.pqtet)</code></pre></div>
 <pre><code>## 
 ## Quantile Treatment Effect:
 ##      
 ## tau  QTE Std. Error
-## 0.05      0.00      204.66
-## 0.1       0.00      596.96
-## 0.15  -2955.45     1973.69
-## 0.2   -7447.74     1753.65
-## 0.25  -8754.13     1970.20
-## 0.3   -9632.81     2476.15
-## 0.35 -10499.12     2463.26
-## 0.4  -11313.14     2585.05
-## 0.45 -12583.22     3341.96
-## 0.5  -13397.72     3619.39
-## 0.55 -13619.18     3228.34
-## 0.6  -12500.73     3310.57
-## 0.65 -12703.25     3209.91
-## 0.7  -14180.98     2868.29
-## 0.75 -16545.34     2086.61
-## 0.8  -18614.16     1612.30
-## 0.85 -21397.01     1131.57
-## 0.9  -25253.39     1301.84
-## 0.95 -29856.92     1776.39
+## 0.05  2854.18     1751.99
+## 0.1   1714.50     1548.16
+## 0.15   632.92     3607.10
+## 0.2  -6704.40     2553.83
+## 0.25 -6219.17     1555.19
+## 0.3  -5761.35      934.79
+## 0.35 -5198.41     1010.46
+## 0.4  -4366.57      951.04
+## 0.45 -3288.65      757.28
+## 0.5  -2472.09      907.22
+## 0.55 -1673.72      967.98
+## 0.6   -511.00      947.59
+## 0.65   723.49     1103.30
+## 0.7   1459.68     1201.11
+## 0.75  2938.60      903.03
+## 0.8   2590.30     1327.42
+## 0.85  3257.91     1284.17
+## 0.9   2444.60     1661.00
+## 0.95  3409.67     2496.64
 ## 
-## Average Treatment Effect:    -13115.59
-##   Std. Error:        1674.89</code></pre>
+## Average Treatment Effect:    -139399.12
+##   Std. Error:        5e+05</code></pre>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"> <span class="kw"><a href="../reference/ggqte.html">ggqte</a></span>(jt.pqtet)</code></pre></div>
 <p><img src="R-QTEs_files/figure-html/unnamed-chunk-13-1.png" width="700"></p>
 <p>In the most common Difference in Differences case with two periods of panel or repeated cross sectional data, <span class="citation">[@fan-yu-2012]</span> shows that the Distributional Difference in Differences Assumption leads to partial identification of the QTET. In this case, a user can estimate these bounds using the method <code>bounds</code>:<a href="#fn3" class="footnoteRef" id="fnref3"><sup>3</sup></a></p>

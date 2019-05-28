@@ -4,7 +4,7 @@
 \alias{ddid2}
 \title{ddid2}
 \usage{
-ddid2(formla, xformla = NULL, t, tmin1, tname, data, panel = FALSE,
+ddid2(formla, xformla = NULL, t, tmin1, tname, data, panel = TRUE,
   dropalwaystreated = TRUE, idname = NULL, probs = seq(0.05, 0.95,
   0.05), iters = 100, alp = 0.05, method = "logit", se = TRUE,
   retEachIter = FALSE, seedvec = NULL, pl = FALSE, cores = NULL)
@@ -71,13 +71,18 @@ on the Treated (QTET) using the method of Callaway, Li, and Oka (2015).
 ##load the data
 data(lalonde)
 
-## Run the panel.qtet method on the experimental data with no covariates
-pq1 <- ddid2(re ~ treat, t=1978, tmin1=1975, tname="year",
- x=NULL, data=lalonde.psid.panel, idname="id", se=FALSE,
+## Run the ddid2 method on the observational data with no covariates
+d1 <- ddid2(re ~ treat, t=1978, tmin1=1975, tname="year",
+ data=lalonde.psid.panel, idname="id", se=FALSE,
  probs=seq(0.05, 0.95, 0.05))
-summary(pq1)
+summary(d1)
 
-## Run the panel.qtet method on the observational data with no covariates
+## Run the ddid2 method on the observational data with covariates
+d2 <- ddid2(re ~ treat, t=1978, tmin1=1975, tname="year",
+ data=lalonde.psid.panel, idname="id", se=FALSE,
+ xformla=~age + I(age^2) + education + black + hispanic + married + nodegree,
+ probs=seq(0.05, 0.95, 0.05))
+summary(d2)
 
 
 }

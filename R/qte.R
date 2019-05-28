@@ -33,107 +33,138 @@ compute.panel.qtet <- function(qp) {
     att = mean(treated.t[,yname]) - mean(treated.tmin1[,yname]) -
         (mean(untreated.t[,yname]) - mean(untreated.tmin1[,yname]))
 
+
+    ## build counterfactual distribution depending on which case we are in
     
     ##a.1) If there are covariates need to satisfy the Distributional D-i-D
     ##then we will need to modify the distribution of the changes in outcomes
     ##using the method presented in the paper.
-    ##This section does this.  For most flexibility, the user should
-    ##be able to pass in the propensity score using estimated using any
-    ##method that he chooses.  In the case where there are covariates,
-    ##but no propensity score passed in, then this section estimates
-    ##a propensity score using a simple logit on each of the variables
-    ##entered additively.
+    
     pscore.reg <- NULL #do this in case no covariates as we return this value
-    if (!(is.null(x))) {
-        ##set up the data to do the propensity score re-weighting
-        ##we need to bind the datasets back together to estimate pscore
-        treated.t$changey = treated.t[,yname] - treated.tmin1[,yname]
-        treated.tmin1$changey <- treated.tmin1[,yname] - treated.tmin2[,yname]
-        untreated.t$changey = untreated.t[,yname] - untreated.tmin1[,yname]
-        untreated.tmin1$changey <- untreated.tmin1[,yname] -
+    qr.reg <- NULL
+
+    ## setup the data some
+    if (!(is.null(x))) {    
+        treated.t$dy = treated.t[,yname] - treated.tmin1[,yname]
+        treated.tmin1$dy <- treated.tmin1[,yname] - treated.tmin2[,yname]
+        untreated.t$dy = untreated.t[,yname] - untreated.tmin1[,yname]
+        untreated.tmin1$dy <- untreated.tmin1[,yname] -
             untreated.tmin2[,yname]
-        pscore.data  <-  rbind(treated.tmin2, untreated.tmin2)
-        this.formla <- y ~ x
-        formula.tools::lhs(this.formla) <- as.name(treat)
-        formula.tools::rhs(this.formla) <- formula.tools::rhs(xformla)
-        pscore.reg <- glm(this.formla, data=pscore.data,
-                          family=binomial(link="logit"))
-        pscore <- fitted(pscore.reg)
-
-        
-
-        ## calculate ATT and QTT
-        dtat <- rbind.data.frame(treated.t, untreated.t)
-        dtat$pscore <- pscore
-        pD1 = nrow(treated.t)/nrow(untreated.t)
-
-        ##this contains the support of the change in y
-        p.dy.seq <- unique(dtat$changey)
-        p.dy.seq <- p.dy.seq[order(p.dy.seq)]
-        distvals <- rep(0, length(p.dy.seq))
-        for (i in 1:length(p.dy.seq)) {
-            distvals[i] <- getWeightedMean( 1*(dtat$changey <= p.dy.seq[i]), (1-dtat[,treat])*pscore/((1-pscore)*pD1), norm=TRUE)
-                ## mean(1*(pscore.data$changey <= p.dy.seq[i])*
-                 ##             (1-pscore.data[,treat])*pscore/((1-pscore)*pD1)) /
-                 ## mean( (1-pscore.data[,treat])*pscore/((1-pscore)*pD1) )
-        }
-        
-        F.untreated.change.t  <- makeDist(p.dy.seq, distvals)## = approxfun(p.dy.seq,
-        ##     distvals, method="constant",
-        ##     yleft=0, yright=1, f=0, ties="ordered")
-        ## class(F.untreated.change.t) = c("ecdf", "stepfun",
-        ##          class(F.untreated.change.t))
-        ## assign("nobs", length(p.dy.seq), envir = environment(F.untreated.change.t))
-
-            
-        
-
-        ##after we have the propensity score (regardless of method)
-        ##use it to estimate the att using abadie's method.
-        att <- getWeightedMean(y=dtat$changey,
-                               weights=(dtat[,treat]-pscore)/((1-pscore)*pD1), norm=TRUE)## mean(((pscore.data$changey)/pval)*(pscore.data[,treat] - pscore) /
-               ##      (1-pscore))
-
-        ## update the lag of the untreated change so that we can
-        ## do pre-testing if desired
-        pscore.data.tmin1 <- rbind(treated.tmin1, untreated.tmin1)
-        posvals.seq <- pscore.data.tmin1$changey
-        distvals.tmin1 <- rep(0, length(posvals.seq))
-        for (dy in posvals.seq) {
-            distvals.tmin1[which(dy==posvals.seq)] =
-                mean(1*(pscore.data.tmin1$changey<=dy)*
-                     (1-pscore.data.tmin1[,treat])*pscore/((1-pscore)*pD1))
-        }
-        pscore.data.tmin1$distvals <- distvals.tmin1
-        pscore.data1.tmin1 <- pscore.data.tmin1[order(pscore.data.tmin1$changey),]
-        F.untreated.change.tmin1 <- makeDist(pscore.data1.tmin1$changey,
-                                             pscore.data1.tmin1$distvals)
-        ## F.untreated.change.tmin1 = approxfun(pscore.data1.tmin1$changey,
-        ##     pscore.data1.tmin1$distvals, method="constant",
-        ##     yleft=0, yright=1, f=0, ties="ordered")
-        ## class(F.untreated.change.tmin1) = c("ecdf", "stepfun",
-        ##          class(F.untreated.change.tmin1))
-        ## assign("nobs", length(posvals.seq), envir = environment(F.untreated.change.tmin1))
-        
     }
 
+    if (is.null(x)) method <- "pscore" ## just trick to reuse some code in pscore and no covariates case
 
-    ##compute counterfactual distribution
-    quantys1 <- quantile(F.treated.tmin1,
-                         probs=F.treated.tmin2(treated.tmin2[,yname]))
-
-    quantys2 <- quantile(F.untreated.change.t,
-                         probs=F.treated.change.tmin1(treated.tmin1[,yname] -
-                             treated.tmin2[,yname]))
-
-    y.seq <- (quantys1+quantys2)[order(quantys1 + quantys2)]
-
-    F.treated.t.cf.val <- vapply(y.seq,
-                                 FUN=function(y) { mean(1*(quantys2 <=
-                                     y - quantys1)) }, FUN.VALUE=1)
-
-    F.treated.t.cf <- makeDist(y.seq, F.treated.t.cf.val)
+    if (method == "pscore") {
     
+        if (!(is.null(x))) {
+
+            ## estimate pscore
+            this.formla <- y ~ x
+            formula.tools::rhs(this.formla) <- formula.tools::rhs(xformla)
+            formula.tools::lhs(this.formla) <- as.name(treat)
+            pscore.data  <-  rbind(treated.tmin2, untreated.tmin2)
+            pscore.reg <- glm(this.formla, data=pscore.data,
+                              family=binomial(link="logit"))
+            pscore <- fitted(pscore.reg)
+
+            
+
+            ## calculate ATT and QTT
+            dtat <- rbind.data.frame(treated.t, untreated.t)
+            dtat$pscore <- pscore
+            pD1 = nrow(treated.t)/nrow(untreated.t)
+
+            ##this contains the support of the change in y
+            p.dy.seq <- unique(dtat$dy)
+            p.dy.seq <- p.dy.seq[order(p.dy.seq)]
+            distvals <- rep(0, length(p.dy.seq))
+            for (i in 1:length(p.dy.seq)) {
+                distvals[i] <- getWeightedMean( 1*(dtat$dy <= p.dy.seq[i]), (1-dtat[,treat])*pscore/((1-pscore)*pD1), norm=TRUE)
+                ## mean(1*(pscore.data$changey <= p.dy.seq[i])*
+                ##             (1-pscore.data[,treat])*pscore/((1-pscore)*pD1)) /
+                ## mean( (1-pscore.data[,treat])*pscore/((1-pscore)*pD1) )
+            }
+            
+            F.untreated.change.t  <- makeDist(p.dy.seq, distvals)        
+
+            ##after we have the propensity score 
+            ##use it to estimate the att using abadie's method.
+            att <- getWeightedMean(y=dtat$dy,
+                                   weights=(dtat[,treat]-pscore)/((1-pscore)*pD1), norm=TRUE)## mean(((pscore.data$changey)/pval)*(pscore.data[,treat] - pscore) /
+            ##      (1-pscore))
+
+            ## update the lag of the untreated change so that we can
+            ## do pre-testing if desired
+            pscore.data.tmin1 <- rbind(treated.tmin1, untreated.tmin1)
+            posvals.seq <- pscore.data.tmin1$dy
+            distvals.tmin1 <- rep(0, length(posvals.seq))
+            for (dy in posvals.seq) {
+                distvals.tmin1[which(dy==posvals.seq)] =
+                    mean(1*(pscore.data.tmin1$dy<=dy)*
+                         (1-pscore.data.tmin1[,treat])*pscore/((1-pscore)*pD1))
+            }
+            pscore.data.tmin1$distvals <- distvals.tmin1
+            pscore.data1.tmin1 <- pscore.data.tmin1[order(pscore.data.tmin1$dy),]
+            F.untreated.change.tmin1 <- makeDist(pscore.data1.tmin1$dy,
+                                                 pscore.data1.tmin1$distvals)
+
+            
+            
+        }
+        
+        
+        ##compute counterfactual distribution
+        quantys1 <- quantile(F.treated.tmin1,
+                             probs=F.treated.tmin2(treated.tmin2[,yname]))
+
+        quantys2 <- quantile(F.untreated.change.t,
+                             probs=F.treated.change.tmin1(treated.tmin1[,yname] -
+                                                          treated.tmin2[,yname]))
+
+        y.seq <- (quantys1+quantys2)[order(quantys1 + quantys2)]
+
+        F.treated.t.cf.val <- vapply(y.seq,
+                                     FUN=function(y) { mean(1*(quantys2 <=
+                                                               y - quantys1)) }, FUN.VALUE=1)
+
+        F.treated.t.cf <- makeDist(y.seq, F.treated.t.cf.val)
+
+    } else if (method == "qr") {
+        u <- seq(.01,.99,.01) ## hard-coded for now
+        yformla <- BMisc::toformula("y", BMisc::rhs.vars(xformla))
+        dyformla <- BMisc::toformula("dy", BMisc::rhs.vars(xformla))
+
+        dQRt <- quantreg::rq(dyformla, data=untreated.t, tau=u) ## holds by conditional did assumption
+        dQRtmin1 <- quantreg::rq(dyformla, data=treated.tmin1, tau=u)
+        QRtmin1 <- quantreg::rq(yformla, data=treated.tmin1, tau=u)
+        QRtmin2 <- quantreg::rq(yformla, data=treated.tmin2, tau=u)
+
+        ## use csa-type result; exploit that we average over X_i
+        n1 <- nrow(treated.t)
+        n0 <- nrow(untreated.t)
+        QRtmin2F <- predict(QRtmin2, type="Fhat", stepfun=TRUE)
+        Ftmin2 <- sapply(1:n1, function(i) QRtmin2F[[i]](treated.tmin2$y[i]))
+        QRtmin1Q <- predict(QRtmin1, type="Qhat", stepfun=TRUE)
+        Qtmin1 <- sapply(1:n1, function(i) QRtmin1Q[[i]](Ftmin2[i]))
+
+        dQRtmin1F <- predict(dQRtmin1, type="Fhat", stepfun=TRUE)
+        dFtmin1 <- sapply(1:n1, function(i) dQRtmin1F[[i]](treated.tmin1$dy[i]))
+        dQRtQ <- predict(dQRt, newdata=treated.t, type="Qhat", stepfun=TRUE) ## predict for the treated guys even though estimate with the untreated groups
+
+        dQt <- sapply(1:n1, function(i) dQRtQ[[i]](dFtmin1[i]))
+
+        yvals <- unique( rbind.data.frame(treated.t, untreated.t)$y )
+        yvals <- sort(yvals)
+        F.treated.t.cf.val <- sapply(yvals, function(yy) mean(1*(dQt + Qtmin1 <= yy)))
+
+        F.treated.t.cf <- makeDist(yvals, F.treated.t.cf.val)
+
+        att <- mean(treated.t$y) - sum(quantile( F.treated.t.cf, probs=u, type=1 ))/length(u)
+    } else {
+        stop("invalid method supplied")
+    }
+    
+
     ##QTE
     F.treated.t <- ecdf(treated.t[,yname])
 
@@ -233,11 +264,16 @@ compute.panel.qtet <- function(qp) {
 #' ## The propensity score will be estimated using the default logit method.
 #' pq3 <- panel.qtet(re ~ treat, t=1978, tmin1=1975, tmin2=1974, tname="year",
 #'  xformla=~age + I(age^2) + education + black + hispanic + married + nodegree,
-#'  data=lalonde.psid.panel, idname="id", se=FALSE,
+#'  data=lalonde.psid.panel, idname="id", se=FALSE, method="pscore",
 #'  probs=seq(0.05, 0.95, 0.05))
 #' summary(pq3)
-#' 
 #'
+#' pq4 <- panel.qtet(re ~ treat, t=1978, tmin1=1975, tmin2=1974, tname="year",
+#'  xformla=~age + I(age^2) + education + black + hispanic + married + nodegree,
+#'  data=lalonde.psid.panel, idname="id", se=FALSE, method="qr",
+#'  probs=seq(0.05, 0.95, 0.05))
+#' summary(pq4)
+#' 
 #' @references
 #' Callaway, Brantly and Tong Li.  ``Quantile Treatment Effects in Difference
 #'  in Differences Models with Panel Data.'' Working Paper, 2019.
@@ -248,25 +284,12 @@ compute.panel.qtet <- function(qp) {
 panel.qtet <- function(formla, xformla=NULL, t, tmin1, tmin2,
                       tname, data, 
                       idname, probs=seq(0.05,0.95,0.05),
-                      iters=100, alp=0.05, method=c("QR","pscore"), se=TRUE,
+                      iters=100, alp=0.05, method=c("qr","pscore"), se=TRUE,
                       retEachIter=FALSE, pl=FALSE, cores=NULL) {
 
     method <- method[1]
-    method <- "pscore"
 
-    ## drop obs that are not in period t, tmin1, tmin2
-    pren <- nrow(data)
-    data <- data[data[,tname] %in%c(t,tmin1,tmin2),]
-    if (!(nrow(data) == pren)) {
-        warning(paste0("dropping ", pren-nrow(data), " observations that are not in period: ", t, ", ", tmin1, ", ", tmin2, "..."))
-    }
-
-    ## make a balanced panel
-    pren <- nrow(data)
-    data <- makeBalancedPanel( data, idname, tname )
-    if (!(nrow(data) == pren)) {
-        warning(paste0("enforcing balanced panel condition...\n  this drops ", (pren - nrow(data))/3, " observations..."))
-    }
+    data <- panelize.data(data, idname, tname, t, tmin1, tmin2)   
 
     qp <- QTEparams(formla=formla, xformla=xformla,
                     t=t, tmin1=tmin1, tmin2=tmin2,
@@ -282,25 +305,9 @@ panel.qtet <- function(formla, xformla=NULL, t, tmin1, tmin2,
 
     ## setup the data as build on this a bit...
     setupData(qp)
-    
-    ## 1) give warning if covariates appear to vary over time
-    if (is.null(xformla)) xformla1 <- ~1 else xformla1 <- xformla
-    dft <- model.frame(xformla1, data=rbind.data.frame(treated.t, untreated.t))
-    dftmin1 <- model.frame(xformla1, data=rbind.data.frame(treated.tmin1, untreated.tmin1))
-    dftmin2 <- model.frame(xformla1, data=rbind.data.frame(treated.tmin2, untreated.tmin2))                              
-    if ( !(identical(dftmin2, dftmin1) & identical(dftmin2, dft))) {
-        warning("covariates appear to vary over time...\n  only conditioning on first period covariates...\n  this is recommended practice, but worth noting...")
-    }
 
-    ## 2) some basic error handling about treated group being constant over time
-    if ( (nrow(treated.tmin2) == 0 | nrow(treated.tmin1) == 0) ) {
-        stop("Treatment status should be equal to 1 for all individuals in the treated group -- that is, individuals that ever become treated")
-    }
-
-    if ( !(all.equal( treated.t[,idname], treated.tmin1[,idname]) &
-           all.equal( treated.t[,idname], treated.tmin2[,idname])) ) {
-        stop("The composition of the treated group is changing over time...\n  The treated group should consistent of observations that are first treated in the last period...\n  The treatment variable should be set equal to 1 in all time periods for this group... \n Individuals that are treated before the last time period should be removed from the dataset as treatment effects are not identified for this group...")
-    }
+    ## do some checking that format of data ok
+    panel.checks(qp)
 
     ##first calculate the actual estimate
     pqte = compute.panel.qtet(qp)

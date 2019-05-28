@@ -209,7 +209,7 @@ The [@callaway-li-2016] method can be invoked with the `panel.qtet` command:
    xformla=~age + education + black + hispanic + married + nodegree,
    data=lalonde.psid.panel,
    probs=seq(0.05,0.95,0.05), se=T, iters=10)
- summary(jt.cia)
+ summary(jt.pqtet)
 ```
 
 ```{r}
@@ -251,9 +251,16 @@ This assumption is restrictive in that it restricts the difference in the quanti
 The QTET for participating in the job training program is estimated using each of the three methods QDiD, CiC, and MDiD next.
 
 ```{r, cache=TRUE}
+ jt.ddid2 <- ddid2(re ~ treat, t=1978, tmin1=1975,
+   tname="year", idname="id",
+   xformla=~age + I(age^2) + education + black + hispanic + married + nodegree,
+   data=lalonde.psid.panel,
+   probs=seq(0.05,0.95,0.05), se=T, iters=10)
+ summary(jt.ddid2)
+
  jt.cic <- CiC(re ~ treat, t=1978, tmin1=1975,
    tname="year", idname="id",
-   xformla=~age + education + black + hispanic + married + nodegree,
+   xformla=~age + I(age^2) + education + black + hispanic + married + nodegree,
    data=lalonde.psid.panel,
    probs=seq(0.05,0.95,0.05), se=T, iters=10, panel=T)
 ```
@@ -261,6 +268,7 @@ The QTET for participating in the job training program is estimated using each o
 Finally, plots for all three methods are combined with the plot for the QTET coming from the experimental data
 
 ```{r}
+   ggqte(jt.ddid2)
    ggqte(jt.cic)
 ```
 

@@ -15,33 +15,41 @@
 compute.CiC <- function(qp) {
 
     setupData(qp)
-    
-    
-    ## ## Setup x variables if using formula
-    ## if (!(is.null(xformla))) {
-    ##     ##in this case, we need to drop the intercept
-    ##     x <- colnames(model.matrix(terms(as.formula(xformla)), data=data))[-1]
-    ##     data <- cbind(data[,c(yname,treat,idname,tname)],
-    ##                   model.matrix(terms(as.formula(xformla)), data=data))[,c(1:4, 6:(5+length(x)))]
-    ## }
-
-    #drop the always treated.  Note that this also relies
-    ##on no "switchback" or no return to untreated status
-    ##after joining treatment.
-    ##first line gets the correct two years of data
-    data = subset(data, (data[,tname]==tmin1 | data[,tname]==t))
-
-    if (panel) {
-        data = makeBalancedPanel(data, idname, tname)
-    }
         
     ##just to make sure the factors are working ok
     data = droplevels(data)
 
+    ## will update this if there are covariates...
+    F.treatedcf.t <- ecdf(quantile(untreated.t[,yname],
+        probs=F.untreated.tmin1(treated.tmin1[,yname]), type=1))
+    att = mean(treated.t[,yname]) -
+        mean(quantile(untreated.t[,yname],
+                      probs=F.untreated.tmin1(treated.tmin1[,yname]),type=1)) #See A-I p.441 Eq. 16
+    
     ##adjust for covariates
     ##after adjustment then everything should proceed as before
     if (!(is.null(xformla))) {
-        warning("including covariates not currently supported...")
+
+        u <- seq(.01,.99,.01)
+        n1t <- nrow(treated.t)
+        n1tmin1 <- nrow(treated.tmin1)
+        n0t <- nrow(untreated.t)
+        n0tmin1 <- nrow(untreated.tmin1)
+
+        yformla <- toformula("y", rhs.vars(xformla))
+        QR0t <- rq(yformla, data=untreated.t, tau=u)
+        QR0tmin1 <- rq(yformla, data=untreated.tmin1, tau=u)
+
+        ## in athey and imbens, think about k(cic) transformation
+        QR0tmin1F <- predict(QR0tmin1, newdata=treated.tmin1, type="Fhat", stepfun=TRUE)
+        F0tmin1 <- sapply(1:n1tmin1, function(i) QR0tmin1F[[i]](treated.tmin1$y[i]))
+        QR0tQ <- predict(QR0t, newdata=treated.tmin1, type="Qhat", stepfun=TRUE)
+        y0t <- sapply(1:n1tmin1, function(i) QR0tQ[[i]](F0tmin1[i]))## these are pseudo counterfactual outcomes (in the sense that they share the same distribution as Y_t(0) but are not necessarily equal)
+
+        F.treated.cf.t <- ecdf(y0t)
+        
+        att <- mean(treated.t[,yname]) - mean(y0t)
+        ## old regression-based approach
         ## cov.data <- data
         ## cov.data$group <- as.factor(paste(cov.data[,treat],
         ##                                   cov.data[,tname],sep="-"))
@@ -55,18 +63,13 @@ compute.CiC <- function(qp) {
         ## data[,yname] <- yfit
     }    
 
-    
-    F.treatedcf.t <- ecdf(quantile(untreated.t[,yname],
-        probs=F.untreated.tmin1(treated.tmin1[,yname]), type=1))
         
     ##5) Compute Quantiles
     ##a) Quantiles of observed distribution
     q1 = quantile(treated.t[,yname],probs=probs,type=1)
     q0 = quantile(F.treatedcf.t,probs=probs,type=1)
         
-    ##7) Estimate ATT using A-I
-    att = mean(treated.t[,yname]) - mean(quantile(untreated.t[,yname],
-        probs=F.untreated.tmin1(treated.tmin1[,yname]),type=1)) #See A-I p.441 Eq. 16
+    
     
     out <- QTE(F.treated.t = F.treated.t, F.treated.t.cf = F.treatedcf.t,
                F.treated.tmin1=F.treated.tmin1,
@@ -127,10 +130,9 @@ CiC <- function(formla, xformla=NULL, t, tmin1, tname, data,
                 retEachIter=FALSE) {
     
     if (panel) {
-        if (is.null(idname)) {
-            stop("Must provide idname when using panel option")
-        }
-        data = makeBalancedPanel(data, idname, tname)
+        data <- panelize.data(data, idname, tname, t, tmin1)
+    } else { ## repeated cross sections case
+        data <- subset(data, (data[,tname]==tmin1 | data[,tname]==t))
     }
     
     qp <- QTEparams(formla=formla, xformla=xformla, t=t, tmin1=tmin1,
@@ -140,6 +142,9 @@ CiC <- function(formla, xformla=NULL, t, tmin1, tname, data,
                     se=se, retEachIter=retEachIter, 
                     pl=pl, cores=cores)
 
+    if (panel) {
+        panel.checks(qp)
+    }
     
     ##first calculate the actual estimate
     cic = compute.CiC(qp)

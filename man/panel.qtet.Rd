@@ -6,7 +6,7 @@
 \usage{
 panel.qtet(formla, xformla = NULL, t, tmin1, tmin2, tname, data, idname,
   probs = seq(0.05, 0.95, 0.05), iters = 100, alp = 0.05,
-  method = c("QR", "pscore"), se = TRUE, retEachIter = FALSE,
+  method = c("qr", "pscore"), se = TRUE, retEachIter = FALSE,
   pl = FALSE, cores = NULL)
 }
 \arguments{
@@ -103,10 +103,15 @@ summary(pq2)
 ## The propensity score will be estimated using the default logit method.
 pq3 <- panel.qtet(re ~ treat, t=1978, tmin1=1975, tmin2=1974, tname="year",
  xformla=~age + I(age^2) + education + black + hispanic + married + nodegree,
- data=lalonde.psid.panel, idname="id", se=FALSE,
+ data=lalonde.psid.panel, idname="id", se=FALSE, method="pscore",
  probs=seq(0.05, 0.95, 0.05))
 summary(pq3)
 
+pq4 <- panel.qtet(re ~ treat, t=1978, tmin1=1975, tmin2=1974, tname="year",
+ xformla=~age + I(age^2) + education + black + hispanic + married + nodegree,
+ data=lalonde.psid.panel, idname="id", se=FALSE, method="qr",
+ probs=seq(0.05, 0.95, 0.05))
+summary(pq4)
 
 }
 \references{
