@@ -87,8 +87,6 @@ bootstrap <- function(qteparams, qteest, func) {
     retEachIter <- qteparams$retEachIter
     pl <- qteparams$pl
     cores <- qteparams$cores
-
-    browser()
     
     eachIter <- list()
 

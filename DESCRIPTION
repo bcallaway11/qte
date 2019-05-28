@@ -1,10 +1,10 @@
 Package: qte
 Title: Quantile Treatment Effects
 Version: 1.2.3
-Date: 2018-02-23
+Date: 2019-05-27
 Authors@R: person("Brantly", "Callaway", email="brantly.callaway@temple.edu",
   	          role=c("aut","cre"))
-Description: Provides several methods for computing the Quantile Treatment Effect (QTE) and Quantile Treatment Effect on the Treated (QTT). The main cases covered are (i) Treatment is randomly assigned, (ii) Treatment is as good as randomly assigned after conditioning on some covariates (also called conditional independence or selection on observables) using the methods developed in Firpo (2007) <doi:10.1111/j.1468-0262.2007.00738.x>, (iii) Identification is based on a Difference in Differences assumption (several varieties are available in the package e.g. Athey and Imbens (2006) <doi:10.1111/j.1468-0262.2006.00668.x> Callaway and Li (2017) <https://ssrn.com/abstract=3013341>, Callaway, Li, and Oka (2017) <arXiv:1702.03618>).
+Description: Provides several methods for computing the Quantile Treatment Effect (QTE) and Quantile Treatment Effect on the Treated (QTT). The main cases covered are (i) Treatment is randomly assigned, (ii) Treatment is as good as randomly assigned after conditioning on some covariates (also called conditional independence or selection on observables) using the methods developed in Firpo (2007) <doi:10.1111/j.1468-0262.2007.00738.x>, (iii) Identification is based on a Difference in Differences assumption (several varieties are available in the package e.g. Athey and Imbens (2006) <doi:10.1111/j.1468-0262.2006.00668.x> Callaway and Li (2019) <https://ssrn.com/abstract=3013341>, Callaway, Li, and Oka (2018) <doi:10.1016/j.jeconom.2018.06.008>).
 Depends: R (>= 2.10)
 Imports: Hmisc,
     parallel,

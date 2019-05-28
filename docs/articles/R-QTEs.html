@@ -149,12 +149,12 @@ There are many examples of programs that fit into this category. The example tha
 <div id="using-the-qte-package" class="section level2">
 <h2 class="hasAnchor">
 <a href="#using-the-qte-package" class="anchor"></a>Using the QTE package</h2>
-<p>After installing the <code>ci.qte</code> package, the package can be loaded by</p>
+<p>After installing the <code>qte</code> package, the package can be loaded by</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/library">library</a></span>(qte)</code></pre></div>
 <p>and the job training datasets loaded by the following command</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="https://www.rdocumentation.org/packages/utils/topics/data">data</a></span>(lalonde)</code></pre></div>
 <p>which loads the four datasets <code>lalonde.exp</code>, <code>lalonde.psid</code>, <code>lalonde.exp.panel</code>, and <code>lalonde.psid.panel</code>. The <code>exp</code> datasets contain the experimental datasets, and the <code>psid</code> datasets contain the observational datsets. The two datasets with the suffix panel contain exactly the same data as their respective counterparts, but the data is formatted in a panel (three observations per individual in the dataset rather than one) to facilitate estimation using the Difference in Differences methods mentioned below.</p>
-<p>The main methods in the <code>ci.qte</code> package are <code>ci.qte</code>, <code>ci.qtet</code>, <code>panel.qtet</code>, <code>QDiD</code>, <code>CiC</code>, and <code>MDiD</code>. These are useful for estimating the QTE and QTET and are each based on specific identifying assumptions (discussed in more detail below). Each method requires the user to supply a formula for the outcome on the treatment status, a vector of names of conditioning <span class="math inline">\(X\)</span> variables, and a data frame. The user should also specify for which values of <span class="math inline">\(\tau\)</span> the QTE or QTET should be calculated. There are other available parameters discussed in more detail in the manual. The most common uses are detailed in the rest of this section. Each method returns a <code>QTE</code> object. The <code>QTE</code> object contains the estimated QTE or QTET, ATE or ATT, and some other information such as standard errors and confidence intervals. Once a <code>QTE</code> object has been estimated, the user can call <code>summary</code> and <code>plot</code> methods to obtain results.</p>
+<p>The main methods in the <code>ci.qte</code> package are <code>ci.qte</code>, <code>ci.qtet</code>, <code>panel.qtet</code>, <code>QDiD</code>, <code>CiC</code>, and <code>MDiD</code>. These are useful for estimating the QTE and QTET and are each based on specific identifying assumptions (discussed in more detail below). Each method requires the user to supply a formula for the outcome on the treatment status, a vector of names of conditioning <span class="math inline">\(X\)</span> variables, and a data frame. The user should also specify for which values of <span class="math inline">\(\tau\)</span> the QTE or QTET should be calculated. There are other available parameters discussed in more detail in the manual. The most common uses are detailed in the rest of this section. Each method returns a <code>QTE</code> object. The <code>QTE</code> object contains the estimated QTE or QTET, ATE or ATT, and some other information such as standard errors and confidence intervals. Once a <code>QTE</code> object has been estimated, the user can call <code>summary</code> and <code>ggqte</code> methods to obtain results (a <code>plot</code> method is available, but we recommend the <code>ggqte</code> method for plotting which builds on the <code>ggplot2</code> package).</p>
 </div>
 <div id="randomization" class="section level2">
 <h2 class="hasAnchor">
@@ -169,12 +169,51 @@ There are many examples of programs that fit into this category. The example tha
 <p>The results from the <code>ci.qte</code> or <code>ci.qtet</code> command will be identical in this case, but it is important to note what the correct interpretation of the results is. The QTET can be estimated with the following command</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">jt.rand &lt;-<span class="st"> </span><span class="kw"><a href="../reference/ci.qtet.html">ci.qtet</a></span>(re78 ~<span class="st"> </span>treat, <span class="dt">data=</span>lalonde.exp, <span class="dt">probs=</span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/seq">seq</a></span>(<span class="fl">0.05</span>,<span class="fl">0.95</span>,<span class="fl">0.05</span>), 
  <span class="dt">se=</span>T, <span class="dt">iters=</span><span class="dv">10</span>)</code></pre></div>
+<pre><code>## Called from: bootstrap(qp, firpo.qtet, compute.ci.qtet)
+## debug: eachIter &lt;- list()
+## debug: eachIter &lt;- pblapply(1:iters, bootiter, qteparams = qteparams, 
+##     func = func, cl = cores)
+## debug: SEobj &lt;- computeSE(eachIter, qteest, alp = alp)
+## debug: if (!retEachIter) {
+##     eachIter &lt;- NULL
+## }
+## debug: eachIter &lt;- NULL
+## debug: assign("eachIter", eachIter, envir = env)
+## debug: return(SEobj)</code></pre>
 <p>The <code>ci.qtet</code> command returns a <code>QTE</code> object</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/class">class</a></span>(jt.rand)</code></pre></div>
+<pre><code>## [1] "QTE"</code></pre>
 <p>and the <code>summary</code> command provides the results</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/summary">summary</a></span>(jt.rand)</code></pre></div>
-<p>The QTET can also be plotted with the <code>plot</code> command.</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="https://www.rdocumentation.org/packages/graphics/topics/plot">plot</a></span>(jt.rand)</code></pre></div>
+<pre><code>## 
+## Quantile Treatment Effect:
+##      
+## tau  QTE Std. Error
+## 0.05    0.00    0.00
+## 0.1     0.00    0.00
+## 0.15    0.00    0.00
+## 0.2     0.00  102.47
+## 0.25  338.65  290.76
+## 0.3   846.40  303.00
+## 0.35 1451.51  686.81
+## 0.4  1177.72  868.37
+## 0.45 1396.08  766.23
+## 0.5  1123.55  876.29
+## 0.55 1181.54  627.01
+## 0.6  1466.51  766.16
+## 0.65 2115.04  691.68
+## 0.7  1795.12 1091.51
+## 0.75 2347.49  678.87
+## 0.8  2278.12 1182.57
+## 0.85 2178.28 1189.80
+## 0.9  3239.60 1759.35
+## 0.95 3979.62 2644.45
+## 
+## Average Treatment Effect:    1794.34
+##   Std. Error:        671.75</code></pre>
+<p>The QTET can also be plotted with the <code>ggqte</code> command.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="../reference/ggqte.html">ggqte</a></span>(jt.rand)</code></pre></div>
+<p><img src="R-QTEs_files/figure-html/unnamed-chunk-6-1.png" width="700"></p>
 </div>
 </div>
 <div id="conditional-independence-assumption" class="section level2">
@@ -196,47 +235,94 @@ There are many examples of programs that fit into this category. The example tha
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"> jt.cia &lt;-<span class="st"> </span><span class="kw"><a href="../reference/ci.qte.html">ci.qte</a></span>(re78 ~<span class="st"> </span>treat,
    <span class="dt">xformla=</span>~age +<span class="st"> </span>education +<span class="st"> </span>black +<span class="st"> </span>hispanic +<span class="st"> </span>married +<span class="st"> </span>nodegree,
    <span class="dt">data=</span>lalonde.psid,
-   <span class="dt">probs=</span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/seq">seq</a></span>(<span class="fl">0.05</span>,<span class="fl">0.95</span>,<span class="fl">0.05</span>), <span class="dt">se=</span>T, <span class="dt">iters=</span><span class="dv">10</span>)
- <span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/summary">summary</a></span>(jt.cia)</code></pre></div>
+   <span class="dt">probs=</span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/seq">seq</a></span>(<span class="fl">0.05</span>,<span class="fl">0.95</span>,<span class="fl">0.05</span>), <span class="dt">se=</span>T, <span class="dt">iters=</span><span class="dv">10</span>)</code></pre></div>
+<pre><code>## Called from: bootstrap(qp, firpo.qte, compute.ci.qte)
+## debug: eachIter &lt;- list()
+## debug: eachIter &lt;- pblapply(1:iters, bootiter, qteparams = qteparams, 
+##     func = func, cl = cores)
+## debug: SEobj &lt;- computeSE(eachIter, qteest, alp = alp)
+## debug: if (!retEachIter) {
+##     eachIter &lt;- NULL
+## }
+## debug: eachIter &lt;- NULL
+## debug: assign("eachIter", eachIter, envir = env)
+## debug: return(SEobj)</code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"> <span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/summary">summary</a></span>(jt.cia)</code></pre></div>
 <pre><code>## 
 ## Quantile Treatment Effect:
 ##      
 ## tau  QTE Std. Error
-## 0.05      0.00        0.00
-## 0.1       0.00      708.48
-## 0.15  -2955.45     1256.44
-## 0.2   -7447.74     1775.93
-## 0.25  -8754.13     2061.97
-## 0.3   -9632.81     2290.63
-## 0.35 -10499.12     2609.08
-## 0.4  -11313.14     3616.29
-## 0.45 -12583.22     4111.21
-## 0.5  -13397.72     3662.88
-## 0.55 -13619.18     2984.30
-## 0.6  -12500.73     2840.70
-## 0.65 -12703.25     2473.63
-## 0.7  -14180.98     2208.72
-## 0.75 -16545.34     1233.83
-## 0.8  -18614.16     1473.98
-## 0.85 -21397.01     1168.85
-## 0.9  -25253.39     1016.66
-## 0.95 -29856.92     2235.19
+## 0.05      0.00      204.66
+## 0.1       0.00      596.96
+## 0.15  -2955.45     1973.69
+## 0.2   -7447.74     1753.65
+## 0.25  -8754.13     1970.20
+## 0.3   -9632.81     2476.15
+## 0.35 -10499.12     2463.26
+## 0.4  -11313.14     2585.05
+## 0.45 -12583.22     3341.96
+## 0.5  -13397.72     3619.39
+## 0.55 -13619.18     3228.34
+## 0.6  -12500.73     3310.57
+## 0.65 -12703.25     3209.91
+## 0.7  -14180.98     2868.29
+## 0.75 -16545.34     2086.61
+## 0.8  -18614.16     1612.30
+## 0.85 -21397.01     1131.57
+## 0.9  -25253.39     1301.84
+## 0.95 -29856.92     1776.39
 ## 
 ## Average Treatment Effect:    -13115.59
-##   Std. Error:        1733.56</code></pre>
+##   Std. Error:        1674.89</code></pre>
 <p>and the QTE can be plotted</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"> <span class="kw"><a href="https://www.rdocumentation.org/packages/graphics/topics/plot">plot</a></span>(jt.cia)</code></pre></div>
-<pre><code>## Warning in plot.QTE(jt.cia): This method is no longer supported. Try the
-## "ggqte" function instead</code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"> <span class="kw"><a href="../reference/ggqte.html">ggqte</a></span>(jt.cia)</code></pre></div>
 <p><img src="R-QTEs_files/figure-html/unnamed-chunk-8-1.png" width="700"></p>
 <p>and next the QTET of the job training is computed under the same setup</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"> jt.ciat &lt;-<span class="st"> </span><span class="kw"><a href="../reference/ci.qtet.html">ci.qtet</a></span>(re78 ~<span class="st"> </span>treat,
    <span class="dt">xformla=</span>~age +<span class="st"> </span>education +<span class="st"> </span>black +<span class="st"> </span>hispanic +<span class="st"> </span>married +<span class="st"> </span>nodegree,
    <span class="dt">data=</span>lalonde.psid,
-   <span class="dt">probs=</span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/seq">seq</a></span>(<span class="fl">0.05</span>,<span class="fl">0.95</span>,<span class="fl">0.05</span>), <span class="dt">se=</span>T, <span class="dt">iters=</span><span class="dv">10</span>)
- <span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/summary">summary</a></span>(jt.ciat)</code></pre></div>
+   <span class="dt">probs=</span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/seq">seq</a></span>(<span class="fl">0.05</span>,<span class="fl">0.95</span>,<span class="fl">0.05</span>), <span class="dt">se=</span>T, <span class="dt">iters=</span><span class="dv">10</span>)</code></pre></div>
+<pre><code>## Called from: bootstrap(qp, firpo.qtet, compute.ci.qtet)
+## debug: eachIter &lt;- list()
+## debug: eachIter &lt;- pblapply(1:iters, bootiter, qteparams = qteparams, 
+##     func = func, cl = cores)
+## debug: SEobj &lt;- computeSE(eachIter, qteest, alp = alp)
+## debug: if (!retEachIter) {
+##     eachIter &lt;- NULL
+## }
+## debug: eachIter &lt;- NULL
+## debug: assign("eachIter", eachIter, envir = env)
+## debug: return(SEobj)</code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"> <span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/summary">summary</a></span>(jt.ciat)</code></pre></div>
+<pre><code>## 
+## Quantile Treatment Effect:
+##      
+## tau  QTE Std. Error
+## 0.05      0.00        0.00
+## 0.1       0.00        0.00
+## 0.15   -218.70       92.21
+## 0.2   -1034.41     1021.90
+## 0.25  -2025.71     1499.35
+## 0.3   -3586.78     2128.45
+## 0.35  -4459.40     1577.70
+## 0.4   -5067.52      755.41
+## 0.45  -4988.25      715.26
+## 0.5   -4659.23      766.28
+## 0.55  -4612.01      864.20
+## 0.6   -5144.90     1202.49
+## 0.65  -4715.92     1074.74
+## 0.7   -5150.22      862.33
+## 0.75  -5884.24     1276.15
+## 0.8   -6985.32     1854.23
+## 0.85  -8235.10     1879.34
+## 0.9  -10575.45     2459.72
+## 0.95 -10782.01     2184.43
+## 
+## Average Treatment Effect:    9708.90
+##   Std. Error:        977.71</code></pre>
 <p>Finally, the QTET is plotted</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"> <span class="kw"><a href="https://www.rdocumentation.org/packages/graphics/topics/plot">plot</a></span>(jt.ciat)</code></pre></div>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"> <span class="kw"><a href="../reference/ggqte.html">ggqte</a></span>(jt.ciat)</code></pre></div>
+<p><img src="R-QTEs_files/figure-html/unnamed-chunk-10-1.png" width="700"></p>
 </div>
 </div>
 <div id="difference-in-differences-methods" class="section level2">
@@ -264,37 +350,49 @@ Note that these types of methods only identify the QTET (not the QTE). <span cla
    <span class="dt">tname=</span><span class="st">"year"</span>, <span class="dt">idname=</span><span class="st">"id"</span>,
    <span class="dt">xformla=</span>~age +<span class="st"> </span>education +<span class="st"> </span>black +<span class="st"> </span>hispanic +<span class="st"> </span>married +<span class="st"> </span>nodegree,
    <span class="dt">data=</span>lalonde.psid.panel,
-   <span class="dt">probs=</span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/seq">seq</a></span>(<span class="fl">0.05</span>,<span class="fl">0.95</span>,<span class="fl">0.05</span>), <span class="dt">se=</span>T, <span class="dt">iters=</span><span class="dv">10</span>)
- <span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/summary">summary</a></span>(jt.cia)</code></pre></div>
+   <span class="dt">probs=</span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/seq">seq</a></span>(<span class="fl">0.05</span>,<span class="fl">0.95</span>,<span class="fl">0.05</span>), <span class="dt">se=</span>T, <span class="dt">iters=</span><span class="dv">10</span>)</code></pre></div>
+<pre><code>## Warning in panel.qtet(re ~ treat, t = 1978, tmin1 = 1975, tmin2 = 1974, : covariates appear to vary over time...
+##   only conditioning on first period covariates...
+##   this is recommended practice, but worth noting...</code></pre>
+<pre><code>## Called from: bootstrap(qp, pqte, compute.panel.qtet)
+## debug: eachIter &lt;- list()
+## debug: eachIter &lt;- pblapply(1:iters, bootiter, qteparams = qteparams, 
+##     func = func, cl = cores)
+## debug: SEobj &lt;- computeSE(eachIter, qteest, alp = alp)
+## debug: if (!retEachIter) {
+##     eachIter &lt;- NULL
+## }
+## debug: eachIter &lt;- NULL
+## debug: assign("eachIter", eachIter, envir = env)
+## debug: return(SEobj)</code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"> <span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/summary">summary</a></span>(jt.cia)</code></pre></div>
 <pre><code>## 
 ## Quantile Treatment Effect:
 ##      
 ## tau  QTE Std. Error
-## 0.05      0.00        0.00
-## 0.1       0.00      708.48
-## 0.15  -2955.45     1256.44
-## 0.2   -7447.74     1775.93
-## 0.25  -8754.13     2061.97
-## 0.3   -9632.81     2290.63
-## 0.35 -10499.12     2609.08
-## 0.4  -11313.14     3616.29
-## 0.45 -12583.22     4111.21
-## 0.5  -13397.72     3662.88
-## 0.55 -13619.18     2984.30
-## 0.6  -12500.73     2840.70
-## 0.65 -12703.25     2473.63
-## 0.7  -14180.98     2208.72
-## 0.75 -16545.34     1233.83
-## 0.8  -18614.16     1473.98
-## 0.85 -21397.01     1168.85
-## 0.9  -25253.39     1016.66
-## 0.95 -29856.92     2235.19
+## 0.05      0.00      204.66
+## 0.1       0.00      596.96
+## 0.15  -2955.45     1973.69
+## 0.2   -7447.74     1753.65
+## 0.25  -8754.13     1970.20
+## 0.3   -9632.81     2476.15
+## 0.35 -10499.12     2463.26
+## 0.4  -11313.14     2585.05
+## 0.45 -12583.22     3341.96
+## 0.5  -13397.72     3619.39
+## 0.55 -13619.18     3228.34
+## 0.6  -12500.73     3310.57
+## 0.65 -12703.25     3209.91
+## 0.7  -14180.98     2868.29
+## 0.75 -16545.34     2086.61
+## 0.8  -18614.16     1612.30
+## 0.85 -21397.01     1131.57
+## 0.9  -25253.39     1301.84
+## 0.95 -29856.92     1776.39
 ## 
 ## Average Treatment Effect:    -13115.59
-##   Std. Error:        1733.56</code></pre>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"> <span class="kw"><a href="https://www.rdocumentation.org/packages/graphics/topics/plot">plot</a></span>(jt.pqtet)</code></pre></div>
-<pre><code>## Warning in plot.QTE(jt.pqtet): This method is no longer supported. Try the
-## "ggqte" function instead</code></pre>
+##   Std. Error:        1674.89</code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"> <span class="kw"><a href="../reference/ggqte.html">ggqte</a></span>(jt.pqtet)</code></pre></div>
 <p><img src="R-QTEs_files/figure-html/unnamed-chunk-13-1.png" width="700"></p>
 <p>In the most common Difference in Differences case with two periods of panel or repeated cross sectional data, <span class="citation">[@fan-yu-2012]</span> shows that the Distributional Difference in Differences Assumption leads to partial identification of the QTET. In this case, a user can estimate these bounds using the method <code>bounds</code>:<a href="#fn3" class="footnoteRef" id="fnref3"><sup>3</sup></a></p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"> b1 &lt;-<span class="st"> </span><span class="kw"><a href="../reference/bounds.html">bounds</a></span>(re ~<span class="st"> </span>treat, <span class="dt">t=</span><span class="dv">1978</span>, <span class="dt">tmin1=</span><span class="dv">1975</span>, <span class="dt">data=</span>lalonde.psid.panel,
@@ -348,7 +446,21 @@ Note that these types of methods only identify the QTET (not the QTE). <span cla
    <span class="dt">xformla=</span>~age +<span class="st"> </span>education +<span class="st"> </span>black +<span class="st"> </span>hispanic +<span class="st"> </span>married +<span class="st"> </span>nodegree,
    <span class="dt">data=</span>lalonde.psid.panel,
    <span class="dt">probs=</span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/seq">seq</a></span>(<span class="fl">0.05</span>,<span class="fl">0.95</span>,<span class="fl">0.05</span>), <span class="dt">se=</span>T, <span class="dt">iters=</span><span class="dv">10</span>, <span class="dt">panel=</span>T)</code></pre></div>
+<pre><code>## Warning in compute.CiC(qp): including covariates not currently supported...</code></pre>
+<pre><code>## Called from: bootstrap(qp, cic, compute.CiC)
+## debug: eachIter &lt;- list()
+## debug: eachIter &lt;- pblapply(1:iters, bootiter, qteparams = qteparams, 
+##     func = func, cl = cores)
+## debug: SEobj &lt;- computeSE(eachIter, qteest, alp = alp)
+## debug: if (!retEachIter) {
+##     eachIter &lt;- NULL
+## }
+## debug: eachIter &lt;- NULL
+## debug: assign("eachIter", eachIter, envir = env)
+## debug: return(SEobj)</code></pre>
 <p>Finally, plots for all three methods are combined with the plot for the QTET coming from the experimental data</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">   <span class="kw"><a href="../reference/ggqte.html">ggqte</a></span>(jt.cic)</code></pre></div>
+<p><img src="R-QTEs_files/figure-html/unnamed-chunk-17-1.png" width="700"></p>
 </div>
 </div>
 </div>
