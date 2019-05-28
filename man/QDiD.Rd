@@ -4,10 +4,10 @@
 \alias{QDiD}
 \title{Quantile Difference in Differences}
 \usage{
-QDiD(formla, xformla = NULL, t, tmin1, tname, x = NULL, data,
-  panel = FALSE, se = TRUE, idname = NULL, method = NULL,
-  alp = 0.05, probs = seq(0.05, 0.95, 0.05), iters = 100,
-  retEachIter = FALSE, pl = FALSE, cores = NULL)
+QDiD(formla, xformla = NULL, t, tmin1, tname, data, panel = FALSE,
+  se = TRUE, idname = NULL, alp = 0.05, probs = seq(0.05, 0.95,
+  0.05), iters = 100, retEachIter = FALSE, pl = FALSE,
+  cores = NULL)
 }
 \arguments{
 \item{formla}{The formula y ~ d where y is the outcome and d is the
@@ -28,8 +28,6 @@ pre-treatment period for all individuals in the sample.}
 
 \item{tname}{The name of the column containing the time periods}
 
-\item{x}{Vector of covariates.  Default is no covariates}
-
 \item{data}{A data.frame containing all the variables used}
 
 \item{panel}{Binary variable indicating whether or not the dataset is
@@ -38,9 +36,6 @@ panel.  This is used for computing bootstrap standard errors correctly.}
 \item{se}{Boolean whether or not to compute standard errors}
 
 \item{idname}{The individual (cross-sectional unit) id name}
-
-\item{method}{The method for including covariates, should either be "QR"
-for quantile regression or "pscore" for propensity score}
 
 \item{alp}{The significance level used for constructing bootstrap
 confidence intervals}

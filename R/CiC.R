@@ -46,7 +46,7 @@ compute.CiC <- function(qp) {
         QR0tQ <- predict(QR0t, newdata=treated.tmin1, type="Qhat", stepfun=TRUE)
         y0t <- sapply(1:n1tmin1, function(i) QR0tQ[[i]](F0tmin1[i]))## these are pseudo counterfactual outcomes (in the sense that they share the same distribution as Y_t(0) but are not necessarily equal)
 
-        F.treated.cf.t <- ecdf(y0t)
+        F.treatedcf.t <- ecdf(y0t)
         
         att <- mean(treated.t[,yname]) - mean(y0t)
         ## old regression-based approach

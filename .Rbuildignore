@@ -5,3 +5,5 @@
 ^docs$
 ^revdep$
 ^R/old-code$
+^doc$
+^Meta$
