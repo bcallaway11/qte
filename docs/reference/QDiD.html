@@ -138,10 +138,10 @@ based on these quasi-residuals.</p>
     
     </div>
 
-    <pre class="usage"><span class='fu'>QDiD</span>(<span class='no'>formla</span>, <span class='kw'>xformla</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='no'>t</span>, <span class='no'>tmin1</span>, <span class='no'>tname</span>, <span class='kw'>x</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='no'>data</span>,
-  <span class='kw'>panel</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>, <span class='kw'>se</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>, <span class='kw'>idname</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>method</span> <span class='kw'>=</span> <span class='kw'>NULL</span>,
-  <span class='kw'>alp</span> <span class='kw'>=</span> <span class='fl'>0.05</span>, <span class='kw'>probs</span> <span class='kw'>=</span> <span class='fu'><a href='https://www.rdocumentation.org/packages/base/topics/seq'>seq</a></span>(<span class='fl'>0.05</span>, <span class='fl'>0.95</span>, <span class='fl'>0.05</span>), <span class='kw'>iters</span> <span class='kw'>=</span> <span class='fl'>100</span>,
-  <span class='kw'>retEachIter</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>, <span class='kw'>pl</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>, <span class='kw'>cores</span> <span class='kw'>=</span> <span class='kw'>NULL</span>)</pre>
+    <pre class="usage"><span class='fu'>QDiD</span>(<span class='no'>formla</span>, <span class='kw'>xformla</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='no'>t</span>, <span class='no'>tmin1</span>, <span class='no'>tname</span>, <span class='no'>data</span>, <span class='kw'>panel</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>,
+  <span class='kw'>se</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>, <span class='kw'>idname</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>alp</span> <span class='kw'>=</span> <span class='fl'>0.05</span>, <span class='kw'>probs</span> <span class='kw'>=</span> <span class='fu'><a href='https://www.rdocumentation.org/packages/base/topics/seq'>seq</a></span>(<span class='fl'>0.05</span>, <span class='fl'>0.95</span>,
+  <span class='fl'>0.05</span>), <span class='kw'>iters</span> <span class='kw'>=</span> <span class='fl'>100</span>, <span class='kw'>retEachIter</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>, <span class='kw'>pl</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>,
+  <span class='kw'>cores</span> <span class='kw'>=</span> <span class='kw'>NULL</span>)</pre>
     
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
@@ -175,10 +175,6 @@ pre-treatment period for all individuals in the sample.</p></td>
       <td><p>The name of the column containing the time periods</p></td>
     </tr>
     <tr>
-      <th>x</th>
-      <td><p>Vector of covariates.  Default is no covariates</p></td>
-    </tr>
-    <tr>
       <th>data</th>
       <td><p>A data.frame containing all the variables used</p></td>
     </tr>
@@ -194,11 +190,6 @@ panel.  This is used for computing bootstrap standard errors correctly.</p></td>
     <tr>
       <th>idname</th>
       <td><p>The individual (cross-sectional unit) id name</p></td>
-    </tr>
-    <tr>
-      <th>method</th>
-      <td><p>The method for including covariates, should either be "QR"
-for quantile regression or "pscore" for propensity score</p></td>
     </tr>
     <tr>
       <th>alp</th>
@@ -251,31 +242,31 @@ to running out of memory.</p></td>
 <span class='no'>qd1</span> <span class='kw'>&lt;-</span> <span class='fu'>QDiD</span>(<span class='no'>re</span> ~ <span class='no'>treat</span>, <span class='kw'>t</span><span class='kw'>=</span><span class='fl'>1978</span>, <span class='kw'>tmin1</span><span class='kw'>=</span><span class='fl'>1975</span>, <span class='kw'>tname</span><span class='kw'>=</span><span class='st'>"year"</span>,
  <span class='kw'>xformla</span><span class='kw'>=</span>~<span class='no'>age</span> + <span class='fu'><a href='https://www.rdocumentation.org/packages/base/topics/AsIs'>I</a></span>(<span class='no'>age</span>^<span class='fl'>2</span>) + <span class='no'>education</span> + <span class='no'>black</span> + <span class='no'>hispanic</span> + <span class='no'>married</span> + <span class='no'>nodegree</span>,
  <span class='kw'>data</span><span class='kw'>=</span><span class='no'>lalonde.psid.panel</span>, <span class='kw'>idname</span><span class='kw'>=</span><span class='st'>"id"</span>, <span class='kw'>se</span><span class='kw'>=</span><span class='fl'>FALSE</span>,
- <span class='kw'>probs</span><span class='kw'>=</span><span class='fu'><a href='https://www.rdocumentation.org/packages/base/topics/seq'>seq</a></span>(<span class='fl'>0.05</span>, <span class='fl'>0.95</span>, <span class='fl'>0.05</span>))</div><div class='output co'>#&gt; <span class='warning'>Warning: Solution may be nonunique</span></div><div class='output co'>#&gt; <span class='warning'>Warning: Solution may be nonunique</span></div><div class='output co'>#&gt; <span class='warning'>Warning: Solution may be nonunique</span></div><div class='output co'>#&gt; <span class='warning'>Warning: Solution may be nonunique</span></div><div class='output co'>#&gt; <span class='warning'>Warning: Solution may be nonunique</span></div><div class='output co'>#&gt; <span class='warning'>Warning: Solution may be nonunique</span></div><div class='output co'>#&gt; <span class='warning'>Warning: Solution may be nonunique</span></div><div class='input'><span class='fu'><a href='https://www.rdocumentation.org/packages/base/topics/summary'>summary</a></span>(<span class='no'>qd1</span>)</div><div class='output co'>#&gt; 
+ <span class='kw'>probs</span><span class='kw'>=</span><span class='fu'><a href='https://www.rdocumentation.org/packages/base/topics/seq'>seq</a></span>(<span class='fl'>0.05</span>, <span class='fl'>0.95</span>, <span class='fl'>0.05</span>))</div><div class='output co'>#&gt; <span class='warning'>Warning: Solution may be nonunique</span></div><div class='output co'>#&gt; <span class='warning'>Warning: Solution may be nonunique</span></div><div class='output co'>#&gt; <span class='warning'>Warning: Solution may be nonunique</span></div><div class='output co'>#&gt; <span class='warning'>Warning: Solution may be nonunique</span></div><div class='output co'>#&gt; <span class='warning'>Warning: Solution may be nonunique</span></div><div class='input'><span class='fu'><a href='https://www.rdocumentation.org/packages/base/topics/summary'>summary</a></span>(<span class='no'>qd1</span>)</div><div class='output co'>#&gt; 
 #&gt; Quantile Treatment Effect:
 #&gt; 		
 #&gt; tau	QTE
-#&gt; 0.05	   0.00
-#&gt; 0.1	-289.79
-#&gt; 0.15	-289.79
-#&gt; 0.2	-485.23
-#&gt; 0.25	-161.97
-#&gt; 0.3	-124.46
-#&gt; 0.35	  81.04
-#&gt; 0.4	 763.41
-#&gt; 0.45	1642.33
-#&gt; 0.5	2068.29
-#&gt; 0.55	2242.71
-#&gt; 0.6	3169.52
-#&gt; 0.65	3965.33
-#&gt; 0.7	3931.76
-#&gt; 0.75	3731.45
-#&gt; 0.8	4207.19
-#&gt; 0.85	4425.46
-#&gt; 0.9	5182.06
-#&gt; 0.95	4945.10
+#&gt; 0.05	  306.34
+#&gt; 0.1	 -606.23
+#&gt; 0.15	 -856.17
+#&gt; 0.2	-1430.94
+#&gt; 0.25	-1200.28
+#&gt; 0.3	 -902.21
+#&gt; 0.35	 -500.36
+#&gt; 0.4	   94.13
+#&gt; 0.45	  930.04
+#&gt; 0.5	 1538.92
+#&gt; 0.55	 2197.63
+#&gt; 0.6	 3051.61
+#&gt; 0.65	 3536.42
+#&gt; 0.7	 2994.79
+#&gt; 0.75	 3930.74
+#&gt; 0.8	 4385.78
+#&gt; 0.85	 4373.68
+#&gt; 0.9	 3921.55
+#&gt; 0.95	 4380.63
 #&gt; 
-#&gt; Average Treatment Effect:	1684.96</div><div class='input'>
+#&gt; Average Treatment Effect:	2033.09</div><div class='input'>
 </div></pre>
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="sidebar">

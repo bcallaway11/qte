@@ -3,11 +3,17 @@ title: "Quantile Treatment Effects in R: The qte Package"
 author: "Brantly Callaway"
 date: "`r Sys.Date()`"
 output: rmarkdown::pdf_document
+bibliography: refs.bib
 vignette: >
   %\VignetteIndexEntry{Quantile Treatment Effects in R: The qte Package}
   %\VignetteEngine{knitr::rmarkdown}
   \usepackage[utf8]{inputenc}
 ---
+
+```{r, echo=FALSE, message=FALSE}
+  library(knitr)
+  opts_chunk$set(warning=FALSE)
+```
 
 #Introduction
 
@@ -32,10 +38,26 @@ The Difference in Differences models involve either repeated cross section or pa
 
 #Quantiles
 
+```{r, echo=FALSE, fig.cap="test caption", fig.width=15}
+  library(msm)
+  par(mfrow=c(1,2))
+  y.seq <- seq(0,4,length.out=100)
+  plot(y.seq, ptnorm(y.seq, 1,1,lower=0), col="purple", lwd=3, type="l",
+       ylab="cdf", xlab="y")
+  segments(x0=0, x1=qtnorm(0.5,1,1,lower=0), y0=0.5, lty=2, lwd=3)
+  segments(x0=qtnorm(0.5,1,1,lower=0), y0=0, y1=0.5, lty=2, lwd=3)
+  segments(x0=0, x1=qtnorm(0.9,1,1,lower=0), y0=0.9, lty=2, lwd=3)
+  segments(x0=qtnorm(0.9,1,1,lower=0), y0=0, y1=0.9, lty=2, lwd=3)
+  tau <- seq(0,1,.01)
+  plot(tau, qtnorm(tau, 1,1,lower=0), col="red", lwd=3, type="l",
+       ylab="quantiles", xlab="tau")
+  segments(x0=0, x1=0.5, y0=qtnorm(0.5,1,1,lower=0), lty=2, lwd=3)
+  segments(x0=0.5, y0=qtnorm(0.5,1,1,lower=0), y1=0, lty=2, lwd=3)
+  segments(x0=0, x1=0.9, y0=qtnorm(0.9,1,1,lower=0), lty=2, lwd=3)
+  segments(x0=0.9, y0=qtnorm(0.9,1,1,lower=0), y1=0, lty=2, lwd=3)
+```
 
-[fig:quantiles]: ![A plot of a standard normal distribution truncated from the left at zero.  The lower dotted line represents the median; the upper dotted line represents the 95th percentile.](figures/cdf-truncated-normal.pdf)
-
-![The figure on the right inverts the same distribution to show the quantiles.  Each dotted line once again corresponds to the median and the 95th percentile.](figures/quantiles-truncated-normal.pdf)
+*Figure 1:  A plot of a standard normal distribution truncated from the left at zero.  The lower dotted line represents the median; the upper dotted line represents the 95th percentile. The figure on the right inverts the same distribution to show the quantiles.  Each dotted line once again corresponds to the median and the 95th percentile.*
 
 For a random variable $Z$ with distribution function $F_Z(\cdot)$, the $\tau$-th quantile, $z_\tau$ is defined as
 
@@ -47,16 +69,25 @@ $$ z_\tau = F^{-1}_Z(\tau) $$
 
 In either case, the quantile $z_\tau$ is identified whenever the distribution function $F_Z(\cdot)$ is identified.
 
-Many quantiles are quite familiar.  The 0.5-quantile is the median.  The 0.25- and 0.75-quantiles are the 1st and 3rd quartile.  The 0.01-, 0.02-, 0.03- \ldots are the 1st, 2nd, 3rd, and so on percentiles.  [Figure][fig:quantiles](a) plots the distribution function of random draws from a $N(1,1)$ distribution truncated at 0.  From the distribution function, the $\tau$-th quantile can be found by (i) finding $\tau$ on the y-axis, (ii) finding where a horizontal line from that point intersects the distribution function, and (iii) drawing a vertical line down to the y-axis.  In [Figure][fig:quantiles](a), this procedure is followed to find the median and the 95-th percentile of the distribution.  In [Figure][fig:quantiles](b), the entire distribution from [Figure][fig:quantiles](a) is inverted to obtain all the quantiles.  The dotted lines in [Figure][fig:quantiles](b) correspond to the median and the 95-th percentile.
+Many quantiles are quite familiar.  The 0.5-quantile is the median.  The 0.25- and 0.75-quantiles are the 1st and 3rd quartile.  The 0.01-, 0.02-, 0.03- \ldots are the 1st, 2nd, 3rd, and so on percentiles.  Figure 1(a) plots the distribution function of random draws from a $N(1,1)$ distribution truncated at 0.  From the distribution function, the $\tau$-th quantile can be found by (i) finding $\tau$ on the y-axis, (ii) finding where a horizontal line from that point intersects the distribution function, and (iii) drawing a vertical line down to the y-axis.  In Figure 1(a), this procedure is followed to find the median and the 95-th percentile of the distribution.  In Figure 1(b), the entire distribution from Figure 1(a) is inverted to obtain all the quantiles.  The dotted lines in Figure 1(b) correspond to the median and the 95-th percentile.
 
 #Quantile Treatment Effects
 
 QTEs are defined as the difference between the quantiles (for a particular value of $\tau$) of the treated potential outcome distribution and the untreated potential outcome distribution.  
 
+```{r, echo=FALSE, fig.width=15}
+par(mfrow=c(1,2))
+y.seq <- seq(0,6,length.out=100)
+plot(y.seq, ptnorm(y.seq, 1,1,lower=0), col="purple", lwd=3, type="l",
+     ylab="cdf", xlab="y")
+lines(y.seq, ptnorm(y.seq, 2,2,lower=0), col="green", lwd=3, type="l")
+segments(x0=qtnorm(0.5,1,1,lower=0), x1=qtnorm(0.5,2,2,lower=0), y0=0.5, lty=2, lwd=3)
+segments(x0=qtnorm(0.9,1,1,lower=0), x1=qtnorm(0.9,2,2,lower=0), y0=0.9, lty=2, lwd=3)
 
-![The figure is two cumulative distributions.  The red distribution is the same truncated standard normal distribution as in Figure 1.  The blue distribution is an adjusted truncated normal distribution.  The lower dotted line represents the Quantile Treatment Effect for $\tau = 0.5$; the upper dotted line represents the Quantile Treatment Effect for $\tau = 0.95$.](figures/cdf-two-distributions.pdf)
+plot(tau, qtnorm(tau, 2,2,lower=0) - qtnorm(tau, 1,1,lower=0), col="blue", lwd=3, type="l", xlab="tau", ylab="qte")
+```
 
-![The figure on the right inverts both distribution functions and displays all the Quantile Treatment Effects for $\tau \in [0,1]$.](figures/qte-example.pdf)
+*Figure 2: The figure is two cumulative distributions.  The red distribution is the same truncated standard normal distribution as in Figure 1.  The blue distribution is an adjusted truncated normal distribution.  The lower dotted line represents the Quantile Treatment Effect for $\tau = 0.5$; the upper dotted line represents the Quantile Treatment Effect for $\tau = 0.95$.  The figure on the right inverts both distribution functions and displays all the Quantile Treatment Effects for $\tau \in [0,1]$*
 
 For $\tau \in [0,1]$
 $$ QTE(\tau) = F^{-1}_{Y_1}(\tau) - F^{-1}_{Y_0}(\tau) $$
@@ -64,7 +95,7 @@ Likewise, QTETs are defined as the difference between the quantiles of (i) the d
 $$ QTET(\tau) = F^{-1}_{Y_1|D=1}(\tau) - F^{-1}_{Y_0|D=1}(\tau) $$
 For identification, the key issue is whether or not each of the distributions are identified.  For the QTE, some assumption needs to be invoked to identify both $F_{Y_{1t}}(y_1)$ and $F_{Y_{0t}}(y_0)$.  For the QTET, $F_{Y_{1t}|D_t=1}(y_1)$ is identified directly from the data because we observe at the distribution of treated outcomes for the treated group.  However, to identify $F_{Y_{0t}|D_t=1}(y_0)$ will require some identifying assumption because we do not observe untreated potential outcomes for the treated group.
 
-Figure 3 shows the QTE for two simulated distributions.  The red distribution in Figure 3 is the same as the distribution in Figure 1; the blue distribution is an adjusted truncated normal distribution.  The horizontal distance between the two distributions gives the QTE.  For example, QTE(0.5) and QTE(0.95) are represented by the two dotted lines in the figure.  The QTE for all values of $\tau$ is plotted in Figure 4.
+Figure 2 shows the QTE for two simulated distributions.  The purple distribution in Figure 2(a) is the same as the distribution in Figure 1; the green distribution is an adjusted truncated normal distribution.  The horizontal distance between the two distributions gives the QTE.  For example, QTE(0.5) and QTE(0.95) are represented by the two dotted lines in the figure.  The QTE for all values of $\tau$ is plotted in Figure 2(b).
 
 #Identification and Estimation
 

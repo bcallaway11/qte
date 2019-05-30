@@ -128,7 +128,7 @@ on the Treated (QTET) using the method of Callaway, Li, and Oka (2015).</p>
     
     </div>
 
-    <pre class="usage"><span class='fu'>ddid2</span>(<span class='no'>formla</span>, <span class='kw'>xformla</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='no'>t</span>, <span class='no'>tmin1</span>, <span class='no'>tname</span>, <span class='no'>data</span>, <span class='kw'>panel</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>,
+    <pre class="usage"><span class='fu'>ddid2</span>(<span class='no'>formla</span>, <span class='kw'>xformla</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='no'>t</span>, <span class='no'>tmin1</span>, <span class='no'>tname</span>, <span class='no'>data</span>, <span class='kw'>panel</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>,
   <span class='kw'>dropalwaystreated</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>, <span class='kw'>idname</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>probs</span> <span class='kw'>=</span> <span class='fu'><a href='https://www.rdocumentation.org/packages/base/topics/seq'>seq</a></span>(<span class='fl'>0.05</span>, <span class='fl'>0.95</span>,
   <span class='fl'>0.05</span>), <span class='kw'>iters</span> <span class='kw'>=</span> <span class='fl'>100</span>, <span class='kw'>alp</span> <span class='kw'>=</span> <span class='fl'>0.05</span>, <span class='kw'>method</span> <span class='kw'>=</span> <span class='st'>"logit"</span>, <span class='kw'>se</span> <span class='kw'>=</span> <span class='fl'>TRUE</span>,
   <span class='kw'>retEachIter</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>, <span class='kw'>seedvec</span> <span class='kw'>=</span> <span class='kw'>NULL</span>, <span class='kw'>pl</span> <span class='kw'>=</span> <span class='fl'>FALSE</span>, <span class='kw'>cores</span> <span class='kw'>=</span> <span class='kw'>NULL</span>)</pre>
@@ -239,37 +239,67 @@ Only Two Time Periods.'' Working Paper, 2015.</p>
     <pre class="examples"><div class='input'><span class='co'>##load the data</span>
 <span class='fu'><a href='https://www.rdocumentation.org/packages/utils/topics/data'>data</a></span>(<span class='no'>lalonde</span>)
 
-<span class='co'>## Run the panel.qtet method on the experimental data with no covariates</span>
-<span class='no'>pq1</span> <span class='kw'>&lt;-</span> <span class='fu'>ddid2</span>(<span class='no'>re</span> ~ <span class='no'>treat</span>, <span class='kw'>t</span><span class='kw'>=</span><span class='fl'>1978</span>, <span class='kw'>tmin1</span><span class='kw'>=</span><span class='fl'>1975</span>, <span class='kw'>tname</span><span class='kw'>=</span><span class='st'>"year"</span>,
- <span class='kw'>x</span><span class='kw'>=</span><span class='kw'>NULL</span>, <span class='kw'>data</span><span class='kw'>=</span><span class='no'>lalonde.psid.panel</span>, <span class='kw'>idname</span><span class='kw'>=</span><span class='st'>"id"</span>, <span class='kw'>se</span><span class='kw'>=</span><span class='fl'>FALSE</span>,
- <span class='kw'>probs</span><span class='kw'>=</span><span class='fu'><a href='https://www.rdocumentation.org/packages/base/topics/seq'>seq</a></span>(<span class='fl'>0.05</span>, <span class='fl'>0.95</span>, <span class='fl'>0.05</span>))
-<span class='fu'><a href='https://www.rdocumentation.org/packages/base/topics/summary'>summary</a></span>(<span class='no'>pq1</span>)</div><div class='output co'>#&gt; 
+<span class='co'>## Run the ddid2 method on the observational data with no covariates</span>
+<span class='no'>d1</span> <span class='kw'>&lt;-</span> <span class='fu'>ddid2</span>(<span class='no'>re</span> ~ <span class='no'>treat</span>, <span class='kw'>t</span><span class='kw'>=</span><span class='fl'>1978</span>, <span class='kw'>tmin1</span><span class='kw'>=</span><span class='fl'>1975</span>, <span class='kw'>tname</span><span class='kw'>=</span><span class='st'>"year"</span>,
+ <span class='kw'>data</span><span class='kw'>=</span><span class='no'>lalonde.psid.panel</span>, <span class='kw'>idname</span><span class='kw'>=</span><span class='st'>"id"</span>, <span class='kw'>se</span><span class='kw'>=</span><span class='fl'>FALSE</span>,
+ <span class='kw'>probs</span><span class='kw'>=</span><span class='fu'><a href='https://www.rdocumentation.org/packages/base/topics/seq'>seq</a></span>(<span class='fl'>0.05</span>, <span class='fl'>0.95</span>, <span class='fl'>0.05</span>))</div><div class='output co'>#&gt; <span class='warning'>Warning: dropping 2675 observations that are not in period: 1978, 1975, ...</span></div><div class='output co'>#&gt; <span class='warning'>Warning: covariates appear to vary over time...</span>
+#&gt; <span class='warning'>  only conditioning on first period covariates...</span>
+#&gt; <span class='warning'>  this is recommended practice, but worth noting...</span></div><div class='input'><span class='fu'><a href='https://www.rdocumentation.org/packages/base/topics/summary'>summary</a></span>(<span class='no'>d1</span>)</div><div class='output co'>#&gt; 
 #&gt; Quantile Treatment Effect:
 #&gt; 		
 #&gt; tau	QTE
-#&gt; 0.05	 4717.36
-#&gt; 0.1	 4060.99
-#&gt; 0.15	 3661.87
-#&gt; 0.2	 3472.05
-#&gt; 0.25	 3776.01
-#&gt; 0.3	 3984.09
-#&gt; 0.35	 4285.25
-#&gt; 0.4	 4691.54
-#&gt; 0.45	 5078.19
-#&gt; 0.5	 5609.40
-#&gt; 0.55	 6110.55
-#&gt; 0.6	 6906.64
-#&gt; 0.65	 7666.10
-#&gt; 0.7	 8164.07
-#&gt; 0.75	 9106.89
-#&gt; 0.8	 9519.57
-#&gt; 0.85	10617.38
-#&gt; 0.9	11261.87
-#&gt; 0.95	13177.80
+#&gt; 0.05	10616.61
+#&gt; 0.1	 5019.83
+#&gt; 0.15	 2388.12
+#&gt; 0.2	 1033.23
+#&gt; 0.25	  485.23
+#&gt; 0.3	  943.05
+#&gt; 0.35	  931.45
+#&gt; 0.4	  945.35
+#&gt; 0.45	 1205.88
+#&gt; 0.5	 1362.11
+#&gt; 0.55	 1279.05
+#&gt; 0.6	 1618.13
+#&gt; 0.65	 1834.30
+#&gt; 0.7	 1326.06
+#&gt; 0.75	 1586.35
+#&gt; 0.8	 1256.09
+#&gt; 0.85	  723.10
+#&gt; 0.9	  251.36
+#&gt; 0.95	-1509.92
 #&gt; 
 #&gt; Average Treatment Effect:	2326.51</div><div class='input'>
-## Run the panel.qtet method on the observational data with no covariates
-
+<span class='co'>## Run the ddid2 method on the observational data with covariates</span>
+<span class='no'>d2</span> <span class='kw'>&lt;-</span> <span class='fu'>ddid2</span>(<span class='no'>re</span> ~ <span class='no'>treat</span>, <span class='kw'>t</span><span class='kw'>=</span><span class='fl'>1978</span>, <span class='kw'>tmin1</span><span class='kw'>=</span><span class='fl'>1975</span>, <span class='kw'>tname</span><span class='kw'>=</span><span class='st'>"year"</span>,
+ <span class='kw'>data</span><span class='kw'>=</span><span class='no'>lalonde.psid.panel</span>, <span class='kw'>idname</span><span class='kw'>=</span><span class='st'>"id"</span>, <span class='kw'>se</span><span class='kw'>=</span><span class='fl'>FALSE</span>,
+ <span class='kw'>xformla</span><span class='kw'>=</span>~<span class='no'>age</span> + <span class='fu'><a href='https://www.rdocumentation.org/packages/base/topics/AsIs'>I</a></span>(<span class='no'>age</span>^<span class='fl'>2</span>) + <span class='no'>education</span> + <span class='no'>black</span> + <span class='no'>hispanic</span> + <span class='no'>married</span> + <span class='no'>nodegree</span>,
+ <span class='kw'>probs</span><span class='kw'>=</span><span class='fu'><a href='https://www.rdocumentation.org/packages/base/topics/seq'>seq</a></span>(<span class='fl'>0.05</span>, <span class='fl'>0.95</span>, <span class='fl'>0.05</span>))</div><div class='output co'>#&gt; <span class='warning'>Warning: dropping 2675 observations that are not in period: 1978, 1975, ...</span></div><div class='output co'>#&gt; <span class='warning'>Warning: covariates appear to vary over time...</span>
+#&gt; <span class='warning'>  only conditioning on first period covariates...</span>
+#&gt; <span class='warning'>  this is recommended practice, but worth noting...</span></div><div class='output co'>#&gt; <span class='warning'>Warning: Solution may be nonunique</span></div><div class='output co'>#&gt; <span class='warning'>Warning: Solution may be nonunique</span></div><div class='output co'>#&gt; <span class='warning'>Warning: Solution may be nonunique</span></div><div class='output co'>#&gt; <span class='warning'>Warning: Solution may be nonunique</span></div><div class='input'><span class='fu'><a href='https://www.rdocumentation.org/packages/base/topics/summary'>summary</a></span>(<span class='no'>d2</span>)</div><div class='output co'>#&gt; 
+#&gt; Quantile Treatment Effect:
+#&gt; 		
+#&gt; tau	QTE
+#&gt; 0.05	 9832.19
+#&gt; 0.1	 4544.63
+#&gt; 0.15	 2068.77
+#&gt; 0.2	  849.12
+#&gt; 0.25	  485.23
+#&gt; 0.3	  943.05
+#&gt; 0.35	  817.00
+#&gt; 0.4	  681.37
+#&gt; 0.45	 1010.12
+#&gt; 0.5	  992.30
+#&gt; 0.55	  938.13
+#&gt; 0.6	  950.31
+#&gt; 0.65	  977.04
+#&gt; 0.7	  366.22
+#&gt; 0.75	  563.49
+#&gt; 0.8	 -352.59
+#&gt; 0.85	 -825.48
+#&gt; 0.9	-1978.06
+#&gt; 0.95	-3333.16
+#&gt; 
+#&gt; Average Treatment Effect:	1665.63</div><div class='input'>
 
 </div></pre>
   </div>

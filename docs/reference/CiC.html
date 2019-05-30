@@ -246,31 +246,31 @@ to running out of memory.</p></td>
 <span class='no'>c1</span> <span class='kw'>&lt;-</span> <span class='fu'>CiC</span>(<span class='no'>re</span> ~ <span class='no'>treat</span>, <span class='kw'>t</span><span class='kw'>=</span><span class='fl'>1978</span>, <span class='kw'>tmin1</span><span class='kw'>=</span><span class='fl'>1975</span>, <span class='kw'>tname</span><span class='kw'>=</span><span class='st'>"year"</span>,
  <span class='kw'>xformla</span><span class='kw'>=</span>~<span class='no'>age</span> + <span class='fu'><a href='https://www.rdocumentation.org/packages/base/topics/AsIs'>I</a></span>(<span class='no'>age</span>^<span class='fl'>2</span>) + <span class='no'>education</span> + <span class='no'>black</span> + <span class='no'>hispanic</span> + <span class='no'>married</span> + <span class='no'>nodegree</span>,
  <span class='kw'>data</span><span class='kw'>=</span><span class='no'>lalonde.psid.panel</span>, <span class='kw'>idname</span><span class='kw'>=</span><span class='st'>"id"</span>, <span class='kw'>se</span><span class='kw'>=</span><span class='fl'>FALSE</span>,
- <span class='kw'>probs</span><span class='kw'>=</span><span class='fu'><a href='https://www.rdocumentation.org/packages/base/topics/seq'>seq</a></span>(<span class='fl'>0.05</span>, <span class='fl'>0.95</span>, <span class='fl'>0.05</span>))</div><div class='output co'>#&gt; <span class='warning'>Warning: including covariates not currently supported...</span></div><div class='input'><span class='fu'><a href='https://www.rdocumentation.org/packages/base/topics/summary'>summary</a></span>(<span class='no'>c1</span>)</div><div class='output co'>#&gt; 
+ <span class='kw'>probs</span><span class='kw'>=</span><span class='fu'><a href='https://www.rdocumentation.org/packages/base/topics/seq'>seq</a></span>(<span class='fl'>0.05</span>, <span class='fl'>0.95</span>, <span class='fl'>0.05</span>))</div><div class='output co'>#&gt; <span class='warning'>Warning: Solution may be nonunique</span></div><div class='input'><span class='fu'><a href='https://www.rdocumentation.org/packages/base/topics/summary'>summary</a></span>(<span class='no'>c1</span>)</div><div class='output co'>#&gt; 
 #&gt; Quantile Treatment Effect:
 #&gt; 		
 #&gt; tau	QTE
-#&gt; 0.05	    0.00
-#&gt; 0.1	    0.00
-#&gt; 0.15	    0.00
-#&gt; 0.2	    0.00
-#&gt; 0.25	  485.23
-#&gt; 0.3	  929.88
-#&gt; 0.35	 1460.36
-#&gt; 0.4	 2321.11
-#&gt; 0.45	 3462.56
-#&gt; 0.5	 4232.31
-#&gt; 0.55	 5010.34
-#&gt; 0.6	 6210.67
-#&gt; 0.65	 7458.11
-#&gt; 0.7	 8173.91
-#&gt; 0.75	 9643.00
-#&gt; 0.8	 9860.76
-#&gt; 0.85	10824.63
-#&gt; 0.9	 8670.99
-#&gt; 0.95	11394.77
+#&gt; 0.05	   0.00
+#&gt; 0.1	   0.00
+#&gt; 0.15	   0.00
+#&gt; 0.2	   0.00
+#&gt; 0.25	 485.23
+#&gt; 0.3	 929.88
+#&gt; 0.35	1460.36
+#&gt; 0.4	2321.11
+#&gt; 0.45	3462.56
+#&gt; 0.5	4232.31
+#&gt; 0.55	5010.34
+#&gt; 0.6	6210.67
+#&gt; 0.65	7458.11
+#&gt; 0.7	7508.97
+#&gt; 0.75	8210.84
+#&gt; 0.8	8332.69
+#&gt; 0.85	8515.98
+#&gt; 0.9	8822.00
+#&gt; 0.95	8273.74
 #&gt; 
-#&gt; Average Treatment Effect:	5089.64</div><div class='input'>
+#&gt; Average Treatment Effect:	4629.24</div><div class='input'>
 
 </div></pre>
   </div>
