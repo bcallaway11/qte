@@ -82,7 +82,7 @@
       <h1>ddid2</h1>
                         <h4 class="author">Brantly Callaway</h4>
             
-            <h4 class="date">2019-05-27</h4>
+            <h4 class="date">2019-05-30</h4>
       
       
       <div class="hidden name"><code>ddid2.Rmd</code></div>
@@ -117,31 +117,36 @@
  ## Run the panel.qtet method on the experimental data with no covariates
  dd1 &lt;-<span class="st"> </span><span class="kw"><a href="../reference/ddid2.html">ddid2</a></span>(re ~<span class="st"> </span>treat, <span class="dt">t=</span><span class="dv">1978</span>, <span class="dt">tmin1=</span><span class="dv">1975</span>, <span class="dt">tname=</span><span class="st">"year"</span>,
   <span class="dt">data=</span>lalonde.psid.panel, <span class="dt">idname=</span><span class="st">"id"</span>, <span class="dt">se=</span><span class="ot">FALSE</span>,
-  <span class="dt">probs=</span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/seq">seq</a></span>(<span class="fl">0.05</span>, <span class="fl">0.95</span>, <span class="fl">0.05</span>))
- <span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/summary">summary</a></span>(dd1)</code></pre></div>
+  <span class="dt">probs=</span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/seq">seq</a></span>(<span class="fl">0.05</span>, <span class="fl">0.95</span>, <span class="fl">0.05</span>))</code></pre></div>
+<pre><code>## Warning in panelize.data(data, idname, tname, t, tmin1): dropping 2675
+## observations that are not in period: 1978, 1975, ...</code></pre>
+<pre><code>## Warning in panel.checks(qp): covariates appear to vary over time...
+##   only conditioning on first period covariates...
+##   this is recommended practice, but worth noting...</code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"> <span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/summary">summary</a></span>(dd1)</code></pre></div>
 <pre><code>## 
 ## Quantile Treatment Effect:
 ##      
 ## tau  QTE
-## 0.05  4717.36
-## 0.1   4060.99
-## 0.15  3661.87
-## 0.2   3472.05
-## 0.25  3776.01
-## 0.3   3984.09
-## 0.35  4285.25
-## 0.4   4691.54
-## 0.45  5078.19
-## 0.5   5609.40
-## 0.55  6110.55
-## 0.6   6906.64
-## 0.65  7666.10
-## 0.7   8164.07
-## 0.75  9106.89
-## 0.8   9519.57
-## 0.85 10617.38
-## 0.9  11261.87
-## 0.95 13177.80
+## 0.05 10616.61
+## 0.1   5019.83
+## 0.15  2388.12
+## 0.2   1033.23
+## 0.25   485.23
+## 0.3    943.05
+## 0.35   931.45
+## 0.4    945.35
+## 0.45  1205.88
+## 0.5   1362.11
+## 0.55  1279.05
+## 0.6   1618.13
+## 0.65  1834.30
+## 0.7   1326.06
+## 0.75  1586.35
+## 0.8   1256.09
+## 0.85   723.10
+## 0.9    251.36
+## 0.95 -1509.92
 ## 
 ## Average Treatment Effect:    2326.51</code></pre>
 </div>

@@ -3,7 +3,6 @@ title: "Quantile Treatment Effects in R: The qte Package"
 author: "Brantly Callaway"
 date: "`r Sys.Date()`"
 output: rmarkdown::pdf_document
-bibliography: refs.bib
 vignette: >
   %\VignetteIndexEntry{Quantile Treatment Effects in R: The qte Package}
   %\VignetteEngine{knitr::rmarkdown}

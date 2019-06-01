@@ -82,7 +82,7 @@
       <h1>panel.qtet</h1>
                         <h4 class="author">Brantly Callaway</h4>
             
-            <h4 class="date">2019-05-27</h4>
+            <h4 class="date">2019-05-30</h4>
       
       
       <div class="hidden name"><code>panel-qtet.Rmd</code></div>
@@ -118,7 +118,7 @@
  pq1 &lt;-<span class="st"> </span><span class="kw"><a href="../reference/panel.qtet.html">panel.qtet</a></span>(re ~<span class="st"> </span>treat, <span class="dt">t=</span><span class="dv">1978</span>, <span class="dt">tmin1=</span><span class="dv">1975</span>, <span class="dt">tmin2=</span><span class="dv">1974</span>, <span class="dt">tname=</span><span class="st">"year"</span>,
   <span class="dt">x=</span><span class="ot">NULL</span>, <span class="dt">data=</span>lalonde.psid.panel, <span class="dt">idname=</span><span class="st">"id"</span>, <span class="dt">se=</span><span class="ot">FALSE</span>,
   <span class="dt">probs=</span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/seq">seq</a></span>(<span class="fl">0.1</span>, <span class="fl">0.9</span>, <span class="fl">0.1</span>))</code></pre></div>
-<pre><code>## Warning in panel.qtet(re ~ treat, t = 1978, tmin1 = 1975, tmin2 = 1974, : covariates appear to vary over time...
+<pre><code>## Warning in panel.checks(qp): covariates appear to vary over time...
 ##   only conditioning on first period covariates...
 ##   this is recommended practice, but worth noting...</code></pre>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"> <span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/summary">summary</a></span>(pq1)</code></pre></div>
@@ -144,25 +144,58 @@
   <span class="dt">xformla=</span>~age +<span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/AsIs">I</a></span>(age^<span class="dv">2</span>) +<span class="st"> </span>education +<span class="st"> </span>black +<span class="st"> </span>hispanic +<span class="st"> </span>married +<span class="st"> </span>nodegree,
   <span class="dt">data=</span>lalonde.psid.panel, <span class="dt">idname=</span><span class="st">"id"</span>, <span class="dt">se=</span><span class="ot">FALSE</span>,
   <span class="dt">probs=</span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/seq">seq</a></span>(<span class="fl">0.1</span>, <span class="fl">0.9</span>, <span class="fl">0.1</span>))</code></pre></div>
-<pre><code>## Warning in panel.qtet(re ~ treat, t = 1978, tmin1 = 1975, tmin2 = 1974, : covariates appear to vary over time...
+<pre><code>## Warning in panel.checks(qp): covariates appear to vary over time...
 ##   only conditioning on first period covariates...
 ##   this is recommended practice, but worth noting...</code></pre>
+<pre><code>## Warning in rq.fit.br(x, y, tau = tau, ...): Solution may be nonunique
+
+## Warning in rq.fit.br(x, y, tau = tau, ...): Solution may be nonunique
+
+## Warning in rq.fit.br(x, y, tau = tau, ...): Solution may be nonunique
+
+## Warning in rq.fit.br(x, y, tau = tau, ...): Solution may be nonunique
+
+## Warning in rq.fit.br(x, y, tau = tau, ...): Solution may be nonunique
+
+## Warning in rq.fit.br(x, y, tau = tau, ...): Solution may be nonunique
+
+## Warning in rq.fit.br(x, y, tau = tau, ...): Solution may be nonunique
+
+## Warning in rq.fit.br(x, y, tau = tau, ...): Solution may be nonunique
+
+## Warning in rq.fit.br(x, y, tau = tau, ...): Solution may be nonunique
+
+## Warning in rq.fit.br(x, y, tau = tau, ...): Solution may be nonunique
+
+## Warning in rq.fit.br(x, y, tau = tau, ...): Solution may be nonunique
+
+## Warning in rq.fit.br(x, y, tau = tau, ...): Solution may be nonunique
+
+## Warning in rq.fit.br(x, y, tau = tau, ...): Solution may be nonunique
+
+## Warning in rq.fit.br(x, y, tau = tau, ...): Solution may be nonunique
+
+## Warning in rq.fit.br(x, y, tau = tau, ...): Solution may be nonunique
+
+## Warning in rq.fit.br(x, y, tau = tau, ...): Solution may be nonunique
+
+## Warning in rq.fit.br(x, y, tau = tau, ...): Solution may be nonunique</code></pre>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"> <span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/summary">summary</a></span>(pq2)</code></pre></div>
 <pre><code>## 
 ## Quantile Treatment Effect:
 ##      
 ## tau  QTE
-## 0.1   1762.13
-## 0.2  -7254.06
-## 0.3  -6311.01
-## 0.4  -4916.23
-## 0.5  -3021.75
-## 0.6  -1060.66
-## 0.7    910.01
-## 0.8   2526.64
-## 0.9   1629.48
+## 0.1      0.00
+## 0.2  -2159.20
+## 0.3  -3378.66
+## 0.4  -2922.88
+## 0.5  -1935.37
+## 0.6    -88.03
+## 0.7   1514.30
+## 0.8   2633.73
+## 0.9   3174.61
 ## 
-## Average Treatment Effect:    -119556.31</code></pre>
+## Average Treatment Effect:    401.65</code></pre>
 </div>
   </div>
 
