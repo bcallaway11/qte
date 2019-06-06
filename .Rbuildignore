@@ -7,3 +7,4 @@
 ^R/old-code$
 ^doc$
 ^Meta$
+^vignettes/R-QTE$
