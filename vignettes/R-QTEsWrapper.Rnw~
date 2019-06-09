@@ -1,0 +1,8 @@
+\documentclass{article}
+\usepackage{pdfpages}
+%\VignetteIndexEntry{Quantile Treatment Effects in R}
+%\VignettePackage{qte}
+
+\begin{document}
+\includepdf[pages=-, fitpaper=true]{R-QTEs.pdf}
+\end{document}

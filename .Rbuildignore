@@ -7,4 +7,5 @@
 ^R/old-code$
 ^doc$
 ^Meta$
-^vignettes/old$
+^vignette-pdf$
+^\.Rproj\.user$

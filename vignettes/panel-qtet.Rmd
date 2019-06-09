@@ -39,7 +39,7 @@ And then we can invert this to obtain the QTET.
 
 We also can allow the Distributional DID Assumption to hold conditional on covariates.  This may be important when the path of outcomes depends on covariates -- for example, the path of earnings even in the absence of treatment is likely to depend on education, experience, etc.  In this case, first step estimation depends on the propensity score, but is still straightforward.  The `panel.qtet` contains all the tools needed to do the estimation.
 
-```{r}
+```{r, warning=FALSE}
  ##load the package
  library(qte)
 

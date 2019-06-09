@@ -56,9 +56,6 @@
       <a href="../articles/ddid2.html">ddid2</a>
     </li>
     <li>
-      <a href="../articles/old/R-QTEs.html">Quantile Treatment Effects in R: The qte Package</a>
-    </li>
-    <li>
       <a href="../articles/panel-qtet.html">panel.qtet</a>
     </li>
   </ul>
@@ -109,21 +106,20 @@
 <p>And then we can invert this to obtain the CQTT.</p>
 <p>The <code>ddid2</code> method contains the code to implement this method. Here is an example.</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"> ##load the package
- <span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/library">library</a></span>(qte)
-
- ##load the data
+ <span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/library">library</a></span>(qte)</code></pre></div>
+<pre><code>## Registered S3 methods overwritten by 'ggplot2':
+##   method         from 
+##   [.quosures     rlang
+##   c.quosures     rlang
+##   print.quosures rlang</code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"> ##load the data
  <span class="kw"><a href="https://www.rdocumentation.org/packages/utils/topics/data">data</a></span>(lalonde)
 
  ## Run the panel.qtet method on the experimental data with no covariates
  dd1 &lt;-<span class="st"> </span><span class="kw"><a href="../reference/ddid2.html">ddid2</a></span>(re ~<span class="st"> </span>treat, <span class="dt">t=</span><span class="dv">1978</span>, <span class="dt">tmin1=</span><span class="dv">1975</span>, <span class="dt">tname=</span><span class="st">"year"</span>,
   <span class="dt">data=</span>lalonde.psid.panel, <span class="dt">idname=</span><span class="st">"id"</span>, <span class="dt">se=</span><span class="ot">FALSE</span>,
-  <span class="dt">probs=</span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/seq">seq</a></span>(<span class="fl">0.05</span>, <span class="fl">0.95</span>, <span class="fl">0.05</span>))</code></pre></div>
-<pre><code>## Warning in panelize.data(data, idname, tname, t, tmin1): dropping 2675
-## observations that are not in period: 1978, 1975, ...</code></pre>
-<pre><code>## Warning in panel.checks(qp): covariates appear to vary over time...
-##   only conditioning on first period covariates...
-##   this is recommended practice, but worth noting...</code></pre>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"> <span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/summary">summary</a></span>(dd1)</code></pre></div>
+  <span class="dt">probs=</span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/seq">seq</a></span>(<span class="fl">0.05</span>, <span class="fl">0.95</span>, <span class="fl">0.05</span>))
+ <span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/summary">summary</a></span>(dd1)</code></pre></div>
 <pre><code>## 
 ## Quantile Treatment Effect:
 ##      
