@@ -76,7 +76,7 @@ ggqte <- function(qteobj, main="", ylab="QTE", ylim=NULL, ybreaks=NULL, xbreaks=
     } else if ( !is.null(ylim) & is.null(ybreaks) ) {
         qp  <- qp + ggplot2::scale_y_continuous(ylab, limits=ylim)
     } else {
-        ggplot2::scale_y_continuous(ylab, limits=ylim, breaks=ybreaks)
+        qp <- qp + ggplot2::scale_y_continuous(ylab, limits=ylim, breaks=ybreaks)
     }
     
     if (!is.null(qte.se)) {
