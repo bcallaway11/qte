@@ -4,8 +4,16 @@
 \alias{BoundsObj}
 \title{BoundsObj}
 \usage{
-BoundsObj(lbs, ubs, ub.quantiles, lb.quantiles, ub.qte, lb.qte,
-  att = NULL, probs)
+BoundsObj(
+  lbs,
+  ubs,
+  ub.quantiles,
+  lb.quantiles,
+  ub.qte,
+  lb.qte,
+  att = NULL,
+  probs
+)
 }
 \arguments{
 \item{lbs}{A vector of the lower bounds for each value in the support

@@ -4,9 +4,18 @@
 \alias{compute.MDiD}
 \title{compute.MDiD}
 \usage{
-compute.MDiD(formla, xformla = NULL, t, tmin1, tname, data,
-  panel = FALSE, idname = NULL, uniqueid = NULL, probs = seq(0.05,
-  0.95, 0.05))
+compute.MDiD(
+  formla,
+  xformla = NULL,
+  t,
+  tmin1,
+  tname,
+  data,
+  panel = FALSE,
+  idname = NULL,
+  uniqueid = NULL,
+  probs = seq(0.05, 0.95, 0.05)
+)
 }
 \arguments{
 \item{formla}{The formula y ~ d where y is the outcome and d is the

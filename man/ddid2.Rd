@@ -4,10 +4,26 @@
 \alias{ddid2}
 \title{ddid2}
 \usage{
-ddid2(formla, xformla = NULL, t, tmin1, tname, data, panel = TRUE,
-  dropalwaystreated = TRUE, idname = NULL, probs = seq(0.05, 0.95,
-  0.05), iters = 100, alp = 0.05, method = "logit", se = TRUE,
-  retEachIter = FALSE, seedvec = NULL, pl = FALSE, cores = NULL)
+ddid2(
+  formla,
+  xformla = NULL,
+  t,
+  tmin1,
+  tname,
+  data,
+  panel = TRUE,
+  dropalwaystreated = TRUE,
+  idname = NULL,
+  probs = seq(0.05, 0.95, 0.05),
+  iters = 100,
+  alp = 0.05,
+  method = "logit",
+  se = TRUE,
+  retEachIter = FALSE,
+  seedvec = NULL,
+  pl = FALSE,
+  cores = NULL
+)
 }
 \arguments{
 \item{formla}{The formula y ~ d where y is the outcome and d is the

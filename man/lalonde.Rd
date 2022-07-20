@@ -4,14 +4,16 @@
 \name{lalonde}
 \alias{lalonde}
 \title{Lalonde (1986)'s NSW Dataset}
-\format{Four data.frames: (i) lalonde.exp contains a cross sectional version
+\format{
+Four data.frames: (i) lalonde.exp contains a cross sectional version
  of the experimental data, (ii) lalonde.psid contains a cross sectional
  version of the observational data, (iii) lalonde.exp.panel contains a
  panel version of the experimental data, and (iv) lalonde.psid.panel contains
  a panel version of the observational data.  Note: the cross sectional
  and panel versions of each dataset are identical up to their shape; in
  demonstrating each of the methods, it is sometimes convenient to have
- one form of the data or the other.}
+ one form of the data or the other.
+}
 \usage{
 data(lalonde)
 }

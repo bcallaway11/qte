@@ -4,8 +4,7 @@
 \alias{print.matrix1}
 \title{print.matrix1}
 \usage{
-\method{print}{matrix1}(m, probs = NULL, header = NULL, digits = 2,
-  nsmall = 2)
+\method{print}{matrix1}(m, probs = NULL, header = NULL, digits = 2, nsmall = 2)
 }
 \arguments{
 \item{m}{Some matrix}

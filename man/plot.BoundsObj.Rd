@@ -4,9 +4,18 @@
 \alias{plot.BoundsObj}
 \title{Plot Bounds}
 \usage{
-\method{plot}{BoundsObj}(x, plotate = FALSE, plot0 = FALSE,
-  qtecol = "black", atecol = "black", col0 = "black", ylim = NULL,
-  uselegend = FALSE, legloc = "topright", ...)
+\method{plot}{BoundsObj}(
+  x,
+  plotate = FALSE,
+  plot0 = FALSE,
+  qtecol = "black",
+  atecol = "black",
+  col0 = "black",
+  ylim = NULL,
+  uselegend = FALSE,
+  legloc = "topright",
+  ...
+)
 }
 \arguments{
 \item{x}{A BoundsObj Object}

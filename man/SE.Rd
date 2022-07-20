@@ -4,9 +4,16 @@
 \alias{SE}
 \title{SE}
 \usage{
-SE(qte.se = NULL, ate.se = NULL, qte.upper = NULL,
-  qte.lower = NULL, ate.upper = NULL, ate.lower = NULL, c = NULL,
-  probs = NULL)
+SE(
+  qte.se = NULL,
+  ate.se = NULL,
+  qte.upper = NULL,
+  qte.lower = NULL,
+  ate.upper = NULL,
+  ate.lower = NULL,
+  c = NULL,
+  probs = NULL
+)
 }
 \arguments{
 \item{qte.se}{The QTE Standard Error}

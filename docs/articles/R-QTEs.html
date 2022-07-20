@@ -6,18 +6,19 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Quantile Treatment Effects in R: The qte Package • qte</title>
-<!-- jquery --><script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script><!-- Bootstrap --><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha256-916EbMg70RQy9LHiGkXzG8hSg9EdNy97GazNG/aiY1w=" crossorigin="anonymous">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha256-U5ZEeKfGNOja007MMD3YBI0A3OSZOQbeG6z2f2Y0hu8=" crossorigin="anonymous"></script><!-- Font Awesome icons --><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" integrity="sha256-eZrrJcwDc/3uDhsdt61sL2oOBY362qM3lon1gyExkL0=" crossorigin="anonymous">
-<!-- clipboard.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.4/clipboard.min.js" integrity="sha256-FiZwavyI2V6+EXO1U+xzLG3IKldpiTFf3153ea9zikQ=" crossorigin="anonymous"></script><!-- sticky kit --><script src="https://cdnjs.cloudflare.com/ajax/libs/sticky-kit/1.1.3/sticky-kit.min.js" integrity="sha256-c4Rlo1ZozqTPE2RLuvbusY3+SU1pQaJC0TjuhygMipw=" crossorigin="anonymous"></script><!-- pkgdown --><link href="../pkgdown.css" rel="stylesheet">
+<!-- jquery --><script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js" integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script><!-- Bootstrap --><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.4.1/css/bootstrap.min.css" integrity="sha256-bZLfwXAP04zRMK2BjiO8iu9pf4FbLqX6zitd+tIvLhE=" crossorigin="anonymous">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.4.1/js/bootstrap.min.js" integrity="sha256-nuL8/2cJ5NDSSwnKD8VqreErSWHtnEP9E7AySL+1ev4=" crossorigin="anonymous"></script><!-- bootstrap-toc --><link rel="stylesheet" href="../bootstrap-toc.css">
+<script src="../bootstrap-toc.js"></script><!-- Font Awesome icons --><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/all.min.css" integrity="sha256-mmgLkCYLUQbXn0B1SRqzHar6dCnv9oZFPEC1g1cwlkk=" crossorigin="anonymous">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/v4-shims.min.css" integrity="sha256-wZjR52fzng1pJHwx4aV2AO3yyTOXrcDW7jBpJtTwVxw=" crossorigin="anonymous">
+<!-- clipboard.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.6/clipboard.min.js" integrity="sha256-inc5kl9MA1hkeYUt+EC3BhlIgyp/2jDIyBLS6k3UxPI=" crossorigin="anonymous"></script><!-- headroom.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/headroom.min.js" integrity="sha256-AsUX4SJE1+yuDu5+mAVzJbuYNPHj/WroHuZ8Ir/CkE0=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/jQuery.headroom.min.js" integrity="sha256-ZX/yNShbjqsohH1k95liqY9Gd8uOiE1S4vZc+9KQ1K4=" crossorigin="anonymous"></script><!-- pkgdown --><link href="../pkgdown.css" rel="stylesheet">
 <script src="../pkgdown.js"></script><meta property="og:title" content="Quantile Treatment Effects in R: The qte Package">
-<meta property="og:description" content="">
-<meta name="twitter:card" content="summary">
+<meta property="og:description" content="qte">
 <!-- mathjax --><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js" integrity="sha256-nvJJv9wWKEm88qvoQl9ekL2J+k/RWIsaSScxxlsrv8k=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/config/TeX-AMS-MML_HTMLorMML.js" integrity="sha256-84DKXVJXs0/F8OTMzX4UR909+jtl4G7SPypPavF+GfA=" crossorigin="anonymous"></script><!--[if lt IE 9]>
 <script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
 <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
 <![endif]-->
 </head>
-<body>
+<body data-spy="scroll" data-target="#toc">
     <div class="container template-article">
       <header><div class="navbar navbar-default navbar-fixed-top" role="navigation">
   <div class="container">
@@ -30,7 +31,7 @@
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">qte</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">1.3.0</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="Released version">1.3.1</span>
       </span>
     </div>
 
@@ -38,30 +39,15 @@
       <ul class="nav navbar-nav">
 <li>
   <a href="../index.html">
-    <span class="fa fa-home fa-lg"></span>
+    <span class="fas fa fas fa-home fa-lg"></span>
      
   </a>
 </li>
 <li>
   <a href="../reference/index.html">Reference</a>
 </li>
-<li class="dropdown">
-  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
-    Articles
-     
-    <span class="caret"></span>
-  </a>
-  <ul class="dropdown-menu" role="menu">
 <li>
-      <a href="../articles/R-QTEs.html">Quantile Treatment Effects in R: The qte Package</a>
-    </li>
-    <li>
-      <a href="../articles/ddid2.html">ddid2</a>
-    </li>
-    <li>
-      <a href="../articles/panel-qtet.html">panel.qtet</a>
-    </li>
-  </ul>
+  <a href="../articles/index.html">Articles</a>
 </li>
 <li>
   <a href="../news/index.html">Changelog</a>
@@ -76,13 +62,15 @@
 <!--/.navbar -->
 
       
-      </header><div class="row">
+
+      </header><link href="R-QTEs_files/anchor-sections-1.0/anchor-sections.css" rel="stylesheet">
+<script src="R-QTEs_files/anchor-sections-1.0/anchor-sections.js"></script><div class="row">
   <div class="col-md-9 contents">
     <div class="page-header toc-ignore">
-      <h1>Quantile Treatment Effects in R: The qte Package</h1>
+      <h1 data-toc-skip>Quantile Treatment Effects in R: The qte Package</h1>
                         <h4 class="author">Brantly Callaway</h4>
             
-            <h4 class="date">2019-05-30</h4>
+            <h4 class="date">2020-12-14</h4>
       
       
       <div class="hidden name"><code>R-QTEs.Rmd</code></div>
@@ -95,14 +83,14 @@
 <h1 class="hasAnchor">
 <a href="#introduction" class="anchor"></a>Introduction</h1>
 <p>When evaluating the effect of a program, policymakers may be interested in more than just the average impact of the program. For example, there may be cases where the mean net impact (benefit minus cost) is negative, but the program is still implemented because of the distributional impacts of the program. One example from economics is the effect of a job training program. Consider two job training programs that both have the same mean net impact which is negative. If the first job training program tends to increase wages at the top of the wage distribution, it is likely to be rejected by policymakers. On the other hand, if the second job training program tends to increase wages at the bottom of the wage distribution, it may be approved by policymakers. Traditional methods, such as linear regression where the effect of participating in a program is constrained to be the same across all individuals are not suitable for distinguishing between these two types of programs. Neither are methods that allow for treatment effect heterogeneity but identify only the average effect of participating in a program. The distributional methods available in the R package QTE are useful in cases such as the above example where the researcher is interested in both allowing for treatment effect heterogeneity and understanding some aspect of the treatment effect heterogeneity.</p>
-<p>The idea that participating in a program can have a different effect on even observationally identical individuals has a long history in the econometrics literature <span class="citation">[@heckman-robb-1985]</span>. There has been much recent interest in studying treatment effect heterogeneity <span class="citation">[@heckman-smith-clements-1997; @abbring-heckman-2007]</span>. Although the QTE might not be the first choice parameter of interest for studying treatment effect heterogeneity, it is easier to identify as it only depends on the marginal distributions rather than the joint distribution. In some cases the QTE is identical to the Quantiles of the Treatment Effect <span class="citation">[@fan-park-2009]</span> when individuals maintain their rank in the treated and untreated distributions and the QTE is increasing in <span class="math inline">\(\tau\)</span>. On the other hand, one can write down simply examples where the effect of treatment is heterogeneous across agents and the QTE is constant or where the QTE is not constant but there is no treatment effect heterogeneity.</p>
-<p>This article deals with estimating QTEs in several situations that are likely to be common in applied research. Models where treatment is randomly assigned or <em>as good as random</em> after conditioning on some covariates.<a href="#fn1" class="footnoteRef" id="fnref1"><sup>1</sup></a> Methods for the case where the researcher has access to repeated cross sectional data or panel data are also available in the methods <code>panel.qtet</code> <span class="citation">[@callaway-li-2016]</span>, <code>MDiD</code>, <code>QDiD</code>, and <code>CiC</code> <span class="citation">[@athey-imbens-2006]</span>. It should also be mentioned that methods for estimating the QTE when identification is based on an instrumental variable <span class="citation">[@frolich-melly-2013]</span> are not currently available in the <code>ci.qte</code> package though the author’s of that method do have some code available in <code>Stata</code> with the command <code>ivqte</code>.</p>
-<p>Because the QTE and the Average Treatment Effect (ATE)<a href="#fn2" class="footnoteRef" id="fnref2"><sup>2</sup></a> (or the QTET and ATT) are both functions of the marginal distributions <span class="math inline">\(F_{Y_1}(y_1)\)</span> and <span class="math inline">\(F_{Y_0}(y_0)\)</span>, estimating the QTE implies the ATE can be recovered from it. Usually, the ATE is identified under weaker conditions than the QTE; e.g. the ATE usually requires some type of mean independence assumption while the QTE requires some type of full independence assumption. As such, researchers that study the QTE are usually interested in the shape of the QTE rather than the location as the location is already available under the weaker assumptions that identify the QTE. In the job training example, the ATE is useful for thinking about whether or not participating in a job training program tends to increase wages; the QTE is useful for thinking about whether the job training program affects wages of workers at the top of the wage distribution more or less than workers at the bottom of the wage distribution.</p>
+<p>The idea that participating in a program can have a different effect on even observationally identical individuals has a long history in the econometrics literature <span class="citation">(Heckman and Robb 1985)</span>. There has been much recent interest in studying treatment effect heterogeneity <span class="citation">(Heckman, Smith, and Clements 1997; Abbring and Heckman 2007)</span>. Although the QTE might not be the first choice parameter of interest for studying treatment effect heterogeneity, it is easier to identify as it only depends on the marginal distributions rather than the joint distribution. In some cases the QTE is identical to the Quantiles of the Treatment Effect <span class="citation">(Fan and Park 2009)</span> when individuals maintain their rank in the treated and untreated distributions and the QTE is increasing in <span class="math inline">\(\tau\)</span>. On the other hand, one can write down simply examples where the effect of treatment is heterogeneous across agents and the QTE is constant or where the QTE is not constant but there is no treatment effect heterogeneity.</p>
+<p>This article deals with estimating QTEs in several situations that are likely to be common in applied research. Models where treatment is randomly assigned or <em>as good as random</em> after conditioning on some covariates.<a href="#fn1" class="footnote-ref" id="fnref1"><sup>1</sup></a> Methods for the case where the researcher has access to repeated cross sectional data or panel data are also available in the methods <code>panel.qtet</code> <span class="citation">(Callaway and Li 2019)</span>, <code>MDiD</code>, <code>QDiD</code>, and <code>CiC</code> <span class="citation">(Athey and Imbens 2006)</span>. It should also be mentioned that methods for estimating the QTE when identification is based on an instrumental variable <span class="citation">(Frolich and Melly 2013)</span> are not currently available in the <code>ci.qte</code> package though the author’s of that method do have some code available in <code>Stata</code> with the command <code>ivqte</code>.</p>
+<p>Because the QTE and the Average Treatment Effect (ATE)<a href="#fn2" class="footnote-ref" id="fnref2"><sup>2</sup></a> (or the QTET and ATT) are both functions of the marginal distributions <span class="math inline">\(F_{Y_1}(y_1)\)</span> and <span class="math inline">\(F_{Y_0}(y_0)\)</span>, estimating the QTE implies the ATE can be recovered from it. Usually, the ATE is identified under weaker conditions than the QTE; e.g. the ATE usually requires some type of mean independence assumption while the QTE requires some type of full independence assumption. As such, researchers that study the QTE are usually interested in the shape of the QTE rather than the location as the location is already available under the weaker assumptions that identify the QTE. In the job training example, the ATE is useful for thinking about whether or not participating in a job training program tends to increase wages; the QTE is useful for thinking about whether the job training program affects wages of workers at the top of the wage distribution more or less than workers at the bottom of the wage distribution.</p>
 </div>
 <div id="background-on-treatment-effects" class="section level1">
 <h1 class="hasAnchor">
 <a href="#background-on-treatment-effects" class="anchor"></a>Background on treatment effects</h1>
-<p>There is a large literature on treatment effects. <span class="citation">[@imbens-wooldridge-2009]</span> provides a thorough introduction. The QTE package follows the most common setup. First, we are considering the case of a binary instrument. All individuals in the population either participate in the treatment or not. The set of participating individuals is called the treatment group; the set of non-participating individuals is called the untreated or control group.<br>
+<p>There is a large literature on treatment effects. <span class="citation">(Imbens and Wooldridge 2009)</span> provides a thorough introduction. The QTE package follows the most common setup. First, we are considering the case of a binary instrument. All individuals in the population either participate in the treatment or not. The set of participating individuals is called the treatment group; the set of non-participating individuals is called the untreated or control group.<br>
 There are many examples of programs that fit into this category. The example that we use throughout this article is a job training program. We are interested in whether or not participating in a job training program has an effect on subsequent wages. There are many other examples in different fields. In medicine, one might be interested in studying the effect of a drug on some health outcome. In a randomized experiment, this evaluation is relatively easy. A more challenging example would be the effect of cigarette smoking on longevity. Because an individual cannot be randomly assigned to smoke, the researcher must invoke some assumption to identify an effect of smoking. In political science, an example would be the effect of being the incumbent on an election outcome.</p>
 <div id="notation" class="section level2">
 <h2 class="hasAnchor">
@@ -114,11 +102,7 @@ There are many examples of programs that fit into this category. The example tha
 <div id="quantiles" class="section level1">
 <h1 class="hasAnchor">
 <a href="#quantiles" class="anchor"></a>Quantiles</h1>
-<div class="figure">
-<img src="R-QTEs_files/figure-html/unnamed-chunk-2-1.png" alt="test caption" width="1440"><p class="caption">
-test caption
-</p>
-</div>
+<p><img src="R-QTEs_files/figure-html/unnamed-chunk-2-1.png" width="90%" style="display: block; margin: auto;"></p>
 <p><em>Figure 1: A plot of a standard normal distribution truncated from the left at zero. The lower dotted line represents the median; the upper dotted line represents the 95th percentile. The figure on the right inverts the same distribution to show the quantiles. Each dotted line once again corresponds to the median and the 95th percentile.</em></p>
 <p>For a random variable <span class="math inline">\(Z\)</span> with distribution function <span class="math inline">\(F_Z(\cdot)\)</span>, the <span class="math inline">\(\tau\)</span>-th quantile, <span class="math inline">\(z_\tau\)</span> is defined as</p>
 <p><span class="math display">\[z_\tau = \inf\{z : F_Z(z) \geq \tau\}\]</span></p>
@@ -131,7 +115,7 @@ test caption
 <h1 class="hasAnchor">
 <a href="#quantile-treatment-effects" class="anchor"></a>Quantile Treatment Effects</h1>
 <p>QTEs are defined as the difference between the quantiles (for a particular value of <span class="math inline">\(\tau\)</span>) of the treated potential outcome distribution and the untreated potential outcome distribution.</p>
-<p><img src="R-QTEs_files/figure-html/unnamed-chunk-3-1.png" width="1440"></p>
+<p><img src="R-QTEs_files/figure-html/unnamed-chunk-3-1.png" width="90%" style="display: block; margin: auto;"></p>
 <p><em>Figure 2: The figure is two cumulative distributions. The red distribution is the same truncated standard normal distribution as in Figure 1. The blue distribution is an adjusted truncated normal distribution. The lower dotted line represents the Quantile Treatment Effect for <span class="math inline">\(\tau = 0.5\)</span>; the upper dotted line represents the Quantile Treatment Effect for <span class="math inline">\(\tau = 0.95\)</span>. The figure on the right inverts both distribution functions and displays all the Quantile Treatment Effects for <span class="math inline">\(\tau \in [0,1]\)</span></em></p>
 <p>For <span class="math inline">\(\tau \in [0,1]\)</span> <span class="math display">\[ QTE(\tau) = F^{-1}_{Y_1}(\tau) - F^{-1}_{Y_0}(\tau) \]</span> Likewise, QTETs are defined as the difference between the quantiles of (i) the distribution of treated potential outcomes for the treated group and (ii) the distribution of untreated potential outcomes for the treated group. <span class="math display">\[ QTET(\tau) = F^{-1}_{Y_1|D=1}(\tau) - F^{-1}_{Y_0|D=1}(\tau) \]</span> For identification, the key issue is whether or not each of the distributions are identified. For the QTE, some assumption needs to be invoked to identify both <span class="math inline">\(F_{Y_{1t}}(y_1)\)</span> and <span class="math inline">\(F_{Y_{0t}}(y_0)\)</span>. For the QTET, <span class="math inline">\(F_{Y_{1t}|D_t=1}(y_1)\)</span> is identified directly from the data because we observe at the distribution of treated outcomes for the treated group. However, to identify <span class="math inline">\(F_{Y_{0t}|D_t=1}(y_0)\)</span> will require some identifying assumption because we do not observe untreated potential outcomes for the treated group.</p>
 <p>Figure 2 shows the QTE for two simulated distributions. The purple distribution in Figure 2(a) is the same as the distribution in Figure 1; the green distribution is an adjusted truncated normal distribution. The horizontal distance between the two distributions gives the QTE. For example, QTE(0.5) and QTE(0.95) are represented by the two dotted lines in the figure. The QTE for all values of <span class="math inline">\(\tau\)</span> is plotted in Figure 2(b).</p>
@@ -143,36 +127,41 @@ test caption
 <div id="data" class="section level2">
 <h2 class="hasAnchor">
 <a href="#data" class="anchor"></a>Data</h2>
-<p>We use data from a job training program in the 1970s. This program provided extensive job training to workers over a 9-18 month period. The program randomly assigned some applicants to the program and randomly denied some other applicants. The dataset also includes non-experimental observations from the Panel Study of Income Dynamics (PSID). None of the individuals from the PSID participated in the job training program, but they can be combined with the treated group from the job training program to form an ``observational’’ dataset. Then, various techniques that can be applied in non-experimental settings can be applied to this new dataset, and the results can be compared to the results obtained from using the full experimental dataset as a check on the performance of various non-experimental methods <span class="citation">[@lalonde-1986]</span>. We use a subset that consists of males with three (2 pre-training and 1 post-training) years of earnings data (the outcome of interest). This subset has been considered in <span class="citation">[@dehejia-wahba-1999; @smith-todd-2005; @firpo-2007]</span>.</p>
+<p>We use data from a job training program in the 1970s. This program provided extensive job training to workers over a 9-18 month period. The program randomly assigned some applicants to the program and randomly denied some other applicants. The dataset also includes non-experimental observations from the Panel Study of Income Dynamics (PSID). None of the individuals from the PSID participated in the job training program, but they can be combined with the treated group from the job training program to form an ``observational’’ dataset. Then, various techniques that can be applied in non-experimental settings can be applied to this new dataset, and the results can be compared to the results obtained from using the full experimental dataset as a check on the performance of various non-experimental methods <span class="citation">(LaLonde 1986)</span>. We use a subset that consists of males with three (2 pre-training and 1 post-training) years of earnings data (the outcome of interest). This subset has been considered in <span class="citation">(Dehejia and Wahba 1999; Smith and Todd 2005; Firpo 2007)</span>.</p>
 </div>
 <div id="using-the-qte-package" class="section level2">
 <h2 class="hasAnchor">
 <a href="#using-the-qte-package" class="anchor"></a>Using the QTE package</h2>
 <p>After installing the <code>qte</code> package, the package can be loaded by</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/library">library</a></span>(qte)</code></pre></div>
+<div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va">qte</span><span class="op">)</span></code></pre></div>
 <p>and the job training datasets loaded by the following command</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="https://www.rdocumentation.org/packages/utils/topics/data">data</a></span>(lalonde)</code></pre></div>
+<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/utils/data.html">data</a></span><span class="op">(</span><span class="va">lalonde</span><span class="op">)</span></code></pre></div>
 <p>which loads the four datasets <code>lalonde.exp</code>, <code>lalonde.psid</code>, <code>lalonde.exp.panel</code>, and <code>lalonde.psid.panel</code>. The <code>exp</code> datasets contain the experimental datasets, and the <code>psid</code> datasets contain the observational datsets. The two datasets with the suffix panel contain exactly the same data as their respective counterparts, but the data is formatted in a panel (three observations per individual in the dataset rather than one) to facilitate estimation using the Difference in Differences methods mentioned below.</p>
 <p>The main methods in the <code>ci.qte</code> package are <code>ci.qte</code>, <code>ci.qtet</code>, <code>panel.qtet</code>, <code>QDiD</code>, <code>CiC</code>, and <code>MDiD</code>. These are useful for estimating the QTE and QTET and are each based on specific identifying assumptions (discussed in more detail below). Each method requires the user to supply a formula for the outcome on the treatment status, a vector of names of conditioning <span class="math inline">\(X\)</span> variables, and a data frame. The user should also specify for which values of <span class="math inline">\(\tau\)</span> the QTE or QTET should be calculated. There are other available parameters discussed in more detail in the manual. The most common uses are detailed in the rest of this section. Each method returns a <code>QTE</code> object. The <code>QTE</code> object contains the estimated QTE or QTET, ATE or ATT, and some other information such as standard errors and confidence intervals. Once a <code>QTE</code> object has been estimated, the user can call <code>summary</code> and <code>ggqte</code> methods to obtain results (a <code>plot</code> method is available, but we recommend the <code>ggqte</code> method for plotting which builds on the <code>ggplot2</code> package).</p>
 </div>
 <div id="randomization" class="section level2">
 <h2 class="hasAnchor">
 <a href="#randomization" class="anchor"></a>Randomization</h2>
-<p>When an individual is randomly assigned to treatment, then QTE is identified. Random treatment assignment is common in medical studies. It is sometimes available in the social sciences in cases such as lab experiments, field experiments, and has sometimes been built into some programs such as job training. Randomization is sometimes called the `<code>gold standard'' of empirical research, but though there are some questions that randomization cannot answer and randomized experiments in practice may differ from randomized experiments in theory [@heckman-smith-1995; manski-1996].  For example, individuals may not comply with their random assignment.^[Without perfect compliance, the random assignment to the treated or untreated group can be used as an instrument for actual treatment status.  This setup can lead to identification of the ATT [@imbens-angrist-1994} or a conditional QTET [@abadie-angrist-imbens-2002].  This approach is not currently available in the</code>QTE` package.]</p>
-<p>Under randomization, the following independence condition holds <span class="math display">\[  (Y_1, Y_0) \perp D \]</span> Under this assumption, the marginal distributions <span class="math inline">\(F_{Y_1}(y_1)\)</span> and <span class="math inline">\(F_{Y_0}(y_0)\)</span> are both identified. The reason they are identified is that <span class="math inline">\(F_{Y_1}(y_1) = F_{Y|D=1}(y_1)\)</span> and <span class="math inline">\(F_{Y_0}(y_0) = F_{Y|D=0}(y_0)\)</span> under Condition . And each of the two distributions <span class="math inline">\(F_{Y|D=1}(y_1)\)</span> and <span class="math inline">\(F_{Y|D=0}(y_1)\)</span> can be obtained by looking at the distribution of outcomes for the treated group and the untreated group, respectively. In other words, under randomization of treatment, the partially unobserved distribution of treated potential outcomes is the same as the fully observed distribution of realized outcomes for the treated group; and likewise, the partially unobserved distribution of untreated potential outcomes is the same as the fully observed distribution of realized outcomes for the untreated group.</p>
+<p>When an individual is randomly assigned to treatment, then QTE is identified. Random treatment assignment is common in medical studies. It is sometimes available in the social sciences in cases such as lab experiments, field experiments, and has sometimes been built into some programs such as job training. Randomization is sometimes called the “gold standard” of empirical research, but though there are some questions that randomization cannot answer and randomized experiments in practice may differ from randomized experiments in theory [<span class="citation">Heckman and Smith (1995)</span>; manski-1996]. For example, individuals may not comply with their random assignment.^[Without perfect compliance, the random assignment to the treated or untreated group can be used as an instrument for actual treatment status. This setup can lead to identification of the ATT <span class="citation">(Imbens and Angrist 1994} or a conditional QTET <span class="citation">[@abadie-angrist-imbens-2002]</span>. This approach is not currently available in the <code>QTE</code> package.)</span></p>
+<p>Under randomization, the following independence condition holds <span class="math display">\[  (Y_1, Y_0) \perp D \]</span> Under this assumption, the marginal distributions <span class="math inline">\(F_{Y_1}(y_1)\)</span> and <span class="math inline">\(F_{Y_0}(y_0)\)</span> are both identified. The reason they are identified is that <span class="math inline">\(F_{Y_1}(y_1) = F_{Y|D=1}(y_1)\)</span> and <span class="math inline">\(F_{Y_0}(y_0) = F_{Y|D=0}(y_0)\)</span> under the above condition. And each of the two distributions <span class="math inline">\(F_{Y|D=1}(y_1)\)</span> and <span class="math inline">\(F_{Y|D=0}(y_1)\)</span> can be obtained by looking at the distribution of outcomes for the treated group and the untreated group, respectively. In other words, under randomization of treatment, the partially unobserved distribution of treated potential outcomes is the same as the fully observed distribution of realized outcomes for the treated group; and likewise, the partially unobserved distribution of untreated potential outcomes is the same as the fully observed distribution of realized outcomes for the untreated group.</p>
 <div id="estimation" class="section level3">
 <h3 class="hasAnchor">
 <a href="#estimation" class="anchor"></a>Estimation</h3>
 <p>Under randomization, the QTE can be easily esimated using the <code>ci.qte</code> command with no covariates. In this section, we use the experimental portion of the job training set. The <code>ci.qte</code> method also computes an estimate of the Average Treatment Effect as a byproduct.</p>
 <p>In the case of the job training program, the parameter being identified is the QTET. Individuals who desired to be treated were randomized into or out of the program. To see this, let <span class="math inline">\(D^*\)</span> be a binary variable indicating whether an individual desires to be treated (<span class="math inline">\(D^*=1\)</span>) or does not desire to be treated (<span class="math inline">\(D^*=0\)</span>). Because individuals that do not desire to be treated never attempt to join the job training program, they cannot be randomized. Amongst those individuals who desire to be treated, some are assigned to the job training program (<span class="math inline">\(R=1\)</span>) and some are randomized out of the program (<span class="math inline">\(R=0\)</span>). Under this setup, <span class="math inline">\((Y_1, Y_0) \perp R | D^*=1\)</span>. The distribution <span class="math inline">\(F_{Y_{1}|D=1}(y_1) = F_{Y_{1}|D^*=1, R=1}(y_1)\)</span> is identifed using the outcomes from the group with <span class="math inline">\(D^*=1\)</span> and <span class="math inline">\(R=1\)</span>. The distribution <span class="math inline">\(F_{Y_{0}|D=1}(y_0) = F_{Y_{0}|D^*=1, R=1}(y_0) = F_{Y_{0}|D^*=1, R=0}(y_0)\)</span> where the last equality holds by the assumption. This last distribution can be constructed using observations of untreated outcomes for the group that was randomized out of treatment.</p>
 <p>The results from the <code>ci.qte</code> or <code>ci.qtet</code> command will be identical in this case, but it is important to note what the correct interpretation of the results is. The QTET can be estimated with the following command</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">jt.rand &lt;-<span class="st"> </span><span class="kw"><a href="../reference/ci.qtet.html">ci.qtet</a></span>(re78 ~<span class="st"> </span>treat, <span class="dt">data=</span>lalonde.exp, <span class="dt">probs=</span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/seq">seq</a></span>(<span class="fl">0.05</span>,<span class="fl">0.95</span>,<span class="fl">0.05</span>), 
- <span class="dt">se=</span>T, <span class="dt">iters=</span><span class="dv">10</span>)</code></pre></div>
+<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="va">jt.rand</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/ci.qtet.html">ci.qtet</a></span><span class="op">(</span><span class="va">re78</span> <span class="op">~</span> <span class="va">treat</span>, data<span class="op">=</span><span class="va">lalonde.exp</span>, probs<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/seq.html">seq</a></span><span class="op">(</span><span class="fl">0.05</span>,<span class="fl">0.95</span>,<span class="fl">0.05</span><span class="op">)</span>, 
+ se<span class="op">=</span><span class="cn">T</span>, iters<span class="op">=</span><span class="fl">10</span><span class="op">)</span></code></pre></div>
 <p>The <code>ci.qtet</code> command returns a <code>QTE</code> object</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/class">class</a></span>(jt.rand)</code></pre></div>
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/base/class.html">class</a></span><span class="op">(</span><span class="va">jt.rand</span><span class="op">)</span></code></pre></div>
 <pre><code>## [1] "QTE"</code></pre>
 <p>and the <code>summary</code> command provides the results</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/summary">summary</a></span>(jt.rand)</code></pre></div>
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/base/summary.html">summary</a></span><span class="op">(</span><span class="va">jt.rand</span><span class="op">)</span></code></pre></div>
 <pre><code>## 
 ## Quantile Treatment Effect:
 ##      
@@ -181,27 +170,28 @@ test caption
 ## 0.1     0.00    0.00
 ## 0.15    0.00    0.00
 ## 0.2     0.00    0.00
-## 0.25  338.65  351.00
-## 0.3   846.40  393.02
-## 0.35 1451.51  576.61
-## 0.4  1177.72  923.33
-## 0.45 1396.08  999.60
-## 0.5  1123.55 1083.76
-## 0.55 1181.54 1244.45
-## 0.6  1466.51 1231.63
-## 0.65 2115.04 1283.12
-## 0.7  1795.12 1289.31
-## 0.75 2347.49 1308.15
-## 0.8  2278.12 1456.68
-## 0.85 2178.28 1440.86
-## 0.9  3239.60 1938.36
-## 0.95 3979.62 2749.29
+## 0.25  338.65  326.77
+## 0.3   846.40  397.94
+## 0.35 1451.51  713.27
+## 0.4  1177.72 1148.52
+## 0.45 1396.08 1080.56
+## 0.5  1123.55 1151.63
+## 0.55 1181.54 1099.35
+## 0.6  1466.51 1087.67
+## 0.65 2115.04 1018.62
+## 0.7  1795.12 1028.87
+## 0.75 2347.49  562.79
+## 0.8  2278.12 1413.60
+## 0.85 2178.28 1363.88
+## 0.9  3239.60 1659.02
+## 0.95 3979.62 2413.96
 ## 
 ## Average Treatment Effect:    1794.34
-##   Std. Error:        1021.96</code></pre>
+##   Std. Error:        846.90</code></pre>
 <p>The QTET can also be plotted with the <code>ggqte</code> command.</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="../reference/ggqte.html">ggqte</a></span>(jt.rand)</code></pre></div>
-<p><img src="R-QTEs_files/figure-html/unnamed-chunk-9-1.png" width="700"></p>
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span class="fu"><a href="../reference/ggqte.html">ggqte</a></span><span class="op">(</span><span class="va">jt.rand</span><span class="op">)</span></code></pre></div>
+<p><img src="R-QTEs_files/figure-html/unnamed-chunk-8-1.png" width="90%" style="display: block; margin: auto;"></p>
 </div>
 </div>
 <div id="conditional-independence-assumption" class="section level2">
@@ -210,85 +200,89 @@ test caption
 <p>A second assumption that can be used to identify the QTE is the following</p>
 <p><span class="math display">\[ (Y_1, Y_0) \perp D | X \]</span></p>
 <p>were <span class="math inline">\(X\)</span> is a vector of covariates. This assumption says that after conditioning on these <span class="math inline">\(X\)</span> covariates, selection into treatment is as good as random. The Conditional Independence Assumption is sometimes also called Selection on Observables. In the example of the job training program, <span class="math inline">\(X\)</span> may contain variables such as age, education, and other background characteristics. In practice, under the Conditional Independence Assumption, individuals with ``similar’’ characteristics can be compared across treatment status to build potential outcome distributions. If individuals with the same covariates select into treatment based on the expected gain from treatment (e.g. if individuals that experience larger gains from job training are more likely to participate in job training than observationally similar individuals that would experience smaller gains), then this assumption is necessarily violated. Also, note that this assumption is a full independence assumption. It does identify the Average Treatment Effect, but the ATE can be identified under a weaker mean independence assumption.</p>
-<p>When the researcher has access to panel data, lags of the outcome or lags of the other covariates could be included in <span class="math inline">\(X\)</span>. This may make the identifying assumption more plausible in applications. In the job training example <span class="math inline">\(X\)</span> could contain lags of earnings or unemployment histories which may be important to condition on to correctly evaluate job training programs [<span class="citation">@ashenfelter-1978</span>; heckman-smith-clements-1997].</p>
+<p>When the researcher has access to panel data, lags of the outcome or lags of the other covariates could be included in <span class="math inline">\(X\)</span>. This may make the identifying assumption more plausible in applications. In the job training example <span class="math inline">\(X\)</span> could contain lags of earnings or unemployment histories which may be important to condition on to correctly evaluate job training programs <span class="citation">(Ashenfelter 1978; Heckman, Smith, and Clements 1997)</span>.</p>
 <p>The Conditional Independence Assumption implies that the distributions <span class="math inline">\(F_{Y_1|X}(y_1)\)</span> and <span class="math inline">\(F_{Y_0|X}(y_0)\)</span> are identified. This follows because <span class="math inline">\(F_{Y_j|X}(y_j) = F_{Y_j|X,D=j}(y_j)\)</span> under the Conditional Independence Assumption, and the latter quantity can be obtained by calculating the conditional distribution of observed outcomes for members of each group. Then, <span class="math inline">\(F_{Y_0}(y_1)\)</span> and <span class="math inline">\(F_{Y_0}(y_0)\)</span> can be obtained by integrating out <span class="math inline">\(X\)</span>. For example,</p>
 <p><span class="math display">\[ F_{Y_1}(y_1) = E_X[F_{Y_1|X}(y_1)] \]</span></p>
 <p>This distribution can be easily inverted to obtain the quantiles. Although this identification result is straightforward, implementing it may be challenging in practice. The most natural estimator is <span class="math inline">\(\hat{F}_{Y_1}(y_1) = \frac{1}{n} \sum_{i=1}^n \hat{F}_{Y_1|X=X_i}(y_1)\)</span>. However, in general (for example when at least one of the elements of <span class="math inline">\(X\)</span> is continuous), an estimator for <span class="math inline">\(\hat{F}_{Y_1|X=x}(y_1)\)</span> will be computationally difficult as it requires some smoothing procedure such as kernel or series methods. These methods have the additional difficulty of requiring the researcher to choose a bandwidth in the case of kernels or the number of terms in the case of series methods.</p>
-<p>Instead, the <code>QTE</code> package implements the propensity score re-weighting approach developed in <span class="citation">[@firpo-2007]</span>. The propensity score is <span class="math inline">\(p(x) = P(D=1|X=x)\)</span>, and the propensity score re-weighting approach rewrites <span class="math inline">\(E_X[F_{Y_1|X}(y_1)]\)</span> as a single unconditional moment that depends on <span class="math inline">\(y_1\)</span> and the propensity score. The propensity score is estimated in a first step and then a sum of weighted check functions is minimized in a second step to obtain an estimate of the QTET. This technique allows some flexibility in trading off stronger assumptions with computational complexity. For example, a parametric specification for the propensity score will be computationally easy, but will rely on distributional and functional form assumptions that may not be correct. On the other hand, nonparametric methods may be used that rely on less restrictive assumptions (though they do require some smoothness conditions on the propensity score), but they are likely to be more computationally complex.</p>
+<p>Instead, the <code>QTE</code> package implements the propensity score re-weighting approach developed in <span class="citation">(Firpo 2007)</span>. The propensity score is <span class="math inline">\(p(x) = P(D=1|X=x)\)</span>, and the propensity score re-weighting approach rewrites <span class="math inline">\(E_X[F_{Y_1|X}(y_1)]\)</span> as a single unconditional moment that depends on <span class="math inline">\(y_1\)</span> and the propensity score. The propensity score is estimated in a first step and then a sum of weighted check functions is minimized in a second step to obtain an estimate of the QTET. This technique allows some flexibility in trading off stronger assumptions with computational complexity. For example, a parametric specification for the propensity score will be computationally easy, but will rely on distributional and functional form assumptions that may not be correct. On the other hand, nonparametric methods may be used that rely on less restrictive assumptions (though they do require some smoothness conditions on the propensity score), but they are likely to be more computationally complex.</p>
 <div id="estimation-1" class="section level3">
 <h3 class="hasAnchor">
 <a href="#estimation-1" class="anchor"></a>Estimation</h3>
-<p>Estimation of QTEs under the Conditional Independence Assumption can be performed using the command <code>ci.qte</code>, and estimation of the QTET can be performed with the command <code>ci.qtet</code>. With covariates, this command estimates unconditional QTEs using the propensity score re-weighting procedure of <span class="citation">[@firpo-2007]</span>. Without modification, the command estimates in a first stage the propensity score using a logit model where all the covariates enter in levels.</p>
+<p>Estimation of QTEs under the Conditional Independence Assumption can be performed using the command <code>ci.qte</code>, and estimation of the QTET can be performed with the command <code>ci.qtet</code>. With covariates, this command estimates unconditional QTEs using the propensity score re-weighting procedure of <span class="citation">(Firpo 2007)</span>. Without modification, the command estimates in a first stage the propensity score using a logit model where all the covariates enter in levels.</p>
 <p>The following command estimates the QTE of the job training program using the observational data and conditioning on several available variables.</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"> jt.cia &lt;-<span class="st"> </span><span class="kw"><a href="../reference/ci.qte.html">ci.qte</a></span>(re78 ~<span class="st"> </span>treat,
-   <span class="dt">xformla=</span>~age +<span class="st"> </span>education +<span class="st"> </span>black +<span class="st"> </span>hispanic +<span class="st"> </span>married +<span class="st"> </span>nodegree,
-   <span class="dt">data=</span>lalonde.psid,
-   <span class="dt">probs=</span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/seq">seq</a></span>(<span class="fl">0.05</span>,<span class="fl">0.95</span>,<span class="fl">0.05</span>), <span class="dt">se=</span>T, <span class="dt">iters=</span><span class="dv">10</span>)
- <span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/summary">summary</a></span>(jt.cia)</code></pre></div>
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<code class="sourceCode R"> <span class="va">jt.cia</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/ci.qte.html">ci.qte</a></span><span class="op">(</span><span class="va">re78</span> <span class="op">~</span> <span class="va">treat</span>,
+   xformla<span class="op">=</span><span class="op">~</span><span class="va">age</span> <span class="op">+</span> <span class="va">education</span> <span class="op">+</span> <span class="va">black</span> <span class="op">+</span> <span class="va">hispanic</span> <span class="op">+</span> <span class="va">married</span> <span class="op">+</span> <span class="va">nodegree</span>,
+   data<span class="op">=</span><span class="va">lalonde.psid</span>,
+   probs<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/seq.html">seq</a></span><span class="op">(</span><span class="fl">0.05</span>,<span class="fl">0.95</span>,<span class="fl">0.05</span><span class="op">)</span>, se<span class="op">=</span><span class="cn">T</span>, iters<span class="op">=</span><span class="fl">10</span><span class="op">)</span>
+ <span class="fu"><a href="https://rdrr.io/r/base/summary.html">summary</a></span><span class="op">(</span><span class="va">jt.cia</span><span class="op">)</span></code></pre></div>
 <pre><code>## 
 ## Quantile Treatment Effect:
 ##      
 ## tau  QTE Std. Error
 ## 0.05      0.00        0.00
-## 0.1       0.00        0.00
-## 0.15  -2955.45      811.50
-## 0.2   -7447.74      888.12
-## 0.25  -8754.13     1258.54
-## 0.3   -9632.81     2243.30
-## 0.35 -10499.12     2406.51
-## 0.4  -11313.14     3193.14
-## 0.45 -12583.22     4489.12
-## 0.5  -13397.72     4579.59
-## 0.55 -13619.18     3837.89
-## 0.6  -12500.73     3688.79
-## 0.65 -12703.25     3562.84
-## 0.7  -14180.98     2565.97
-## 0.75 -16545.34     1835.34
-## 0.8  -18614.16     1482.65
-## 0.85 -21397.01     1060.27
-## 0.9  -25253.39     1860.36
-## 0.95 -29856.92     4747.79
+## 0.1       0.00      501.45
+## 0.15  -2955.45     1493.42
+## 0.2   -7447.74     2149.77
+## 0.25  -8754.13     2492.22
+## 0.3   -9632.81     2665.84
+## 0.35 -10499.12     3752.32
+## 0.4  -11313.14     4127.42
+## 0.45 -12583.22     3829.74
+## 0.5  -13397.72     3939.07
+## 0.55 -13619.18     3728.40
+## 0.6  -12500.73     3482.59
+## 0.65 -12703.25     2988.73
+## 0.7  -14180.98     2282.04
+## 0.75 -16545.34     2131.84
+## 0.8  -18614.16     1448.85
+## 0.85 -21397.01     1221.70
+## 0.9  -25253.39     2118.65
+## 0.95 -29856.92     6689.01
 ## 
 ## Average Treatment Effect:    -13115.59
-##   Std. Error:        1471.28</code></pre>
+##   Std. Error:        1774.88</code></pre>
 <p>and the QTE can be plotted</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"> <span class="kw"><a href="../reference/ggqte.html">ggqte</a></span>(jt.cia)</code></pre></div>
-<p><img src="R-QTEs_files/figure-html/unnamed-chunk-11-1.png" width="700"></p>
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
+<code class="sourceCode R"> <span class="fu"><a href="../reference/ggqte.html">ggqte</a></span><span class="op">(</span><span class="va">jt.cia</span><span class="op">)</span></code></pre></div>
+<p><img src="R-QTEs_files/figure-html/unnamed-chunk-9-1.png" width="90%" style="display: block; margin: auto;"></p>
 <p>and next the QTET of the job training is computed under the same setup</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"> jt.ciat &lt;-<span class="st"> </span><span class="kw"><a href="../reference/ci.qtet.html">ci.qtet</a></span>(re78 ~<span class="st"> </span>treat,
-   <span class="dt">xformla=</span>~age +<span class="st"> </span>education +<span class="st"> </span>black +<span class="st"> </span>hispanic +<span class="st"> </span>married +<span class="st"> </span>nodegree,
-   <span class="dt">data=</span>lalonde.psid,
-   <span class="dt">probs=</span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/seq">seq</a></span>(<span class="fl">0.05</span>,<span class="fl">0.95</span>,<span class="fl">0.05</span>), <span class="dt">se=</span>T, <span class="dt">iters=</span><span class="dv">10</span>)
- <span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/summary">summary</a></span>(jt.ciat)</code></pre></div>
+<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
+<code class="sourceCode R"> <span class="va">jt.ciat</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/ci.qtet.html">ci.qtet</a></span><span class="op">(</span><span class="va">re78</span> <span class="op">~</span> <span class="va">treat</span>,
+   xformla<span class="op">=</span><span class="op">~</span><span class="va">age</span> <span class="op">+</span> <span class="va">education</span> <span class="op">+</span> <span class="va">black</span> <span class="op">+</span> <span class="va">hispanic</span> <span class="op">+</span> <span class="va">married</span> <span class="op">+</span> <span class="va">nodegree</span>,
+   data<span class="op">=</span><span class="va">lalonde.psid</span>,
+   probs<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/seq.html">seq</a></span><span class="op">(</span><span class="fl">0.05</span>,<span class="fl">0.95</span>,<span class="fl">0.05</span><span class="op">)</span>, se<span class="op">=</span><span class="cn">T</span>, iters<span class="op">=</span><span class="fl">10</span><span class="op">)</span>
+ <span class="fu"><a href="https://rdrr.io/r/base/summary.html">summary</a></span><span class="op">(</span><span class="va">jt.ciat</span><span class="op">)</span></code></pre></div>
 <pre><code>## 
 ## Quantile Treatment Effect:
 ##      
 ## tau  QTE Std. Error
 ## 0.05      0.00        0.00
-## 0.1       0.00       69.16
-## 0.15   -218.70      319.80
-## 0.2   -1034.41      470.93
-## 0.25  -2025.71     1227.35
-## 0.3   -3586.78     1365.71
-## 0.35  -4459.40      891.93
-## 0.4   -5067.52      762.80
-## 0.45  -4988.25      948.53
-## 0.5   -4659.23      609.14
-## 0.55  -4612.01      947.16
-## 0.6   -5144.90      939.14
-## 0.65  -4715.92      781.51
-## 0.7   -5150.22      766.85
-## 0.75  -5884.24     1179.07
-## 0.8   -6985.32     1617.45
-## 0.85  -8235.10     2033.42
-## 0.9  -10575.45     1940.99
-## 0.95 -10782.01     1883.45
+## 0.1       0.00      280.38
+## 0.15   -218.70      781.45
+## 0.2   -1034.41      840.85
+## 0.25  -2025.71     1165.13
+## 0.3   -3586.78     1494.27
+## 0.35  -4459.40     1676.78
+## 0.4   -5067.52     1172.18
+## 0.45  -4988.25      980.58
+## 0.5   -4659.23      898.98
+## 0.55  -4612.01     1135.01
+## 0.6   -5144.90     1188.71
+## 0.65  -4715.92     1343.33
+## 0.7   -5150.22     1047.93
+## 0.75  -5884.24     1194.67
+## 0.8   -6985.32     1815.10
+## 0.85  -8235.10     1864.33
+## 0.9  -10575.45     2169.66
+## 0.95 -10782.01     2477.75
 ## 
 ## Average Treatment Effect:    9708.90
-##   Std. Error:        634.09</code></pre>
+##   Std. Error:        596.54</code></pre>
 <p>Finally, the QTET is plotted</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"> <span class="kw"><a href="../reference/ggqte.html">ggqte</a></span>(jt.ciat)</code></pre></div>
-<p><img src="R-QTEs_files/figure-html/unnamed-chunk-13-1.png" width="700"></p>
+<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
+<code class="sourceCode R"> <span class="fu"><a href="../reference/ggqte.html">ggqte</a></span><span class="op">(</span><span class="va">jt.ciat</span><span class="op">)</span></code></pre></div>
+<p><img src="R-QTEs_files/figure-html/unnamed-chunk-11-1.png" width="90%" style="display: block; margin: auto;"></p>
 </div>
 </div>
 <div id="difference-in-differences-methods" class="section level2">
@@ -296,14 +290,15 @@ test caption
 <a href="#difference-in-differences-methods" class="anchor"></a>Difference in Differences Methods</h2>
 <p>In some applications the Conditional Indpendence Assumption may not hold. An alternative identifying assumption that the researcher may be interested in making is the following Distributional Difference in Differences Assumption</p>
 <p><span class="math display">\[ \Delta Y_{0t} \perp D_t | X \]</span></p>
-<p>This is the identifying assumption made in <span class="citation">[@fan-yu-2012; @callaway-li-2016]</span>. This is a direct extension of the ``parallel trends’’ assumption made in the Difference in Differences literature <span class="citation">[@abadie-2005]</span>.<br>
-Note that these types of methods only identify the QTET (not the QTE). <span class="citation">[@callaway-li-2016]</span> show that this assumption only identifies the QTET when the researcher has access to three periods of panel data.</p>
+<p>This is the identifying assumption made in <span class="citation">(Fan and Yu 2012; Callaway and Li 2019)</span>. This is a direct extension of the ``parallel trends’’ assumption made in the Difference in Differences literature <span class="citation">(Abadie 2005)</span>.<br>
+Note that these types of methods only identify the QTET (not the QTE). <span class="citation">(Callaway and Li 2019)</span> show that this assumption only identifies the QTET when the researcher has access to three periods of panel data.</p>
 <div id="estimation-2" class="section level3">
 <h3 class="hasAnchor">
 <a href="#estimation-2" class="anchor"></a>Estimation</h3>
-<p>Estimation using the method in <span class="citation">[@callaway-li-2016]</span> is similar to the preceding methods. However, the user must now additionally specify some extra parameters: (i) <code>t</code>, <code>tmin1</code>, and <code>tmin2</code> are the three time periods, and (ii) the names of the columns in <code>data</code> containing the time period and an individual id are required to be passed in as <code>tname</code> and <code>idname</code>. <code>data</code> itself must now be a panel dataset containing individual-time period observations. For this section the <code>lalonde.psid</code> dataset (which contains one row for each individual and with two lags of earnings available) has been converted into the <code>lalonde.psid.panel</code> (which contains three rows of observations for each individual).</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"> <span class="kw"><a href="https://www.rdocumentation.org/packages/utils/topics/head">head</a></span>(lalonde.psid.panel)[,<span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/c">c</a></span>(<span class="st">"id"</span>, <span class="st">"year"</span>, <span class="st">"re"</span>, <span class="st">"treat"</span>,
-  <span class="st">"age"</span>, <span class="st">"education"</span>, <span class="st">"black"</span>, <span class="st">"hispanic"</span>, <span class="st">"married"</span>, <span class="st">"nodegree"</span>, <span class="st">"u75"</span>)]</code></pre></div>
+<p>Estimation using the method in <span class="citation">(Callaway and Li 2019)</span> is similar to the preceding methods. However, the user must now additionally specify some extra parameters: (i) <code>t</code>, <code>tmin1</code>, and <code>tmin2</code> are the three time periods, and (ii) the names of the columns in <code>data</code> containing the time period and an individual id are required to be passed in as <code>tname</code> and <code>idname</code>. <code>data</code> itself must now be a panel dataset containing individual-time period observations. For this section the <code>lalonde.psid</code> dataset (which contains one row for each individual and with two lags of earnings available) has been converted into the <code>lalonde.psid.panel</code> (which contains three rows of observations for each individual).</p>
+<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
+<code class="sourceCode R"> <span class="fu"><a href="https://rdrr.io/r/utils/head.html">head</a></span><span class="op">(</span><span class="va">lalonde.psid.panel</span><span class="op">)</span><span class="op">[</span>,<span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"id"</span>, <span class="st">"year"</span>, <span class="st">"re"</span>, <span class="st">"treat"</span>,
+  <span class="st">"age"</span>, <span class="st">"education"</span>, <span class="st">"black"</span>, <span class="st">"hispanic"</span>, <span class="st">"married"</span>, <span class="st">"nodegree"</span>, <span class="st">"u75"</span><span class="op">)</span><span class="op">]</span></code></pre></div>
 <pre><code>##   id year       re treat age education black hispanic married nodegree u75
 ## 1  1 1978  9930.05     1  37        11     1        0       1        1   1
 ## 2  2 1978  3595.89     1  22         9     0        1       0        1   1
@@ -311,45 +306,48 @@ Note that these types of methods only identify the QTET (not the QTE). <span cla
 ## 4  4 1978  7506.15     1  27        11     1        0       0        1   1
 ## 5  5 1978   289.79     1  33         8     1        0       0        1   1
 ## 6  6 1978  4056.49     1  22         9     1        0       0        1   1</code></pre>
-<p>The <span class="citation">[@callaway-li-2016]</span> method can be invoked with the <code>panel.qtet</code> command:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"> jt.pqtet &lt;-<span class="st"> </span><span class="kw"><a href="../reference/panel.qtet.html">panel.qtet</a></span>(re ~<span class="st"> </span>treat, <span class="dt">t=</span><span class="dv">1978</span>, <span class="dt">tmin1=</span><span class="dv">1975</span>, <span class="dt">tmin2=</span><span class="dv">1974</span>,
-   <span class="dt">tname=</span><span class="st">"year"</span>, <span class="dt">idname=</span><span class="st">"id"</span>,
-   <span class="dt">xformla=</span>~age +<span class="st"> </span>education +<span class="st"> </span>black +<span class="st"> </span>hispanic +<span class="st"> </span>married +<span class="st"> </span>nodegree,
-   <span class="dt">data=</span>lalonde.psid.panel,
-   <span class="dt">probs=</span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/seq">seq</a></span>(<span class="fl">0.05</span>,<span class="fl">0.95</span>,<span class="fl">0.05</span>), <span class="dt">se=</span>T, <span class="dt">iters=</span><span class="dv">10</span>)
- <span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/summary">summary</a></span>(jt.pqtet)</code></pre></div>
+<p>The <span class="citation">(Callaway and Li 2019)</span> method can be invoked with the <code>panel.qtet</code> command:</p>
+<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
+<code class="sourceCode R"> <span class="va">jt.pqtet</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/panel.qtet.html">panel.qtet</a></span><span class="op">(</span><span class="va">re</span> <span class="op">~</span> <span class="va">treat</span>, t<span class="op">=</span><span class="fl">1978</span>, tmin1<span class="op">=</span><span class="fl">1975</span>, tmin2<span class="op">=</span><span class="fl">1974</span>,
+   tname<span class="op">=</span><span class="st">"year"</span>, idname<span class="op">=</span><span class="st">"id"</span>,
+   xformla<span class="op">=</span><span class="op">~</span><span class="va">age</span> <span class="op">+</span> <span class="va">education</span> <span class="op">+</span> <span class="va">black</span> <span class="op">+</span> <span class="va">hispanic</span> <span class="op">+</span> <span class="va">married</span> <span class="op">+</span> <span class="va">nodegree</span>,
+   data<span class="op">=</span><span class="va">lalonde.psid.panel</span>,
+   probs<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/seq.html">seq</a></span><span class="op">(</span><span class="fl">0.05</span>,<span class="fl">0.95</span>,<span class="fl">0.05</span><span class="op">)</span>, se<span class="op">=</span><span class="cn">T</span>, iters<span class="op">=</span><span class="fl">10</span><span class="op">)</span>
+ <span class="fu"><a href="https://rdrr.io/r/base/summary.html">summary</a></span><span class="op">(</span><span class="va">jt.pqtet</span><span class="op">)</span></code></pre></div>
 <pre><code>## 
 ## Quantile Treatment Effect:
 ##      
 ## tau  QTE Std. Error
 ## 0.05     0.00        0.00
-## 0.1      0.00      350.64
-## 0.15  -218.70     1002.30
-## 0.2  -2321.31     1255.67
-## 0.25 -3209.09     1471.05
-## 0.3  -3723.19     1526.37
-## 0.35 -3606.03     1550.86
-## 0.4  -3107.37     1700.15
-## 0.45 -2199.44     1914.25
-## 0.5  -1935.37     2039.94
-## 0.55 -1506.79     2129.90
-## 0.6   -595.06     1922.04
-## 0.65   334.80     1931.88
-## 0.7    184.35     1920.63
-## 0.75   473.71     1564.21
-## 0.8    948.60     1597.07
-## 0.85  1497.56     1934.45
-## 0.9   1167.20     2787.11
-## 0.95  1965.56     5126.46
+## 0.1      0.00      320.96
+## 0.15  -218.70      963.29
+## 0.2  -2321.31      992.56
+## 0.25 -3209.09      846.25
+## 0.3  -3723.19      774.77
+## 0.35 -3606.03      842.86
+## 0.4  -3107.37      985.87
+## 0.45 -2199.44      930.18
+## 0.5  -1935.37      894.46
+## 0.55 -1506.79      926.32
+## 0.6   -595.06      875.13
+## 0.65   334.80      911.86
+## 0.7    184.35      874.84
+## 0.75   473.71      882.55
+## 0.8    948.60     1214.86
+## 0.85  1497.56     1426.95
+## 0.9   1167.20     2137.98
+## 0.95  1965.56     4063.25
 ## 
 ## Average Treatment Effect:    -316.57
-##   Std. Error:        1151.92</code></pre>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"> <span class="kw"><a href="../reference/ggqte.html">ggqte</a></span>(jt.pqtet)</code></pre></div>
-<p><img src="R-QTEs_files/figure-html/unnamed-chunk-16-1.png" width="700"></p>
-<p>In the most common Difference in Differences case with two periods of panel or repeated cross sectional data, <span class="citation">[@fan-yu-2012]</span> shows that the Distributional Difference in Differences Assumption leads to partial identification of the QTET. In this case, a user can estimate these bounds using the method <code>bounds</code>:<a href="#fn3" class="footnoteRef" id="fnref3"><sup>3</sup></a></p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"> b1 &lt;-<span class="st"> </span><span class="kw"><a href="../reference/bounds.html">bounds</a></span>(re ~<span class="st"> </span>treat, <span class="dt">t=</span><span class="dv">1978</span>, <span class="dt">tmin1=</span><span class="dv">1975</span>, <span class="dt">data=</span>lalonde.psid.panel,
-   <span class="dt">idname=</span><span class="st">"id"</span>, <span class="dt">tname=</span><span class="st">"year"</span>)
- <span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/summary">summary</a></span>(b1)</code></pre></div>
+##   Std. Error:        580.21</code></pre>
+<div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
+<code class="sourceCode R"> <span class="fu"><a href="../reference/ggqte.html">ggqte</a></span><span class="op">(</span><span class="va">jt.pqtet</span><span class="op">)</span></code></pre></div>
+<p><img src="R-QTEs_files/figure-html/unnamed-chunk-13-1.png" width="90%" style="display: block; margin: auto;"></p>
+<p>In the most common Difference in Differences case with two periods of panel or repeated cross sectional data, <span class="citation">(Fan and Yu 2012)</span> shows that the Distributional Difference in Differences Assumption leads to partial identification of the QTET. In this case, a user can estimate these bounds using the method <code>bounds</code>:<a href="#fn3" class="footnote-ref" id="fnref3"><sup>3</sup></a></p>
+<div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
+<code class="sourceCode R"> <span class="va">b1</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/bounds.html">bounds</a></span><span class="op">(</span><span class="va">re</span> <span class="op">~</span> <span class="va">treat</span>, t<span class="op">=</span><span class="fl">1978</span>, tmin1<span class="op">=</span><span class="fl">1975</span>, data<span class="op">=</span><span class="va">lalonde.psid.panel</span>,
+   idname<span class="op">=</span><span class="st">"id"</span>, tname<span class="op">=</span><span class="st">"year"</span><span class="op">)</span>
+ <span class="fu"><a href="https://rdrr.io/r/base/summary.html">summary</a></span><span class="op">(</span><span class="va">b1</span><span class="op">)</span></code></pre></div>
 <pre><code>## 
 ## Bounds on the Quantile Treatment Effect on the Treated:
 ##      
@@ -377,12 +375,13 @@ Note that these types of methods only identify the QTET (not the QTE). <span cla
 ## 
 ## Average Treatment Effect on the Treated: 2326.51</code></pre>
 <p>and the bounds can be plotted</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"> <span class="kw"><a href="https://www.rdocumentation.org/packages/graphics/topics/plot">plot</a></span>(b1) </code></pre></div>
-<p><img src="R-QTEs_files/figure-html/unnamed-chunk-18-1.png" width="700"></p>
+<div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
+<code class="sourceCode R"> <span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html">plot</a></span><span class="op">(</span><span class="va">b1</span><span class="op">)</span> </code></pre></div>
+<p><img src="R-QTEs_files/figure-html/unnamed-chunk-14-1.png" width="90%" style="display: block; margin: auto;"></p>
 <p>Finally, the <code>QTE</code> package implements several other methods that base identification on a Difference in Differences-type assumption. Each of these methods achieve point identification when only two periods of repeated cross sectional data is available. First, the identifying assumption for Quantile Difference in Differences (implemented in the <code>QDiD</code> method) is</p>
 <p><span class="math display">\[ F^{-1}_{Y_{0t}|D_t=1}(\tau) - F^{-1}_{Y_{0t-1}|D_t=1}(\tau) = F^{-1}_{Y_{0t}|D_t=0}(\tau) - F^{-1}_{Y_{0t-1}|D_t=0}(\tau) \]</span></p>
 <p>From this expression, we notice that <span class="math inline">\(F^{-1}_{Y_{0t}|D_t=1}(\tau)\)</span> is the term that needs to be identified for identification of the QTET. The other terms are identified because (i) no one is treated (by assumption) in the first period and (ii) untreated potential outcomes are observed for the untreated group. Invoking a conditional on covariates version of this assumption is not straightforward. We do provide a method for invoking this assumption with covariates. First, a linear model with all the terms in <span class="math inline">\(X\)</span> is run and the residuals plus the predicted value of the group effect are recovered. Then, the unconditional version of the model is run on these terms.</p>
-<p>Next, the identifying assumption for the Change in Changes model of <span class="citation">[@athey-imbens-2006]</span> can be stated nonparametrically as</p>
+<p>Next, the identifying assumption for the Change in Changes model of <span class="citation">(Athey and Imbens 2006)</span> can be stated nonparametrically as</p>
 <p><span class="math display">\[ F_{Y_{0t}|D_t=1}^{-1}(\tau) - F_{Y_{0t-1}|D_t=1}^{-1}(\tau) = F_{Y_{0t}|D_t=0}^{-1}(F_{Y_{0t-1}|D_t=0}(y)) - F_{Y_{0t-1}|D_t=0}^{-1}(F_{Y_{0t-1}|D_t=0}(y)) \]</span></p>
 <p>Whereas QDiD treats time and group symmetrically, CiC treats time and group asymmetrically. The other advantage of computing QTET with this method is that it is invariant to the scale of the dependent variable. The Change in Changes model is implemented by the method <code>CiC</code>.</p>
 <p>Finally, the identifying assumption for the Mean Difference in Differences model is</p>
@@ -392,54 +391,86 @@ Note that these types of methods only identify the QTET (not the QTE). <span cla
 <div id="estimation-3" class="section level3">
 <h3 class="hasAnchor">
 <a href="#estimation-3" class="anchor"></a>Estimation</h3>
-<p>The QTET for participating in the job training program is estimated using each of the three methods ddid2, QDiD, CiC, and MDiD next.</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">  jt.ddid2 &lt;-<span class="st"> </span><span class="kw"><a href="../reference/ddid2.html">ddid2</a></span>(re ~<span class="st"> </span>treat, <span class="dt">t=</span><span class="dv">1978</span>, <span class="dt">tmin1=</span><span class="dv">1975</span>,
-    <span class="dt">tname=</span><span class="st">"year"</span>, <span class="dt">idname=</span><span class="st">"id"</span>,
-    <span class="dt">xformla=</span>~age +<span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/AsIs">I</a></span>(age^<span class="dv">2</span>) +<span class="st"> </span>education +<span class="st"> </span>black +<span class="st"> </span>hispanic +<span class="st"> </span>married +<span class="st"> </span>nodegree,
-    <span class="dt">data=</span>lalonde.psid.panel,
-    <span class="dt">probs=</span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/seq">seq</a></span>(<span class="fl">0.05</span>,<span class="fl">0.95</span>,<span class="fl">0.05</span>), <span class="dt">se=</span>T, <span class="dt">iters=</span><span class="dv">10</span>)
-  <span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/summary">summary</a></span>(jt.ddid2)</code></pre></div>
+<p>The QTET for participating in the job training program is estimated using each of the three methods ddid2, QDiD, and CiC next.</p>
+<div class="sourceCode" id="cb23"><pre class="downlit sourceCode r">
+<code class="sourceCode R">  <span class="va">jt.ddid2</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/ddid2.html">ddid2</a></span><span class="op">(</span><span class="va">re</span> <span class="op">~</span> <span class="va">treat</span>, t<span class="op">=</span><span class="fl">1978</span>, tmin1<span class="op">=</span><span class="fl">1975</span>,
+    tname<span class="op">=</span><span class="st">"year"</span>, idname<span class="op">=</span><span class="st">"id"</span>,
+    xformla<span class="op">=</span><span class="op">~</span><span class="va">age</span> <span class="op">+</span> <span class="fu"><a href="https://rdrr.io/r/base/AsIs.html">I</a></span><span class="op">(</span><span class="va">age</span><span class="op">^</span><span class="fl">2</span><span class="op">)</span> <span class="op">+</span> <span class="va">education</span> <span class="op">+</span> <span class="va">black</span> <span class="op">+</span> <span class="va">hispanic</span> <span class="op">+</span> <span class="va">married</span> <span class="op">+</span> <span class="va">nodegree</span>,
+    data<span class="op">=</span><span class="va">lalonde.psid.panel</span>,
+    probs<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/seq.html">seq</a></span><span class="op">(</span><span class="fl">0.05</span>,<span class="fl">0.95</span>,<span class="fl">0.05</span><span class="op">)</span>, se<span class="op">=</span><span class="cn">T</span>, iters<span class="op">=</span><span class="fl">10</span><span class="op">)</span>
+  <span class="fu"><a href="https://rdrr.io/r/base/summary.html">summary</a></span><span class="op">(</span><span class="va">jt.ddid2</span><span class="op">)</span></code></pre></div>
 <pre><code>## 
 ## Quantile Treatment Effect:
 ##      
 ## tau  QTE Std. Error
-## 0.05  9832.19     1152.84
-## 0.1   4544.63      724.80
-## 0.15  2068.77      432.37
-## 0.2    849.12      336.54
-## 0.25   485.23      428.42
-## 0.3    943.05      422.53
-## 0.35   817.00      648.03
-## 0.4    681.37      738.57
-## 0.45  1010.12      578.26
-## 0.5    992.30      437.60
-## 0.55   938.13      685.60
-## 0.6    950.31      753.39
-## 0.65   977.04      806.54
-## 0.7    366.22      885.57
-## 0.75   563.49     1162.83
-## 0.8   -352.59     1167.22
-## 0.85  -825.48      825.73
-## 0.9  -1978.06     2035.34
-## 0.95 -3333.16     2873.67
+## 0.05  9832.19     1061.68
+## 0.1   4544.63      769.63
+## 0.15  2068.77      519.34
+## 0.2    849.12      342.36
+## 0.25   485.23      391.61
+## 0.3    943.05      660.44
+## 0.35   817.00      710.73
+## 0.4    681.37      711.34
+## 0.45  1010.12      749.82
+## 0.5    992.30      886.51
+## 0.55   938.13      939.21
+## 0.6    950.31     1166.04
+## 0.65   977.04      927.72
+## 0.7    366.22     1080.36
+## 0.75   563.49      956.80
+## 0.8   -352.59     1146.17
+## 0.85  -825.48     1683.11
+## 0.9  -1978.06     1631.88
+## 0.95 -3333.16     2225.30
 ## 
 ## Average Treatment Effect:    1665.63
-##   Std. Error:        847.72</code></pre>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">  <span class="kw"><a href="../reference/ggqte.html">ggqte</a></span>(jt.ddid2)</code></pre></div>
-<p><img src="R-QTEs_files/figure-html/unnamed-chunk-19-1.png" width="700"></p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">  jt.qdid &lt;-<span class="st"> </span><span class="kw"><a href="../reference/QDiD.html">QDiD</a></span>(re ~<span class="st"> </span>treat, <span class="dt">t=</span><span class="dv">1978</span>, <span class="dt">tmin1=</span><span class="dv">1975</span>,
-     <span class="dt">tname=</span><span class="st">"year"</span>, <span class="dt">idname=</span><span class="st">"id"</span>,
-     <span class="dt">xformla=</span>~age +<span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/AsIs">I</a></span>(age^<span class="dv">2</span>) +<span class="st"> </span>education +<span class="st"> </span>black +<span class="st"> </span>hispanic +<span class="st"> </span>married +<span class="st"> </span>nodegree,
-     <span class="dt">data=</span>lalonde.psid.panel,
-     <span class="dt">probs=</span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/seq">seq</a></span>(<span class="fl">0.05</span>,<span class="fl">0.95</span>,<span class="fl">0.05</span>), <span class="dt">se=</span>T, <span class="dt">iters=</span><span class="dv">10</span>, <span class="dt">panel=</span>T)
-  <span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/summary">summary</a></span>(jt.qdid)
-  <span class="kw"><a href="../reference/ggqte.html">ggqte</a></span>(jt.qdid)</code></pre></div>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">  jt.cic &lt;-<span class="st"> </span><span class="kw"><a href="../reference/CiC.html">CiC</a></span>(re ~<span class="st"> </span>treat, <span class="dt">t=</span><span class="dv">1978</span>, <span class="dt">tmin1=</span><span class="dv">1975</span>,
-    <span class="dt">tname=</span><span class="st">"year"</span>, <span class="dt">idname=</span><span class="st">"id"</span>,
-    <span class="dt">xformla=</span>~age +<span class="st"> </span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/AsIs">I</a></span>(age^<span class="dv">2</span>) +<span class="st"> </span>education +<span class="st"> </span>black +<span class="st"> </span>hispanic +<span class="st"> </span>married +<span class="st"> </span>nodegree,
-    <span class="dt">data=</span>lalonde.psid.panel,
-    <span class="dt">probs=</span><span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/seq">seq</a></span>(<span class="fl">0.05</span>,<span class="fl">0.95</span>,<span class="fl">0.05</span>), <span class="dt">se=</span>T, <span class="dt">iters=</span><span class="dv">10</span>, <span class="dt">panel=</span>T)
-  <span class="kw"><a href="https://www.rdocumentation.org/packages/base/topics/summary">summary</a></span>(jt.cic)</code></pre></div>
+##   Std. Error:        735.47</code></pre>
+<div class="sourceCode" id="cb25"><pre class="downlit sourceCode r">
+<code class="sourceCode R">  <span class="fu"><a href="../reference/ggqte.html">ggqte</a></span><span class="op">(</span><span class="va">jt.ddid2</span><span class="op">)</span></code></pre></div>
+<p><img src="R-QTEs_files/figure-html/unnamed-chunk-15-1.png" width="90%" style="display: block; margin: auto;"></p>
+<div class="sourceCode" id="cb26"><pre class="downlit sourceCode r">
+<code class="sourceCode R">  <span class="va">jt.qdid</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/QDiD.html">QDiD</a></span><span class="op">(</span><span class="va">re</span> <span class="op">~</span> <span class="va">treat</span>, t<span class="op">=</span><span class="fl">1978</span>, tmin1<span class="op">=</span><span class="fl">1975</span>,
+     tname<span class="op">=</span><span class="st">"year"</span>, idname<span class="op">=</span><span class="st">"id"</span>,
+     xformla<span class="op">=</span><span class="op">~</span><span class="va">age</span> <span class="op">+</span> <span class="fu"><a href="https://rdrr.io/r/base/AsIs.html">I</a></span><span class="op">(</span><span class="va">age</span><span class="op">^</span><span class="fl">2</span><span class="op">)</span> <span class="op">+</span> <span class="va">education</span> <span class="op">+</span> <span class="va">black</span> <span class="op">+</span> <span class="va">hispanic</span> <span class="op">+</span> <span class="va">married</span> <span class="op">+</span> <span class="va">nodegree</span>,
+     data<span class="op">=</span><span class="va">lalonde.psid.panel</span>,
+     probs<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/seq.html">seq</a></span><span class="op">(</span><span class="fl">0.05</span>,<span class="fl">0.95</span>,<span class="fl">0.05</span><span class="op">)</span>, se<span class="op">=</span><span class="cn">T</span>, iters<span class="op">=</span><span class="fl">10</span>, panel<span class="op">=</span><span class="cn">T</span><span class="op">)</span>
+  <span class="fu"><a href="https://rdrr.io/r/base/summary.html">summary</a></span><span class="op">(</span><span class="va">jt.qdid</span><span class="op">)</span></code></pre></div>
+<pre><code>## 
+## Quantile Treatment Effect:
+##      
+## tau  QTE Std. Error
+## 0.05   306.34      762.20
+## 0.1   -606.23      703.62
+## 0.15  -856.17      584.92
+## 0.2  -1430.94      598.88
+## 0.25 -1200.28      775.12
+## 0.3   -902.21      752.07
+## 0.35  -500.36     1014.54
+## 0.4     94.13     1187.33
+## 0.45   930.04     1407.38
+## 0.5   1538.92     1455.19
+## 0.55  2197.63     1028.42
+## 0.6   3051.61      902.16
+## 0.65  3536.42      993.88
+## 0.7   2994.79     1112.19
+## 0.75  3930.74      909.68
+## 0.8   4385.78     1345.67
+## 0.85  4373.68     1274.55
+## 0.9   3921.55     2566.82
+## 0.95  4380.63     2528.56
+## 
+## Average Treatment Effect:    2033.09
+##   Std. Error:        839.95</code></pre>
+<div class="sourceCode" id="cb28"><pre class="downlit sourceCode r">
+<code class="sourceCode R">  <span class="fu"><a href="../reference/ggqte.html">ggqte</a></span><span class="op">(</span><span class="va">jt.qdid</span><span class="op">)</span></code></pre></div>
+<p><img src="R-QTEs_files/figure-html/unnamed-chunk-16-1.png" width="90%" style="display: block; margin: auto;"></p>
+<div class="sourceCode" id="cb29"><pre class="downlit sourceCode r">
+<code class="sourceCode R">  <span class="va">jt.cic</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/CiC.html">CiC</a></span><span class="op">(</span><span class="va">re</span> <span class="op">~</span> <span class="va">treat</span>, t<span class="op">=</span><span class="fl">1978</span>, tmin1<span class="op">=</span><span class="fl">1975</span>,
+    tname<span class="op">=</span><span class="st">"year"</span>, idname<span class="op">=</span><span class="st">"id"</span>,
+    xformla<span class="op">=</span><span class="op">~</span><span class="va">age</span> <span class="op">+</span> <span class="fu"><a href="https://rdrr.io/r/base/AsIs.html">I</a></span><span class="op">(</span><span class="va">age</span><span class="op">^</span><span class="fl">2</span><span class="op">)</span> <span class="op">+</span> <span class="va">education</span> <span class="op">+</span> <span class="va">black</span> <span class="op">+</span> <span class="va">hispanic</span> <span class="op">+</span> <span class="va">married</span> <span class="op">+</span> <span class="va">nodegree</span>,
+    data<span class="op">=</span><span class="va">lalonde.psid.panel</span>,
+    probs<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/seq.html">seq</a></span><span class="op">(</span><span class="fl">0.05</span>,<span class="fl">0.95</span>,<span class="fl">0.05</span><span class="op">)</span>, se<span class="op">=</span><span class="cn">T</span>, iters<span class="op">=</span><span class="fl">10</span>, panel<span class="op">=</span><span class="cn">T</span><span class="op">)</span>
+  <span class="fu"><a href="https://rdrr.io/r/base/summary.html">summary</a></span><span class="op">(</span><span class="va">jt.cic</span><span class="op">)</span></code></pre></div>
 <pre><code>## 
 ## Quantile Treatment Effect:
 ##      
@@ -447,72 +478,109 @@ Note that these types of methods only identify the QTET (not the QTE). <span cla
 ## 0.05    0.00    0.00
 ## 0.1     0.00    0.00
 ## 0.15    0.00    0.00
-## 0.2     0.00  186.82
-## 0.25  485.23  430.75
-## 0.3   929.88  811.77
-## 0.35 1460.36 1089.99
-## 0.4  2321.11 1210.12
-## 0.45 3462.56 1367.14
-## 0.5  4232.31 1170.34
-## 0.55 5010.34 1082.69
-## 0.6  6210.67 1286.06
-## 0.65 7458.11 1291.30
-## 0.7  7508.97 1321.64
-## 0.75 8210.84 1504.19
-## 0.8  8332.69 1663.14
-## 0.85 8515.98 2371.72
-## 0.9  8822.00 2414.45
-## 0.95 8273.74 1363.66
+## 0.2     0.00  176.91
+## 0.25  485.23  380.94
+## 0.3   929.88  386.44
+## 0.35 1460.36  398.82
+## 0.4  2321.11  549.13
+## 0.45 3462.56  424.59
+## 0.5  4232.31  413.90
+## 0.55 5010.34  793.04
+## 0.6  6210.67  785.08
+## 0.65 7458.11  830.76
+## 0.7  7508.97 1049.77
+## 0.75 8210.84 1130.40
+## 0.8  8332.69 1337.01
+## 0.85 8515.98 1768.37
+## 0.9  8822.00 2322.48
+## 0.95 8273.74 2526.52
 ## 
 ## Average Treatment Effect:    4629.24
-##   Std. Error:        831.72</code></pre>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">  <span class="kw"><a href="../reference/ggqte.html">ggqte</a></span>(jt.cic)</code></pre></div>
-<p><img src="R-QTEs_files/figure-html/unnamed-chunk-21-1.png" width="700"></p>
+##   Std. Error:        507.39</code></pre>
+<div class="sourceCode" id="cb31"><pre class="downlit sourceCode r">
+<code class="sourceCode R">  <span class="fu"><a href="../reference/ggqte.html">ggqte</a></span><span class="op">(</span><span class="va">jt.cic</span><span class="op">)</span></code></pre></div>
+<p><img src="R-QTEs_files/figure-html/unnamed-chunk-17-1.png" width="90%" style="display: block; margin: auto;"></p>
 </div>
 </div>
 </div>
-<div id="references" class="section level1">
+<div id="references" class="section level1 unnumbered">
 <h1 class="hasAnchor">
 <a href="#references" class="anchor"></a>References</h1>
+<div id="refs" class="references">
+<div id="ref-abadie-2005">
+<p>Abadie, Alberto. 2005. “Semiparametric Difference-in-Differences Estimators.” <em>The Review of Economic Studies</em> 72 (1): 1–19.</p>
+</div>
+<div id="ref-abadie-angrist-imbens-2002">
+<p>Abadie, Alberto, Joshua Angrist, and Guido Imbens. 2002. “Instrumental Variables Estimates of the Effect of Subsidized Training on the Quantiles of Trainee Earnings.” <em>Econometrica</em> 70 (1): 91–117.</p>
+</div>
+<div id="ref-abbring-heckman-2007">
+<p>Abbring, Jaap, and James Heckman. 2007. “Econometric Evaluation of Social Programs, Part Iii: Distributional Treatment Effects, Dynamic Treatment Effects, Dynamic Discrete Choice, and General Equilibrium Policy Evaluation.” <em>Handbook of Econometrics</em> 6: 5145–5303.</p>
+</div>
+<div id="ref-ashenfelter-1978">
+<p>Ashenfelter, Orley. 1978. “Estimating the Effect of Training Programs on Earnings.” <em>The Review of Economics and Statistics</em>, 47–57.</p>
+</div>
+<div id="ref-athey-imbens-2006">
+<p>Athey, Susan, and Guido Imbens. 2006. “Identification and Inference in Nonlinear Difference-in-Differences Models.” <em>Econometrica</em> 74 (2): 431–97.</p>
+</div>
+<div id="ref-callaway-li-2019">
+<p>Callaway, Brantly, and Tong Li. 2019. “Quantile Treatment Effects in Difference in Differences Models with Panel Data.” <em>Quantitative Economics</em> 10 (4): 1579–1618.</p>
+</div>
+<div id="ref-dehejia-wahba-1999">
+<p>Dehejia, Rajeev, and Sadek Wahba. 1999. “Causal Effects in Nonexperimental Studies: Reevaluating the Evaluation of Training Programs.” <em>Journal of the American Statistical Association</em> 94 (448): 1053–62.</p>
+</div>
+<div id="ref-fan-park-2009">
+<p>Fan, Yanqin, and Sang Soo Park. 2009. “Partial Identification of the Distribution of Treatment Effects and Its Confidence Sets.” <em>Advances in Econometrics</em> 25: 3–70.</p>
+</div>
+<div id="ref-fan-yu-2012">
+<p>Fan, Yanqin, and Zhengfei Yu. 2012. “Partial Identification of Distributional and Quantile Treatment Effects in Difference-in-Differences Models.” <em>Economics Letters</em> 115 (3): 511–15.</p>
+</div>
+<div id="ref-firpo-2007">
+<p>Firpo, Sergio. 2007. “Efficient Semiparametric Estimation of Quantile Treatment Effects.” <em>Econometrica</em> 75 (1): 259–76.</p>
+</div>
+<div id="ref-frolich-melly-2013">
+<p>Frolich, Markus, and Blaise Melly. 2013. “Unconditional Quantile Treatment Effects Under Endogeneity.” <em>Journal of Business &amp; Economic Statistics</em> 31 (3): 346–57.</p>
+</div>
+<div id="ref-heckman-smith-1995">
+<p>Heckman, James J, and Jeffrey A Smith. 1995. “Assessing the Case for Social Experiments.” <em>The Journal of Economic Perspectives</em> 9 (2): 85–110.</p>
+</div>
+<div id="ref-heckman-robb-1985">
+<p>Heckman, James, and Richard Robb. 1985. “Alternative Methods for Evaluating the Impact of Interventions.” In <em>Longitudinal Analysis of Labor Market Data</em>, edited by James Heckman and Burton Singer, 156–246. Cambridge: Cambridge University Press.</p>
+</div>
+<div id="ref-heckman-smith-clements-1997">
+<p>Heckman, James, Jeffrey Smith, and Nancy Clements. 1997. “Making the Most Out of Programme Evaluations and Social Experiments: Accounting for Heterogeneity in Programme Impacts.” <em>The Review of Economic Studies</em> 64 (4): 487–535.</p>
+</div>
+<div id="ref-imbens-angrist-1994">
+<p>Imbens, Guido, and Joshua Angrist. 1994. “Identification and Estimation of Local Average Treatment Effects.” <em>Econometrica</em>, 467–75.</p>
+</div>
+<div id="ref-imbens-wooldridge-2009">
+<p>Imbens, Guido, and Jeffrey Wooldridge. 2009. “Recent Developments in the Econometrics of Program Evaluation.” <em>Journal of Economic Literature</em> 47 (1): 5–86.</p>
+</div>
+<div id="ref-lalonde-1986">
+<p>LaLonde, Robert. 1986. “Evaluating the Econometric Evaluations of Training Programs with Experimental Data.” <em>The American Economic Review</em>, 604–20.</p>
+</div>
+<div id="ref-smith-todd-2005">
+<p>Smith, Jeffrey, and Petra Todd. 2005. “Does Matching Overcome Lalonde’s Critique of Nonexperimental Estimators?” <em>Journal of Econometrics</em> 125 (1): 305–53.</p>
+</div>
+</div>
 </div>
 <div class="footnotes">
 <hr>
 <ol>
-<li id="fn1"><p>This type of assumption is typically called either Selection on Observables or a Conditional Independence assumption are handled by the <code>ci.qte</code> or <code>ci.qtet</code> methods using the method developed in <span class="citation">[@firpo-2007]</span>.<a href="#fnref1">↩</a></p></li>
-<li id="fn2"><p>The R package <code>Matching</code> is available to estimate the ATE and the ATT using matching technques. In the <code>ci.qte</code> package, their are estimators of the ATE or ATT available as a by-product of estimating quantile treatment effects. These are typically based on re-weighting.<a href="#fnref2">↩</a></p></li>
-<li id="fn3"><p>Currently, no standard errors or confidence intervals are computed using the <code>bounds</code> method.<a href="#fnref3">↩</a></p></li>
+<li id="fn1"><p>This type of assumption is typically called either Selection on Observables or a Conditional Independence assumption are handled by the <code>ci.qte</code> or <code>ci.qtet</code> methods using the method developed in <span class="citation">(Firpo 2007)</span>.<a href="#fnref1" class="footnote-back">↩</a></p></li>
+<li id="fn2"><p>The R package <code>Matching</code> is available to estimate the ATE and the ATT using matching technques. In the <code>ci.qte</code> package, their are estimators of the ATE or ATT available as a by-product of estimating quantile treatment effects. These are typically based on re-weighting.<a href="#fnref2" class="footnote-back">↩</a></p></li>
+<li id="fn3"><p>Currently, no standard errors or confidence intervals are computed using the <code>bounds</code> method.<a href="#fnref3" class="footnote-back">↩</a></p></li>
 </ol>
 </div>
   </div>
 
-  <div class="col-md-3 hidden-xs hidden-sm" id="sidebar">
-        <div id="tocnav">
-      <h2 class="hasAnchor">
-<a href="#tocnav" class="anchor"></a>Contents</h2>
-      <ul class="nav nav-pills nav-stacked">
-<li><a href="#introduction">Introduction</a></li>
-      <li>
-<a href="#background-on-treatment-effects">Background on treatment effects</a><ul class="nav nav-pills nav-stacked">
-<li><a href="#notation">Notation</a></li>
-      </ul>
-</li>
-      <li><a href="#quantiles">Quantiles</a></li>
-      <li><a href="#quantile-treatment-effects">Quantile Treatment Effects</a></li>
-      <li>
-<a href="#identification-and-estimation">Identification and Estimation</a><ul class="nav nav-pills nav-stacked">
-<li><a href="#data">Data</a></li>
-      <li><a href="#using-the-qte-package">Using the QTE package</a></li>
-      <li><a href="#randomization">Randomization</a></li>
-      <li><a href="#conditional-independence-assumption">Conditional Independence Assumption</a></li>
-      <li><a href="#difference-in-differences-methods">Difference in Differences Methods</a></li>
-      </ul>
-</li>
-      <li><a href="#references">References</a></li>
-      </ul>
+  <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">
+
+        <nav id="toc" data-toggle="toc"><h2 data-toc-skip>Contents</h2>
+    </nav>
 </div>
-      </div>
 
 </div>
+
 
 
       <footer><div class="copyright">
@@ -520,12 +588,14 @@ Note that these types of methods only identify the QTET (not the QTE). <span cla
 </div>
 
 <div class="pkgdown">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/">pkgdown</a> 1.3.0.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/">pkgdown</a> 1.6.1.</p>
 </div>
+
       </footer>
 </div>
 
   
+
 
   </body>
 </html>

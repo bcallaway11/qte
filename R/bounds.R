@@ -45,7 +45,7 @@ bounds <- function(formla, xformla=NULL, t, tmin1, tname, data,
     ##after joining treatment.
     
     data = subset(data, (data[,tname]==tmin1 | data[,tname]==t))
-    data = makeBalancedPanel(data, idname, tname)
+    data = setDF(makeBalancedPanel(data, idname, tname))
         
     ##just to make sure the factors are working ok
     data = droplevels(data)

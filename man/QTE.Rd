@@ -3,19 +3,37 @@
 \docType{package}
 \name{QTE}
 \alias{QTE}
-\alias{QTE-package}
 \title{qte: A package for computating quantile treatment effects}
 \usage{
-QTE(qte, ate = NULL, qte.se = NULL, qte.lower = NULL,
-  qte.upper = NULL, ate.se = NULL, ate.lower = NULL,
-  ate.upper = NULL, c = NULL, pscore.reg = NULL, probs,
-  type = "On the Treated", F.treated.t = NULL, F.untreated.t = NULL,
-  F.treated.t.cf = NULL, F.treated.tmin1 = NULL,
-  F.treated.tmin2 = NULL, F.treated.change.tmin1 = NULL,
-  F.untreated.change.t = NULL, F.untreated.change.tmin1 = NULL,
-  F.untreated.tmin1 = NULL, F.untreated.tmin2 = NULL,
-  condQ.treated.t = NULL, condQ.treated.t.cf = NULL,
-  eachIterList = NULL, inffunct = NULL, inffuncu = NULL)
+QTE(
+  qte,
+  ate = NULL,
+  qte.se = NULL,
+  qte.lower = NULL,
+  qte.upper = NULL,
+  ate.se = NULL,
+  ate.lower = NULL,
+  ate.upper = NULL,
+  c = NULL,
+  pscore.reg = NULL,
+  probs,
+  type = "On the Treated",
+  F.treated.t = NULL,
+  F.untreated.t = NULL,
+  F.treated.t.cf = NULL,
+  F.treated.tmin1 = NULL,
+  F.treated.tmin2 = NULL,
+  F.treated.change.tmin1 = NULL,
+  F.untreated.change.t = NULL,
+  F.untreated.change.tmin1 = NULL,
+  F.untreated.tmin1 = NULL,
+  F.untreated.tmin2 = NULL,
+  condQ.treated.t = NULL,
+  condQ.treated.t.cf = NULL,
+  eachIterList = NULL,
+  inffunct = NULL,
+  inffuncu = NULL
+)
 }
 \arguments{
 \item{qte}{The Quantile Treatment Effect at each value of probs}

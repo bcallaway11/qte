@@ -9,7 +9,7 @@ vignette: >
   \usepackage[utf8]{inputenc}
 ---
 
-# Estimating Quantile Treatment Effects using Callaway and Li (2016)
+# Estimating Quantile Treatment Effects using Callaway and Li (2019)
 
 The goal is to estimate the Quantile Treatment Effect on the Treated (QTET) which is given by
 

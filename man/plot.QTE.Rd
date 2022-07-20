@@ -4,10 +4,23 @@
 \alias{plot.QTE}
 \title{plot.QTE}
 \usage{
-\method{plot}{QTE}(x, plotate = FALSE, plot0 = FALSE,
-  qtecol = "black", atecol = "black", col0 = "black", xlab = "tau",
-  ylab = "QTE", legend = NULL, ontreated = FALSE, ylim = NULL,
-  uselegend = FALSE, legendcol = NULL, legloc = "topright", ...)
+\method{plot}{QTE}(
+  x,
+  plotate = FALSE,
+  plot0 = FALSE,
+  qtecol = "black",
+  atecol = "black",
+  col0 = "black",
+  xlab = "tau",
+  ylab = "QTE",
+  legend = NULL,
+  ontreated = FALSE,
+  ylim = NULL,
+  uselegend = FALSE,
+  legendcol = NULL,
+  legloc = "topright",
+  ...
+)
 }
 \arguments{
 \item{x}{a QTE Object}

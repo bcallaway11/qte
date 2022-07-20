@@ -6,4 +6,5 @@
 #' @import stats
 #' @import pbapply
 #' @importFrom utils write.table tail
+#' @import data.table
 NULL

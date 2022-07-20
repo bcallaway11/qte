@@ -1,3 +1,38 @@
+template:
+  params:
+    bootswatch: sandstone
+
+authors:
+  Brantly Callaway:
+    href: https://bcallaway11.github.io/
+
+
+navbar:
+  title: "did"
+  left:
+    - text: "User Guides"
+      href: articles/index.html
+    - text: "Functions"
+      href: reference/index.html
+    - text: "News"
+      href: news/index.html
+
+home:
+  links:
+    - text: Source Code
+      href: https://github.com/bcallaway11/qte
+    - text: Report Bugs or Feature Requests
+      href: https://github.com/bcallaway11/qte/issues
+
+articles:
+  - title: "Background on Quantile Treatment Effects Methods"
+    contents:
+      - R-QTEs
+  - title: "R qte Tutorials"
+    contents:
+      - panel-qtet
+      - ddid2
+
 reference:
   - title: "Difference in Differences Methods"
     desc: >
@@ -8,17 +43,52 @@ reference:
       - ddid2
       - CiC
       - QDiD
-  - title: "Selection on Observables"
+      - MDiD
+      - bounds
+  - title: "Unconfoundedness"
     desc: >
       Functions for computing quantile treatment effects under the assumption
-      of selection on observables
+      of unconfoundedness
     contents:
       - ci.qte
       - ci.qtet
-articles:
-  - title: "R qte Tutorials"
+  - title: "Classes"
     desc: >
-      Additonal Details on qte methods
+      Classes available in the **qte** package
     contents:
-      - panel-qtet
-      - ddid2
+      - DR
+      - QTE
+      - QTEparams
+  - title: "Plotting Functions"
+    desc: >
+      Functions used for making **qte** plots
+    contents:
+      - ggqte
+      - plot.BoundsObj
+      - plot.QTE
+  - title: "Helper Functions"
+    desc: >
+      A number of other miscellaneous helper functions
+    contents:
+      - compute.panel.qtet
+      - computeDiffSE
+      - diffQ
+      - panel.checks
+      - panelize.data
+      - print.summary.BoundsObj
+      - print.summary.QTE
+      - qteToTexreg
+      - qtes2mat
+      - setupData
+      - spatt
+      - summary.BoundsObj
+      - summary.QTE
+  - title: "Data"
+    desc: >
+      Available datasets in the package
+    contents:
+      - lalonde
+      - lalonde.exp
+      - lalonde.exp.panel
+      - lalonde.psid
+      - lalonde.psid.panel

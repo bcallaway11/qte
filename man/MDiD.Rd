@@ -4,9 +4,21 @@
 \alias{MDiD}
 \title{Mean Difference in Differences}
 \usage{
-MDiD(formla, xformla = NULL, t, tmin1, tname, data, panel = FALSE,
-  se = TRUE, idname = NULL, alp = 0.05, probs = seq(0.05, 0.95,
-  0.05), iters = 100, retEachIter = FALSE)
+MDiD(
+  formla,
+  xformla = NULL,
+  t,
+  tmin1,
+  tname,
+  data,
+  panel = FALSE,
+  se = TRUE,
+  idname = NULL,
+  alp = 0.05,
+  probs = seq(0.05, 0.95, 0.05),
+  iters = 100,
+  retEachIter = FALSE
+)
 }
 \arguments{
 \item{formla}{The formula y ~ d where y is the outcome and d is the

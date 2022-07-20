@@ -4,8 +4,16 @@
 \alias{bounds}
 \title{bounds}
 \usage{
-bounds(formla, xformla = NULL, t, tmin1, tname, data, idname,
-  probs = seq(0.05, 0.95, 0.05))
+bounds(
+  formla,
+  xformla = NULL,
+  t,
+  tmin1,
+  tname,
+  data,
+  idname,
+  probs = seq(0.05, 0.95, 0.05)
+)
 }
 \arguments{
 \item{formla}{The formula y ~ d where y is the outcome and d is the

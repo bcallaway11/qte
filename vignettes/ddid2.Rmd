@@ -9,7 +9,7 @@ vignette: >
   \usepackage[utf8]{inputenc}
 ---
 
-# Estimating Quantile Treatment Effects using Callaway, Li, and Oka (2017)
+# Estimating Quantile Treatment Effects using Callaway, Li, and Oka (2018)
 
 We are interested in estimating Conditional Quantile Treatment Effects on the Treated (QTT) with two periods of panel data (or repeated cross sections) under a Difference in Differences Assumption.  These are defined by 
 

@@ -4,8 +4,15 @@
 \alias{ggqte}
 \title{ggqte}
 \usage{
-ggqte(qteobj, main = "", ylab = "QTE", ylim = NULL, ybreaks = NULL,
-  xbreaks = c(0.1, 0.3, 0.5, 0.7, 0.9), setype = "pointwise")
+ggqte(
+  qteobj,
+  main = "",
+  ylab = "QTE",
+  ylim = NULL,
+  ybreaks = NULL,
+  xbreaks = c(0.1, 0.3, 0.5, 0.7, 0.9),
+  setype = "pointwise"
+)
 }
 \arguments{
 \item{qteobj}{a QTE object}

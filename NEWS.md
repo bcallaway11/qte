@@ -9,6 +9,10 @@ vignette: >
   \usepackage[utf8]{inputenc}
 ---
 
+# qte 1.3.1
+  * Updated maintainer's contact information
+  * Improvements/updates to vignettes
+  
 # qte 1.3.0
   * Added first-step quantile regression support for panel.qtet, QDiD, CiC
   * Added some checks that inputted data is of correct format, particularly in panel data case
@@ -18,7 +22,7 @@ vignette: >
   * Added code for computing uniform confidence bands
   * General improvements to codebase, e.g., combining same code used across methods
 
-# qte 1.2.2 (current CRAN version)
+# qte 1.2.2 
   * Some bug fixes to CiC method
 
 # qte 1.2

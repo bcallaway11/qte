@@ -4,10 +4,26 @@
 \alias{spatt}
 \title{spatt}
 \usage{
-spatt(formla, xformla = NULL, t, tmin1, tname, data, w = NULL,
-  panel = FALSE, idname = NULL, iters = 100, alp = 0.05,
-  method = "logit", plot = FALSE, se = TRUE, retEachIter = FALSE,
-  seedvec = NULL, pl = FALSE, cores = 2)
+spatt(
+  formla,
+  xformla = NULL,
+  t,
+  tmin1,
+  tname,
+  data,
+  w = NULL,
+  panel = FALSE,
+  idname = NULL,
+  iters = 100,
+  alp = 0.05,
+  method = "logit",
+  plot = FALSE,
+  se = TRUE,
+  retEachIter = FALSE,
+  seedvec = NULL,
+  pl = FALSE,
+  cores = 2
+)
 }
 \arguments{
 \item{formla}{The formula y ~ d where y is the outcome and d is the

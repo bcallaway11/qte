@@ -5,7 +5,6 @@
 #' @description \code{setupData} sets up the data to use in each
 #'  compute method in the QTE package
 #' 
-#' @inheritParams panel.qtet
 #' @param qteParams object holding the function parameters
 #'
 #' @return qteData object holding data to be used in QTE functions
@@ -64,7 +63,7 @@ setupData <- function(qteParams) {
 
         if (panel) {
             ndta <- nrow(data)
-            data <- makeBalancedPanel(data, idname, tname)
+            data <- setDF(makeBalancedPanel(data, idname, tname))
             if (nrow(data) != ndta) {
                 warning("forcing data to be balanced panel")
             }
