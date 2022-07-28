@@ -38,5 +38,5 @@ a ggplot object
 }
 \description{
 Makes somewhat nicer plots of quantile treatment effects
- by using ggplot
+by using ggplot
 }

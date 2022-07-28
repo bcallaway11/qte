@@ -6,7 +6,7 @@
 \title{Lalonde's Experimental Dataset}
 \description{
 The panel verion of the observational part of the
- \code{lalonde} dataset.  It
- is loaded with all the datasets with the command \code{data(lalonde)}
+\code{lalonde} dataset.  It
+is loaded with all the datasets with the command \code{data(lalonde)}
 }
 \keyword{datasets}

@@ -15,8 +15,13 @@ Imports: Hmisc,
     pbapply,
     data.table
 License: GPL-2
-LazyData: true
-RoxygenNote: 7.2.1
 Encoding: UTF-8
-Suggests: rmarkdown
+LazyData: true
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.2.1
 VignetteBuilder: knitr
+Suggests: 
+    rmarkdown,
+    knitr,
+    msm
+

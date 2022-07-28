@@ -19,7 +19,9 @@ diffQ(qvec, tauvec, hightau, lowtau)
 scalar difference between quantiles
 }
 \description{
-## takes a single set of quantiles
+\subsection{takes a single set of quantiles}{
+
 (not qtes as in diffquantiles)
- and returns the difference between particular ones
+and returns the difference between particular ones
+}
 }

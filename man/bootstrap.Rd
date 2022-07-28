@@ -19,6 +19,6 @@ SE object
 }
 \description{
 \code{bootstrap} is a method that bootstraps standard
- errors for methods in the qte package
+errors for methods in the qte package
 }
 \keyword{internal}

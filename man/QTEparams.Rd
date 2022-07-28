@@ -78,5 +78,5 @@ in parallel}
 }
 \description{
 \code{QTEparams} is an object that contains all the
- parameters passed to QTE methods
+parameters passed to QTE methods
 }

@@ -80,7 +80,7 @@ computed in parallel}
 }
 \description{
 \code{spatt} computes the Average Treatment Effect on the
- Treated (ATT) using the method of Abadie (2005)
+Treated (ATT) using the method of Abadie (2005)
 }
 \examples{
 ##load the data

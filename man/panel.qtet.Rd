@@ -130,5 +130,5 @@ summary(pq4)
 }
 \references{
 Callaway, Brantly and Tong Li.  ``Quantile Treatment Effects in Difference
- in Differences Models with Panel Data.'' Working Paper, 2019.
+in Differences Models with Panel Data.'' Working Paper, 2019.
 }

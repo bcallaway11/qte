@@ -137,7 +137,7 @@ In the case of the job training program, the parameter being identified is the Q
 
 The results from the `ci.qte` or `ci.qtet` command will be identical in this case, but it is important to note what the correct interpretation of the results is.  The QTET can be estimated with the following command
 
-```{r ci_qtet, cache=TRUE}
+```{r ci_qtet, cache=FALSE}
 jt.rand <- ci.qtet(re78 ~ treat, data=lalonde.exp, probs=seq(0.05,0.95,0.05), 
  se=T, iters=10)
 ```
@@ -186,9 +186,9 @@ Estimation of QTEs under the Conditional Independence Assumption can be performe
 
 The following command estimates the QTE of the job training program using the observational data and conditioning on several available variables.
 
-```{r ci_qte, cache=TRUE}
+```{r ci_qte, cache=FALSE}
  jt.cia <- ci.qte(re78 ~ treat,
-   xformla=~age + education + black + hispanic + married + nodegree,
+   xformla=~age + education,
    data=lalonde.psid,
    probs=seq(0.05,0.95,0.05), se=T, iters=10)
  summary(jt.cia)
@@ -201,9 +201,9 @@ and the QTE can be plotted
 
 and next the QTET of the job training is computed under the same setup
 
-```{r, cache=TRUE}
+```{r, cache=FALSE}
  jt.ciat <- ci.qtet(re78 ~ treat,
-   xformla=~age + education + black + hispanic + married + nodegree,
+   xformla=~age + education,
    data=lalonde.psid,
    probs=seq(0.05,0.95,0.05), se=T, iters=10)
  summary(jt.ciat)
@@ -236,10 +236,9 @@ Estimation using the method in [@callaway-li-2019] is similar to the preceding m
 
 The [@callaway-li-2019] method can be invoked with the `panel.qtet` command:
 
-```{r panel_qtet, cache=TRUE, warning=FALSE}
+```{r panel_qtet, cache=FALSE, warning=FALSE}
  jt.pqtet <- panel.qtet(re ~ treat, t=1978, tmin1=1975, tmin2=1974,
    tname="year", idname="id",
-   xformla=~age + education + black + hispanic + married + nodegree,
    data=lalonde.psid.panel,
    probs=seq(0.05,0.95,0.05), se=T, iters=10)
  summary(jt.pqtet)
@@ -250,7 +249,7 @@ The [@callaway-li-2019] method can be invoked with the `panel.qtet` command:
 ```
 
 In the most common Difference in Differences case with two periods of panel or repeated cross sectional data, [@fan-yu-2012] shows that the Distributional Difference in Differences Assumption leads to partial identification of the QTET.  In this case, a user can estimate these bounds using the method `bounds`:^[Currently, no standard errors or confidence intervals are computed using the `bounds` method.]
-```{r bounds, cache=TRUE}
+```{r bounds, cache=FALSE}
  b1 <- bounds(re ~ treat, t=1978, tmin1=1975, data=lalonde.psid.panel,
    idname="id", tname="year")
  summary(b1)
@@ -284,10 +283,9 @@ This assumption is restrictive in that it restricts the difference in the quanti
 
 The QTET for participating in the job training program is estimated using each of the three methods ddid2, QDiD, and CiC next.
 
-```{r ddid2, cache=TRUE, warning=FALSE}
+```{r ddid2, cache=FALSE, warning=FALSE}
   jt.ddid2 <- ddid2(re ~ treat, t=1978, tmin1=1975,
     tname="year", idname="id",
-    xformla=~age + I(age^2) + education + black + hispanic + married + nodegree,
     data=lalonde.psid.panel,
     probs=seq(0.05,0.95,0.05), se=T, iters=10)
   summary(jt.ddid2)
@@ -297,10 +295,9 @@ The QTET for participating in the job training program is estimated using each o
   ggqte(jt.ddid2)
 ```
 
-```{r qdid, cache=TRUE, warning=FALSE}
+```{r qdid, cache=FALSE, warning=FALSE}
   jt.qdid <- QDiD(re ~ treat, t=1978, tmin1=1975,
      tname="year", idname="id",
-     xformla=~age + I(age^2) + education + black + hispanic + married + nodegree,
      data=lalonde.psid.panel,
      probs=seq(0.05,0.95,0.05), se=T, iters=10, panel=T)
   summary(jt.qdid)
@@ -310,10 +307,9 @@ The QTET for participating in the job training program is estimated using each o
   ggqte(jt.qdid)
 ```
 
-```{r cic, cache=TRUE, warning=FALSE}
+```{r cic, cache=FALSE, warning=FALSE}
   jt.cic <- CiC(re ~ treat, t=1978, tmin1=1975,
     tname="year", idname="id",
-    xformla=~age + I(age^2) + education + black + hispanic + married + nodegree,
     data=lalonde.psid.panel,
     probs=seq(0.05,0.95,0.05), se=T, iters=10, panel=T)
   summary(jt.cic)

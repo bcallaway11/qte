@@ -20,6 +20,6 @@ period ?}
 }
 \description{
 Helper function to compute the lower bound in bounds method.
- Usually called by vapply function.
+Usually called by vapply function.
 }
 \keyword{internal}

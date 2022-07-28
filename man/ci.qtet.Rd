@@ -98,5 +98,5 @@ summary(q2)
 }
 \references{
 Firpo, Sergio.   ``Efficient Semiparametric Estimation of Quantile Treatment
- Effects.'' Econometrica 75.1, pp. 259-276, 2015.
+Effects.'' Econometrica 75.1, pp. 259-276, 2015.
 }

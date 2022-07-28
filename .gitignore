@@ -5,3 +5,5 @@ inst/doc
 /revdep/.cache.rds
 doc
 Meta
+/doc/
+/Meta/

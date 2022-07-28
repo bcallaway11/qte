@@ -21,12 +21,12 @@ confidence intervals}
 }
 \description{
 Takes two sets of initial estimates and bootstrap
- estimations
- (they need to have the same number of iterations) and determines
- whether or not the estimates are statistically different from each
- other.  It can be used to compare any sets of estimates, but it is
- particularly used here to compare estimates from observational methods
- with observations from the experimental data (which also have standard
- errors because, even though the estimates are cleanly identified, they
- are still estimated).
+estimations
+(they need to have the same number of iterations) and determines
+whether or not the estimates are statistically different from each
+other.  It can be used to compare any sets of estimates, but it is
+particularly used here to compare estimates from observational methods
+with observations from the experimental data (which also have standard
+errors because, even though the estimates are cleanly identified, they
+are still estimated).
 }

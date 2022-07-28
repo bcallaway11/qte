@@ -6,7 +6,7 @@
 \title{Lalonde's Experimental Dataset}
 \description{
 The cross sectional verion of the experimental part of the
- \code{lalonde} dataset.  It
- is loaded with all the datasets with the command \code{data(lalonde)}
+\code{lalonde} dataset.  It
+is loaded with all the datasets with the command \code{data(lalonde)}
 }
 \keyword{datasets}

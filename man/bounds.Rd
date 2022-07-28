@@ -45,8 +45,8 @@ A \code{BoundsObj} object
 }
 \description{
 \code{bounds} estimates bounds for the Quantile Treatment
- Effect on the
- Treated (QTET) using the method of Fan and Yu (2012).
+Effect on the
+Treated (QTET) using the method of Fan and Yu (2012).
 }
 \examples{
 ## load the data
@@ -60,6 +60,6 @@ summary(b1)
 }
 \references{
 Fan, Yanqin and Zhengfei Yu.  ``Partial Identification of Distributional
- and Quantile Treatment Effects in Difference-in-Differences Models.''
- Economics Letters 115.3, pp.511-515, 2012.
+and Quantile Treatment Effects in Difference-in-Differences Models.''
+Economics Letters 115.3, pp.511-515, 2012.
 }

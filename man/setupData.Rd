@@ -14,5 +14,5 @@ qteData object holding data to be used in QTE functions
 }
 \description{
 \code{setupData} sets up the data to use in each
- compute method in the QTE package
+compute method in the QTE package
 }

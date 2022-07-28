@@ -14,9 +14,9 @@ QTE object
 }
 \description{
 \code{compute.spatt} implements the method of Abadie (2005); this is
- computed automatically in several other methods in the qte package
- but this function provides a standalone result when quantiles are not
- wanted/needed.
+computed automatically in several other methods in the qte package
+but this function provides a standalone result when quantiles are not
+wanted/needed.
 
 \code{compute.ddid2} uses two periods of data (repeated cross sections
 or panel) to estimate the Quantile Treatment Effect on the Treated (QTET)

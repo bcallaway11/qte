@@ -11,5 +11,5 @@ panel.checks(qp)
 }
 \description{
 Does some checking that data setup is valid for using methods
- in qte package
+in qte package
 }

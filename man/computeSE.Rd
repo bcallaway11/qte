@@ -17,6 +17,6 @@ SEObj
 }
 \description{
 Computes standard errors from bootstrap results.  This function
- is called by several functions in the qte package
+is called by several functions in the qte package
 }
 \keyword{internal}

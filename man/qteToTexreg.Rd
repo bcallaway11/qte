@@ -14,7 +14,9 @@ qteToTexreg(qteobj, tau = NULL, reportAte = T)
 \item{reportAte}{Whether or not texreg the ATE (or ATT) as well}
 }
 \description{
-## takes a single set of quantiles
+\subsection{takes a single set of quantiles}{
+
 (not qtes as in diffquantiles)
- and returns the difference between particular ones
+and returns the difference between particular ones
+}
 }

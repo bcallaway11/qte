@@ -120,5 +120,5 @@ terms in the variance-covariance matrix.}
 }
 \description{
 Main class of objects.  A \code{QTE} object is returned by
- all of the methods that compute the QTE or QTET.
+all of the methods that compute the QTE or QTET.
 }

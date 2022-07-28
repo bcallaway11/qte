@@ -95,6 +95,6 @@ summary(qd1)
 }
 \references{
 Athey, Susan and Guido Imbens.  ``Identification and Inference in Nonlinear
- Difference-in-Differences Models.'' Econometrica 74.2, pp. 431-497,
- 2006.
+Difference-in-Differences Models.'' Econometrica 74.2, pp. 431-497,
+2006.
 }
