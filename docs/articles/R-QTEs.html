@@ -65,7 +65,7 @@
       <h1 data-toc-skip>Quantile Treatment Effects in R: The qte Package</h1>
                         <h4 data-toc-skip class="author">Brantly Callaway</h4>
             
-            <h4 data-toc-skip class="date">2022-07-20</h4>
+            <h4 data-toc-skip class="date">2022-07-28</h4>
       
       
       <div class="hidden name"><code>R-QTEs.Rmd</code></div>
@@ -130,8 +130,10 @@ There are many examples of programs that fit into this category. The example tha
 <p>After installing the <code>qte</code> package, the package can be loaded by</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va">qte</span><span class="op">)</span></span></code></pre></div>
+<pre><code><span><span class="co">## Warning in .recacheSubclasses(def@className, def, env): undefined subclass</span></span>
+<span><span class="co">## "numericVector" of class "Mnumeric"; definition not updated</span></span></code></pre>
 <p>and the job training datasets loaded by the following command</p>
-<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="va">lalonde</span><span class="op">)</span></span></code></pre></div>
 <p>which loads the four datasets <code>lalonde.exp</code>, <code>lalonde.psid</code>, <code>lalonde.exp.panel</code>, and <code>lalonde.psid.panel</code>. The <code>exp</code> datasets contain the experimental datasets, and the <code>psid</code> datasets contain the observational datsets. The two datasets with the suffix panel contain exactly the same data as their respective counterparts, but the data is formatted in a panel (three observations per individual in the dataset rather than one) to facilitate estimation using the Difference in Differences methods mentioned below.</p>
 <p>The main methods in the <code>ci.qte</code> package are <code>ci.qte</code>, <code>ci.qtet</code>, <code>panel.qtet</code>, <code>QDiD</code>, <code>CiC</code>, and <code>MDiD</code>. These are useful for estimating the QTE and QTET and are each based on specific identifying assumptions (discussed in more detail below). Each method requires the user to supply a formula for the outcome on the treatment status, a vector of names of conditioning <span class="math inline">\(X\)</span> variables, and a data frame. The user should also specify for which values of <span class="math inline">\(\tau\)</span> the QTE or QTET should be calculated. There are other available parameters discussed in more detail in the manual. The most common uses are detailed in the rest of this section. Each method returns a <code>QTE</code> object. The <code>QTE</code> object contains the estimated QTE or QTET, ATE or ATT, and some other information such as standard errors and confidence intervals. Once a <code>QTE</code> object has been estimated, the user can call <code>summary</code> and <code>ggqte</code> methods to obtain results (a <code>plot</code> method is available, but we recommend the <code>ggqte</code> method for plotting which builds on the <code>ggplot2</code> package).</p>
@@ -147,15 +149,15 @@ There are many examples of programs that fit into this category. The example tha
 <p>Under randomization, the QTE can be easily esimated using the <code>ci.qte</code> command with no covariates. In this section, we use the experimental portion of the job training set. The <code>ci.qte</code> method also computes an estimate of the Average Treatment Effect as a byproduct.</p>
 <p>In the case of the job training program, the parameter being identified is the QTET. Individuals who desired to be treated were randomized into or out of the program. To see this, let <span class="math inline">\(D^*\)</span> be a binary variable indicating whether an individual desires to be treated (<span class="math inline">\(D^*=1\)</span>) or does not desire to be treated (<span class="math inline">\(D^*=0\)</span>). Because individuals that do not desire to be treated never attempt to join the job training program, they cannot be randomized. Amongst those individuals who desire to be treated, some are assigned to the job training program (<span class="math inline">\(R=1\)</span>) and some are randomized out of the program (<span class="math inline">\(R=0\)</span>). Under this setup, <span class="math inline">\((Y_1, Y_0) \perp R | D^*=1\)</span>. The distribution <span class="math inline">\(F_{Y_{1}|D=1}(y_1) = F_{Y_{1}|D^*=1, R=1}(y_1)\)</span> is identifed using the outcomes from the group with <span class="math inline">\(D^*=1\)</span> and <span class="math inline">\(R=1\)</span>. The distribution <span class="math inline">\(F_{Y_{0}|D=1}(y_0) = F_{Y_{0}|D^*=1, R=1}(y_0) = F_{Y_{0}|D^*=1, R=0}(y_0)\)</span> where the last equality holds by the assumption. This last distribution can be constructed using observations of untreated outcomes for the group that was randomized out of treatment.</p>
 <p>The results from the <code>ci.qte</code> or <code>ci.qtet</code> command will be identical in this case, but it is important to note what the correct interpretation of the results is. The QTET can be estimated with the following command</p>
-<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">jt.rand</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/ci.qtet.html">ci.qtet</a></span><span class="op">(</span><span class="va">re78</span> <span class="op">~</span> <span class="va">treat</span>, data<span class="op">=</span><span class="va">lalonde.exp</span>, probs<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="fl">0.05</span>,<span class="fl">0.95</span>,<span class="fl">0.05</span><span class="op">)</span>, </span>
 <span> se<span class="op">=</span><span class="cn">T</span>, iters<span class="op">=</span><span class="fl">10</span><span class="op">)</span></span></code></pre></div>
 <p>The <code>ci.qtet</code> command returns a <code>QTE</code> object</p>
-<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/class.html" class="external-link">class</a></span><span class="op">(</span><span class="va">jt.rand</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">## [1] "QTE"</span></span></code></pre>
 <p>and the <code>summary</code> command provides the results</p>
-<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">jt.rand</span><span class="op">)</span></span></code></pre></div>
 <pre><code><span><span class="co">## </span></span>
 <span><span class="co">## Quantile Treatment Effect:</span></span>
@@ -165,26 +167,26 @@ There are many examples of programs that fit into this category. The example tha
 <span><span class="co">## 0.1     0.00    0.00</span></span>
 <span><span class="co">## 0.15    0.00    0.00</span></span>
 <span><span class="co">## 0.2     0.00    0.00</span></span>
-<span><span class="co">## 0.25  338.65  312.00</span></span>
-<span><span class="co">## 0.3   846.40  555.41</span></span>
-<span><span class="co">## 0.35 1451.51  872.77</span></span>
-<span><span class="co">## 0.4  1177.72  968.69</span></span>
-<span><span class="co">## 0.45 1396.08  854.72</span></span>
-<span><span class="co">## 0.5  1123.55  774.95</span></span>
-<span><span class="co">## 0.55 1181.54  722.54</span></span>
-<span><span class="co">## 0.6  1466.51  964.04</span></span>
-<span><span class="co">## 0.65 2115.04 1030.81</span></span>
-<span><span class="co">## 0.7  1795.12  788.61</span></span>
-<span><span class="co">## 0.75 2347.49  666.59</span></span>
-<span><span class="co">## 0.8  2278.12 1036.39</span></span>
-<span><span class="co">## 0.85 2178.28 1073.79</span></span>
-<span><span class="co">## 0.9  3239.60 1091.75</span></span>
-<span><span class="co">## 0.95 3979.62 1776.67</span></span>
+<span><span class="co">## 0.25  338.65  286.63</span></span>
+<span><span class="co">## 0.3   846.40  333.70</span></span>
+<span><span class="co">## 0.35 1451.51  332.46</span></span>
+<span><span class="co">## 0.4  1177.72  633.06</span></span>
+<span><span class="co">## 0.45 1396.08  737.06</span></span>
+<span><span class="co">## 0.5  1123.55  837.80</span></span>
+<span><span class="co">## 0.55 1181.54  833.07</span></span>
+<span><span class="co">## 0.6  1466.51  904.54</span></span>
+<span><span class="co">## 0.65 2115.04 1008.85</span></span>
+<span><span class="co">## 0.7  1795.12  959.88</span></span>
+<span><span class="co">## 0.75 2347.49 1110.41</span></span>
+<span><span class="co">## 0.8  2278.12 1266.05</span></span>
+<span><span class="co">## 0.85 2178.28 1330.05</span></span>
+<span><span class="co">## 0.9  3239.60 2363.20</span></span>
+<span><span class="co">## 0.95 3979.62 3639.10</span></span>
 <span><span class="co">## </span></span>
 <span><span class="co">## Average Treatment Effect:    1794.34</span></span>
-<span><span class="co">##   Std. Error:        673.42</span></span></code></pre>
+<span><span class="co">##   Std. Error:        817.39</span></span></code></pre>
 <p>The QTET can also be plotted with the <code>ggqte</code> command.</p>
-<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/ggqte.html">ggqte</a></span><span class="op">(</span><span class="va">jt.rand</span><span class="op">)</span></span></code></pre></div>
 <p><img src="R-QTEs_files/figure-html/unnamed-chunk-8-1.png" width="90%" style="display: block; margin: auto;"></p>
 </div>
@@ -205,9 +207,9 @@ There are many examples of programs that fit into this category. The example tha
 </h4>
 <p>Estimation of QTEs under the Conditional Independence Assumption can be performed using the command <code>ci.qte</code>, and estimation of the QTET can be performed with the command <code>ci.qtet</code>. With covariates, this command estimates unconditional QTEs using the propensity score re-weighting procedure of <span class="citation">(Firpo 2007)</span>. Without modification, the command estimates in a first stage the propensity score using a logit model where all the covariates enter in levels.</p>
 <p>The following command estimates the QTE of the job training program using the observational data and conditioning on several available variables.</p>
-<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span> <span class="va">jt.cia</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/ci.qte.html">ci.qte</a></span><span class="op">(</span><span class="va">re78</span> <span class="op">~</span> <span class="va">treat</span>,</span>
-<span>   xformla<span class="op">=</span><span class="op">~</span><span class="va">age</span> <span class="op">+</span> <span class="va">education</span> <span class="op">+</span> <span class="va">black</span> <span class="op">+</span> <span class="va">hispanic</span> <span class="op">+</span> <span class="va">married</span> <span class="op">+</span> <span class="va">nodegree</span>,</span>
+<span>   xformla<span class="op">=</span><span class="op">~</span><span class="va">age</span> <span class="op">+</span> <span class="va">education</span>,</span>
 <span>   data<span class="op">=</span><span class="va">lalonde.psid</span>,</span>
 <span>   probs<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="fl">0.05</span>,<span class="fl">0.95</span>,<span class="fl">0.05</span><span class="op">)</span>, se<span class="op">=</span><span class="cn">T</span>, iters<span class="op">=</span><span class="fl">10</span><span class="op">)</span></span>
 <span> <span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">jt.cia</span><span class="op">)</span></span></code></pre></div>
@@ -216,35 +218,35 @@ There are many examples of programs that fit into this category. The example tha
 <span><span class="co">##      </span></span>
 <span><span class="co">## tau  QTE Std. Error</span></span>
 <span><span class="co">## 0.05      0.00        0.00</span></span>
-<span><span class="co">## 0.1       0.00      568.82</span></span>
-<span><span class="co">## 0.15  -2955.45     1464.14</span></span>
-<span><span class="co">## 0.2   -7447.74     1818.71</span></span>
-<span><span class="co">## 0.25  -8754.13     2505.67</span></span>
-<span><span class="co">## 0.3   -9632.81     2686.92</span></span>
-<span><span class="co">## 0.35 -10499.12     2852.99</span></span>
-<span><span class="co">## 0.4  -11313.14     3609.10</span></span>
-<span><span class="co">## 0.45 -12583.22     3869.70</span></span>
-<span><span class="co">## 0.5  -13397.72     3978.74</span></span>
-<span><span class="co">## 0.55 -13619.18     3792.57</span></span>
-<span><span class="co">## 0.6  -12500.73     3584.95</span></span>
-<span><span class="co">## 0.65 -12703.25     3020.72</span></span>
-<span><span class="co">## 0.7  -14180.98     2632.88</span></span>
-<span><span class="co">## 0.75 -16545.34     1925.94</span></span>
-<span><span class="co">## 0.8  -18614.16     1026.59</span></span>
-<span><span class="co">## 0.85 -21397.01      808.15</span></span>
-<span><span class="co">## 0.9  -25253.39     1861.78</span></span>
-<span><span class="co">## 0.95 -29856.92     4137.56</span></span>
+<span><span class="co">## 0.1       0.00        0.00</span></span>
+<span><span class="co">## 0.15  -4433.18      901.16</span></span>
+<span><span class="co">## 0.2   -8219.15      764.17</span></span>
+<span><span class="co">## 0.25 -10435.74     1426.59</span></span>
+<span><span class="co">## 0.3  -12232.03     1611.30</span></span>
+<span><span class="co">## 0.35 -12428.30     1705.66</span></span>
+<span><span class="co">## 0.4  -14195.24     1915.00</span></span>
+<span><span class="co">## 0.45 -14248.66     1877.59</span></span>
+<span><span class="co">## 0.5  -15538.67     2292.80</span></span>
+<span><span class="co">## 0.55 -16550.71     2404.01</span></span>
+<span><span class="co">## 0.6  -15595.02     2557.71</span></span>
+<span><span class="co">## 0.65 -15827.52     3027.86</span></span>
+<span><span class="co">## 0.7  -16090.32     2748.63</span></span>
+<span><span class="co">## 0.75 -16091.49     2556.76</span></span>
+<span><span class="co">## 0.8  -17864.76     3674.77</span></span>
+<span><span class="co">## 0.85 -16756.71     3939.14</span></span>
+<span><span class="co">## 0.9  -17914.99     3033.33</span></span>
+<span><span class="co">## 0.95 -23646.22     2738.78</span></span>
 <span><span class="co">## </span></span>
-<span><span class="co">## Average Treatment Effect:    -13115.59</span></span>
-<span><span class="co">##   Std. Error:        1930.04</span></span></code></pre>
+<span><span class="co">## Average Treatment Effect:    -13435.40</span></span>
+<span><span class="co">##   Std. Error:        1503.49</span></span></code></pre>
 <p>and the QTE can be plotted</p>
-<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span> <span class="fu"><a href="../reference/ggqte.html">ggqte</a></span><span class="op">(</span><span class="va">jt.cia</span><span class="op">)</span></span></code></pre></div>
 <p><img src="R-QTEs_files/figure-html/unnamed-chunk-9-1.png" width="90%" style="display: block; margin: auto;"></p>
 <p>and next the QTET of the job training is computed under the same setup</p>
-<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span> <span class="va">jt.ciat</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/ci.qtet.html">ci.qtet</a></span><span class="op">(</span><span class="va">re78</span> <span class="op">~</span> <span class="va">treat</span>,</span>
-<span>   xformla<span class="op">=</span><span class="op">~</span><span class="va">age</span> <span class="op">+</span> <span class="va">education</span> <span class="op">+</span> <span class="va">black</span> <span class="op">+</span> <span class="va">hispanic</span> <span class="op">+</span> <span class="va">married</span> <span class="op">+</span> <span class="va">nodegree</span>,</span>
+<span>   xformla<span class="op">=</span><span class="op">~</span><span class="va">age</span> <span class="op">+</span> <span class="va">education</span>,</span>
 <span>   data<span class="op">=</span><span class="va">lalonde.psid</span>,</span>
 <span>   probs<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="fl">0.05</span>,<span class="fl">0.95</span>,<span class="fl">0.05</span><span class="op">)</span>, se<span class="op">=</span><span class="cn">T</span>, iters<span class="op">=</span><span class="fl">10</span><span class="op">)</span></span>
 <span> <span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">jt.ciat</span><span class="op">)</span></span></code></pre></div>
@@ -253,29 +255,29 @@ There are many examples of programs that fit into this category. The example tha
 <span><span class="co">##      </span></span>
 <span><span class="co">## tau  QTE Std. Error</span></span>
 <span><span class="co">## 0.05      0.00        0.00</span></span>
-<span><span class="co">## 0.1       0.00      278.04</span></span>
-<span><span class="co">## 0.15   -218.70      703.24</span></span>
-<span><span class="co">## 0.2   -1034.41     1481.33</span></span>
-<span><span class="co">## 0.25  -2025.71     1541.75</span></span>
-<span><span class="co">## 0.3   -3586.78     1445.93</span></span>
-<span><span class="co">## 0.35  -4459.40     1145.66</span></span>
-<span><span class="co">## 0.4   -5067.52      950.27</span></span>
-<span><span class="co">## 0.45  -4988.25      873.46</span></span>
-<span><span class="co">## 0.5   -4659.23      901.37</span></span>
-<span><span class="co">## 0.55  -4612.01      746.49</span></span>
-<span><span class="co">## 0.6   -5144.90     1035.30</span></span>
-<span><span class="co">## 0.65  -4715.92     1208.65</span></span>
-<span><span class="co">## 0.7   -5150.22     1181.85</span></span>
-<span><span class="co">## 0.75  -5884.24     1387.94</span></span>
-<span><span class="co">## 0.8   -6985.32     1576.61</span></span>
-<span><span class="co">## 0.85  -8235.10     1536.60</span></span>
-<span><span class="co">## 0.9  -10575.45     1563.95</span></span>
-<span><span class="co">## 0.95 -10782.01     2333.46</span></span>
+<span><span class="co">## 0.1   -1018.15      450.00</span></span>
+<span><span class="co">## 0.15  -3251.00     1168.96</span></span>
+<span><span class="co">## 0.2   -7240.86      552.97</span></span>
+<span><span class="co">## 0.25  -8379.94      697.98</span></span>
+<span><span class="co">## 0.3   -8758.82      642.77</span></span>
+<span><span class="co">## 0.35  -9897.44      751.51</span></span>
+<span><span class="co">## 0.4  -10239.57      777.83</span></span>
+<span><span class="co">## 0.45 -10751.39     1023.09</span></span>
+<span><span class="co">## 0.5  -10570.14      878.06</span></span>
+<span><span class="co">## 0.55 -11348.96     1052.18</span></span>
+<span><span class="co">## 0.6  -11550.84     1049.06</span></span>
+<span><span class="co">## 0.65 -12203.56     1115.76</span></span>
+<span><span class="co">## 0.7  -13277.72     1068.62</span></span>
+<span><span class="co">## 0.75 -14011.74      602.51</span></span>
+<span><span class="co">## 0.8  -14373.95     1139.82</span></span>
+<span><span class="co">## 0.85 -14499.18     1088.20</span></span>
+<span><span class="co">## 0.9  -15008.63     1720.22</span></span>
+<span><span class="co">## 0.95 -15954.05     2011.32</span></span>
 <span><span class="co">## </span></span>
-<span><span class="co">## Average Treatment Effect:    9708.90</span></span>
-<span><span class="co">##   Std. Error:        758.43</span></span></code></pre>
+<span><span class="co">## Average Treatment Effect:    4266.19</span></span>
+<span><span class="co">##   Std. Error:        560.53</span></span></code></pre>
 <p>Finally, the QTET is plotted</p>
-<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span> <span class="fu"><a href="../reference/ggqte.html">ggqte</a></span><span class="op">(</span><span class="va">jt.ciat</span><span class="op">)</span></span></code></pre></div>
 <p><img src="R-QTEs_files/figure-html/unnamed-chunk-11-1.png" width="90%" style="display: block; margin: auto;"></p>
 </div>
@@ -291,7 +293,7 @@ Note that these types of methods only identify the QTET (not the QTE). <span cla
 <h4 id="estimation-2">Estimation<a class="anchor" aria-label="anchor" href="#estimation-2"></a>
 </h4>
 <p>Estimation using the method in <span class="citation">(Callaway and Li 2019)</span> is similar to the preceding methods. However, the user must now additionally specify some extra parameters: (i) <code>t</code>, <code>tmin1</code>, and <code>tmin2</code> are the three time periods, and (ii) the names of the columns in <code>data</code> containing the time period and an individual id are required to be passed in as <code>tname</code> and <code>idname</code>. <code>data</code> itself must now be a panel dataset containing individual-time period observations. For this section the <code>lalonde.psid</code> dataset (which contains one row for each individual and with two lags of earnings available) has been converted into the <code>lalonde.psid.panel</code> (which contains three rows of observations for each individual).</p>
-<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span> <span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">lalonde.psid.panel</span><span class="op">)</span><span class="op">[</span>,<span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"id"</span>, <span class="st">"year"</span>, <span class="st">"re"</span>, <span class="st">"treat"</span>,</span>
 <span>  <span class="st">"age"</span>, <span class="st">"education"</span>, <span class="st">"black"</span>, <span class="st">"hispanic"</span>, <span class="st">"married"</span>, <span class="st">"nodegree"</span>, <span class="st">"u75"</span><span class="op">)</span><span class="op">]</span></span></code></pre></div>
 <pre><code><span><span class="co">##   id year       re treat age education black hispanic married nodegree u75</span></span>
@@ -302,10 +304,9 @@ Note that these types of methods only identify the QTET (not the QTE). <span cla
 <span><span class="co">## 5  5 1978   289.79     1  33         8     1        0       0        1   1</span></span>
 <span><span class="co">## 6  6 1978  4056.49     1  22         9     1        0       0        1   1</span></span></code></pre>
 <p>The <span class="citation">(Callaway and Li 2019)</span> method can be invoked with the <code>panel.qtet</code> command:</p>
-<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span> <span class="va">jt.pqtet</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/panel.qtet.html">panel.qtet</a></span><span class="op">(</span><span class="va">re</span> <span class="op">~</span> <span class="va">treat</span>, t<span class="op">=</span><span class="fl">1978</span>, tmin1<span class="op">=</span><span class="fl">1975</span>, tmin2<span class="op">=</span><span class="fl">1974</span>,</span>
 <span>   tname<span class="op">=</span><span class="st">"year"</span>, idname<span class="op">=</span><span class="st">"id"</span>,</span>
-<span>   xformla<span class="op">=</span><span class="op">~</span><span class="va">age</span> <span class="op">+</span> <span class="va">education</span> <span class="op">+</span> <span class="va">black</span> <span class="op">+</span> <span class="va">hispanic</span> <span class="op">+</span> <span class="va">married</span> <span class="op">+</span> <span class="va">nodegree</span>,</span>
 <span>   data<span class="op">=</span><span class="va">lalonde.psid.panel</span>,</span>
 <span>   probs<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="fl">0.05</span>,<span class="fl">0.95</span>,<span class="fl">0.05</span><span class="op">)</span>, se<span class="op">=</span><span class="cn">T</span>, iters<span class="op">=</span><span class="fl">10</span><span class="op">)</span></span>
 <span> <span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">jt.pqtet</span><span class="op">)</span></span></code></pre></div>
@@ -313,33 +314,33 @@ Note that these types of methods only identify the QTET (not the QTE). <span cla
 <span><span class="co">## Quantile Treatment Effect:</span></span>
 <span><span class="co">##      </span></span>
 <span><span class="co">## tau  QTE Std. Error</span></span>
-<span><span class="co">## 0.05     0.00       93.46</span></span>
-<span><span class="co">## 0.1      0.00      278.96</span></span>
-<span><span class="co">## 0.15  -218.70     1258.34</span></span>
-<span><span class="co">## 0.2  -2321.31     1173.97</span></span>
-<span><span class="co">## 0.25 -3209.09     1197.66</span></span>
-<span><span class="co">## 0.3  -3723.19     1037.43</span></span>
-<span><span class="co">## 0.35 -3606.03     1070.31</span></span>
-<span><span class="co">## 0.4  -3107.37     1288.52</span></span>
-<span><span class="co">## 0.45 -2199.44     1135.53</span></span>
-<span><span class="co">## 0.5  -1935.37     1223.68</span></span>
-<span><span class="co">## 0.55 -1506.79     1359.50</span></span>
-<span><span class="co">## 0.6   -595.06     1424.51</span></span>
-<span><span class="co">## 0.65   334.80     1310.94</span></span>
-<span><span class="co">## 0.7    184.35     1465.81</span></span>
-<span><span class="co">## 0.75   473.71     1396.38</span></span>
-<span><span class="co">## 0.8    948.60     1373.08</span></span>
-<span><span class="co">## 0.85  1497.56     1315.25</span></span>
-<span><span class="co">## 0.9   1167.20     2075.75</span></span>
-<span><span class="co">## 0.95  1965.56     2691.57</span></span>
+<span><span class="co">## 0.05  4779.21     1382.18</span></span>
+<span><span class="co">## 0.1   1987.35      498.22</span></span>
+<span><span class="co">## 0.15   842.95      637.64</span></span>
+<span><span class="co">## 0.2  -7366.04     3902.95</span></span>
+<span><span class="co">## 0.25 -8449.96     1068.41</span></span>
+<span><span class="co">## 0.3  -7992.15      690.32</span></span>
+<span><span class="co">## 0.35 -7429.21      703.20</span></span>
+<span><span class="co">## 0.4  -6597.37      801.06</span></span>
+<span><span class="co">## 0.45 -5519.45      993.23</span></span>
+<span><span class="co">## 0.5  -4702.88      907.32</span></span>
+<span><span class="co">## 0.55 -3904.52      872.12</span></span>
+<span><span class="co">## 0.6  -2741.80     1092.26</span></span>
+<span><span class="co">## 0.65 -1507.31      987.66</span></span>
+<span><span class="co">## 0.7   -771.12     1055.19</span></span>
+<span><span class="co">## 0.75   707.81      864.40</span></span>
+<span><span class="co">## 0.8    580.00      732.14</span></span>
+<span><span class="co">## 0.85   821.75     1324.59</span></span>
+<span><span class="co">## 0.9   -250.77     1920.47</span></span>
+<span><span class="co">## 0.95 -1874.54     2904.87</span></span>
 <span><span class="co">## </span></span>
-<span><span class="co">## Average Treatment Effect:    -316.57</span></span>
-<span><span class="co">##   Std. Error:        1091.71</span></span></code></pre>
-<div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
+<span><span class="co">## Average Treatment Effect:    2326.51</span></span>
+<span><span class="co">##   Std. Error:        751.04</span></span></code></pre>
+<div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span> <span class="fu"><a href="../reference/ggqte.html">ggqte</a></span><span class="op">(</span><span class="va">jt.pqtet</span><span class="op">)</span></span></code></pre></div>
 <p><img src="R-QTEs_files/figure-html/unnamed-chunk-13-1.png" width="90%" style="display: block; margin: auto;"></p>
 <p>In the most common Difference in Differences case with two periods of panel or repeated cross sectional data, <span class="citation">(Fan and Yu 2012)</span> shows that the Distributional Difference in Differences Assumption leads to partial identification of the QTET. In this case, a user can estimate these bounds using the method <code>bounds</code>:<a href="#fn3" class="footnote-ref" id="fnref3"><sup>3</sup></a></p>
-<div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span> <span class="va">b1</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/bounds.html">bounds</a></span><span class="op">(</span><span class="va">re</span> <span class="op">~</span> <span class="va">treat</span>, t<span class="op">=</span><span class="fl">1978</span>, tmin1<span class="op">=</span><span class="fl">1975</span>, data<span class="op">=</span><span class="va">lalonde.psid.panel</span>,</span>
 <span>   idname<span class="op">=</span><span class="st">"id"</span>, tname<span class="op">=</span><span class="st">"year"</span><span class="op">)</span></span>
 <span> <span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">b1</span><span class="op">)</span></span></code></pre></div>
@@ -370,7 +371,7 @@ Note that these types of methods only identify the QTET (not the QTE). <span cla
 <span><span class="co">## </span></span>
 <span><span class="co">## Average Treatment Effect on the Treated: 2326.51</span></span></code></pre>
 <p>and the bounds can be plotted</p>
-<div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb23"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span> <span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">b1</span><span class="op">)</span> </span></code></pre></div>
 <p><img src="R-QTEs_files/figure-html/unnamed-chunk-14-1.png" width="90%" style="display: block; margin: auto;"></p>
 <p>Finally, the <code>QTE</code> package implements several other methods that base identification on a Difference in Differences-type assumption. Each of these methods achieve point identification when only two periods of repeated cross sectional data is available. First, the identifying assumption for Quantile Difference in Differences (implemented in the <code>QDiD</code> method) is</p>
@@ -387,10 +388,9 @@ Note that these types of methods only identify the QTET (not the QTE). <span cla
 <h4 id="estimation-3">Estimation<a class="anchor" aria-label="anchor" href="#estimation-3"></a>
 </h4>
 <p>The QTET for participating in the job training program is estimated using each of the three methods ddid2, QDiD, and CiC next.</p>
-<div class="sourceCode" id="cb23"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb24"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span>  <span class="va">jt.ddid2</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/ddid2.html">ddid2</a></span><span class="op">(</span><span class="va">re</span> <span class="op">~</span> <span class="va">treat</span>, t<span class="op">=</span><span class="fl">1978</span>, tmin1<span class="op">=</span><span class="fl">1975</span>,</span>
 <span>    tname<span class="op">=</span><span class="st">"year"</span>, idname<span class="op">=</span><span class="st">"id"</span>,</span>
-<span>    xformla<span class="op">=</span><span class="op">~</span><span class="va">age</span> <span class="op">+</span> <span class="fu"><a href="https://rdrr.io/r/base/AsIs.html" class="external-link">I</a></span><span class="op">(</span><span class="va">age</span><span class="op">^</span><span class="fl">2</span><span class="op">)</span> <span class="op">+</span> <span class="va">education</span> <span class="op">+</span> <span class="va">black</span> <span class="op">+</span> <span class="va">hispanic</span> <span class="op">+</span> <span class="va">married</span> <span class="op">+</span> <span class="va">nodegree</span>,</span>
 <span>    data<span class="op">=</span><span class="va">lalonde.psid.panel</span>,</span>
 <span>    probs<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="fl">0.05</span>,<span class="fl">0.95</span>,<span class="fl">0.05</span><span class="op">)</span>, se<span class="op">=</span><span class="cn">T</span>, iters<span class="op">=</span><span class="fl">10</span><span class="op">)</span></span>
 <span>  <span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">jt.ddid2</span><span class="op">)</span></span></code></pre></div>
@@ -398,35 +398,34 @@ Note that these types of methods only identify the QTET (not the QTE). <span cla
 <span><span class="co">## Quantile Treatment Effect:</span></span>
 <span><span class="co">##      </span></span>
 <span><span class="co">## tau  QTE Std. Error</span></span>
-<span><span class="co">## 0.05  9832.19     1120.23</span></span>
-<span><span class="co">## 0.1   4544.63      852.82</span></span>
-<span><span class="co">## 0.15  2068.77      634.90</span></span>
-<span><span class="co">## 0.2    849.12      488.51</span></span>
-<span><span class="co">## 0.25   485.23      325.85</span></span>
-<span><span class="co">## 0.3    943.05      414.03</span></span>
-<span><span class="co">## 0.35   817.00      709.38</span></span>
-<span><span class="co">## 0.4    681.37      835.44</span></span>
-<span><span class="co">## 0.45  1010.12      784.10</span></span>
-<span><span class="co">## 0.5    992.30      769.64</span></span>
-<span><span class="co">## 0.55   938.13      866.25</span></span>
-<span><span class="co">## 0.6    950.31      846.08</span></span>
-<span><span class="co">## 0.65   977.04      964.08</span></span>
-<span><span class="co">## 0.7    366.22     1182.75</span></span>
-<span><span class="co">## 0.75   563.49     1323.56</span></span>
-<span><span class="co">## 0.8   -352.59     1322.26</span></span>
-<span><span class="co">## 0.85  -825.48     1693.51</span></span>
-<span><span class="co">## 0.9  -1978.06     2756.66</span></span>
-<span><span class="co">## 0.95 -3333.16     3705.15</span></span>
+<span><span class="co">## 0.05 10616.61      417.48</span></span>
+<span><span class="co">## 0.1   5019.83      290.58</span></span>
+<span><span class="co">## 0.15  2388.12      131.10</span></span>
+<span><span class="co">## 0.2   1033.23      111.76</span></span>
+<span><span class="co">## 0.25   485.23      334.72</span></span>
+<span><span class="co">## 0.3    943.05      378.82</span></span>
+<span><span class="co">## 0.35   931.45      561.37</span></span>
+<span><span class="co">## 0.4    945.35      977.61</span></span>
+<span><span class="co">## 0.45  1205.88      926.37</span></span>
+<span><span class="co">## 0.5   1362.11      917.07</span></span>
+<span><span class="co">## 0.55  1279.05      844.65</span></span>
+<span><span class="co">## 0.6   1618.13      972.97</span></span>
+<span><span class="co">## 0.65  1834.30     1000.70</span></span>
+<span><span class="co">## 0.7   1326.06     1035.94</span></span>
+<span><span class="co">## 0.75  1586.35     1037.88</span></span>
+<span><span class="co">## 0.8   1256.09      785.81</span></span>
+<span><span class="co">## 0.85   723.10     1283.17</span></span>
+<span><span class="co">## 0.9    251.36     2173.03</span></span>
+<span><span class="co">## 0.95 -1509.92     2116.25</span></span>
 <span><span class="co">## </span></span>
-<span><span class="co">## Average Treatment Effect:    1665.63</span></span>
-<span><span class="co">##   Std. Error:        1003.40</span></span></code></pre>
-<div class="sourceCode" id="cb25"><pre class="downlit sourceCode r">
+<span><span class="co">## Average Treatment Effect:    2326.51</span></span>
+<span><span class="co">##   Std. Error:        755.97</span></span></code></pre>
+<div class="sourceCode" id="cb26"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span>  <span class="fu"><a href="../reference/ggqte.html">ggqte</a></span><span class="op">(</span><span class="va">jt.ddid2</span><span class="op">)</span></span></code></pre></div>
 <p><img src="R-QTEs_files/figure-html/unnamed-chunk-15-1.png" width="90%" style="display: block; margin: auto;"></p>
-<div class="sourceCode" id="cb26"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb27"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span>  <span class="va">jt.qdid</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/QDiD.html">QDiD</a></span><span class="op">(</span><span class="va">re</span> <span class="op">~</span> <span class="va">treat</span>, t<span class="op">=</span><span class="fl">1978</span>, tmin1<span class="op">=</span><span class="fl">1975</span>,</span>
 <span>     tname<span class="op">=</span><span class="st">"year"</span>, idname<span class="op">=</span><span class="st">"id"</span>,</span>
-<span>     xformla<span class="op">=</span><span class="op">~</span><span class="va">age</span> <span class="op">+</span> <span class="fu"><a href="https://rdrr.io/r/base/AsIs.html" class="external-link">I</a></span><span class="op">(</span><span class="va">age</span><span class="op">^</span><span class="fl">2</span><span class="op">)</span> <span class="op">+</span> <span class="va">education</span> <span class="op">+</span> <span class="va">black</span> <span class="op">+</span> <span class="va">hispanic</span> <span class="op">+</span> <span class="va">married</span> <span class="op">+</span> <span class="va">nodegree</span>,</span>
 <span>     data<span class="op">=</span><span class="va">lalonde.psid.panel</span>,</span>
 <span>     probs<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="fl">0.05</span>,<span class="fl">0.95</span>,<span class="fl">0.05</span><span class="op">)</span>, se<span class="op">=</span><span class="cn">T</span>, iters<span class="op">=</span><span class="fl">10</span>, panel<span class="op">=</span><span class="cn">T</span><span class="op">)</span></span>
 <span>  <span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">jt.qdid</span><span class="op">)</span></span></code></pre></div>
@@ -434,35 +433,34 @@ Note that these types of methods only identify the QTET (not the QTE). <span cla
 <span><span class="co">## Quantile Treatment Effect:</span></span>
 <span><span class="co">##      </span></span>
 <span><span class="co">## tau  QTE Std. Error</span></span>
-<span><span class="co">## 0.05   306.34      772.99</span></span>
-<span><span class="co">## 0.1   -606.23      761.05</span></span>
-<span><span class="co">## 0.15  -856.17      963.27</span></span>
-<span><span class="co">## 0.2  -1430.94      876.15</span></span>
-<span><span class="co">## 0.25 -1200.28      810.10</span></span>
-<span><span class="co">## 0.3   -902.21      775.56</span></span>
-<span><span class="co">## 0.35  -500.36      830.40</span></span>
-<span><span class="co">## 0.4     94.13      909.73</span></span>
-<span><span class="co">## 0.45   930.04     1165.61</span></span>
-<span><span class="co">## 0.5   1538.92      991.68</span></span>
-<span><span class="co">## 0.55  2197.63      761.07</span></span>
-<span><span class="co">## 0.6   3051.61      845.12</span></span>
-<span><span class="co">## 0.65  3536.42     1048.81</span></span>
-<span><span class="co">## 0.7   2994.79      914.88</span></span>
-<span><span class="co">## 0.75  3930.74      906.59</span></span>
-<span><span class="co">## 0.8   4385.78      890.38</span></span>
-<span><span class="co">## 0.85  4373.68     1330.15</span></span>
-<span><span class="co">## 0.9   3921.55     2641.46</span></span>
-<span><span class="co">## 0.95  4380.63     2584.89</span></span>
+<span><span class="co">## 0.05     0.00        0.00</span></span>
+<span><span class="co">## 0.1     64.45      436.96</span></span>
+<span><span class="co">## 0.15   536.67      667.72</span></span>
+<span><span class="co">## 0.2   -988.94      582.33</span></span>
+<span><span class="co">## 0.25 -1194.26      893.20</span></span>
+<span><span class="co">## 0.3   -287.93      865.07</span></span>
+<span><span class="co">## 0.35    28.62      834.90</span></span>
+<span><span class="co">## 0.4   -177.15     1148.12</span></span>
+<span><span class="co">## 0.45   578.25     1104.96</span></span>
+<span><span class="co">## 0.5   1447.37      764.44</span></span>
+<span><span class="co">## 0.55  2305.26      992.44</span></span>
+<span><span class="co">## 0.6   3389.17     1624.77</span></span>
+<span><span class="co">## 0.65  3338.47     1636.90</span></span>
+<span><span class="co">## 0.7   4208.92     1587.68</span></span>
+<span><span class="co">## 0.75  4767.96     1459.19</span></span>
+<span><span class="co">## 0.8   4649.06     1187.38</span></span>
+<span><span class="co">## 0.85  5075.03     1529.09</span></span>
+<span><span class="co">## 0.9   4900.29     2240.42</span></span>
+<span><span class="co">## 0.95  8915.09     3410.95</span></span>
 <span><span class="co">## </span></span>
-<span><span class="co">## Average Treatment Effect:    2033.09</span></span>
-<span><span class="co">##   Std. Error:        808.79</span></span></code></pre>
-<div class="sourceCode" id="cb28"><pre class="downlit sourceCode r">
+<span><span class="co">## Average Treatment Effect:    1684.96</span></span>
+<span><span class="co">##   Std. Error:        948.96</span></span></code></pre>
+<div class="sourceCode" id="cb29"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span>  <span class="fu"><a href="../reference/ggqte.html">ggqte</a></span><span class="op">(</span><span class="va">jt.qdid</span><span class="op">)</span></span></code></pre></div>
 <p><img src="R-QTEs_files/figure-html/unnamed-chunk-16-1.png" width="90%" style="display: block; margin: auto;"></p>
-<div class="sourceCode" id="cb29"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb30"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span>  <span class="va">jt.cic</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/CiC.html">CiC</a></span><span class="op">(</span><span class="va">re</span> <span class="op">~</span> <span class="va">treat</span>, t<span class="op">=</span><span class="fl">1978</span>, tmin1<span class="op">=</span><span class="fl">1975</span>,</span>
 <span>    tname<span class="op">=</span><span class="st">"year"</span>, idname<span class="op">=</span><span class="st">"id"</span>,</span>
-<span>    xformla<span class="op">=</span><span class="op">~</span><span class="va">age</span> <span class="op">+</span> <span class="fu"><a href="https://rdrr.io/r/base/AsIs.html" class="external-link">I</a></span><span class="op">(</span><span class="va">age</span><span class="op">^</span><span class="fl">2</span><span class="op">)</span> <span class="op">+</span> <span class="va">education</span> <span class="op">+</span> <span class="va">black</span> <span class="op">+</span> <span class="va">hispanic</span> <span class="op">+</span> <span class="va">married</span> <span class="op">+</span> <span class="va">nodegree</span>,</span>
 <span>    data<span class="op">=</span><span class="va">lalonde.psid.panel</span>,</span>
 <span>    probs<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="fl">0.05</span>,<span class="fl">0.95</span>,<span class="fl">0.05</span><span class="op">)</span>, se<span class="op">=</span><span class="cn">T</span>, iters<span class="op">=</span><span class="fl">10</span>, panel<span class="op">=</span><span class="cn">T</span><span class="op">)</span></span>
 <span>  <span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">jt.cic</span><span class="op">)</span></span></code></pre></div>
@@ -470,29 +468,29 @@ Note that these types of methods only identify the QTET (not the QTE). <span cla
 <span><span class="co">## Quantile Treatment Effect:</span></span>
 <span><span class="co">##      </span></span>
 <span><span class="co">## tau  QTE Std. Error</span></span>
-<span><span class="co">## 0.05    0.00  362.21</span></span>
-<span><span class="co">## 0.1     0.00    0.00</span></span>
-<span><span class="co">## 0.15    0.00    0.00</span></span>
-<span><span class="co">## 0.2     0.00  218.62</span></span>
-<span><span class="co">## 0.25  485.23  450.30</span></span>
-<span><span class="co">## 0.3   929.88  337.49</span></span>
-<span><span class="co">## 0.35 1460.36  570.84</span></span>
-<span><span class="co">## 0.4  2321.11  946.37</span></span>
-<span><span class="co">## 0.45 3462.56  746.51</span></span>
-<span><span class="co">## 0.5  4232.31  576.73</span></span>
-<span><span class="co">## 0.55 5010.34  679.03</span></span>
-<span><span class="co">## 0.6  6210.67  639.65</span></span>
-<span><span class="co">## 0.65 7458.11  541.42</span></span>
-<span><span class="co">## 0.7  7508.97  595.62</span></span>
-<span><span class="co">## 0.75 8210.84  714.58</span></span>
-<span><span class="co">## 0.8  8332.69  710.14</span></span>
-<span><span class="co">## 0.85 8515.98  952.10</span></span>
-<span><span class="co">## 0.9  8822.00 2547.23</span></span>
-<span><span class="co">## 0.95 8273.74 1328.98</span></span>
+<span><span class="co">## 0.05     0.00        0.00</span></span>
+<span><span class="co">## 0.1      0.00        0.00</span></span>
+<span><span class="co">## 0.15     0.00        0.00</span></span>
+<span><span class="co">## 0.2      0.00      153.44</span></span>
+<span><span class="co">## 0.25   485.23      353.47</span></span>
+<span><span class="co">## 0.3    929.88      304.79</span></span>
+<span><span class="co">## 0.35  1460.36      460.77</span></span>
+<span><span class="co">## 0.4   2321.11      661.30</span></span>
+<span><span class="co">## 0.45  3462.56      704.67</span></span>
+<span><span class="co">## 0.5   4232.31      564.13</span></span>
+<span><span class="co">## 0.55  5010.34      532.56</span></span>
+<span><span class="co">## 0.6   6210.67      672.48</span></span>
+<span><span class="co">## 0.65  7458.11      572.29</span></span>
+<span><span class="co">## 0.7   8173.91      781.94</span></span>
+<span><span class="co">## 0.75  9643.00     1475.22</span></span>
+<span><span class="co">## 0.8   9860.76     1462.76</span></span>
+<span><span class="co">## 0.85 10824.63     2216.62</span></span>
+<span><span class="co">## 0.9   8670.99     2856.43</span></span>
+<span><span class="co">## 0.95 11394.77     1720.24</span></span>
 <span><span class="co">## </span></span>
-<span><span class="co">## Average Treatment Effect:    4629.24</span></span>
-<span><span class="co">##   Std. Error:        355.48</span></span></code></pre>
-<div class="sourceCode" id="cb31"><pre class="downlit sourceCode r">
+<span><span class="co">## Average Treatment Effect:    5089.64</span></span>
+<span><span class="co">##   Std. Error:        642.40</span></span></code></pre>
+<div class="sourceCode" id="cb32"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span>  <span class="fu"><a href="../reference/ggqte.html">ggqte</a></span><span class="op">(</span><span class="va">jt.cic</span><span class="op">)</span></span></code></pre></div>
 <p><img src="R-QTEs_files/figure-html/unnamed-chunk-17-1.png" width="90%" style="display: block; margin: auto;"></p>
 </div>
