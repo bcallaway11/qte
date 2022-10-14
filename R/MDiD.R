@@ -263,10 +263,11 @@ MDiD <- function(formla, xformla=NULL, t, tmin1, tname, data,
 
         out <- QTE(qte=mdid$qte, qte.upper=SEobj$qte.upper,
                    qte.lower=SEobj$qte.lower, ate=mdid$ate,
-                    ate.upper=SEobj$ate.upper, ate.lower=SEobj$ate.lower,
-                    qte.se=SEobj$qte.se, ate.se=SEobj$ate.se,
-                    eachIterList=eachIter,
-                    probs=probs)
+                   ate.upper=SEobj$ate.upper, ate.lower=SEobj$ate.lower,
+                   qte.se=SEobj$qte.se, ate.se=SEobj$ate.se,
+                   alp=alp,
+                   eachIterList=eachIter,
+                   probs=probs)
         return(out)
     } else {
         return(mdid)

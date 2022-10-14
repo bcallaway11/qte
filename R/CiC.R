@@ -269,7 +269,7 @@ CiC <- function(formla, xformla=NULL, t, tmin1, tname, data,
                qte.lower=SEobj$qte.lower, ate=cic$ate,
                ate.upper=SEobj$ate.upper, ate.lower=SEobj$ate.lower,
                qte.se=SEobj$qte.se, ate.se=SEobj$ate.se,
-               c=SEobj$c,
+               c=SEobj$c, alp=alp, 
                eachIterList=eachIter,
                probs=probs)
     return(out)

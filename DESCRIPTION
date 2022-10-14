@@ -1,6 +1,6 @@
 Package: qte
 Title: Quantile Treatment Effects
-Version: 1.3.1
+Version: 1.3.2
 Authors@R: person("Brantly", "Callaway", email="brantly.callaway@uga.edu",
   	          role=c("aut","cre"))
 Description: Provides several methods for computing the Quantile Treatment Effect (QTE) and Quantile Treatment Effect on the Treated (QTT). The main cases covered are (i) Treatment is randomly assigned, (ii) Treatment is as good as randomly assigned after conditioning on some covariates (also called conditional independence or selection on observables) using the methods developed in Firpo (2007) <doi:10.1111/j.1468-0262.2007.00738.x>, (iii) Identification is based on a Difference in Differences assumption (several varieties are available in the package e.g. Athey and Imbens (2006) <doi:10.1111/j.1468-0262.2006.00668.x> Callaway and Li (2019) <doi:10.3982/QE935>, Callaway, Li, and Oka (2018) <doi:10.1016/j.jeconom.2018.06.008>).

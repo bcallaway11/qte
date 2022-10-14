@@ -9,6 +9,11 @@ vignette: >
   \usepackage[utf8]{inputenc}
 ---
 
+# qte 1.3.2
+  * now pass the significance level through in the results
+  * added functionality to change significance level in `ggqte` in 
+    for pointwise confidence intervals w/o needing to re-estimate
+
 # qte 1.3.1
   * Updated maintainer's contact information
   * Improvements/updates to vignettes

@@ -44,14 +44,17 @@ qtes2mat <- function(qteList, sset=NULL, se=TRUE, rnd=3) {
 #'  uniform confidence bands cover the entire curve with a fixed
 #'  probability.  Uniform confidence bands will tend to be wider.  The option
 #'  "both" will plot both types of confidence intervals
+#' @param alp gives a way to override the significance level in the case where
+#'  `setype="pointwise"`.
 #' 
 #' @return a ggplot object
 #' @export
-ggqte <- function(qteobj, main="", ylab="QTE", ylim=NULL, ybreaks=NULL, xbreaks=c(.1,.3,.5,.7,.9), setype="pointwise") {
+ggqte <- function(qteobj, main="", ylab="QTE", ylim=NULL, ybreaks=NULL, xbreaks=c(.1,.3,.5,.7,.9), setype="pointwise", alp=qteobj$alp) {
     tau <- qteobj$probs
     qte <- qteobj$qte
     qte.se <- qteobj$qte.se
     c <- qteobj$c
+    if (is.null(alp)) alp <- 0.05
     if (!is.null(qte.se)) {
         cmat <- data.frame(tau, qte=qteobj$qte, qte.se=qteobj$qte.se)
     } else {
@@ -81,8 +84,8 @@ ggqte <- function(qteobj, main="", ylab="QTE", ylim=NULL, ybreaks=NULL, xbreaks=
     
     if (!is.null(qte.se)) {
         if (setype == "both" | setype == "pointwise") {
-            qp <- qp + ggplot2::geom_line(aes(tau, qte+1.96*qte.se), linetype="dashed")
-            qp <- qp + ggplot2::geom_line(aes(tau, qte-1.96*qte.se), linetype="dashed")
+            qp <- qp + ggplot2::geom_line(aes(tau, qte+qnorm(1-alp/2)*qte.se), linetype="dashed")
+            qp <- qp + ggplot2::geom_line(aes(tau, qte-qnorm(1-alp/2)*qte.se), linetype="dashed")
         }
         if (setype == "both" | setype == "uniform") {
             qp <-  qp + ggplot2::geom_line(aes(tau, qte+c*qte.se), linetype="dashed") + ggplot2::geom_line(aes(tau, qte-c*qte.se), linetype="dashed")

@@ -328,6 +328,7 @@ panel.qtet <- function(formla, xformla=NULL, t, tmin1, tmin2,
                    ate.upper=SEobj$ate.upper, ate.lower=SEobj$ate.lower,
                    qte.se=SEobj$qte.se, ate.se=SEobj$ate.se,
                    c=SEobj$c,
+                   alp=alp,
                    F.treated.t=pqte$F.treated.t,
                    F.untreated.t=pqte$F.untreated.t,
                    F.treated.t.cf=pqte$F.treated.t.cf,
@@ -677,6 +678,7 @@ plot.QTE <- function(x, plotate=FALSE, plot0=FALSE,
 #'  about the ATE
 #' @param c The critical value from a KS-type statistic used for creating
 #'  uniform confidence bands
+#' @param alp The significance level
 #' @param pscore.reg The results of propensity score regression, if specified
 #' @param probs The values for which the qte is computed
 #' @param type Takes the values "On the Treated" or "Population" to indicate
@@ -717,7 +719,7 @@ plot.QTE <- function(x, plotate=FALSE, plot0=FALSE,
 #' @export
 QTE <- function(qte, ate=NULL, qte.se=NULL, qte.lower=NULL,
                 qte.upper=NULL, ate.se=NULL, ate.lower=NULL, ate.upper=NULL,
-                c=NULL, pscore.reg=NULL, probs, type="On the Treated",
+                c=NULL, alp=0.05, pscore.reg=NULL, probs, type="On the Treated",
                 F.treated.t=NULL, F.untreated.t=NULL, F.treated.t.cf=NULL,
                 F.treated.tmin1=NULL, F.treated.tmin2=NULL,
                 F.treated.change.tmin1=NULL,
@@ -728,9 +730,10 @@ QTE <- function(qte, ate=NULL, qte.se=NULL, qte.lower=NULL,
                 condQ.treated.t=NULL,
                 condQ.treated.t.cf=NULL,
                 eachIterList=NULL, inffunct=NULL, inffuncu=NULL) {
+  
     out <- list(qte=qte, ate=ate, qte.se=qte.se, qte.lower=qte.lower,
                 qte.upper=qte.upper, ate.se=ate.se, ate.lower=ate.lower,
-                ate.upper=ate.upper, c=c,
+                ate.upper=ate.upper, c=c, alp=alp,
                 pscore.reg=pscore.reg, probs=probs,
                 type=type, F.treated.t=F.treated.t, F.untreated.t=F.untreated.t,
                 F.treated.t.cf=F.treated.t.cf,
