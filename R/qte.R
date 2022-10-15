@@ -465,7 +465,7 @@ computeSE <- function(bootIters, qteobj, alp=0.05) {
         sigmahalf <- sapply(1:length(qte), function(i) max(sigmahalf[i], .000000001))
     }
     cb <- apply(qte.mat, 1, function(q) max(abs((q-qte)/sigmahalf)))
-    c <- quantile(cb, .95, type=1)
+    c <- quantile(cb, (1-alp), type=1)
     ## qte se by quantiles
     ##sorted.qtemat = apply(qte.mat, 2, sort)
     ##qte.upper = sorted.qtemat[round((1-alp/2)*iters),]

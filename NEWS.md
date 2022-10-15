@@ -9,6 +9,11 @@ vignette: >
   \usepackage[utf8]{inputenc}
 ---
 
+# qte 1.3.3
+  * bug fixes to allow critical values for uniform confidence 
+    band to be affected by `alp` argument rather than stuck 
+	on `alp=0.05`
+
 # qte 1.3.2
   * now pass the significance level through in the results
   * added functionality to change significance level in `ggqte` in 
