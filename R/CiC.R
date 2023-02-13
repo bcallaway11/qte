@@ -155,101 +155,6 @@ CiC <- function(formla, xformla=NULL, t, tmin1, tname, data,
   cic = compute.CiC(qp)
 
   if (se) {
-    ##now calculate the bootstrap confidence interval
-    ## eachIter = list()
-    ## ##Need to build dataset by sampling individuals, and then
-    ## ##taking all of their time periods
-    ## ##when it's a panel make draws by individual
-    ## if (panel) {
-    ##     ##all.ids = unique(data[,idname])
-    ##     ##here we rely on having a balanced panel to get the right obs.
-    ##     treated.t <- treated.t[order(treated.t[,idname]),]
-    ##     treated.tmin1 <- treated.tmin1[order(treated.tmin1[,idname]),]
-    ##     untreated.t <- untreated.t[order(untreated.t[,idname]),]
-    ##     untreated.tmin1 <- untreated.tmin1[order(untreated.tmin1[,idname]),]
-    ##     nt <- nrow(treated.t)
-    ##     nu <- nrow(untreated.t)
-    ##     ##out.bootdatalist <<- list()
-    ##     for (i in 1:iters) {
-    ##         ##reset boot.data
-    ##         ##boot.data = data[0,]
-    ##         if(!is.null(seedvec)) {
-    ##             set.seed(seedvec[i])
-    ##         }
-    ##         randy.t = sample(1:nt, nt, replace=T)
-    ##         randy.u <- sample(1:nu, nu, replace=T)
-    ##         ##there has to be a way to do this faster, but go with the loop
-    ##         ##for now
-    ##         ##for (j in all.ids[randy]) {
-    ##         ##    boot.data = rbind(boot.data, data[(data[,idname]==j),])
-    ##         ##}
-    ##         ##these.ids <- data[,idname][randy]
-    ##         boot.data.treated.t <- treated.t[randy.t, ]
-    ##         boot.data.treated.tmin1 <- treated.tmin1[randy.t, ]
-    ##         boot.data.untreated.t <- untreated.t[randy.u, ]
-    ##         boot.data.untreated.tmin1 <- untreated.tmin1[randy.u, ]
-    ##         boot.data <- rbind(boot.data.treated.t, boot.data.untreated.t,
-    ##                            boot.data.treated.tmin1,
-    ##                            boot.data.untreated.tmin1)
-    ##         ##boot.data = process.bootdata(boot.data, idname, uniqueid)
-    ##         ##out.bootdatalist[[i]] <<- boot.data
-    ##         thisIter = compute.CiC(qp)
-    ##         ##already have a balanced panel so can increase speed by calling
-    ##         ##with panel option set to F.
-    ##         eachIter[[i]] = QTE(ate = thisIter$ate, qte=thisIter$qte,
-    ##                     probs=probs)
-
-    ##         if (printIter==T) {
-    ##             print(i)
-    ##         }
-    ##     }
-    ## } else { #make draws within each sample
-    ##     treated.t = data[data[,tname]==t & data[,treat]==1,]
-    ##     treated.tmin1 = data[data[,tname]==tmin1 & data[,treat]==1,]
-    ##     untreated.t = data[data[,tname]==t & data[,treat]==0,]
-
-    ##     untreated.tmin1 = data[data[,tname]==tmin1 & data[,treat]==0,]
-
-    ##     for (i in 1:iters) {
-    ##         if(!is.null(seedvec)) {
-    ##             set.seed(seedvec[i])
-    ##         }
-    ##         n <- nrow(treated.t)
-    ##         ran <- sample(1:n, n, replace=T)
-    ##         boot.treated.t <- treated.t[ran,]
-
-    ##         n <- nrow(treated.tmin1)
-    ##         ran <- sample(1:n, n, replace=T)
-    ##         boot.treated.tmin1 <- treated.tmin1[ran,]
-
-    ##         n <- nrow(untreated.t)
-    ##         ran <- sample(1:n, n, replace=T)
-    ##         boot.untreated.t <- untreated.t[ran,]
-
-    ##         n <- nrow(untreated.tmin1)
-    ##         ran <- sample(1:n, n, replace=T)
-    ##         boot.untreated.tmin1 <- untreated.tmin1[ran,]
-
-    ##         boot.data <- rbind(boot.treated.t, boot.untreated.t,
-    ##                            boot.treated.tmin1, boot.untreated.tmin1)
-    ##         thisIter = compute.CiC(formla, xformla, t, tmin1, tname,
-    ##             x, boot.data, 
-    ##             dropalwaystreated, panel, idname, uniqueid, probs)
-    ##         eachIter[[i]] = QTE(ate = thisIter$ate, qte=thisIter$qte,
-    ##                     probs=probs)
-
-    ##         if (printIter==T) {
-    ##             print(i)
-    ##         }
-    ##     }
-    
-    ## }
-
-    ## SEobj <- computeSE(eachIter, cic, alp=alp)
-
-    ## if(!retEachIter) {
-    ##     eachIter=NULL
-    ## }
 
     qp$bootstrapiter <- TRUE
 
@@ -277,3 +182,134 @@ CiC <- function(formla, xformla=NULL, t, tmin1, tname, data,
     return(cic)
   }
 }
+
+cic_attgt <- function(gt_data, xformla=~1, ret_quantile=NULL, ret_dist=TRUE, ...) {
+
+  #-----------------------------------------------------------------------------
+  # handle covariates
+  #-----------------------------------------------------------------------------
+  # for outcome regression, get pre-treatment values
+  Xpre <- model.frame(xformla, data=subset(gt_data,name=="pre"))
+
+  # convert two period panel into one period
+  gt_data_outcomes <- tidyr::pivot_wider(gt_data[,c("D","id","period","name","Y")], id_cols=c(id, D),
+                                           names_from=c(name),
+                                           values_from=c(Y))
+
+  # merge outcome and covariate data
+  gt_dataX <- cbind.data.frame(gt_data_outcomes, Xpre)
+
+  # treatment dummy variable
+  D <- gt_dataX$D
+
+  # pre- and post-treatment outcomes
+  Y_post <- gt_dataX$post
+  Y_pre <- gt_dataX$pre
+
+  # drop missing levels to be safe
+  gt_dataX <- droplevels(gt_dataX)
+
+  #-----------------------------------------------------------------------------
+  # make computations, this code is copied / slightly modified
+  # from compute.CiC function
+  #-----------------------------------------------------------------------------
+
+  
+  # will update this if there are covariates...
+  kcic <- quantile(Y_post[D==0], probs=ecdf(Y_pre[D==0])(Y_pre[D==1]), type=1)
+  att <- mean(Y_post[D==1]) - mean(kcic)
+
+  F0 <- ecdf(kcic)
+
+  #adjust for covariates
+  if (length(rhs.vars(xformla)) > 0) {
+
+    u <- seq(.01,.99,.01)
+    n1 <- sum(D)
+    n0 <- sum(1-D)
+
+    post_formula <- BMisc::toformula("post", rhs.vars(xformla))
+    pre_formula <- BMisc::toformula("pre", rhs.vars(xformla))
+    QR0t <- rq(post_formula, data=gt_dataX[D==0,], tau=u)
+    QR0tmin1 <- rq(pre_formula, data=gt_dataX[D==0,], tau=u)
+    QR1t <- rq(post_formula, data=gt_dataX[D==1,],tau=u)
+
+    # compute counterfactual outcomes
+    QR0tmin1F <- predict(QR0tmin1, newdata=gt_dataX[D==1,], type="Fhat", stepfun=TRUE)
+    F0tmin1 <- sapply(1:n1, function(i) QR0tmin1F[[i]](gt_dataX[D==1,]$pre[i]))
+    
+    # check for violations of support conditions
+    if ( mean( F0tmin1 >=.99 ) + mean(F0tmin1 <= .01) > 0.1 ) warning("lots of very high/low \"ranks\" for treated units => CIC support conditions are likely violated...")
+
+    QR0tQ <- predict(QR0t, newdata=gt_dataX[D==1,], type="Qhat", stepfun=TRUE)
+    y0t <- sapply(1:n1, function(i) QR0tQ[[i]](F0tmin1[i]))## these are pseudo counterfactual outcomes (in the sense that they share the same distribution as Y_t(0) but are not necessarily equal)
+
+    F0 <- ecdf(y0t)
+    
+    att <- mean(Y_post[D==1]) - mean(y0t)
+
+  }    
+
+  # return attgt
+  attgt_noif(attgt=att, extra_gt_returns=list(F0=F0))
+}
+
+
+#' @title cic2 This is a multi-period implementation of the change-in-changes
+#'  approach from Athey and Imbens (2006, Econometrica).  This function
+#'  is in a beta release and users should use caution when using this function
+#'  in emprical work.
+#'
+#'  The function builds on the `pte` package and will return an overall
+#'  treatment effect parameter as well as an event study.  See, in particular,
+#'  the argument `ret_quantile` below.
+#'
+#' @inheritParams pte
+#' @param ret_quantile This parameter determines which quantile will be reported
+#'  by the cic2 function.  By default `ret_quantile=NULL`; in this case, the
+#'  function will return an estimate of the overall ATT and an event study for
+#'  the ATT.  Other choices should be between 0 and 1.  For example, if the
+#'  user specifies `ret_quantile=0.9`, then the function will return overall
+#'  and event study parameters for the QTT(0.9).  These ...would be better to return the overall distribution and then to average and invert in later steps...
+#' @param ret_dist If set to be true, the function returns the observed
+#'  distribution of outcomes and counterfactual distribution of outcomes
+#'  for each (g,t) through the `extra_gt_returns` element of `group_time_att`
+#'  object.
+cic2 <- function(yname,
+                 gname,
+                 tname,
+                 idname,
+                 data,
+                 xformla=~1,
+                 ret_quantile=NULL,
+                 ret_dist=TRUE,
+                 anticipation=0,
+                 cband=TRUE,
+                 alp=0.05,
+                 boot_type="empirical",
+                 biters=100,
+                 cl=1) {
+
+  if (boot_type != "empirical") {
+    stop("only empirical bootstrap currently implemented")
+  }
+  
+  res <- pte(yname=yname,
+             gname=gname,
+             tname=tname,
+             idname=idname,
+             data=data,
+             setup_pte_fun=setup_pte,
+             subset_fun=two_by_two_subset,
+             attgt_fun=cic_attgt,
+             xformla=xformla,
+             anticipation=anticipation,
+             cband=cband,
+             alp=alp,
+             boot_type=boot_type,
+             biters=biters,
+             cl=cl)
+
+  res
+}
+
