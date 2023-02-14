@@ -183,7 +183,7 @@ CiC <- function(formla, xformla=NULL, t, tmin1, tname, data,
   }
 }
 
-cic_attgt <- function(gt_data, xformla=~1, ret_quantile=NULL, ret_dist=TRUE, ...) {
+cic_attgt <- function(gt_data, xformla=~1, ...) {
 
   #-----------------------------------------------------------------------------
   # handle covariates
@@ -220,8 +220,12 @@ cic_attgt <- function(gt_data, xformla=~1, ret_quantile=NULL, ret_dist=TRUE, ...
   att <- mean(Y_post[D==1]) - mean(kcic)
 
   F0 <- ecdf(kcic)
+  F1 <- ecdf(Y_post[D==1])
 
-  #adjust for covariates
+  # distribution of the treatment effect under rank invariance
+  Fte <- ecdf(Y_post[D==1] - kcic)
+
+  # adjust for covariates
   if (length(rhs.vars(xformla)) > 0) {
 
     u <- seq(.01,.99,.01)
@@ -248,10 +252,12 @@ cic_attgt <- function(gt_data, xformla=~1, ret_quantile=NULL, ret_dist=TRUE, ...
     
     att <- mean(Y_post[D==1]) - mean(y0t)
 
+    Fte <- ecdf(Y_post[D==1] - y0t)
+
   }    
 
   # return attgt
-  attgt_noif(attgt=att, extra_gt_returns=list(F0=F0))
+  attgt_noif(attgt=att, extra_gt_returns=list(F0=F0, F1=F1, Fte=Fte))
 }
 
 
@@ -282,7 +288,7 @@ cic2 <- function(yname,
                  data,
                  xformla=~1,
                  ret_quantile=NULL,
-                 ret_dist=TRUE,
+                 gt_type="att",
                  anticipation=0,
                  cband=TRUE,
                  alp=0.05,
@@ -308,7 +314,9 @@ cic2 <- function(yname,
              alp=alp,
              boot_type=boot_type,
              biters=biters,
-             cl=cl)
+             cl=cl,
+             ret_quantile=ret_quantile,
+             gt_type=gt_type)
 
   res
 }
