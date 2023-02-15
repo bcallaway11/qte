@@ -11,7 +11,8 @@ ggqte(
   ylim = NULL,
   ybreaks = NULL,
   xbreaks = c(0.1, 0.3, 0.5, 0.7, 0.9),
-  setype = "pointwise"
+  setype = "pointwise",
+  alp = qteobj$alp
 )
 }
 \arguments{
@@ -32,6 +33,9 @@ intervals cover the QTE at each particular point with a fixed probability,
 uniform confidence bands cover the entire curve with a fixed
 probability.  Uniform confidence bands will tend to be wider.  The option
 "both" will plot both types of confidence intervals}
+
+\item{alp}{gives a way to override the significance level in the case where
+\code{setype="pointwise"}.}
 }
 \value{
 a ggplot object

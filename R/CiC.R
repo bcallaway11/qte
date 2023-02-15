@@ -183,6 +183,19 @@ CiC <- function(formla, xformla=NULL, t, tmin1, tname, data,
   }
 }
 
+#' @title cic_attgt
+#'
+#' @inheritParams pte::did_attgt
+#'
+#' @return pte::attgt_noif object.  `cic_attgt` computes attgt using
+#'  the CIC approach.  It also returns distributions of observed outcomes
+#'  for the treated group (F1), the counterfactual distribution
+#'  of untreated potential potential outcomes for the treated group (F0),
+#'  and the distribution of the treatment effect under the assumption
+#'  of rank invariance over time (Fte) all through the extra_gt_returns
+#'  argument to `pte::attgt_noif` object.
+#'
+#' @export
 cic_attgt <- function(gt_data, xformla=~1, ...) {
 
   #-----------------------------------------------------------------------------
@@ -261,7 +274,9 @@ cic_attgt <- function(gt_data, xformla=~1, ...) {
 }
 
 
-#' @title cic2 This is a multi-period implementation of the change-in-changes
+#' @title cic2
+#'
+#' @description This is a multi-period implementation of the change-in-changes
 #'  approach from Athey and Imbens (2006, Econometrica).  This function
 #'  is in a beta release and users should use caution when using this function
 #'  in emprical work.
@@ -270,7 +285,7 @@ cic_attgt <- function(gt_data, xformla=~1, ...) {
 #'  treatment effect parameter as well as an event study.  See, in particular,
 #'  the argument `ret_quantile` below.
 #'
-#' @inheritParams pte
+#' @inheritParams pte::pte
 #' @param ret_quantile This parameter determines which quantile will be reported
 #'  by the cic2 function.  By default `ret_quantile=NULL`; in this case, the
 #'  function will return an estimate of the overall ATT and an event study for
@@ -281,6 +296,8 @@ cic_attgt <- function(gt_data, xformla=~1, ...) {
 #'  distribution of outcomes and counterfactual distribution of outcomes
 #'  for each (g,t) through the `extra_gt_returns` element of `group_time_att`
 #'  object.
+#'
+#' @export
 cic2 <- function(yname,
                  gname,
                  tname,

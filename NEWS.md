@@ -9,6 +9,11 @@ vignette: >
   \usepackage[utf8]{inputenc}
 ---
 
+# qte 1.4.0
+  * Added new function `cic2` for change-in-changes with multiple
+    periods and variation in treatment timing.  This uses the `pte`
+	package as a backend, and is not fully tested yet.
+
 # qte 1.3.3
   * bug fixes to allow critical values for uniform confidence 
     band to be affected by `alp` argument rather than stuck 

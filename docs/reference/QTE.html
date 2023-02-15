@@ -18,7 +18,7 @@ all of the methods that compute the QTE or QTET."><!-- mathjax --><script src="h
       </button>
       <span class="navbar-brand">
         <a class="navbar-link" href="../index.html">qte</a>
-        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">1.3.1</span>
+        <span class="version label label-default" data-toggle="tooltip" data-placement="bottom" title="">1.4.0</span>
       </span>
     </div>
 
@@ -62,6 +62,7 @@ all of the methods that compute the QTE or QTET.</p>
 <span>  ate.lower <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  ate.upper <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  c <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  alp <span class="op">=</span> <span class="fl">0.05</span>,</span>
 <span>  pscore.reg <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  <span class="va">probs</span>,</span>
 <span>  type <span class="op">=</span> <span class="st">"On the Treated"</span>,</span>
@@ -129,6 +130,10 @@ about the ATE</p></dd>
 <dt>c</dt>
 <dd><p>The critical value from a KS-type statistic used for creating
 uniform confidence bands</p></dd>
+
+
+<dt>alp</dt>
+<dd><p>The significance level</p></dd>
 
 
 <dt>pscore.reg</dt>

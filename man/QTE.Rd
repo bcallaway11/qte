@@ -15,6 +15,7 @@ QTE(
   ate.lower = NULL,
   ate.upper = NULL,
   c = NULL,
+  alp = 0.05,
   pscore.reg = NULL,
   probs,
   type = "On the Treated",
@@ -63,6 +64,8 @@ about the ATE}
 
 \item{c}{The critical value from a KS-type statistic used for creating
 uniform confidence bands}
+
+\item{alp}{The significance level}
 
 \item{pscore.reg}{The results of propensity score regression, if specified}
 

@@ -42,6 +42,7 @@ reference:
       - panel.qtet
       - ddid2
       - CiC
+      - cic2
       - QDiD
       - MDiD
       - bounds
@@ -70,6 +71,7 @@ reference:
     desc: >
       A number of other miscellaneous helper functions
     contents:
+      - cic_attgt
       - compute.panel.qtet
       - computeDiffSE
       - diffQ
