@@ -7,7 +7,7 @@
 #' \code{compute.CiC} does the computational
 #' work for the Change in Changes model
 #' of Athey and Imbens, 2006.
-#' 
+#'
 #' @inheritParams panel.qtet
 #'
 #' @keywords internal
@@ -15,7 +15,7 @@
 compute.CiC <- function(qp) {
 
   setupData(qp)
-  
+
   ##just to make sure the factors are working ok
   data = droplevels(data)
 
@@ -50,7 +50,7 @@ compute.CiC <- function(qp) {
     y0t <- sapply(1:n1tmin1, function(i) QR0tQ[[i]](F0tmin1[i]))## these are pseudo counterfactual outcomes (in the sense that they share the same distribution as Y_t(0) but are not necessarily equal)
 
     F.treatedcf.t <- ecdf(y0t)
-    
+
     att <- mean(treated.t[,yname]) - mean(y0t)
     ## old regression-based approach
     ## cov.data <- data
@@ -64,16 +64,16 @@ compute.CiC <- function(qp) {
     ## bet <- coef(first.stage)[5:length(coef(first.stage))]
     ## yfit <- cov.data[,yname] - as.matrix(xmat)%*%bet
     ## data[,yname] <- yfit
-  }    
+  }
 
-  
+
   ##5) Compute Quantiles
   ##a) Quantiles of observed distribution
   q1 = quantile(treated.t[,yname],probs=probs,type=1)
   q0 = quantile(F.treatedcf.t,probs=probs,type=1)
-  
-  
-  
+
+
+
   out <- QTE(F.treated.t = F.treated.t, F.treated.t.cf = F.treatedcf.t,
              F.treated.tmin1=F.treated.tmin1,
              F.untreated.t=F.untreated.t,
@@ -82,7 +82,7 @@ compute.CiC <- function(qp) {
              condQ.treated.t=QR1t,
              ate=att, qte=(q1-q0), probs=probs)
   class(out) <- "QTE"
-  
+
   return(out)
 }
 
@@ -117,7 +117,7 @@ compute.CiC <- function(qp) {
 #'  data=lalonde.psid.panel, idname="id", se=FALSE,
 #'  probs=seq(0.05, 0.95, 0.05))
 #' summary(c1)
-#' 
+#'
 #'
 #' @return QTE Object
 #'
@@ -125,32 +125,32 @@ compute.CiC <- function(qp) {
 #' Athey, Susan and Guido Imbens.  ``Identification and Inference in Nonlinear
 #'  Difference-in-Differences Models.'' Econometrica 74.2, pp. 431-497,
 #'  2006.
-#' 
+#'
 #' @export
 CiC <- function(formla, xformla=NULL, t, tmin1, tname, data,
                 panel=FALSE,
-                se=TRUE, idname=NULL, 
+                se=TRUE, idname=NULL,
                 alp=0.05, probs=seq(0.05,0.95,0.05), iters=100,
                 pl=FALSE, cores=2,
                 retEachIter=FALSE) {
-  
+
   if (panel) {
     data <- panelize.data(data, idname, tname, t, tmin1)
   } else { ## repeated cross sections case
     data <- subset(data, (data[,tname]==tmin1 | data[,tname]==t))
   }
-  
+
   qp <- QTEparams(formla=formla, xformla=xformla, t=t, tmin1=tmin1,
                   tname=tname, data=data, panel=panel,
                   idname=idname, probs=probs,
-                  iters=iters, bootstrapiter=FALSE, alp=alp, 
-                  se=se, retEachIter=retEachIter, 
+                  iters=iters, bootstrapiter=FALSE, alp=alp,
+                  se=se, retEachIter=retEachIter,
                   pl=pl, cores=cores)
 
   if (panel) {
     panel.checks(qp)
   }
-  
+
   ##first calculate the actual estimate
   cic = compute.CiC(qp)
 
@@ -174,7 +174,7 @@ CiC <- function(formla, xformla=NULL, t, tmin1, tname, data,
                qte.lower=SEobj$qte.lower, ate=cic$ate,
                ate.upper=SEobj$ate.upper, ate.lower=SEobj$ate.lower,
                qte.se=SEobj$qte.se, ate.se=SEobj$ate.se,
-               c=SEobj$c, alp=alp, 
+               c=SEobj$c, alp=alp,
                eachIterList=eachIter,
                probs=probs)
     return(out)
@@ -227,7 +227,7 @@ cic_attgt <- function(gt_data, xformla=~1, ...) {
   # from compute.CiC function
   #-----------------------------------------------------------------------------
 
-  
+
   # will update this if there are covariates...
   kcic <- quantile(Y_post[D==0], probs=ecdf(Y_pre[D==0])(Y_pre[D==1]), type=1)
   att <- mean(Y_post[D==1]) - mean(kcic)
@@ -254,7 +254,7 @@ cic_attgt <- function(gt_data, xformla=~1, ...) {
     # compute counterfactual outcomes
     QR0tmin1F <- predict(QR0tmin1, newdata=gt_dataX[D==1,], type="Fhat", stepfun=TRUE)
     F0tmin1 <- sapply(1:n1, function(i) QR0tmin1F[[i]](gt_dataX[D==1,]$pre[i]))
-    
+
     # check for violations of support conditions
     if ( mean( F0tmin1 >=.99 ) + mean(F0tmin1 <= .01) > 0.1 ) warning("lots of very high/low \"ranks\" for treated units => CIC support conditions are likely violated...")
 
@@ -262,12 +262,12 @@ cic_attgt <- function(gt_data, xformla=~1, ...) {
     y0t <- sapply(1:n1, function(i) QR0tQ[[i]](F0tmin1[i]))## these are pseudo counterfactual outcomes (in the sense that they share the same distribution as Y_t(0) but are not necessarily equal)
 
     F0 <- ecdf(y0t)
-    
+
     att <- mean(Y_post[D==1]) - mean(y0t)
 
     Fte <- ecdf(Y_post[D==1] - y0t)
 
-  }    
+  }
 
   # return attgt
   attgt_noif(attgt=att, extra_gt_returns=list(F0=F0, F1=F1, Fte=Fte))
@@ -316,8 +316,8 @@ cic2 <- function(yname,
   if (boot_type != "empirical") {
     stop("only empirical bootstrap currently implemented")
   }
-  
-  res <- pte(yname=yname,
+
+  res <- pte2(yname=yname,
              gname=gname,
              tname=tname,
              idname=idname,
