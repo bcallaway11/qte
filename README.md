@@ -1,10 +1,16 @@
 README
 ================
 Brantly Callaway
-2018-04-30
+2023-09-16
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
-The R `qte` package implements many methods used, especially in economics, to estimate quantile treatment effects. These include the case where treatment is randomly assigned, under selection on observables, under a Difference in Differences Assumtpion.
+
+# qte <img src="man/figures/logo.png" align="right" height="139" alt="" />
+
+The R `qte` package implements many methods used, especially in
+economics, to estimate quantile treatment effects. These include the
+case where treatment is randomly assigned, under selection on
+observables, under a Difference in Differences Assumtpion.
 
 The package is available on CRAN and can be loaded as follows
 
@@ -12,7 +18,8 @@ The package is available on CRAN and can be loaded as follows
   library(qte)
 ```
 
-The following example shows how to use the `ci.qte` method in the `qte` package using data about an experimental job training program.
+The following example shows how to use the `ci.qte` method in the `qte`
+package using data about an experimental job training program.
 
 ``` r
 data(lalonde)
@@ -23,4 +30,5 @@ data(lalonde)
  summary(jt.cia)
 ```
 
-More examples and details about other functions in the package can be found at the package's [website](http://bcallaway11.github.io/qte/)
+More examples and details about other functions in the package can be
+found at the package’s [website](http://bcallaway11.github.io/qte/)

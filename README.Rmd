@@ -19,6 +19,8 @@ knitr::opts_chunk$set(
 )
 ```
 
+# qte <img src="man/figures/logo.png" align="right" height="139" alt="" />
+
 The R `qte` package implements many methods used, especially in economics, to estimate quantile treatment effects.  These include the case where treatment is randomly assigned, under selection on observables, under a Difference in Differences Assumtpion.
 
 The package is available on CRAN and can be loaded as follows
