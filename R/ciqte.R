@@ -105,7 +105,7 @@ compute.ci.qte <- function(qp) {
 
 #' @title ci.qte
 #'
-#' @description The \code{ci.qtet} method implements estimates the Quantile
+#' @description The \code{ci.qte} method implements estimates the Quantile
 #' Treatment Effect (QTE) under a Conditional Independence
 #' Assumption (sometimes this is called Selection on Observables) developed
 #' in Firpo (2007).  This method using propensity score re-weighting
