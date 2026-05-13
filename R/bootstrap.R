@@ -90,6 +90,17 @@ bootstrap <- function(qteparams, qteest, func) {
     
     eachIter <- list()
 
+    if (!isTRUE(pl)) {
+        cores <- NULL
+    } else if (.Platform$OS.type == "windows" &&
+               is.numeric(cores) &&
+               length(cores) == 1L &&
+               !is.na(cores) &&
+               cores > 1) {
+        cores <- parallel::makeCluster(as.integer(cores))
+        on.exit(parallel::stopCluster(cores), add=TRUE)
+    }
+
     eachIter <- pblapply(1:iters, bootiter, qteparams=qteparams,
                          func=func, cl=cores)
     ## if (pl) {
