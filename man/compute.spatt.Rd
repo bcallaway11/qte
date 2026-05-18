@@ -7,18 +7,15 @@
 compute.spatt(qp)
 }
 \arguments{
-\item{qp}{QTEparams object containing the parameters passed to ciqte}
+\item{qp}{QTEparams object containing the parameters passed to spatt}
 }
 \value{
-QTE object
+QTE object with \code{ate} set to the ATT estimate and \code{qte}
+set to \code{NULL} (no quantile estimates).
 }
 \description{
-\code{compute.spatt} implements the method of Abadie (2005); this is
-computed automatically in several other methods in the qte package
-but this function provides a standalone result when quantiles are not
-wanted/needed.
-
-\code{compute.ddid2} uses two periods of data (repeated cross sections
-or panel) to estimate the Quantile Treatment Effect on the Treated (QTET)
+\code{compute.spatt} implements the Abadie (2005) semiparametric DiD
+estimator for the ATT. This is called internally by \code{spatt} but can
+also be used directly when quantile treatment effects are not needed.
 }
 \keyword{internal}

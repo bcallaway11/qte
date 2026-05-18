@@ -4,7 +4,7 @@
 \alias{qteToTexreg}
 \title{diffQ}
 \usage{
-qteToTexreg(qteobj, tau = NULL, reportAte = T)
+qteToTexreg(qteobj, tau = NULL, reportAte = TRUE)
 }
 \arguments{
 \item{qteobj}{A QTE object}

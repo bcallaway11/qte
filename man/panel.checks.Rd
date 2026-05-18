@@ -9,7 +9,15 @@ panel.checks(qp)
 \arguments{
 \item{qp}{QTEparams object containing the parameters passed to ciqte}
 }
-\description{
-Does some checking that data setup is valid for using methods
-in qte package
+\value{
+Invisibly returns \code{NULL}. Called for its side effects
+(warnings and errors).
 }
+\description{
+Validates that the panel data structure is compatible with
+the panel estimators in the qte package. Specifically: checks that the
+treated group composition is constant across all time periods, warns if
+covariates appear to vary over time, and stops with an informative message
+if the treated group is empty or changes.
+}
+\keyword{internal}

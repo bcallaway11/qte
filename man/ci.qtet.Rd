@@ -80,23 +80,26 @@ and minimizes a check function to compute the QTET.  Standard errors
 ## Load the data
 data(lalonde)
 
-##Estimate the QTET of participating in the job training program;
-##This is the no covariate case.  Note: Because individuals that participate
+## Estimate the QTET of participating in the job training program;
+## This is the no covariate case.  Note: Because individuals that participate
 ## in the job training program are likely to be much different than
 ## individuals that do not (e.g. less experience and less education), this
 ## method is likely to perform poorly at estimating the true QTET
-q1 <- ci.qtet(re78 ~ treat, x=NULL, data=lalonde.psid, se=FALSE,
- probs=seq(0.05,0.95,0.05))
+q1 <- ci.qtet(re78 ~ treat,
+  x = NULL, data = lalonde.psid, se = FALSE,
+  probs = seq(0.05, 0.95, 0.05)
+)
 summary(q1)
 
-##This estimation controls for all the available background characteristics.
-q2 <- ci.qtet(re78 ~ treat, 
- xformla=~age + I(age^2) + education + black + hispanic + married + nodegree,
- data=lalonde.psid, se=FALSE, probs=seq(0.05, 0.95, 0.05))
+## This estimation controls for all the available background characteristics.
+q2 <- ci.qtet(re78 ~ treat,
+  xformla = ~ age + I(age^2) + education + black + hispanic + married + nodegree,
+  data = lalonde.psid, se = FALSE, probs = seq(0.05, 0.95, 0.05)
+)
 summary(q2)
 
 }
 \references{
-Firpo, Sergio.   ``Efficient Semiparametric Estimation of Quantile Treatment
-Effects.'' Econometrica 75.1, pp. 259-276, 2015.
+Firpo, Sergio. ``Efficient Semiparametric Estimation of Quantile Treatment
+Effects.'' Econometrica 75.1, pp. 259-276, 2007.
 }

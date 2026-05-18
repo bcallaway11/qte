@@ -1,164 +1,174 @@
-##
-####Setup data for using in compute methods in QTE package####
+# =============================================================================
+# Title: Data setup utility for QTE compute functions
+# Description: setupData extracts treated/untreated subsets, ECDFs, and
+#   auxiliary objects from a QTEparams object, then injects them into the
+#   caller's environment via assign(..., envir=parent.frame()). This
+#   side-effectful pattern is intentional — all compute.* functions depend on it.
+# Author: Brant Callaway
+# Last update: 2026-05-18
+# Date created: 2026-05-18
+# =============================================================================
+
+#### Setup data for using in compute methods in QTE package####
 #' @title setupData
 #'
-#' @description \code{setupData} sets up the data to use in each
-#'  compute method in the QTE package
-#' 
-#' @param qteParams object holding the function parameters
+#' @description \code{setupData} extracts treated/untreated subsets, ECDFs,
+#'  and auxiliary vectors from a \code{QTEparams} object and **injects them
+#'  into the caller's environment** via \code{assign(..., envir=parent.frame())}.
+#'  This side-effectful pattern is intentional — all \code{compute.*} functions
+#'  rely on the variables created here being available in their local scope.
 #'
-#' @return qteData object holding data to be used in QTE functions
-#' @export
+#' @param qteParams A \code{QTEparams} object holding the function parameters.
+#'
+#' @return Invisibly returns \code{NULL}. The function's effect is the
+#'  assignment of data objects into the calling environment.
+#'
+#' @keywords internal
 setupData <- function(qteParams) {
+  formla <- qteParams$formla
+  xformla <- qteParams$xformla
+  data <- qteParams$data
+  w <- qteParams$w
+  probs <- qteParams$probs
+  method <- qteParams$method
 
-    formla <- qteParams$formla
-    xformla <- qteParams$xformla
-    data <- qteParams$data
-    w <- qteParams$w
-    probs <- qteParams$probs
-    method <- qteParams$method
-    
-    form <- stats::as.formula(formla)
-    dta <- stats::model.frame(stats::terms(form,data=data),data=data) #or model.matrix
-    colnames(dta) <- c("y","treatment")
-    yname <- "y"
-    idname <- qteParams$idname
-    tname <- qteParams$tname
-    treat <- "treatment"
-    wname <- "w"
-    t <- qteParams$t
-    tmin1 <- qteParams$tmin1
-    tmin2 <- qteParams$tmin2
-    panel <- qteParams$panel
-    data <- cbind.data.frame(dta,data)
+  form <- stats::as.formula(formla)
+  dta <- stats::model.frame(stats::terms(form, data = data), data = data) # or model.matrix
+  colnames(dta) <- c("y", "treatment")
+  yname <- "y"
+  idname <- qteParams$idname
+  tname <- qteParams$tname
+  treat <- "treatment"
+  wname <- "w"
+  t <- qteParams$t
+  tmin1 <- qteParams$tmin1
+  tmin2 <- qteParams$tmin2
+  panel <- qteParams$panel
+  data <- cbind.data.frame(dta, data)
 
-    if (is.null(w)) {
-        data$w <- 1
+  if (is.null(w)) {
+    data$w <- 1
+  } else {
+    data$w <- w
+  }
+
+  if (sum(data$w) != nrow(data)) {
+    warning("sum of weights not equal to number of rows of data; something may be wrong...Proceeding")
+  }
+
+  ## set up the x variables
+  if (!(is.null(xformla))) {
+    x <- colnames(model.matrix(terms(as.formula(xformla)), data = data))
+    ## data <- cbind(data[,c(yname,treat,wname,tname)],
+    ##              model.matrix(terms(as.formula(xformla)), data=data))
+  } else {
+    x <- NULL
+  }
+
+  ## setup the data
+  treated <- data[data[, treat] == 1, ]
+  untreated <- data[data[, treat] == 0, ]
+
+
+  env <- parent.frame()
+
+  ## with multiple periods
+  if (!is.null(tname)) {
+    if (panel) {
+      ndta <- nrow(data)
+      data <- setDF(makeBalancedPanel(data, idname, tname))
+      if (nrow(data) != ndta) {
+        warning("forcing data to be balanced panel")
+      }
+    }
+
+    treated.t <- data[data[, tname] == t & data[, treat] == 1, ]
+    treated.tmin1 <- data[data[, tname] == tmin1 & data[, treat] == 1, ]
+    untreated.t <- data[data[, tname] == t & data[, treat] == 0, ]
+    untreated.tmin1 <- data[data[, tname] == tmin1 & data[, treat] == 0, ]
+
+
+    ## Sort data and rely on having a balanced panel to get the change
+    ## distributions right
+    if (panel) {
+      treated.t <- treated.t[order(treated.t[, idname]), ]
+      treated.tmin1 <- treated.tmin1[order(treated.tmin1[, idname]), ]
+      untreated.t <- untreated.t[order(untreated.t[, idname]), ]
+      untreated.tmin1 <- untreated.tmin1[order(untreated.tmin1[, idname]), ]
+    }
+
+    ## b)
+    if (panel) {
+      untreated.change.t <- untreated.t[, yname] - untreated.tmin1[, yname]
     } else {
-        data$w <- w
+      ## be careful here as it invokes rank invariance
+      untreated.change.t <- cs2panel(untreated.t, untreated.tmin1, yname)
     }
 
-    if (sum(data$w) != nrow(data)) {
-        warning("sum of weights not equal to number of rows of data; something may be wrong...Proceeding")
+    F.untreated.change.t <- stats::ecdf(untreated.change.t)
+
+    ## 3) Get the distributions that we need below
+
+    ## a) Get distribution of y0.tmin2 | Dt=1
+    F.treated.t <- stats::ecdf(treated.t[, yname])
+    F.treated.tmin1 <- stats::ecdf(treated.tmin1[, yname])
+    F.untreated.t <- stats::ecdf(untreated.t[, yname])
+    F.untreated.tmin1 <- stats::ecdf(untreated.tmin1[, yname])
+
+
+    assign("treated.t", treated.t, envir = env)
+    assign("treated.tmin1", treated.tmin1, envir = env)
+    assign("untreated.t", untreated.t, envir = env)
+    assign("untreated.tmin1", untreated.tmin1, envir = env)
+    assign("untreated.change.t", untreated.change.t, envir = env)
+    assign("F.treated.t", F.treated.t, envir = env)
+    assign("F.treated.tmin1", F.treated.tmin1, envir = env)
+    assign("F.untreated.t", F.untreated.t, envir = env)
+    assign("F.untreated.tmin1", F.untreated.tmin1, envir = env)
+    assign("F.untreated.change.t", F.untreated.change.t, envir = env)
+
+
+    if (!is.null(tmin2)) {
+      treated.tmin2 <- data[data[, tname] == tmin2 & data[, treat] == 1, ]
+      untreated.tmin2 <- data[data[, tname] == tmin2 & data[, treat] == 0, ]
+      if (panel) {
+        treated.tmin2 <- treated.tmin2[order(treated.tmin2[, idname]), ]
+        untreated.tmin2 <- untreated.tmin2[order(untreated.tmin2[, idname]), ]
+        untreated.change.tmin1 <- untreated.tmin1[, yname] - untreated.tmin2[, yname]
+        treated.change.tmin1 <- treated.tmin1[, yname] - treated.tmin2[, yname]
+        F.untreated.change.tmin1 <- ecdf(untreated.change.tmin1)
+        F.treated.change.tmin1 <- ecdf(treated.change.tmin1)
+        assign("untreated.change.tmin1", untreated.change.tmin1, envir = env)
+        assign("treated.change.tmin1", treated.change.tmin1, envir = env)
+        assign("F.untreated.change.tmin1", F.untreated.change.tmin1, envir = env)
+        assign("F.treated.change.tmin1", F.treated.change.tmin1, envir = env)
+      }
+      F.treated.tmin2 <- ecdf(treated.tmin2[, yname])
+      F.untreated.tmin2 <- ecdf(untreated.tmin2[, yname])
+
+      assign("treated.tmin2", treated.tmin2, envir = env)
+      assign("untreated.tmin2", untreated.tmin2, envir = env)
+      assign("F.treated.tmin2", F.treated.tmin2, envir = env)
+      assign("F.untreated.tmin2", F.untreated.tmin2, envir = env)
     }
-
-    ##set up the x variables
-    if (!(is.null(xformla))) {
-        x <- colnames(model.matrix(terms(as.formula(xformla)), data=data))
-        ##data <- cbind(data[,c(yname,treat,wname,tname)],
-        ##              model.matrix(terms(as.formula(xformla)), data=data))
-    } else {
-        x <- NULL
-    }
-
-    ##setup the data
-    treated <- data[data[,treat]==1,]
-    untreated <- data[data[,treat]==0,]
+  }
 
 
-    env <- parent.frame()
-
-    ##with multiple periods
-    if (!is.null(tname)) {
-
-        if (panel) {
-            ndta <- nrow(data)
-            data <- setDF(makeBalancedPanel(data, idname, tname))
-            if (nrow(data) != ndta) {
-                warning("forcing data to be balanced panel")
-            }
-        }
-
-        treated.t <- data[ data[,tname] == t & data[,treat]==1, ]
-        treated.tmin1 <- data[ data[,tname] == tmin1 & data[,treat]==1, ]
-        untreated.t <- data[ data[,tname] == t & data[,treat]==0, ]
-        untreated.tmin1 <- data[ data[,tname] == tmin1 & data[,treat]==0, ]
-      
-
-        ##Sort data and rely on having a balanced panel to get the change
-        ## distributions right
-        if (panel) {
-            treated.t <- treated.t[order(treated.t[,idname]),]
-            treated.tmin1 <- treated.tmin1[order(treated.tmin1[,idname]),]
-            untreated.t <- untreated.t[order(untreated.t[,idname]),]
-            untreated.tmin1 <- untreated.tmin1[order(untreated.tmin1[,idname]),]
-        }
-
-        ##b)
-        if (panel) {
-            untreated.change.t <- untreated.t[,yname] - untreated.tmin1[,yname]
-            
-        } else {
-            ## be careful here as it invokes rank invariance 
-            untreated.change.t <- cs2panel(untreated.t, untreated.tmin1, yname)
-        }
-
-        F.untreated.change.t <- stats::ecdf(untreated.change.t)
-        
-        ##3) Get the distributions that we need below
-        
-        ##a) Get distribution of y0.tmin2 | Dt=1
-        F.treated.t <- stats::ecdf(treated.t[,yname])
-        F.treated.tmin1 <- stats::ecdf(treated.tmin1[,yname])
-        F.untreated.t <- stats::ecdf(untreated.t[,yname])
-        F.untreated.tmin1 <- stats::ecdf(untreated.tmin1[,yname])
-
-        
-        assign("treated.t", treated.t, envir=env)
-        assign("treated.tmin1", treated.tmin1, envir=env)
-        assign("untreated.t", untreated.t, envir=env)
-        assign("untreated.tmin1", untreated.tmin1, envir=env)
-        assign("untreated.change.t", untreated.change.t, envir=env)
-        assign("F.treated.t", F.treated.t, envir=env)
-        assign("F.treated.tmin1", F.treated.tmin1, envir=env)
-        assign("F.untreated.t", F.untreated.t, envir=env)
-        assign("F.untreated.tmin1", F.untreated.tmin1, envir=env)
-        assign("F.untreated.change.t", F.untreated.change.t, envir=env)
-        
-
-        if (!is.null(tmin2)) {
-            treated.tmin2 <- data[ data[,tname] == tmin2 & data[,treat]==1, ]
-            untreated.tmin2 <- data[ data[,tname] == tmin2 & data[,treat]==0, ]
-            if (panel) {
-                treated.tmin2 <- treated.tmin2[order(treated.tmin2[,idname]),]
-                untreated.tmin2 <- untreated.tmin2[order(untreated.tmin2[,idname]),]
-                untreated.change.tmin1 <- untreated.tmin1[,yname] - untreated.tmin2[,yname]
-                treated.change.tmin1  <- treated.tmin1[,yname] - treated.tmin2[,yname]
-                F.untreated.change.tmin1 <- ecdf(untreated.change.tmin1)
-                F.treated.change.tmin1 <- ecdf(treated.change.tmin1)
-                assign("untreated.change.tmin1", untreated.change.tmin1, envir=env)
-                assign("treated.change.tmin1", treated.change.tmin1, envir=env)
-                assign("F.untreated.change.tmin1", F.untreated.change.tmin1, envir=env)
-                assign("F.treated.change.tmin1", F.treated.change.tmin1, envir=env)
-            }
-            F.treated.tmin2 <- ecdf(treated.tmin2[,yname])
-            F.untreated.tmin2 <- ecdf(untreated.tmin2[,yname])
-            
-            assign("treated.tmin2", treated.tmin2, envir=env)
-            assign("untreated.tmin2", untreated.tmin2, envir=env)
-            assign("F.treated.tmin2", F.treated.tmin2, envir=env)
-            assign("F.untreated.tmin2", F.untreated.tmin2, envir=env)
-        }
-
-    }
-
-
-    assign("formla", formla, envir=env)
-    assign("xformla", xformla, envir=env)
-    assign("x", x, envir=env)
-    assign("yname", "y", envir=env)
-    assign("treat", "treatment", envir=env)
-    assign("wname", "w", envir=env)    
-    assign("data", data, envir=env)
-    assign("treated", treated, envir=env)
-    assign("untreated", untreated, envir=env)
-    assign("probs", probs, envir=env)
-    assign("method", method, envir=env)
-    assign("tname", tname, envir=env)
-    assign("t", t, envir=env)
-    assign("tmin1", tmin1, envir=env)
-    assign("tmin2", tmin2, envir=env)
-    assign("idname", idname, envir=env)
-    assign("panel", panel, envir=env)
-    
+  assign("formla", formla, envir = env)
+  assign("xformla", xformla, envir = env)
+  assign("x", x, envir = env)
+  assign("yname", "y", envir = env)
+  assign("treat", "treatment", envir = env)
+  assign("wname", "w", envir = env)
+  assign("data", data, envir = env)
+  assign("treated", treated, envir = env)
+  assign("untreated", untreated, envir = env)
+  assign("probs", probs, envir = env)
+  assign("method", method, envir = env)
+  assign("tname", tname, envir = env)
+  assign("t", t, envir = env)
+  assign("tmin1", tmin1, envir = env)
+  assign("tmin2", tmin2, envir = env)
+  assign("idname", idname, envir = env)
+  assign("panel", panel, envir = env)
 }

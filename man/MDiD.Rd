@@ -65,14 +65,15 @@ to running out of memory.}
 A \code{QTE} object
 }
 \description{
-\code{MDiD} is a Difference in Differences type method for
-computing the QTET.
+\code{MDiD} computes the Quantile Treatment Effect on the
+Treated (QTET) using a Mean Difference-in-Differences approach. The
+counterfactual quantile is formed by shifting the pre-treatment treated
+distribution by the mean DiD (i.e., the parallel-trends DiD in means),
+rather than the full distributional shift used in \code{QDiD} or \code{CiC}.
 
-The method can accommodate conditioning on covariates though it does so
-in a restrictive way:  It specifies a linear model for outcomes conditional
-on group-time dummies and covariates.  Then, after residualizing (see details
-in Athey and Imbens (2006)), it computes the Change in Changes model
-based on these quasi-residuals.
+The method can accommodate covariates by first residualizing outcomes on a
+linear model with group-time fixed effects and covariates, then applying
+the MDiD estimator to the quasi-residuals.
 }
 \examples{
 ## load the data
@@ -80,10 +81,12 @@ data(lalonde)
 
 ## Run the Mean Difference in Differences method conditioning on
 ## age, education, black, hispanic, married, and nodegree
-md1 <- MDiD(re ~ treat, t=1978, tmin1=1975, tname="year",
- xformla=~age + I(age^2) + education + black + hispanic + married + nodegree,
- data=lalonde.psid.panel, idname="id", se=FALSE,
- probs=seq(0.05, 0.95, 0.05))
+md1 <- MDiD(re ~ treat,
+  t = 1978, tmin1 = 1975, tname = "year",
+  xformla = ~ age + I(age^2) + education + black + hispanic + married + nodegree,
+  data = lalonde.psid.panel, idname = "id", se = FALSE,
+  probs = seq(0.05, 0.95, 0.05)
+)
 summary(md1)
 
 }

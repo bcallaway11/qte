@@ -42,7 +42,12 @@ pre-treatment period for all individuals in the sample.}
 
 \item{probs}{A vector of values between 0 and 1 to compute the QTET at}
 }
+\value{
+QTE object
+}
 \description{
-Internal function for computing the actual value for MDiD
+Internal function for computing the MDiD point estimate.
+Unlike other \code{compute.*} functions in the package, this function
+performs its own data setup rather than calling \code{setupData}.
 }
 \keyword{internal}

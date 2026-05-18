@@ -83,18 +83,20 @@ computed in parallel}
 Treated (ATT) using the method of Abadie (2005)
 }
 \examples{
-##load the data
+## load the data
 data(lalonde)
 
 ## Run the panel.qtet method on the experimental data with no covariates
-att1 <- spatt(re ~ treat, t=1978, tmin1=1975, tname="year",
- x=NULL, data=lalonde.psid.panel, idname="id", se=FALSE)
+att1 <- spatt(re ~ treat,
+  t = 1978, tmin1 = 1975, tname = "year",
+  x = NULL, data = lalonde.psid.panel, idname = "id", se = FALSE
+)
 summary(att1)
 
 ## Run the panel.qtet method on the observational data with no covariates
 
-
 }
 \references{
-Abadie (2005)
+Abadie, Alberto. ``Semiparametric Difference-in-Differences Estimators.''
+Review of Economic Studies 72.1, pp. 1-19, 2005.
 }

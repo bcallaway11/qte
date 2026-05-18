@@ -53,8 +53,10 @@ Treated (QTET) using the method of Fan and Yu (2012).
 data(lalonde)
 
 ## Run the bounds method with no covariates
-b1 <- bounds(re ~ treat, t=1978, tmin1=1975, data=lalonde.psid.panel,
-  idname="id", tname="year")
+b1 <- bounds(re ~ treat,
+  t = 1978, tmin1 = 1975, data = lalonde.psid.panel,
+  idname = "id", tname = "year"
+)
 summary(b1)
 
 }

@@ -1,106 +1,112 @@
+# =============================================================================
+# Title: Semiparametric ATT estimator (spatt)
+# Description: Implements the Abadie (2005) semiparametric DiD estimator for
+#   the Average Treatment Effect on the Treated (ATT). Supports covariates via
+#   propensity score reweighting. For repeated cross sections and panel data.
+# Author: Brant Callaway
+# Last update: 2026-05-18
+# Date created: 2026-05-18
+# =============================================================================
+
 utils::globalVariables(c("yname", "treat", "x", "xformla", "panel", "data", "wname", "probs", "method", "treated.t", "treated.tmin1", "untreated.t", "untreated.tmin1", "tname", "eachIter"))
 
 
+# --- Internal compute function -----------------------------------------------
 
-
-#####Semiparametric Difference in Differences#####
 #' @title compute.spatt
 #'
 #' @description
-#' \code{compute.spatt} implements the method of Abadie (2005); this is
-#'  computed automatically in several other methods in the qte package
-#'  but this function provides a standalone result when quantiles are not
-#'  wanted/needed.
-#' @description
-#' \code{compute.ddid2} uses two periods of data (repeated cross sections
-#' or panel) to estimate the Quantile Treatment Effect on the Treated (QTET)
+#' \code{compute.spatt} implements the Abadie (2005) semiparametric DiD
+#'  estimator for the ATT. This is called internally by \code{spatt} but can
+#'  also be used directly when quantile treatment effects are not needed.
 #'
-#' @param qp QTEparams object containing the parameters passed to ciqte
+#' @param qp QTEparams object containing the parameters passed to spatt
 #'
-#' @importFrom quantreg rq
-#'
-#' @return QTE object
+#' @return QTE object with \code{ate} set to the ATT estimate and \code{qte}
+#'  set to \code{NULL} (no quantile estimates).
 #'
 #' @keywords internal
 compute.spatt <- function(qp) {
+  setupData(qp)
+  bootstrapiter <- qp$bootstrapiter
 
-    setupData(qp)
-    bootstrapiter <- qp$bootstrapiter
+  ## calculate the att; this will be changed if there are covariates
+  att <- getWeightedMean(treated.t[, yname], treated.t[, wname]) -
+    getWeightedMean(treated.tmin1[, yname], treated.tmin1[, wname]) -
+    (getWeightedMean(untreated.t[, yname], untreated.t[, wname]) -
+      getWeightedMean(untreated.tmin1[, yname], untreated.tmin1[, wname]))
 
-    ##calculate the att; this will be changed if there are covariates
-    att = getWeightedMean(treated.t[,yname], treated.t[,wname]) -
-        getWeightedMean(treated.tmin1[,yname], treated.tmin1[,wname]) -
-        (getWeightedMean(untreated.t[,yname], untreated.t[,wname]) -
-         getWeightedMean(untreated.tmin1[,yname], untreated.tmin1[,wname]))
+  if (panel) {
+    dta <- panel2cs(data, yname, qp$idname, tname)
+    n <- nrow(dta)
+    D <- dta[, treat]
+    p <- sum(D) / n
+    dy <- dta$dy
+    ## estimate the propensity score
+    this.formla <- y ~ x
+    formula.tools::lhs(this.formla) <- as.name(treat)
+    formula.tools::rhs(this.formla) <- formula.tools::rhs(xformla)
+    pscore.reg <- glm(this.formla,
+      data = dta,
+      family = binomial(link = method)
+    )
+    pscore <- fitted(pscore.reg) ## TODO: does this make sense for repeated cross sections;
+    ## above, I am just pooling both periods.
 
-    if(panel) {
-        dta <- panel2cs(data, yname, qp$idname, tname)
-        n <- nrow(dta)
-        D <- dta[,treat]
-        p <- sum(D)/n
-        dy <- dta$dy
-        ##estimate the propensity score
-        this.formla <- y ~ x
-        formula.tools::lhs(this.formla) <- as.name(treat)
-        formula.tools::rhs(this.formla) <- formula.tools::rhs(xformla)
-        pscore.reg <- glm(this.formla, data=dta,
-                          family=binomial(link=method))
-        pscore <- fitted(pscore.reg) ## TODO: does this make sense for repeated cross sections;
-        ## above, I am just pooling both periods.
+    ## waits <- (D-pscore)/(p*(1-pscore))  ## this way does not normalize
 
-        ## waits <- (D-pscore)/(p*(1-pscore))  ## this way does not normalize
-
-        uwait <- (1-D)*pscore/(p*(1-pscore))
-        waits <- D/p - uwait / mean(uwait) 
+    uwait <- (1 - D) * pscore / (p * (1 - pscore))
+    waits <- D / p - uwait / mean(uwait)
 
 
-        ##TODO: notice that we are not accounting for sampling weight
+    ## TODO: notice that we are not accounting for sampling weight
 
-        att <- getWeightedMean(dy, waits, norm=FALSE)
+    att <- getWeightedMean(dy, waits, norm = FALSE)
+  } else {
+    pscore.reg <- NULL # do this in case no covariates as we return this value
+    if (!(is.null(x))) {
+      ntt <- nrow(treated.t)
+      nttmin1 <- nrow(treated.tmin1)
+      nut <- nrow(untreated.t)
+      nutmin1 <- nrow(untreated.tmin1)
+      p <- (ntt + nttmin1) / (ntt + nttmin1 + nut + nutmin1)
+      D <- data[, treat]
+      time_ind <- 1 * (data[, tname] == t)
+      y <- data[, yname]
+      w <- data[, wname]
+      ## estimate the propensity score
+      this.formla <- y ~ x
+      formula.tools::lhs(this.formla) <- as.name(treat)
+      formula.tools::rhs(this.formla) <- formula.tools::rhs(xformla)
+      pscore.reg <- glm(this.formla,
+        data = data,
+        family = binomial(link = method)
+      )
+      pscore <- fitted(pscore.reg) ## TODO: does this make sense for repeated cross sections;
+      ## above, I am just pooling both periods.
 
-    } else {
+      lam <- (ntt + nut) / (ntt + nttmin1 + nut + nutmin1) ## the fraction of observations in the last period
 
-        pscore.reg <- NULL #do this in case no covariates as we return this value
-        if (!(is.null(x))) {
-            ntt <- nrow(treated.t)
-            nttmin1 <- nrow(treated.tmin1)
-            nut <- nrow(untreated.t)
-            nutmin1 <- nrow(untreated.tmin1)
-            p <- (ntt+nttmin1)/(ntt+nttmin1+nut+nutmin1)
-            D <- data[,treat]
-            T <- 1*(data[,tname]==t)
-            y <- data[,yname]
-            w <- data[,wname]
-            ##estimate the propensity score
-            this.formla <- y ~ x
-            formula.tools::lhs(this.formla) <- as.name(treat)
-            formula.tools::rhs(this.formla) <- formula.tools::rhs(xformla)
-            pscore.reg <- glm(this.formla, data=data,
-                              family=binomial(link=method))
-            pscore <- fitted(pscore.reg) ## TODO: does this make sense for repeated cross sections;
-            ## above, I am just pooling both periods.
-            
-            lam <- (ntt+nut)/(ntt+nttmin1+nut+nutmin1) ## the fraction of observations in the last period
-            
-            waits1 <- (T-lam)/(lam*(1-lam))
-            uwait <- (1-D)*pscore/(p*(1-pscore))
-            waits2 <- D/p - uwait/mean(uwait) ##(D-pscore)/(p*(1-pscore))
-            waits <- waits1 * waits2
-            
-            ##TODO: notice that we are not accounting for sampling weight
-            
-            att <- getWeightedMean(y, waits)
-            
-            ##att <- getWeightedMean(y, treated.weights) -
-            ##    getWeightedMean(y, untreated.weights)
-        }
+      waits1 <- (time_ind - lam) / (lam * (1 - lam))
+      uwait <- (1 - D) * pscore / (p * (1 - pscore))
+      waits2 <- D / p - uwait / mean(uwait) ## (D-pscore)/(p*(1-pscore))
+      waits <- waits1 * waits2
 
+      ## TODO: notice that we are not accounting for sampling weight
+
+      att <- getWeightedMean(y, waits)
+
+      ## att <- getWeightedMean(y, treated.weights) -
+      ##    getWeightedMean(y, untreated.weights)
     }
+  }
 
-    out <- QTE(qte=NULL, pscore.reg=pscore.reg,  ate=att, probs=NULL)
-    return(out)
+  out <- QTE(qte = NULL, pscore.reg = pscore.reg, ate = att, probs = NULL)
+  return(out)
 }
 
+
+# --- User-facing wrapper -----------------------------------------------------
 
 #' @title spatt
 #'
@@ -135,125 +141,125 @@ compute.spatt <- function(qp) {
 #'  in conjunction with bootstrapping standard errors.
 #'
 #' @examples
-#' ##load the data
+#' ## load the data
 #' data(lalonde)
 #'
 #' ## Run the panel.qtet method on the experimental data with no covariates
-#' att1 <- spatt(re ~ treat, t=1978, tmin1=1975, tname="year",
-#'  x=NULL, data=lalonde.psid.panel, idname="id", se=FALSE)
+#' att1 <- spatt(re ~ treat,
+#'   t = 1978, tmin1 = 1975, tname = "year",
+#'   x = NULL, data = lalonde.psid.panel, idname = "id", se = FALSE
+#' )
 #' summary(att1)
 #'
 #' ## Run the panel.qtet method on the observational data with no covariates
-#' 
 #'
 #' @references
-#' Abadie (2005)
+#' Abadie, Alberto. ``Semiparametric Difference-in-Differences Estimators.''
+#'  Review of Economic Studies 72.1, pp. 1-19, 2005.
 #'
 #' @return \code{QTE} object
-#' 
+#'
 #' @export
-spatt <- function(formla, xformla=NULL, t, tmin1,
-                  tname, data, w=NULL, panel=FALSE,
-                  idname=NULL, 
-                  iters=100, alp=0.05, method="logit", plot=FALSE, se=TRUE,
-                  retEachIter=FALSE, seedvec=NULL, pl=FALSE, cores=2) {
-    
-    qp <- QTEparams(formla=formla, xformla=xformla, t=t, tmin1=tmin1,
-                    tname=tname, data=data, panel=panel,
-                    idname=idname, probs=NULL,
-                    iters=iters, alp=alp, method=method,
-                    se=se, retEachIter=retEachIter, seedvec=seedvec,
-                    pl=pl, cores=cores)
-    
-    satt = compute.spatt(qp)
+spatt <- function(formla, xformla = NULL, t, tmin1,
+                  tname, data, w = NULL, panel = FALSE,
+                  idname = NULL,
+                  iters = 100, alp = 0.05, method = "logit", plot = FALSE, se = TRUE,
+                  retEachIter = FALSE, seedvec = NULL, pl = FALSE, cores = 2) {
+  qp <- QTEparams(
+    formla = formla, xformla = xformla, t = t, tmin1 = tmin1,
+    tname = tname, data = data, panel = panel,
+    idname = idname, probs = NULL,
+    iters = iters, alp = alp, method = method,
+    se = se, retEachIter = retEachIter, seedvec = seedvec,
+    pl = pl, cores = cores
+  )
 
-    if (se) {
+  satt <- compute.spatt(qp)
 
-        ##print("at some point make sure weights are right, because they don't sum to 1; it may be ok because it is putting together E[Y_1] and E[Y_0]")
+  if (se) {
+    ## print("at some point make sure weights are right, because they don't sum to 1; it may be ok because it is putting together E[Y_1] and E[Y_0]")
 
-        ## x nxk matrix
-        ## thet kx1 vector
-        ## return nx1 vector
-        G <- function(x,thet) {
-            x <- as.matrix(x)
-            thet <- as.matrix(thet)
-            Gval <- exp(x%*%thet)/(1+exp(x%*%thet))
-            as.numeric(Gval)
-        }
-
-        ## x nxk matrix
-        ## thet kx1 vector
-        ## return nx1 matrix
-        g <- function(x,thet) {
-            x <- as.matrix(x)
-            thet <- as.matrix(thet)
-            gval <- 1/((1+exp(x%*%thet))^2)
-            as.numeric(gval)
-        }
-
-        
-
-        setupData(qp)
-
-        dta <- panel2cs(data, yname, qp$idname, tname)
-        n <- nrow(dta)
-        D <- dta[,treat]
-        p <- sum(D)/n
-        xname <- x
-        dta <- droplevels(dta)
-        x <- model.matrix(xformla, data=dta)
-        dy <- dta$dy
-        pscore <- predict(satt$pscore.reg, type="response")
-        thet <- coef(satt$pscore.reg)
-
-        att <- satt$ate
-
-        ## new code
-        twait <- D/p
-        uwait1 <- (1-D)*pscore / (p*(1-pscore))
-        uwait <- uwait1 / mean(uwait1)
-
-        psit <- twait*(dy - mean(twait*dy))
-
-        M <- as.matrix(apply(as.matrix(((1-D)/(1-pscore))^2 * g(x,thet) * (dy - mean(uwait*dy)) * x), 2, mean) / mean(uwait1))
-        A1 <- g(x,thet)^2/(pscore*(1-pscore))
-        A1 <- (t(A1*x)%*%x/n)
-        A2 <- (((D-pscore)*g(x,thet)/(pscore*(1-pscore)))*x)
-        A <- A2%*%solve(A1)
-        psiu <- uwait*(dy - mean(uwait*dy)) + A%*%M
-
-        
-        V <- mean((psit-psiu)^2)
-
-        SEobj <- SE(ate.se=sqrt(V)/sqrt(n))
-        
-        ## old code
-        ## uwait <- (1-D)*pscore/(p*(1-pscore))
-        ## w0 <- D/p - uwait / mean(uwait)
-
-        ## ## instead of bootstrap, compute these analytically
-        ## v1 <- w0*dy - att
-
-        ## a <- apply(as.numeric((1-D)*g(x,thet)/(p*(1-pscore)^2)*dy)*x,2,mean)##apply((w0*g(x,thet))*x,2,mean) ##should be kx1
-        ## Aw <- g(x,thet)^2 / (G(x,thet)*(1-G(x,thet)))
-        ## A <- t(Aw*x)%*%x/n
-        ## s <- g(x,thet)*(D-G(x,thet)) / (G(x,thet)*(1-G(x,thet))) * x
-
-        ## v2 <- as.numeric(t(a)%*%solve(A)%*%t(s))  ##***is this right?***
-
-        ## V <- mean((v1-v2)^2)
-
-        ## SEobj <- SE(ate.se=sqrt(V)/sqrt(n))
-
-        ##TODO: set this back to being a QTE object
-        out <- list(qte=NULL, pscore.reg=satt$pscore.reg, ate=satt$ate,
-                   ate.se=SEobj$ate.se, probs=NULL, inffunc=(psit-psiu))
-        class(out) <- "QTE"
-        return(out)
-    } else {
-        return(satt)
+    ## x nxk matrix
+    ## thet kx1 vector
+    ## return nx1 vector
+    G <- function(x, thet) {
+      x <- as.matrix(x)
+      thet <- as.matrix(thet)
+      Gval <- exp(x %*% thet) / (1 + exp(x %*% thet))
+      as.numeric(Gval)
     }
 
+    ## x nxk matrix
+    ## thet kx1 vector
+    ## return nx1 matrix
+    g <- function(x, thet) {
+      x <- as.matrix(x)
+      thet <- as.matrix(thet)
+      gval <- 1 / ((1 + exp(x %*% thet))^2)
+      as.numeric(gval)
+    }
+
+
+    setupData(qp)
+
+    dta <- panel2cs(data, yname, qp$idname, tname)
+    n <- nrow(dta)
+    D <- dta[, treat]
+    p <- sum(D) / n
+    xname <- x
+    dta <- droplevels(dta)
+    x <- model.matrix(xformla, data = dta)
+    dy <- dta$dy
+    pscore <- predict(satt$pscore.reg, type = "response")
+    thet <- coef(satt$pscore.reg)
+
+    att <- satt$ate
+
+    ## new code
+    twait <- D / p
+    uwait1 <- (1 - D) * pscore / (p * (1 - pscore))
+    uwait <- uwait1 / mean(uwait1)
+
+    psit <- twait * (dy - mean(twait * dy))
+
+    M <- as.matrix(apply(as.matrix(((1 - D) / (1 - pscore))^2 * g(x, thet) * (dy - mean(uwait * dy)) * x), 2, mean) / mean(uwait1))
+    A1 <- g(x, thet)^2 / (pscore * (1 - pscore))
+    A1 <- (t(A1 * x) %*% x / n)
+    A2 <- (((D - pscore) * g(x, thet) / (pscore * (1 - pscore))) * x)
+    A <- A2 %*% solve(A1)
+    psiu <- uwait * (dy - mean(uwait * dy)) + A %*% M
+
+
+    V <- mean((psit - psiu)^2)
+
+    SEobj <- SE(ate.se = sqrt(V) / sqrt(n))
+
+    ## old code
+    ## uwait <- (1-D)*pscore/(p*(1-pscore))
+    ## w0 <- D/p - uwait / mean(uwait)
+
+    ## ## instead of bootstrap, compute these analytically
+    ## v1 <- w0*dy - att
+
+    ## a <- apply(as.numeric((1-D)*g(x,thet)/(p*(1-pscore)^2)*dy)*x,2,mean)##apply((w0*g(x,thet))*x,2,mean) ##should be kx1
+    ## Aw <- g(x,thet)^2 / (G(x,thet)*(1-G(x,thet)))
+    ## A <- t(Aw*x)%*%x/n
+    ## s <- g(x,thet)*(D-G(x,thet)) / (G(x,thet)*(1-G(x,thet))) * x
+
+    ## v2 <- as.numeric(t(a)%*%solve(A)%*%t(s))  ##***is this right?***
+
+    ## V <- mean((v1-v2)^2)
+
+    ## SEobj <- SE(ate.se=sqrt(V)/sqrt(n))
+
+    ## TODO: set this back to being a QTE object
+    out <- list(
+      qte = NULL, pscore.reg = satt$pscore.reg, ate = satt$ate,
+      ate.se = SEobj$ate.se, probs = NULL, inffunc = (psit - psiu)
+    )
+    class(out) <- "QTE"
+    return(out)
+  } else {
+    return(satt)
+  }
 }
-
-

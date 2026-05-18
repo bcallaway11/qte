@@ -97,34 +97,42 @@ as a panel; the names of columns containing time periods and ids
 for each cross sectional unit need to be passed to the method.
 }
 \examples{
-##load the data
+## load the data
 data(lalonde)
 
 ## Run the panel.qtet method on the experimental data with no covariates
-pq1 <- panel.qtet(re ~ treat, t=1978, tmin1=1975, tmin2=1974, tname="year",
- data=lalonde.exp.panel, idname="id", se=FALSE,
- probs=seq(0.05, 0.95, 0.05))
+pq1 <- panel.qtet(re ~ treat,
+  t = 1978, tmin1 = 1975, tmin2 = 1974, tname = "year",
+  data = lalonde.exp.panel, idname = "id", se = FALSE,
+  probs = seq(0.05, 0.95, 0.05)
+)
 summary(pq1)
 
 ## Run the panel.qtet method on the observational data with no covariates
-pq2 <- panel.qtet(re ~ treat, t=1978, tmin1=1975, tmin2=1974, tname="year",
- data=lalonde.psid.panel, idname="id", se=FALSE,
- probs=seq(0.05, 0.95, 0.05))
+pq2 <- panel.qtet(re ~ treat,
+  t = 1978, tmin1 = 1975, tmin2 = 1974, tname = "year",
+  data = lalonde.psid.panel, idname = "id", se = FALSE,
+  probs = seq(0.05, 0.95, 0.05)
+)
 summary(pq2)
 
 ## Run the panel.qtet method on the observational data conditioning on
 ## age, education, black, hispanic, married, and nodegree.
 ## The propensity score will be estimated using the default logit method.
-pq3 <- panel.qtet(re ~ treat, t=1978, tmin1=1975, tmin2=1974, tname="year",
- xformla=~age + I(age^2) + education + black + hispanic + married + nodegree,
- data=lalonde.psid.panel, idname="id", se=FALSE, method="pscore",
- probs=seq(0.05, 0.95, 0.05))
+pq3 <- panel.qtet(re ~ treat,
+  t = 1978, tmin1 = 1975, tmin2 = 1974, tname = "year",
+  xformla = ~ age + I(age^2) + education + black + hispanic + married + nodegree,
+  data = lalonde.psid.panel, idname = "id", se = FALSE, method = "pscore",
+  probs = seq(0.05, 0.95, 0.05)
+)
 summary(pq3)
 
-pq4 <- panel.qtet(re ~ treat, t=1978, tmin1=1975, tmin2=1974, tname="year",
- xformla=~age + I(age^2) + education + black + hispanic + married + nodegree,
- data=lalonde.psid.panel, idname="id", se=FALSE, method="qr",
- probs=seq(0.05, 0.95, 0.05))
+pq4 <- panel.qtet(re ~ treat,
+  t = 1978, tmin1 = 1975, tmin2 = 1974, tname = "year",
+  xformla = ~ age + I(age^2) + education + black + hispanic + married + nodegree,
+  data = lalonde.psid.panel, idname = "id", se = FALSE, method = "qr",
+  probs = seq(0.05, 0.95, 0.05)
+)
 summary(pq4)
 
 }

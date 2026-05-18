@@ -18,3 +18,4 @@ combined with Distributional
 Difference in Differences assumption (Fan and Yu, 2012)
 to point identify QTET.
 }
+\keyword{internal}

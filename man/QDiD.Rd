@@ -71,14 +71,13 @@ to running out of memory.}
 QTE Object
 }
 \description{
-\code{QDiD} is a Difference in Differences type method for
-computing the QTET.
+\code{QDiD} computes the Quantile Treatment Effect on the
+Treated (QTET) using a Quantile Difference-in-Differences approach.
 
-The method can accommodate conditioning on covariates though it does so
-in a restrictive way:  It specifies a linear model for outcomes conditional
-on group-time dummies and covariates.  Then, after residualizing (see details
-in Athey and Imbens (2006)), it computes the Change in Changes model
-based on these quasi-residuals.
+The method can accommodate conditioning on covariates through quantile
+regression: for each treated unit, the counterfactual outcome is computed
+using the conditional quantile function of the untreated group, evaluated
+at the treated unit's rank in the pre-period.
 }
 \examples{
 ## load the data
@@ -86,10 +85,12 @@ data(lalonde)
 
 ## Run the Quantile Difference in Differences method conditioning on
 ## age, education, black, hispanic, married, and nodegree
-qd1 <- QDiD(re ~ treat, t=1978, tmin1=1975, tname="year",
- xformla=~age + I(age^2) + education + black + hispanic + married + nodegree,
- data=lalonde.psid.panel, idname="id", se=FALSE,
- probs=seq(0.05, 0.95, 0.05))
+qd1 <- QDiD(re ~ treat,
+  t = 1978, tmin1 = 1975, tname = "year",
+  xformla = ~ age + I(age^2) + education + black + hispanic + married + nodegree,
+  data = lalonde.psid.panel, idname = "id", se = FALSE,
+  probs = seq(0.05, 0.95, 0.05)
+)
 summary(qd1)
 
 }

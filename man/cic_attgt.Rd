@@ -10,20 +10,18 @@ cic_attgt(gt_data, xformla = ~1, ...)
 \item{gt_data}{data that is "local" to a particular group-time average
 treatment effect}
 
-\item{xformla}{one-sided formula for covariates used in the propensity score
-and outcome regression models}
-
 \item{...}{extra function arguments; not used here}
 }
 \value{
-pte::attgt_noif object.  \code{cic_attgt} computes attgt using
-the CIC approach.  It also returns distributions of observed outcomes
-for the treated group (F1), the counterfactual distribution
-of untreated potential potential outcomes for the treated group (F0),
-and the distribution of the treatment effect under the assumption
-of rank invariance over time (Fte) all through the extra_gt_returns
-argument to \code{pte::attgt_noif} object.
+A \code{ptetools::attgt_noif} object containing the ATT for the
+(g,t) pair and, via \code{extra_gt_returns}, three ECDF objects:
+\code{F1} (observed outcome distribution for the treated group),
+\code{F0} (counterfactual distribution of untreated potential outcomes),
+and \code{Fte} (distribution of treatment effects under rank invariance).
 }
 \description{
-cic_attgt
+Attgt hook for the Change in Changes estimator, for use with
+\code{ptetools::pte2}. For each (g,t) pair, applies the CiC identification
+strategy to recover the ATT and optionally the full treatment effect
+distribution under rank invariance.
 }

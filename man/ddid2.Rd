@@ -84,26 +84,29 @@ computed in parallel}
 on the Treated (QTET) using the method of Callaway, Li, and Oka (2015).
 }
 \examples{
-##load the data
+## load the data
 data(lalonde)
 
 ## Run the ddid2 method on the observational data with no covariates
-d1 <- ddid2(re ~ treat, t=1978, tmin1=1975, tname="year",
- data=lalonde.psid.panel, idname="id", se=FALSE,
- probs=seq(0.05, 0.95, 0.05))
+d1 <- ddid2(re ~ treat,
+  t = 1978, tmin1 = 1975, tname = "year",
+  data = lalonde.psid.panel, idname = "id", se = FALSE,
+  probs = seq(0.05, 0.95, 0.05)
+)
 summary(d1)
 
 ## Run the ddid2 method on the observational data with covariates
-d2 <- ddid2(re ~ treat, t=1978, tmin1=1975, tname="year",
- data=lalonde.psid.panel, idname="id", se=FALSE,
- xformla=~age + I(age^2) + education + black + hispanic + married + nodegree,
- probs=seq(0.05, 0.95, 0.05))
+d2 <- ddid2(re ~ treat,
+  t = 1978, tmin1 = 1975, tname = "year",
+  data = lalonde.psid.panel, idname = "id", se = FALSE,
+  xformla = ~ age + I(age^2) + education + black + hispanic + married + nodegree,
+  probs = seq(0.05, 0.95, 0.05)
+)
 summary(d2)
-
 
 }
 \references{
-Callaway, Brantly, Tong Li, and Tatsushi Oka.  ``Quantile Treatment Effects
+Callaway, Brantly, Tong Li, and Tatsushi Oka. ``Quantile Treatment Effects
 in Difference in Differences Models under Dependence Restrictions and with
-Only Two Time Periods.'' Working Paper, 2015.
+Only Two Time Periods.'' Journal of Econometrics 206.2, pp. 395-413, 2018.
 }

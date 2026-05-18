@@ -1,4 +1,14 @@
-#'@title qtes2mat
+# =============================================================================
+# Title: Helper functions for qte package
+# Description: Utility functions for displaying and plotting QTE objects:
+#   qtes2mat (format multiple QTEs as a matrix), ggqte (ggplot2 plot method),
+#   diffQ (difference of quantile functions).
+# Author: Brant Callaway
+# Last update: 2026-05-18
+# Date created: 2026-05-18
+# =============================================================================
+
+#' @title qtes2mat
 #'
 #' @description Turn multiple qtes into a matrix for printing
 #'
@@ -9,24 +19,28 @@
 #'
 #' @return matrix
 #' @export
-qtes2mat <- function(qteList, sset=NULL, se=TRUE, rnd=3) {
-    if (is.null(sset)) {
-        sset <- seq(1,length(qteList[[1]]$probs))
-    }
-    probs <- qteList[[1]]$probs[sset]
-    outmat <- matrix(nrow=2*length(qteList[[1]]$qte[sset]), ncol=length(qteList))
-    lqte <- lapply(qteList, function(x) { paste(round(x$qte[sset], rnd)) })
-    lqte.se <- lapply(qteList, function(x) { paste("(",round(x$qte.se[sset],rnd),")", sep="") })
-    for (i in 1:length(qteList)) {
-        outmat[,i] <- c(rbind(lqte[[i]], lqte.se[[i]]))
-    }
-    probsvals <- c(rbind(paste(probs), rep("", length(probs))))
-    outmat <- cbind(probsvals, outmat)
-    outmat
+qtes2mat <- function(qteList, sset = NULL, se = TRUE, rnd = 3) {
+  if (is.null(sset)) {
+    sset <- seq(1, length(qteList[[1]]$probs))
+  }
+  probs <- qteList[[1]]$probs[sset]
+  outmat <- matrix(nrow = 2 * length(qteList[[1]]$qte[sset]), ncol = length(qteList))
+  lqte <- lapply(qteList, function(x) {
+    paste(round(x$qte[sset], rnd))
+  })
+  lqte.se <- lapply(qteList, function(x) {
+    paste("(", round(x$qte.se[sset], rnd), ")", sep = "")
+  })
+  for (i in seq_along(qteList)) {
+    outmat[, i] <- c(rbind(lqte[[i]], lqte.se[[i]]))
+  }
+  probsvals <- c(rbind(paste(probs), rep("", length(probs))))
+  outmat <- cbind(probsvals, outmat)
+  outmat
 }
 
 
-#'@title ggqte
+#' @title ggqte
 #'
 #' @description Makes somewhat nicer plots of quantile treatment effects
 #'  by using ggplot
@@ -46,84 +60,88 @@ qtes2mat <- function(qteList, sset=NULL, se=TRUE, rnd=3) {
 #'  "both" will plot both types of confidence intervals
 #' @param alp gives a way to override the significance level in the case where
 #'  `setype="pointwise"`.
-#' 
+#'
 #' @return a ggplot object
 #' @export
-ggqte <- function(qteobj, main="", ylab="QTE", ylim=NULL, ybreaks=NULL, xbreaks=c(.1,.3,.5,.7,.9), setype="pointwise", alp=qteobj$alp) {
-    tau <- qteobj$probs
-    qte <- qteobj$qte
-    qte.se <- qteobj$qte.se
-    c <- qteobj$c
-    if (is.null(alp)) alp <- 0.05
-    if (!is.null(qte.se)) {
-        cmat <- data.frame(tau, qte=qteobj$qte, qte.se=qteobj$qte.se)
-    } else {
-        cmat <- data.frame(tau, qte=qteobj$qte)
+ggqte <- function(qteobj, main = "", ylab = "QTE", ylim = NULL, ybreaks = NULL, xbreaks = c(.1, .3, .5, .7, .9), setype = "pointwise", alp = qteobj$alp) {
+  tau <- qteobj$probs
+  qte <- qteobj$qte
+  qte.se <- qteobj$qte.se
+  c <- qteobj$c
+  if (is.null(alp)) alp <- 0.05
+  if (!is.null(qte.se)) {
+    cmat <- data.frame(tau, qte = qteobj$qte, qte.se = qteobj$qte.se)
+  } else {
+    cmat <- data.frame(tau, qte = qteobj$qte)
+  }
+  qp <- ggplot2::ggplot(data = cmat, aes(tau, qte)) +
+    ggplot2::geom_line(aes(tau, qte)) +
+    ## geom_errorbar(size=.3, width=.02) +
+    ggplot2::geom_hline(yintercept = 0) +
+    ggplot2::geom_point(aes(tau, qte)) +
+    ggplot2::ggtitle(main) +
+    ggplot2::scale_x_continuous("tau", limits = c(0, 1), breaks = xbreaks) +
+    ggplot2::theme_classic() +
+    ggplot2::theme(
+      panel.border = element_rect(
+        colour = "black", size = 1,
+        fill = NA,
+        linetype = "solid"
+      ),
+      plot.title = element_text(hjust = 0.5)
+    )
+  if (is.null(ylim) && is.null(ybreaks)) {
+    qp <- qp + ggplot2::scale_y_continuous(ylab)
+  } else if (is.null(ylim) && !is.null(ybreaks)) {
+    qp <- qp + ggplot2::scale_y_continuous(ylab, breaks = ybreaks)
+  } else if (!is.null(ylim) && is.null(ybreaks)) {
+    qp <- qp + ggplot2::scale_y_continuous(ylab, limits = ylim)
+  } else {
+    qp <- qp + ggplot2::scale_y_continuous(ylab, limits = ylim, breaks = ybreaks)
+  }
+
+  if (!is.null(qte.se)) {
+    if (setype == "both" || setype == "pointwise") {
+      qp <- qp + ggplot2::geom_line(aes(tau, qte + qnorm(1 - alp / 2) * qte.se), linetype = "dashed")
+      qp <- qp + ggplot2::geom_line(aes(tau, qte - qnorm(1 - alp / 2) * qte.se), linetype = "dashed")
     }
-    qp <- ggplot2::ggplot(data=cmat, aes(tau, qte)) +
-        ggplot2::geom_line(aes(tau, qte)) +
-        ##geom_errorbar(size=.3, width=.02) + 
-        ggplot2::geom_hline(yintercept=0) + 
-        ggplot2::geom_point(aes(tau, qte)) +
-        ggplot2::ggtitle(main) +
-        ggplot2::scale_x_continuous("tau", limits=c(0,1), breaks=xbreaks) + 
-        ggplot2::theme_classic() +
-        ggplot2::theme(panel.border = element_rect(colour = 'black', size=1,
-                                                   fill=NA,
-                                                   linetype='solid'),
-                       plot.title = element_text(hjust=0.5))
-    if ( is.null(ylim) & is.null(ybreaks) ) {
-        qp <- qp + ggplot2::scale_y_continuous(ylab)
-    } else if ( is.null(ylim) & !is.null(ybreaks) ) {
-        qp  <- qp + ggplot2::scale_y_continuous(ylab, breaks=ybreaks)
-    } else if ( !is.null(ylim) & is.null(ybreaks) ) {
-        qp  <- qp + ggplot2::scale_y_continuous(ylab, limits=ylim)
-    } else {
-        qp <- qp + ggplot2::scale_y_continuous(ylab, limits=ylim, breaks=ybreaks)
+    if (setype == "both" || setype == "uniform") {
+      qp <- qp + ggplot2::geom_line(aes(tau, qte + c * qte.se), linetype = "dashed") + ggplot2::geom_line(aes(tau, qte - c * qte.se), linetype = "dashed")
     }
-    
-    if (!is.null(qte.se)) {
-        if (setype == "both" | setype == "pointwise") {
-            qp <- qp + ggplot2::geom_line(aes(tau, qte+qnorm(1-alp/2)*qte.se), linetype="dashed")
-            qp <- qp + ggplot2::geom_line(aes(tau, qte-qnorm(1-alp/2)*qte.se), linetype="dashed")
-        }
-        if (setype == "both" | setype == "uniform") {
-            qp <-  qp + ggplot2::geom_line(aes(tau, qte+c*qte.se), linetype="dashed") + ggplot2::geom_line(aes(tau, qte-c*qte.se), linetype="dashed")
-        }
-    }
-    qp
+  }
+  qp
 }
 
-##functions to get median (or specified quantile)
-##requires that qte object has that value of tau
-getMedian <- function(qteobj, tau=.5) {
-    which.qte <- which(qteobj$probs == tau)
-    return(qteobj$qte[which.qte])
+## functions to get median (or specified quantile)
+## requires that qte object has that value of tau
+getMedian <- function(qteobj, tau = .5) {
+  which.qte <- which(qteobj$probs == tau)
+  return(qteobj$qte[which.qte])
 }
 
-##functions to get median (or specified quantile) standard error
-##requires that qte object has that value of tau
-getMedianSE <- function(qteobj, tau=.5) {
-    which.qte <- which(qteobj$probs == tau)
-    return(qteobj$qte.se[which.qte])
+## functions to get median (or specified quantile) standard error
+## requires that qte object has that value of tau
+getMedianSE <- function(qteobj, tau = .5) {
+  which.qte <- which(qteobj$probs == tau)
+  return(qteobj$qte.se[which.qte])
 }
 
-##functions to get 80-20 difference or some other difference in quantiles
+## functions to get 80-20 difference or some other difference in quantiles
 diffquantiles <- function(qteobj, hightau, lowtau) {
-    which.highqte <- which(qteobj$probs == hightau)
-    which.lowqte <- which(qteobj$probs == lowtau)
-    return(qteobj$qte[which.highqte] - qteobj$qte[which.lowqte])
+  which.highqte <- which(qteobj$probs == hightau)
+  which.lowqte <- which(qteobj$probs == lowtau)
+  return(qteobj$qte[which.highqte] - qteobj$qte[which.lowqte])
 }
 
 
-##bootstrap the difference betwen quantiles
-##must be called with a qteobj with retEachIter set to true
+## bootstrap the difference betwen quantiles
+## must be called with a qteobj with retEachIter set to true
 bootse.diffquantiles <- function(qteobj, hightau, lowtau) {
-    bootvals <- lapply(qteobj$eachIterList, diffquantiles, hightau, lowtau)
-    se <- stats::sd(unlist(bootvals))
+  bootvals <- lapply(qteobj$eachIterList, diffquantiles, hightau, lowtau)
+  se <- stats::sd(unlist(bootvals))
 }
 
-#'@title diffQ
+#' @title diffQ
 #'
 #' @description ## takes a single set of quantiles
 #' (not qtes as in diffquantiles)
@@ -137,15 +155,14 @@ bootse.diffquantiles <- function(qteobj, hightau, lowtau) {
 #' @return scalar difference between quantiles
 #' @export
 diffQ <- function(qvec, tauvec, hightau, lowtau) {
-    which.highq <- which(tauvec == hightau)
-    which.lowq <- which(tauvec == lowtau)
-    return(qvec[which.highq] - qvec[which.lowq])
+  which.highq <- which(tauvec == hightau)
+  which.lowq <- which(tauvec == lowtau)
+  return(qvec[which.highq] - qvec[which.lowq])
 }
 
 
-
-##make tables using R's texreg package
-#'@title diffQ
+## make tables using R's texreg package
+#' @title diffQ
 #'
 #' @description ## takes a single set of quantiles
 #' (not qtes as in diffquantiles)
@@ -155,33 +172,40 @@ diffQ <- function(qvec, tauvec, hightau, lowtau) {
 #' @param tau Optional vector of taus to texreg results for
 #' @param reportAte Whether or not texreg the ATE (or ATT) as well
 #'
-qteToTexreg <- function(qteobj, tau=NULL, reportAte=T) {
-    if (is.null(tau)) {
-        tau <- qteobj$probs
-        qte <- qteobj$qte
-        qte.se <- qteobj$qte.se
-        ate <- qteobj$ate
-        ate.se <- qteobj$ate.se        
-    } else if(!(all(tau %in% qteobj$probs))) {
-        stop("Error not all tau in qte object")
-    } else {
-        tauloc <- vapply(tau, function(x) { which(x==qteobj$probs) }, 1.0)
-        qte <- qteobj$qte[tauloc]
-        qte.se <- qteobj$qte.se[tauloc]
-        ate <- qteobj$ate
-        ate.se <- qteobj$ate.se
-    }
-    if (reportAte) {
-        texreg::createTexreg(c(paste(tau), "ate"),
-                     c(qte, ate),
-                     c(qte.se, ate.se),
-                     2*pnorm(-c(abs(qte/qte.se),
-                                abs(ate/ate.se))))
-    } else {
-        texreg::createTexreg(paste(tau),
-                     qte,
-                     qte.se,
-                     2*pnorm(-c(abs(qte/qte.se))))
-    }
+qteToTexreg <- function(qteobj, tau = NULL, reportAte = TRUE) {
+  if (is.null(tau)) {
+    tau <- qteobj$probs
+    qte <- qteobj$qte
+    qte.se <- qteobj$qte.se
+    ate <- qteobj$ate
+    ate.se <- qteobj$ate.se
+  } else if (!(all(tau %in% qteobj$probs))) {
+    stop("Error not all tau in qte object")
+  } else {
+    tauloc <- vapply(tau, function(x) {
+      which(x == qteobj$probs)
+    }, 1.0)
+    qte <- qteobj$qte[tauloc]
+    qte.se <- qteobj$qte.se[tauloc]
+    ate <- qteobj$ate
+    ate.se <- qteobj$ate.se
+  }
+  if (reportAte) {
+    texreg::createTexreg(
+      c(paste(tau), "ate"),
+      c(qte, ate),
+      c(qte.se, ate.se),
+      2 * pnorm(-c(
+        abs(qte / qte.se),
+        abs(ate / ate.se)
+      ))
+    )
+  } else {
+    texreg::createTexreg(
+      paste(tau),
+      qte,
+      qte.se,
+      2 * pnorm(-c(abs(qte / qte.se)))
+    )
+  }
 }
-

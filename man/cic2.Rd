@@ -32,12 +32,18 @@ cic2(
 
 \item{data}{balanced panel data}
 
-\item{ret_quantile}{This parameter determines which quantile will be reported
-by the cic2 function.  By default \code{ret_quantile=NULL}; in this case, the
-function will return an estimate of the overall ATT and an event study for
-the ATT.  Other choices should be between 0 and 1.  For example, if the
-user specifies \code{ret_quantile=0.9}, then the function will return overall
-and event study parameters for the QTT(0.9).  These ...would be better to return the overall distribution and then to average and invert in later steps...}
+\item{ret_quantile}{Determines which quantile is reported. Default
+\code{NULL} returns the ATT and an ATT event study. A value in (0,1)
+returns the QTT(\eqn{\tau}) and its event study. Currently implemented by
+evaluating \code{cic_attgt} at each (g,t) and averaging; a future version
+will aggregate over the full counterfactual distribution.}
+
+\item{gt_type}{which type of group-time effects are computed.
+The default is "att".  Different estimation strategies can implement
+their own choices for \code{gt_type}}
+
+\item{cband}{whether or not to report a uniform (instead of pointwise)
+confidence band (default is TRUE)}
 
 \item{alp}{significance level; default is 0.05}
 
@@ -52,18 +58,22 @@ parameter.}
 
 \item{cl}{number of clusters to be used when bootstrapping; default is 1}
 
-\item{ret_dist}{If set to be true, the function returns the observed
-distribution of outcomes and counterfactual distribution of outcomes
-for each (g,t) through the \code{extra_gt_returns} element of \code{group_time_att}
-object.}
+\item{ret_dist}{If \code{TRUE}, the observed and counterfactual outcome
+distributions for each (g,t) pair are returned via the
+\code{extra_gt_returns} element of the \code{group_time_att} object.}
+}
+\value{
+A \code{pte_results} object (from \code{ptetools}) containing
+overall and event-study aggregations of the group-time ATTs or QTTs.
 }
 \description{
-This is a multi-period implementation of the change-in-changes
-approach from Athey and Imbens (2006, Econometrica).  This function
-is in a beta release and users should use caution when using this function
-in emprical work.
-
-The function builds on the \code{pte} package and will return an overall
-treatment effect parameter as well as an event study.  See, in particular,
-the argument \code{ret_quantile} below.
+Multi-period implementation of the Change in Changes approach
+from Athey and Imbens (2006, Econometrica) for staggered treatment adoption.
+Built on \code{ptetools::pte2}; returns an overall treatment effect
+parameter and an event study. This function is in \strong{beta} — use caution
+in applied work.
+}
+\references{
+Athey, Susan and Guido Imbens. ``Identification and Inference in Nonlinear
+Difference-in-Differences Models.'' Econometrica 74.2, pp. 431-497, 2006.
 }
