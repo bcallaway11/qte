@@ -35,10 +35,12 @@ test_that("ci.qtet SE path produces valid intervals", {
 
 test_that("spatt analytic SE is positive", {
   skip_slow()
-  sp1 <- spatt(re ~ treat,
-    t = 1978, tmin1 = 1975, tname = "year",
-    data = lalonde.psid.panel, idname = "id", se = TRUE
-  )
+  suppressWarnings({
+    sp1 <- spatt(re ~ treat,
+      t = 1978, tmin1 = 1975, tname = "year",
+      data = lalonde.psid.panel, idname = "id", se = TRUE
+    )
+  })
   expect_s3_class(sp1, "QTE")
   expect_true(sp1$ate.se > 0)
 })

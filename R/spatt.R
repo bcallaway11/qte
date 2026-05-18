@@ -4,7 +4,7 @@
 #   the Average Treatment Effect on the Treated (ATT). Supports covariates via
 #   propensity score reweighting. For repeated cross sections and panel data.
 # Author: Brant Callaway
-# Last update: 2026-05-18
+# Last update: 2026-05-19
 # Date created: 2026-05-18
 # =============================================================================
 
@@ -110,8 +110,14 @@ compute.spatt <- function(qp) {
 
 #' @title spatt
 #'
-#' @description \code{spatt} computes the Average Treatment Effect on the
-#'  Treated (ATT) using the method of Abadie (2005)
+#' @description `r lifecycle::badge("deprecated")`
+#'
+#'  \code{spatt} is deprecated and will be removed in a future version.
+#'  It computes the Average Treatment Effect on the Treated (ATT) using
+#'  the method of Abadie (2005). This function pre-dates the \pkg{did}
+#'  package and is no longer actively maintained. Use the \pkg{did} package
+#'  instead; the Abadie (2005) IPW estimator is available there via the
+#'  \code{est_method = "ipw"} argument.
 #'
 #' @inheritParams ci.qte
 #' @param formla The formula y ~ d where y is the outcome and d is the
@@ -165,6 +171,11 @@ spatt <- function(formla, xformla = NULL, t, tmin1,
                   idname = NULL,
                   iters = 100, alp = 0.05, method = "logit", plot = FALSE, se = TRUE,
                   retEachIter = FALSE, seedvec = NULL, pl = FALSE, cores = 2) {
+  .Deprecated(msg = paste(
+    "'spatt' is deprecated and will be removed in a future version.",
+    "Use the 'did' package instead; the Abadie (2005) IPW estimator",
+    "is available there via the 'ipw' estimation method."
+  ))
   qp <- QTEparams(
     formla = formla, xformla = xformla, t = t, tmin1 = tmin1,
     tname = tname, data = data, panel = panel,

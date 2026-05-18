@@ -13,7 +13,6 @@ compute.MDiD(
   data,
   panel = FALSE,
   idname = NULL,
-  uniqueid = NULL,
   probs = seq(0.05, 0.95, 0.05)
 )
 }

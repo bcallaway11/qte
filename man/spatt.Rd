@@ -79,8 +79,14 @@ computed in parallel}
 \code{QTE} object
 }
 \description{
-\code{spatt} computes the Average Treatment Effect on the
-Treated (ATT) using the method of Abadie (2005)
+\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#deprecated}{\figure{lifecycle-deprecated.svg}{options: alt='[Deprecated]'}}}{\strong{[Deprecated]}}
+
+\code{spatt} is deprecated and will be removed in a future version.
+It computes the Average Treatment Effect on the Treated (ATT) using
+the method of Abadie (2005). This function pre-dates the \pkg{did}
+package and is no longer actively maintained. Use the \pkg{did} package
+instead; the Abadie (2005) IPW estimator is available there via the
+\code{est_method = "ipw"} argument.
 }
 \examples{
 ## load the data
