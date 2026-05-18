@@ -1,0 +1,198 @@
+---
+title: "Change in Changes with Staggered Treatment Adoption"
+author: "Brantly Callaway"
+date: today
+format: html
+bibliography: refs.bib
+knitr:
+  opts_chunk:
+    collapse: true
+    comment: "#>"
+    fig.width: 6
+    fig.height: 4
+vignette: >
+  %\VignetteIndexEntry{Change in Changes with Staggered Treatment Adoption}
+  %\VignetteEngine{quarto::html}
+  %\VignetteEncoding{UTF-8}
+---
+
+## Introduction
+
+The Change in Changes (CiC) estimator of @athey-imbens-2006 identifies the
+Quantile Treatment Effect on the Treated (QTET) under a rank-invariance and
+support condition, without requiring a linear functional form.  The original
+paper considers a two-period, two-group setting.
+
+In many empirical applications, treatment is adopted at different times by
+different units — a setting called *staggered treatment adoption*.
+The `cic()` function in the `qte` package extends CiC to this setting by
+estimating a group-time ATT, $ATT(g, t)$, for every combination of treatment
+cohort $g$ (the period a unit is first treated) and calendar time $t$, then
+aggregating these into interpretable summary parameters following the approach
+of @callaway-santanna-2021.
+
+This vignette demonstrates `cic()` using the `mpdta` dataset from the `did`
+package [@callaway-santanna-2021], which contains county-level employment and
+population data used to study the effect of minimum wage increases.
+
+```{r}
+#| label: load-packages
+#| message: false
+#| warning: false
+library(qte)
+library(did)
+library(ggplot2)
+data(mpdta)
+```
+
+## Data
+
+`mpdta` is a balanced panel of 500 US counties observed annually from 2003 to
+2007.  The outcome is `lemp` (log county-level employment).  Counties are
+grouped by `first.treat`, the year they first adopted a minimum wage increase
+(2004, 2006, or 2007); counties with `first.treat == 0` never adopt.
+
+```{r}
+#| label: data-summary
+table(mpdta$first.treat)
+```
+
+## Estimating ATT(g,t) and Aggregations
+
+`cic()` with the default `gt_type = "att"` estimates the Average Treatment
+Effect on the Treated for each group-time pair and aggregates them into an
+overall ATT and an event-study (dynamic) summary.
+
+```{r}
+#| label: att-estimate
+#| cache: true
+set.seed(42)
+res_att <- cic(
+  yname   = "lemp",
+  gname   = "first.treat",
+  tname   = "year",
+  idname  = "countyreal",
+  data    = mpdta,
+  biters  = 200
+)
+```
+
+`summary()` prints the overall ATT and the event-study coefficients:
+
+```{r}
+#| label: att-summary
+summary(res_att)
+```
+
+The overall ATT is small and not statistically significant at conventional
+levels.  The event-study rows show the estimated effects at each relative
+time period $e = t - g$.  Negative event times ($e < 0$) are pre-treatment
+periods; we expect these to be near zero if the identifying assumption holds.
+Positive event times show the dynamic treatment effect after adoption.
+
+## Estimating the QTT Curve
+
+With `gt_type = "qtt"`, `cic()` returns the full Quantile Treatment Effect
+on the Treated curve at each aggregation level.  CDFs are mixed across
+group-time cells first (using overall-ATT weights), then inverted at the
+requested `probs` grid — this avoids the bias that would arise from averaging
+scalar quantiles.
+
+```{r}
+#| label: qtt-estimate
+#| cache: true
+set.seed(42)
+res_qtt <- cic(
+  yname   = "lemp",
+  gname   = "first.treat",
+  tname   = "year",
+  idname  = "countyreal",
+  data    = mpdta,
+  biters  = 200,
+  gt_type = "qtt",
+  probs   = seq(0.1, 0.9, by = 0.1)
+)
+```
+
+`print()` shows the overall QTT curve with pointwise 95% confidence intervals:
+
+```{r}
+#| label: qtt-print
+print(res_qtt)
+```
+
+The overall QTT is modest and not significantly different from zero across
+the distribution, consistent with the near-zero overall ATT.
+
+### Plotting the overall QTT curve
+
+The `overall` element of a `pte_qtt` object is a plain data frame, making
+it straightforward to plot with `ggplot2`:
+
+```{r}
+#| label: qtt-plot
+ggplot(res_qtt$overall, aes(x = probs, y = qtt)) +
+  geom_ribbon(aes(ymin = lower, ymax = upper), alpha = 0.15) +
+  geom_line() +
+  geom_hline(yintercept = 0, linetype = "dashed", colour = "grey40") +
+  scale_x_continuous(breaks = seq(0.1, 0.9, 0.2),
+                     labels = scales::percent_format(accuracy = 1)) +
+  labs(
+    x     = "Quantile",
+    y     = "QTT (log employment)",
+    title = "Overall QTT Curve — CiC with Staggered Adoption"
+  ) +
+  theme_bw()
+```
+
+### Dynamic QTT
+
+The `dynamic` element contains the QTT curve at each event time.  Here we
+plot the median QTT ($\tau = 0.5$) across event times as an event study:
+
+```{r}
+#| label: qtt-dynamic-plot
+dyn_median <- subset(res_qtt$dynamic, probs == 0.5)
+
+ggplot(dyn_median, aes(x = e, y = qtt)) +
+  geom_ribbon(aes(ymin = lower, ymax = upper), alpha = 0.15) +
+  geom_line() +
+  geom_point() +
+  geom_hline(yintercept = 0, linetype = "dashed", colour = "grey40") +
+  geom_vline(xintercept = -0.5, linetype = "dotted") +
+  labs(
+    x     = "Event time (years relative to treatment)",
+    y     = "Median QTT (log employment)",
+    title = "Event Study — Median QTT"
+  ) +
+  theme_bw()
+```
+
+## Repeated Cross Sections
+
+If the data are repeated cross sections rather than a panel, set
+`panel = FALSE` and omit `idname`.  `cic()` will use the repeated
+cross-sections CiC variant internally:
+
+```{r}
+#| label: rcs-example
+#| eval: false
+res_rcs <- cic(
+  yname   = "lemp",
+  gname   = "first.treat",
+  tname   = "year",
+  data    = mpdta,   # no idname
+  panel   = FALSE,
+  biters  = 200
+)
+```
+
+## Note on Inference
+
+Standard errors are computed via the empirical bootstrap, resampling
+counties (panel) or observations (repeated cross sections) with replacement.
+The default `biters = 100` is suitable for exploration; use `biters = 499`
+or more for publication results.  Parallel computation is available via the
+`cl` argument.
+
+## References

@@ -41,8 +41,8 @@ pre-treatment period for all individuals in the sample.}
 
 \item{data}{A data.frame containing all the variables used}
 
-\item{panel}{Binary variable indicating whether or not the dataset is
-panel.  This is used for computing bootstrap standard errors correctly.}
+\item{panel}{Logical; \code{TRUE} (default) for panel data,
+\code{FALSE} for repeated cross sections.}
 
 \item{se}{Boolean whether or not to compute standard errors}
 
