@@ -9,6 +9,26 @@ vignette: >
   \usepackage[utf8]{inputenc}
 ---
 
+# qte 1.5.0
+
+  * New `cic()` function: unified interface for the Change in Changes
+    estimator covering two-period and staggered treatment adoption, for
+    both panel and repeated cross sections data.  Replaces the older
+    `CiC()` (now deprecated) and `cic2()` (removed).
+  * New `cic_gt()`: the 2x2 CiC workhorse used as a `ptetools` attgt_fun.
+    Automatically detects panel vs. repeated cross sections from the data
+    and returns counterfactual distributions for downstream aggregation.
+  * `cic()` now supports `gt_type = "qtt"` to return a full Quantile
+    Treatment Effect on the Treated curve at each aggregation level
+    (overall, group-specific, event-study).  Accepts a `probs` argument
+    to control the quantile grid.  CDFs are mixed across group-time cells
+    before inversion, avoiding bias from averaging scalar quantiles.
+  * Removed unused `DR` function.
+  * Added smoke tests for `cic()` covering panel ATT, repeated cross
+    sections ATT, and panel QTT.
+  * Added vignette demonstrating `cic()` with staggered treatment adoption
+    using the `mpdta` dataset.
+
 # qte 1.4.0
   * Added new function `cic2` for change-in-changes with multiple
     periods and variation in treatment timing.  This uses the `pte`
