@@ -86,8 +86,8 @@ cic_gt <- function(gt_data, xformula = ~1, ...) {
   }, integer(1))]
 
   att <- weighted.mean(Y_post_trt, w_post_trt) - weighted.mean(kcic, w_pre_trt)
-  F0  <- ecdf(kcic)       # nolint: object_name_linter
-  F1  <- ecdf(Y_post_trt) # nolint: object_name_linter
+  F0  <- BMisc::weighted_ecdf(kcic,       weights = w_pre_trt)  # nolint: object_name_linter
+  F1  <- BMisc::weighted_ecdf(Y_post_trt, weights = w_post_trt) # nolint: object_name_linter
 
   # detect panel: same unit ids appear in both periods for the treated group
   trt_pre_ids  <- gt_data$id[gt_data$D == 1 & gt_data$name == "pre"]
@@ -109,7 +109,8 @@ cic_gt <- function(gt_data, xformula = ~1, ...) {
       idx <- which(cdf_post_c >= p)
       if (length(idx) == 0L) length(y_post_c_s) else idx[1L]
     }, integer(1))]
-    Fte    <- ecdf(post_s$Y - kcic_s) # nolint: object_name_linter
+    w_post_trt_s <- post_s$.w / sum(post_s$.w)
+    Fte    <- BMisc::weighted_ecdf(post_s$Y - kcic_s, weights = w_post_trt_s) # nolint: object_name_linter
   }
 
   # covariate adjustment via conditional quantile regression (Athey-Imbens 2006).
@@ -148,10 +149,12 @@ cic_gt <- function(gt_data, xformula = ~1, ...) {
     y0t   <- sapply(seq_len(n1), function(i) QR0tQ[[i]](F0tmin1[i]))
 
     att <- weighted.mean(Y_post_trt, w_post_trt) - weighted.mean(y0t, w_pre_trt)
-    F0  <- ecdf(y0t) # nolint: object_name_linter
+    w_pre_trt_n  <- pre_trt$.w / sum(pre_trt$.w)
+    F0  <- BMisc::weighted_ecdf(y0t, weights = w_pre_trt_n) # nolint: object_name_linter
 
     if (panel) {
-      Fte <- ecdf(post_trt$Y - y0t) # nolint: object_name_linter
+      w_post_trt_n <- post_trt$.w / sum(post_trt$.w)
+      Fte <- BMisc::weighted_ecdf(post_trt$Y - y0t, weights = w_post_trt_n) # nolint: object_name_linter
     }
   }
 
