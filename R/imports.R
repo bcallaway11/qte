@@ -9,6 +9,7 @@
 
 #' qte: A package for computing quantile treatment effects
 #'
+#' @import BMisc
 #' @import graphics
 #' @import stats
 #' @import pbapply

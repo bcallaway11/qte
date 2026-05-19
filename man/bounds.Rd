@@ -46,7 +46,7 @@ A \code{BoundsObj} object
 \description{
 \code{bounds} estimates bounds for the Quantile Treatment
 Effect on the
-Treated (QTET) using the method of Fan and Yu (2012).
+Treated (QTT) using the method of Fan and Yu (2012).
 }
 \examples{
 ## load the data

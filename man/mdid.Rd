@@ -95,7 +95,7 @@ For \code{gt_type = "att"}, a \code{pte_results} object from
 with overall, group-specific, and dynamic QTT curves and bootstrap SEs.
 }
 \description{
-Computes Quantile Treatment Effects on the Treated (QTET) and
+Computes Quantile Treatment effects on the Treated (QTT) and
 the Average Treatment Effect on the Treated (ATT) using the Mean
 Difference-in-Differences identification strategy. Handles two-period data
 and staggered treatment adoption uniformly. Supports both panel and
