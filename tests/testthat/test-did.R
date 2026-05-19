@@ -7,6 +7,45 @@
 # Date created: 2026-05-18
 # =============================================================================
 
+# Shared synthetic staggered panel used by qdid tests below.
+make_staggered_panel <- function(seed = 42) {
+  set.seed(seed)
+  n <- 30L; periods <- 1:4; groups <- c(0, 2, 3)
+  do.call(rbind, lapply(groups, function(g) {
+    do.call(rbind, lapply(seq_len(n), function(i) {
+      id <- (match(g, groups) - 1L) * n + i
+      data.frame(id = id, period = periods, group = g,
+                 y = rnorm(4L) + ifelse(g > 0 & periods >= g, 1, 0))
+    }))
+  }))
+}
+
+# qdid panel ATT: pte_emp_boot, 6 ATT(g,t) cells, overall ATT near 1.
+test_that("qdid panel ATT returns valid pte_emp_boot with stable estimate", {
+  dat <- make_staggered_panel()
+  set.seed(42)
+  res <- qdid(yname = "y", gname = "group", tname = "period", idname = "id",
+              data = dat, biters = 20)
+  expect_s3_class(res, "pte_emp_boot")
+  expect_true(is.numeric(res$overall_results$att))
+  expect_false(anyNA(res$attgt_results$att))
+  expect_equal(nrow(res$attgt_results), 6L)
+  expect_equal(res$overall_results$att, 1.131815, tolerance = 1e-4)
+})
+
+# qdid QTT mode: pte_qtt class, correct structure, stable median.
+test_that("qdid panel QTT returns valid pte_qtt with correct structure", {
+  dat <- make_staggered_panel()
+  set.seed(42)
+  res <- qdid(yname = "y", gname = "group", tname = "period", idname = "id",
+              data = dat, biters = 20, gt_type = "qtt", probs = c(0.25, 0.5, 0.75))
+  expect_s3_class(res, "pte_qtt")
+  expect_equal(nrow(res$overall), 3L)
+  expect_false(anyNA(res$overall$qtt))
+  expect_true(all(res$overall$lower < res$overall$upper))
+  expect_equal(res$overall$qtt[res$overall$probs == 0.5], 0.8957124, tolerance = 1e-4)
+})
+
 # CiC and QDiD: canonical two-period DiD estimators; ATT values are stable
 # reference points for the PSID observational data.
 test_that("CiC and QDiD return correct structure and stable ATT", {
