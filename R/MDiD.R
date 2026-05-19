@@ -154,7 +154,7 @@ mdid_gt <- function(gt_data, xformula = ~1, ...) {
 
 #' @title Mean Difference-in-Differences
 #'
-#' @description Computes Quantile Treatment Effects on the Treated (QTET) and
+#' @description Computes Quantile Treatment effects on the Treated (QTT) and
 #'   the Average Treatment Effect on the Treated (ATT) using the Mean
 #'   Difference-in-Differences identification strategy. Handles two-period data
 #'   and staggered treatment adoption uniformly. Supports both panel and
