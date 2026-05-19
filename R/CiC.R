@@ -44,7 +44,7 @@
 #'   Difference-in-Differences Models.'' Econometrica 74(2), pp. 431-497, 2006.
 #'
 #' @export
-cic_gt <- function(gt_data, xformla = ~1, ...) {
+cic_gt <- function(gt_data, xformula = ~1, ...) {
   gt_data <- droplevels(gt_data)
 
   # extract the four (period x treatment-status) groups
@@ -55,12 +55,37 @@ cic_gt <- function(gt_data, xformla = ~1, ...) {
   Y_pre_trt   <- gt_data$Y[gt_data$name == "pre"  & gt_data$D == 1] # nolint: object_name_linter
   Y_post_trt  <- gt_data$Y[gt_data$name == "post" & gt_data$D == 1] # nolint: object_name_linter
 
-  # CiC transform: map each treated pre-period rank through the control
-  # distributions to obtain counterfactual outcomes (A-I 2006, eq. 16)
-  u    <- ecdf(Y_pre_ctrl)(Y_pre_trt)
-  kcic <- quantile(Y_post_ctrl, probs = u, type = 1)
+  # extract and normalise sampling weights within each (period x treatment) cell;
+  # pte_params always creates .w (= rep(1, n) when weightsname is NULL)
+  w_pre_ctrl  <- gt_data$.w[gt_data$name == "pre"  & gt_data$D == 0] # nolint: object_name_linter
+  w_post_ctrl <- gt_data$.w[gt_data$name == "post" & gt_data$D == 0] # nolint: object_name_linter
+  w_pre_trt   <- gt_data$.w[gt_data$name == "pre"  & gt_data$D == 1] # nolint: object_name_linter
+  w_post_trt  <- gt_data$.w[gt_data$name == "post" & gt_data$D == 1] # nolint: object_name_linter
+  w_pre_ctrl  <- w_pre_ctrl  / sum(w_pre_ctrl)
+  w_post_ctrl <- w_post_ctrl / sum(w_post_ctrl)
+  w_pre_trt   <- w_pre_trt   / sum(w_pre_trt)
+  w_post_trt  <- w_post_trt  / sum(w_post_trt)
 
-  att <- mean(Y_post_trt) - mean(kcic)
+  # CiC transform: map each treated pre-period rank through the control
+  # distributions to obtain counterfactual outcomes (A-I 2006, eq. 16).
+  # Weighted CDFs are used; reduces to ecdf()/quantile(type=1) for uniform weights.
+
+  # Weighted ECDF of ctrl pre-period: F(y) = sum(w_i * 1(Y_i <= y)).
+  # Vectorised dot product handles ties and out-of-range values correctly.
+  u <- vapply(Y_pre_trt,
+              function(y) sum(w_pre_ctrl * (Y_pre_ctrl <= y)),
+              numeric(1))
+
+  # Weighted type-1 quantile of ctrl post-period: smallest y with CDF >= p.
+  ord_post_c <- order(Y_post_ctrl)
+  y_post_c_s <- Y_post_ctrl[ord_post_c]
+  cdf_post_c <- cumsum(w_post_ctrl[ord_post_c])
+  kcic <- y_post_c_s[vapply(u, function(p) {
+    idx <- which(cdf_post_c >= p)
+    if (length(idx) == 0L) length(y_post_c_s) else idx[1L]
+  }, integer(1))]
+
+  att <- weighted.mean(Y_post_trt, w_post_trt) - weighted.mean(kcic, w_pre_trt)
   F0  <- ecdf(kcic)       # nolint: object_name_linter
   F1  <- ecdf(Y_post_trt) # nolint: object_name_linter
 
@@ -77,13 +102,20 @@ cic_gt <- function(gt_data, xformla = ~1, ...) {
     post_s <- gt_data[gt_data$name == "post" & gt_data$D == 1, ]
     pre_s  <- pre_s[order(pre_s$id), ]
     post_s <- post_s[order(post_s$id), ]
-    u_s    <- ecdf(Y_pre_ctrl)(pre_s$Y)
-    kcic_s <- quantile(Y_post_ctrl, probs = u_s, type = 1)
+    u_s    <- vapply(pre_s$Y,
+                     function(y) sum(w_pre_ctrl * (Y_pre_ctrl <= y)),
+                     numeric(1))
+    kcic_s <- y_post_c_s[vapply(u_s, function(p) {
+      idx <- which(cdf_post_c >= p)
+      if (length(idx) == 0L) length(y_post_c_s) else idx[1L]
+    }, integer(1))]
     Fte    <- ecdf(post_s$Y - kcic_s) # nolint: object_name_linter
   }
 
-  # covariate adjustment via conditional quantile regression (Athey-Imbens 2006)
-  if (length(BMisc::rhs.vars(xformla)) > 0) {
+  # covariate adjustment via conditional quantile regression (Athey-Imbens 2006).
+  # Sampling weights apply to the ATT; the quantile regressions use unweighted
+  # observations (weighted QR support is deferred).
+  if (length(BMisc::rhs.vars(xformula)) > 0) {
     u_seq <- seq(0.01, 0.99, 0.01)
 
     pre_ctrl  <- gt_data[gt_data$name == "pre"  & gt_data$D == 0, ]
@@ -97,7 +129,7 @@ cic_gt <- function(gt_data, xformla = ~1, ...) {
       post_trt <- post_trt[order(post_trt$id), ]
     }
 
-    yformla  <- BMisc::toformula("Y", BMisc::rhs.vars(xformla))
+    yformla  <- BMisc::toformula("Y", BMisc::rhs.vars(xformula))
     QR0t     <- rq(yformla, data = post_ctrl, tau = u_seq) # nolint: object_name_linter
     QR0tmin1 <- rq(yformla, data = pre_ctrl,  tau = u_seq) # nolint: object_name_linter
     n1       <- nrow(pre_trt)
@@ -115,7 +147,7 @@ cic_gt <- function(gt_data, xformla = ~1, ...) {
     QR0tQ <- predict(QR0t, newdata = pre_trt, type = "Qhat", stepfun = TRUE) # nolint: object_name_linter
     y0t   <- sapply(seq_len(n1), function(i) QR0tQ[[i]](F0tmin1[i]))
 
-    att <- mean(Y_post_trt) - mean(y0t)
+    att <- weighted.mean(Y_post_trt, w_post_trt) - weighted.mean(y0t, w_pre_trt)
     F0  <- ecdf(y0t) # nolint: object_name_linter
 
     if (panel) {
@@ -147,8 +179,10 @@ cic_gt <- function(gt_data, xformla = ~1, ...) {
 #' @param data A data frame.
 #' @param panel Logical; \code{TRUE} (default) for panel data,
 #'   \code{FALSE} for repeated cross sections.
-#' @param xformla One-sided formula for covariates used in the covariate
+#' @param xformula One-sided formula for covariates used in the covariate
 #'   adjustment. Default \code{~1} uses no covariates.
+#' @param weightsname Name of the column in \code{data} containing sampling
+#'   weights. Default \code{NULL} uses equal weights.
 #' @param control_group Which units to use as the comparison group:
 #'   \code{"notyettreated"} (default) or \code{"nevertreated"}.
 #' @param anticipation Number of periods of anticipation. Default \code{0}.
@@ -181,7 +215,8 @@ cic <- function(yname,
                 idname        = NULL,
                 data,
                 panel         = TRUE,
-                xformla       = ~1,
+                xformula      = ~1,
+                weightsname   = NULL,
                 control_group = "notyettreated",
                 anticipation  = 0,
                 alp           = 0.05,
@@ -219,7 +254,8 @@ cic <- function(yname,
     setup_pte_fun = ptetools::setup_pte,
     subset_fun    = subset_fun,
     attgt_fun     = cic_gt,
-    xformla       = xformla,
+    xformula      = xformula,
+    weightsname   = weightsname,
     control_group = control_group,
     anticipation  = anticipation,
     cband         = cband,
