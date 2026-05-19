@@ -147,6 +147,12 @@ compute.ci.qte <- function(qp) {
 #'  computed in parallel
 #' @param printIter For debugging only; should leave at default FALSE unless
 #'  you want to see a lot of output
+#' @param biters Number of bootstrap iterations; alias for \code{iters}
+#'   matching the \code{did}/\code{ptetools} naming convention. If both are
+#'   supplied, \code{biters} takes precedence.
+#' @param cl Number of cores for parallel bootstrap; alias for
+#'   \code{pl}/\code{cores}. \code{cl = 1} (default) runs sequentially;
+#'   \code{cl > 1} enables parallelism.
 #'
 #' @references
 #' Firpo, Sergio. ``Efficient Semiparametric Estimation of Quantile Treatment
@@ -180,7 +186,14 @@ ci.qte <- function(formla, xformla = NULL, x = NULL, data, w = NULL,
                    probs = seq(0.05, 0.95, 0.05), se = TRUE,
                    iters = 100, alp = 0.05, method = "logit",
                    retEachIter = FALSE,
-                   printIter = FALSE, pl = FALSE, cores = 2) {
+                   printIter = FALSE, pl = FALSE, cores = 2,
+                   biters = NULL, cl = NULL) {
+  # biters and cl are aliases matching the did/ptetools API
+  if (!is.null(biters)) iters <- biters
+  if (!is.null(cl)) {
+    pl    <- cl > 1
+    cores <- cl
+  }
   qp <- QTEparams(formla, xformla, t = NULL, tmin1 = NULL, tmin2 = NULL, tname = NULL, data = data, w = w, idname = NULL, probs = probs, iters = iters, alp = alp, method = method, se = se, retEachIter = retEachIter, bootstrapiter = FALSE, pl = pl, cores = cores)
   ## setupData(qp) ##may be able to get rid of this too
 

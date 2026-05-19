@@ -155,6 +155,10 @@ compute.MDiD <- function(formla, xformla = NULL, t, tmin1, tname, data,
 #' Thuysbaert, Bram.  ``Distributional Comparisons in Difference in Differences
 #'  Models.'' Working Paper, 2007.
 #'
+#' @param biters Number of bootstrap iterations; alias for \code{iters}
+#'   matching the \code{did}/\code{ptetools} naming convention. If both are
+#'   supplied, \code{biters} takes precedence. Note: \code{MDiD} does not
+#'   support parallel computation.
 #' @return A \code{QTE} object
 #'
 #' @export
@@ -162,7 +166,10 @@ MDiD <- function(formla, xformla = NULL, t, tmin1, tname, data,
                  panel = FALSE, se = TRUE,
                  idname = NULL,
                  alp = 0.05, probs = seq(0.05, 0.95, 0.05), iters = 100,
-                 retEachIter = FALSE) {
+                 retEachIter = FALSE,
+                 biters = NULL) {
+  # biters is an alias matching the did/ptetools API (MDiD has no parallel support)
+  if (!is.null(biters)) iters <- biters
   form <- as.formula(formla)
   dta <- model.frame(terms(form, data = data), data = data) # or model.matrix
   colnames(dta) <- c("y", "treatment")

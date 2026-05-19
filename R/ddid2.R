@@ -142,6 +142,12 @@ compute.ddid2 <- function(qp) {
 #'  from each iteration of the bootstrap procedure
 #' @param seedvec Optional value to set random seed; can possibly be used
 #'  in conjunction with bootstrapping standard errors.
+#' @param biters Number of bootstrap iterations; alias for \code{iters}
+#'   matching the \code{did}/\code{ptetools} naming convention. If both are
+#'   supplied, \code{biters} takes precedence.
+#' @param cl Number of cores for parallel bootstrap; alias for
+#'   \code{pl}/\code{cores}. \code{cl = 1} (default) runs sequentially;
+#'   \code{cl > 1} enables parallelism.
 #'
 #' @examples
 #' ## load the data
@@ -176,7 +182,14 @@ ddid2 <- function(formla, xformla = NULL, t, tmin1,
                   tname, data, panel = TRUE,
                   dropalwaystreated = TRUE, idname = NULL, probs = seq(0.05, 0.95, 0.05),
                   iters = 100, alp = 0.05, method = "logit", se = TRUE,
-                  retEachIter = FALSE, seedvec = NULL, pl = FALSE, cores = NULL) {
+                  retEachIter = FALSE, seedvec = NULL, pl = FALSE, cores = NULL,
+                  biters = NULL, cl = NULL) {
+  # biters and cl are aliases matching the did/ptetools API
+  if (!is.null(biters)) iters <- biters
+  if (!is.null(cl)) {
+    pl    <- cl > 1
+    cores <- cl
+  }
   if (!panel) {
     stop("method not implemented with repeated cross sections data...\n  In this case, try change in changes method...")
   }

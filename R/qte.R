@@ -257,6 +257,12 @@ compute.panel.qtet <- function(qp) {
 #'  to running out of memory.
 #' @param pl Whether or not to compute standard errors in parallel
 #' @param cores Number of cores to use if computing in parallel
+#' @param biters Number of bootstrap iterations; alias for \code{iters}
+#'   matching the \code{did}/\code{ptetools} naming convention. If both are
+#'   supplied, \code{biters} takes precedence.
+#' @param cl Number of cores for parallel bootstrap; alias for
+#'   \code{pl}/\code{cores}. \code{cl = 1} (default) runs sequentially;
+#'   \code{cl > 1} enables parallelism.
 #'
 #' @examples
 #' ## load the data
@@ -308,7 +314,14 @@ panel.qtet <- function(formla, xformla = NULL, t, tmin1, tmin2,
                        tname, data,
                        idname, probs = seq(0.05, 0.95, 0.05),
                        iters = 100, alp = 0.05, method = c("qr", "pscore"), se = TRUE,
-                       retEachIter = FALSE, pl = FALSE, cores = NULL) {
+                       retEachIter = FALSE, pl = FALSE, cores = NULL,
+                       biters = NULL, cl = NULL) {
+  # biters and cl are aliases matching the did/ptetools API
+  if (!is.null(biters)) iters <- biters
+  if (!is.null(cl)) {
+    pl    <- cl > 1
+    cores <- cl
+  }
   method <- method[1]
 
   data <- panelize.data(data, idname, tname, t, tmin1, tmin2)

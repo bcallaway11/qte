@@ -299,7 +299,13 @@ CiC <- function(formla, xformla = NULL, t, tmin1, tname, data,
                 alp = 0.05, probs = seq(0.05, 0.95, 0.05), iters = 100,
                 pl = FALSE, cores = 2,
                 retEachIter = FALSE) {
-  .Deprecated("cic")
+  .Deprecated(msg = paste0(
+    "CiC() is deprecated. The replacement cic() uses a different data model: ",
+    "specify outcome, group, and time variables by name (yname, gname, tname) ",
+    "and provide gname as a column holding each unit's first treatment period ",
+    "(0 = never-treated), rather than a formula and explicit t/tmin1 values. ",
+    "See ?cic and vignette('staggered-adoption', package = 'qte')."
+  ))
 
   if (panel) {
     data <- panelize.data(data, idname, tname, t, tmin1)

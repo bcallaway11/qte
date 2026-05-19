@@ -200,6 +200,12 @@ compute.QDiD <- function(qp) {
 #' )
 #' summary(qd1)
 #'
+#' @param biters Number of bootstrap iterations; alias for \code{iters}
+#'   matching the \code{did}/\code{ptetools} naming convention. If both are
+#'   supplied, \code{biters} takes precedence.
+#' @param cl Number of cores for parallel bootstrap; alias for
+#'   \code{pl}/\code{cores}. \code{cl = 1} (default) runs sequentially;
+#'   \code{cl > 1} enables parallelism.
 #' @return QTE Object
 #'
 #' @export
@@ -208,7 +214,14 @@ QDiD <- function(formla, xformla = NULL, t, tmin1, tname, data,
                  idname = NULL,
                  alp = 0.05, probs = seq(0.05, 0.95, 0.05), iters = 100,
                  retEachIter = FALSE,
-                 pl = FALSE, cores = NULL) {
+                 pl = FALSE, cores = NULL,
+                 biters = NULL, cl = NULL) {
+  # biters and cl are aliases matching the did/ptetools API
+  if (!is.null(biters)) iters <- biters
+  if (!is.null(cl)) {
+    pl    <- cl > 1
+    cores <- cl
+  }
   if (panel) {
     data <- panelize.data(data, idname, tname, t, tmin1)
   } else { ## repeated cross sections case
