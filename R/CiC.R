@@ -114,8 +114,8 @@ cic_gt <- function(gt_data, xformula = ~1, ...) {
   }
 
   # covariate adjustment via conditional quantile regression (Athey-Imbens 2006).
-  # Sampling weights apply to the ATT; the quantile regressions use unweighted
-  # observations (weighted QR support is deferred).
+  # Sampling weights are passed to rq() so the quantile regressions respect
+  # the same weights used for the ATT and CDF calculations.
   if (length(BMisc::rhs.vars(xformula)) > 0) {
     u_seq <- seq(0.01, 0.99, 0.01)
 
@@ -131,8 +131,8 @@ cic_gt <- function(gt_data, xformula = ~1, ...) {
     }
 
     yformla  <- BMisc::toformula("Y", BMisc::rhs.vars(xformula))
-    QR0t     <- rq(yformla, data = post_ctrl, tau = u_seq) # nolint: object_name_linter
-    QR0tmin1 <- rq(yformla, data = pre_ctrl,  tau = u_seq) # nolint: object_name_linter
+    QR0t     <- rq(yformla, data = post_ctrl, tau = u_seq, weights = post_ctrl$.w) # nolint: object_name_linter
+    QR0tmin1 <- rq(yformla, data = pre_ctrl,  tau = u_seq, weights = pre_ctrl$.w)  # nolint: object_name_linter
     n1       <- nrow(pre_trt)
 
     QR0tmin1F <- predict(QR0tmin1, newdata = pre_trt, type = "Fhat", stepfun = TRUE) # nolint: object_name_linter
