@@ -20,7 +20,9 @@ panel.qtet(
   se = TRUE,
   retEachIter = FALSE,
   pl = FALSE,
-  cores = NULL
+  cores = NULL,
+  biters = NULL,
+  cl = NULL
 )
 }
 \arguments{
@@ -70,6 +72,14 @@ to running out of memory.}
 \item{pl}{Whether or not to compute standard errors in parallel}
 
 \item{cores}{Number of cores to use if computing in parallel}
+
+\item{biters}{Number of bootstrap iterations; alias for \code{iters}
+matching the \code{did}/\code{ptetools} naming convention. If both are
+supplied, \code{biters} takes precedence.}
+
+\item{cl}{Number of cores for parallel bootstrap; alias for
+\code{pl}/\code{cores}. \code{cl = 1} (default) runs sequentially;
+\code{cl > 1} enables parallelism.}
 }
 \value{
 \code{QTE} object

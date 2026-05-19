@@ -18,7 +18,9 @@ ci.qtet(
   indsample = TRUE,
   printIter = FALSE,
   pl = FALSE,
-  cores = 2
+  cores = 2,
+  biters = NULL,
+  cl = NULL
 )
 }
 \arguments{
@@ -64,6 +66,14 @@ you want to see a lot of output}
 \item{pl}{Whether or not to compute standard errors in parallel}
 
 \item{cores}{Number of cores to use if computing in parallel}
+
+\item{biters}{Number of bootstrap iterations; alias for \code{iters}
+matching the \code{did}/\code{ptetools} naming convention. If both are
+supplied, \code{biters} takes precedence.}
+
+\item{cl}{Number of cores for parallel bootstrap; alias for
+\code{pl}/\code{cores}. \code{cl = 1} (default) runs sequentially;
+\code{cl > 1} enables parallelism.}
 }
 \value{
 QTE object

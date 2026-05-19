@@ -4,7 +4,7 @@
 \alias{cic_gt}
 \title{Change in Changes: group-time estimator}
 \usage{
-cic_gt(gt_data, xformla = ~1, ...)
+cic_gt(gt_data, xformula = ~1, ...)
 }
 \arguments{
 \item{gt_data}{A data frame (typically a \code{gt_data_frame} from
@@ -13,12 +13,12 @@ cic_gt(gt_data, xformla = ~1, ...)
 (unit identifier), and any covariate columns referenced by
 \code{xformla}.}
 
+\item{...}{Additional arguments passed through by \code{ptetools}; not used
+directly.}
+
 \item{xformla}{One-sided formula for covariates. Default \code{~1} uses no
 covariates. With covariates, covariate-conditioned quantile regressions
 are used following Athey and Imbens (2006).}
-
-\item{...}{Additional arguments passed through by \code{ptetools}; not used
-directly.}
 }
 \value{
 A \code{ptetools::attgt_noif} object with the ATT estimate and, in

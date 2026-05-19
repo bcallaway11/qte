@@ -12,7 +12,8 @@ cic(
   idname = NULL,
   data,
   panel = TRUE,
-  xformla = ~1,
+  xformula = ~1,
+  weightsname = NULL,
   control_group = "notyettreated",
   anticipation = 0,
   alp = 0.05,
@@ -58,8 +59,11 @@ CiC(
 \item{panel}{Logical; \code{TRUE} (default) for panel data,
 \code{FALSE} for repeated cross sections.}
 
-\item{xformla}{One-sided formula for covariates used in the covariate
+\item{xformula}{One-sided formula for covariates used in the covariate
 adjustment. Default \code{~1} uses no covariates.}
+
+\item{weightsname}{Name of the column in \code{data} containing sampling
+weights. Default \code{NULL} uses equal weights.}
 
 \item{control_group}{Which units to use as the comparison group:
 \code{"notyettreated"} (default) or \code{"nevertreated"}.}

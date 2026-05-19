@@ -17,7 +17,8 @@ MDiD(
   alp = 0.05,
   probs = seq(0.05, 0.95, 0.05),
   iters = 100,
-  retEachIter = FALSE
+  retEachIter = FALSE,
+  biters = NULL
 )
 }
 \arguments{
@@ -60,6 +61,11 @@ This is only used if se=TRUE}
 from each iteration of the bootstrap procedure (default is FALSE).
 This is potentially useful for debugging but can cause errors due
 to running out of memory.}
+
+\item{biters}{Number of bootstrap iterations; alias for \code{iters}
+matching the \code{did}/\code{ptetools} naming convention. If both are
+supplied, \code{biters} takes precedence. Note: \code{MDiD} does not
+support parallel computation.}
 }
 \value{
 A \code{QTE} object
