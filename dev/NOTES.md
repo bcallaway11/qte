@@ -140,6 +140,19 @@ infrastructure files, then regenerate NAMESPACE with `devtools::document()`.
   `two_by_two_subset` unqualified; NAMESPACE doesn't import ptetools. Fix
   before treating `cic2` as stable.
 
+### Plotting — Needs Revisiting
+
+`ggqte()` in `R/helper-functions.R` is the only plotting function remaining.
+It was written for the legacy `QTE` class and will need to be rethought when
+those functions are removed. Questions to resolve:
+
+- Should there be a `plot`/`autoplot` S3 method for `pte_qtt` and `pte_emp_boot`?
+- Does `ggqte` have external users worth preserving, or can it be replaced cleanly?
+- What should the default plot look like for the new staggered estimators
+  (overall curve, event-study, group-level)?
+
+Defer until the legacy cleanup is further along.
+
 ### Low Priority / Future Ideas
 
 - **Uniform parallel interface**: `MDiD` lacks `pl`/`cores`; standardize across
