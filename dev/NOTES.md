@@ -93,6 +93,27 @@ aggregation_fun(attgt.list, ptep, extra_gt_returns)
 
 ## Outstanding Work & Future Ideas
 
+### Next Update — Delete Legacy Infrastructure
+
+Once the remaining legacy two-period functions (`CiC`, `QDiD`, `MDiD`,
+`ddid2`, `panel.qtet`, `ci.qte`, `ci.qtet`) are removed, the following
+files become dead code and should be deleted in the same pass:
+
+- `R/bootstrap.R` — `bootiter()` and `bootstrap()` are only called by legacy
+  `compute.*` functions.
+- `R/setupData.R` — `setupData()` is only called by legacy `compute.*`
+  functions and `panel.checks()`.
+- `R/panel-checks.R` — `panel.checks()` and `panelize.data()` are only called
+  by legacy functions. Note: `panelize.data` is exported, so its removal needs
+  a NEWS.md entry.
+- `R/QTEparams.R` — the `QTEparams` parameter container is only used by the
+  legacy pipeline.
+- `R/qte.R` — holds the `QTE` S3 class and `panel.qtet`; can go once all
+  `compute.*` callers are removed.
+
+Deletion order: remove the legacy estimator files first, then these
+infrastructure files, then regenerate NAMESPACE with `devtools::document()`.
+
 ### High Priority
 
 - **Install updated BMisc**: Tests currently require loading BMisc from source
