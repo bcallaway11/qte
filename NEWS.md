@@ -23,7 +23,14 @@ vignette: >
     (overall, group-specific, event-study).  Accepts a `probs` argument
     to control the quantile grid.  CDFs are mixed across group-time cells
     before inversion, avoiding bias from averaging scalar quantiles.
-  * Removed unused `DR` function.
+  * Removed `DR` (doubly robust ATT estimator, unused).
+  * Removed `spatt` (Abadie 2005 semiparametric DiD ATT estimator).
+    Users needing a semiparametric ATT with staggered adoption support
+    should use `did::att_gt()` instead.
+  * Removed `bounds` (Fan-Yu 2012 partial identification bounds for the
+    QTT). The function only supported two periods, did not correctly handle
+    covariates, and had no sampling weights support. No replacement is
+    planned.
   * Added smoke tests for `cic()` covering panel ATT, repeated cross
     sections ATT, and panel QTT.
   * Added vignette demonstrating `cic()` with staggered treatment adoption
