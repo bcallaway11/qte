@@ -93,10 +93,14 @@ aggregation_fun(attgt.list, ptep, extra_gt_returns)
 
 ## Outstanding Work & Future Ideas
 
-### Next Update — Delete Legacy Infrastructure
+### Next Update — Delete Legacy Infrastructure (Target: 2026-08-01)
+
+**What to keep:** `ci.qte` (cross-sectional Firpo 2007 estimator, no staggered
+extension planned). `ci.qtet` will get a new ptetools-based staggered version
+before the legacy version is removed — do not delete it until that is done.
 
 Once the remaining legacy two-period functions (`CiC`, `QDiD`, `MDiD`,
-`ddid2`, `panel.qtet`, `ci.qte`, `ci.qtet`) are removed, the following
+`ddid2`, `panel.qtet`, `ci.qtet`) are removed, the following
 files become dead code and should be deleted in the same pass:
 
 - `R/bootstrap.R` — `bootiter()` and `bootstrap()` are only called by legacy
