@@ -7,3 +7,5 @@ doc
 Meta
 /doc/
 /Meta/
+*.code-workspace
+tests/testthat/_problems/
