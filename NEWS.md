@@ -23,6 +23,8 @@ vignette: >
     (overall, group-specific, event-study).  Accepts a `probs` argument
     to control the quantile grid.  CDFs are mixed across group-time cells
     before inversion, avoiding bias from averaging scalar quantiles.
+  * Removed `qtes2mat()` and `diffQ()`: formatting/utility helpers tied to
+    the legacy `QTE` class with no internal callers. No replacement planned.
   * Removed `DR` (doubly robust ATT estimator, unused).
   * Removed `spatt` (Abadie 2005 semiparametric DiD ATT estimator).
     Users needing a semiparametric ATT with staggered adoption support

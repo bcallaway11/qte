@@ -1,44 +1,10 @@
 # =============================================================================
 # Title: Helper functions for qte package
-# Description: Utility functions for displaying and plotting QTE objects:
-#   qtes2mat (format multiple QTEs as a matrix), ggqte (ggplot2 plot method),
-#   diffQ (difference of quantile functions).
+# Description: Utility functions for plotting QTE objects.
 # Author: Brant Callaway
-# Last update: 2026-05-18
+# Last update: 2026-05-21
 # Date created: 2026-05-18
 # =============================================================================
-
-#' @title qtes2mat
-#'
-#' @description Turn multiple qtes into a matrix for printing
-#'
-#' @param qteList a list of qte objects
-#' @param sset subset of qtes to keep
-#' @param se whether or not to include standard errors in the resulting matrix
-#' @param rnd how many disgits to round to
-#'
-#' @return matrix
-#' @export
-qtes2mat <- function(qteList, sset = NULL, se = TRUE, rnd = 3) {
-  if (is.null(sset)) {
-    sset <- seq(1, length(qteList[[1]]$probs))
-  }
-  probs <- qteList[[1]]$probs[sset]
-  outmat <- matrix(nrow = 2 * length(qteList[[1]]$qte[sset]), ncol = length(qteList))
-  lqte <- lapply(qteList, function(x) {
-    paste(round(x$qte[sset], rnd))
-  })
-  lqte.se <- lapply(qteList, function(x) {
-    paste("(", round(x$qte.se[sset], rnd), ")", sep = "")
-  })
-  for (i in seq_along(qteList)) {
-    outmat[, i] <- c(rbind(lqte[[i]], lqte.se[[i]]))
-  }
-  probsvals <- c(rbind(paste(probs), rep("", length(probs))))
-  outmat <- cbind(probsvals, outmat)
-  outmat
-}
-
 
 #' @title ggqte
 #'
@@ -112,100 +78,3 @@ ggqte <- function(qteobj, main = "", ylab = "QTE", ylim = NULL, ybreaks = NULL, 
   qp
 }
 
-## functions to get median (or specified quantile)
-## requires that qte object has that value of tau
-getMedian <- function(qteobj, tau = .5) {
-  which.qte <- which(qteobj$probs == tau)
-  return(qteobj$qte[which.qte])
-}
-
-## functions to get median (or specified quantile) standard error
-## requires that qte object has that value of tau
-getMedianSE <- function(qteobj, tau = .5) {
-  which.qte <- which(qteobj$probs == tau)
-  return(qteobj$qte.se[which.qte])
-}
-
-## functions to get 80-20 difference or some other difference in quantiles
-diffquantiles <- function(qteobj, hightau, lowtau) {
-  which.highqte <- which(qteobj$probs == hightau)
-  which.lowqte <- which(qteobj$probs == lowtau)
-  return(qteobj$qte[which.highqte] - qteobj$qte[which.lowqte])
-}
-
-
-## bootstrap the difference betwen quantiles
-## must be called with a qteobj with retEachIter set to true
-bootse.diffquantiles <- function(qteobj, hightau, lowtau) {
-  bootvals <- lapply(qteobj$eachIterList, diffquantiles, hightau, lowtau)
-  se <- stats::sd(unlist(bootvals))
-}
-
-#' @title diffQ
-#'
-#' @description ## takes a single set of quantiles
-#' (not qtes as in diffquantiles)
-#'  and returns the difference between particular ones
-#'
-#' @param qvec vector of quantiles
-#' @param tauvec vector of tau (should be same length as qvec)
-#' @param hightau upper quantile
-#' @param lowtau lower quantile
-#'
-#' @return scalar difference between quantiles
-#' @export
-diffQ <- function(qvec, tauvec, hightau, lowtau) {
-  which.highq <- which(tauvec == hightau)
-  which.lowq <- which(tauvec == lowtau)
-  return(qvec[which.highq] - qvec[which.lowq])
-}
-
-
-## make tables using R's texreg package
-#' @title diffQ
-#'
-#' @description ## takes a single set of quantiles
-#' (not qtes as in diffquantiles)
-#'  and returns the difference between particular ones
-#'
-#' @param qteobj A QTE object
-#' @param tau Optional vector of taus to texreg results for
-#' @param reportAte Whether or not texreg the ATE (or ATT) as well
-#'
-qteToTexreg <- function(qteobj, tau = NULL, reportAte = TRUE) {
-  if (is.null(tau)) {
-    tau <- qteobj$probs
-    qte <- qteobj$qte
-    qte.se <- qteobj$qte.se
-    ate <- qteobj$ate
-    ate.se <- qteobj$ate.se
-  } else if (!(all(tau %in% qteobj$probs))) {
-    stop("Error not all tau in qte object")
-  } else {
-    tauloc <- vapply(tau, function(x) {
-      which(x == qteobj$probs)
-    }, 1.0)
-    qte <- qteobj$qte[tauloc]
-    qte.se <- qteobj$qte.se[tauloc]
-    ate <- qteobj$ate
-    ate.se <- qteobj$ate.se
-  }
-  if (reportAte) {
-    texreg::createTexreg(
-      c(paste(tau), "ate"),
-      c(qte, ate),
-      c(qte.se, ate.se),
-      2 * pnorm(-c(
-        abs(qte / qte.se),
-        abs(ate / ate.se)
-      ))
-    )
-  } else {
-    texreg::createTexreg(
-      paste(tau),
-      qte,
-      qte.se,
-      2 * pnorm(-c(abs(qte / qte.se)))
-    )
-  }
-}
