@@ -140,6 +140,23 @@ infrastructure files, then regenerate NAMESPACE with `devtools::document()`.
   `two_by_two_subset` unqualified; NAMESPACE doesn't import ptetools. Fix
   before treating `cic2` as stable.
 
+### Print / Summary / Plot for Quantile Results — Needs Revisiting
+
+The new ptetools-based estimators return `pte_qtt` (quantile curve) and
+`pte_emp_boot` (ATT) objects. Need to audit whether print, summary, and plot
+methods for these are adequate, and whether they belong in `ptetools` (as
+generic infrastructure) or in `qte` (as package-specific wrappers).
+
+`pte_qtt` has basic print/summary in `ptetools/R/classes.R` (added 2026-05-21)
+but it was not designed with the full quantile use case in mind. Questions:
+
+- Is the `summary.pte_qtt` output useful as-is, or does it need richer formatting?
+- Should there be an `autoplot.pte_qtt` in ptetools, or a `ggqte`-style function in qte?
+- Does `pte_emp_boot` need a quantile-aware print/summary path for when
+  `gt_type = "qtt"` results are stored in it?
+
+Revisit alongside the plotting discussion below.
+
 ### Plotting — Needs Revisiting
 
 `ggqte()` in `R/helper-functions.R` is the only plotting function remaining.
