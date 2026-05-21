@@ -71,25 +71,21 @@
 ddid_gt <- function(gt_data, xformula = ~1, ...) {
   gt_data <- droplevels(gt_data)
 
-  # extract and sort the control group by id so pre[i] and post[i] are the
-  # same unit — needed to compute within-unit changes delta_ctrl
+  # extract and sort all four cells by id (panel structure enforced by ddid())
   ctrl_pre  <- gt_data[gt_data$name == "pre"  & gt_data$D == 0, ]
   ctrl_post <- gt_data[gt_data$name == "post" & gt_data$D == 0, ]
-  ctrl_pre  <- ctrl_pre[order(ctrl_pre$id), ]
-  ctrl_post <- ctrl_post[order(ctrl_post$id), ]
-
-  if (!identical(ctrl_pre$id, ctrl_post$id)) {
-    stop("ddid_gt requires panel data: control units must appear in both pre and post periods")
-  }
-
-  # extract treated groups (pre for rank mapping, post for ATT)
-  trt_pre  <- gt_data[gt_data$name == "pre"  & gt_data$D == 1, ]
-  trt_post <- gt_data[gt_data$name == "post" & gt_data$D == 1, ]
+  trt_pre   <- gt_data[gt_data$name == "pre"  & gt_data$D == 1, ]
+  trt_post  <- gt_data[gt_data$name == "post" & gt_data$D == 1, ]
 
   # guard: ptetools may call attgt_fun for (g,t) cells with no treated obs
   if (nrow(trt_pre) == 0 || nrow(trt_post) == 0) {
     return(ptetools::attgt_noif(attgt = NA))
   }
+
+  ctrl_pre  <- ctrl_pre[order(ctrl_pre$id), ]
+  ctrl_post <- ctrl_post[order(ctrl_post$id), ]
+  trt_pre   <- trt_pre[order(trt_pre$id), ]
+  trt_post  <- trt_post[order(trt_post$id), ]
 
   # uppercase Y and distribution objects follow econometric notation # nolint: object_name_linter
   Y_pre_ctrl  <- ctrl_pre$Y  # nolint: object_name_linter

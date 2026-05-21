@@ -1,5 +1,5 @@
 # =============================================================================
-# Title: Partial identification bounds for QTET (Fan-Yu 2012)
+# Title: Partial identification bounds for QTT (Fan-Yu 2012)
 # Description: Implements the Fan-Yu (2012) partial identification bounds for
 #   the Quantile Treatment Effect on the Treated. Also defines the BoundsObj
 #   S3 class and its summary/print/plot methods.
@@ -13,7 +13,7 @@
 #' @title bounds
 #' @description \code{bounds} estimates bounds for the Quantile Treatment
 #'  Effect on the
-#'  Treated (QTET) using the method of Fan and Yu (2012).
+#'  Treated (QTT) using the method of Fan and Yu (2012).
 #' @inheritParams panel.qtet
 #'
 #' @examples
@@ -322,7 +322,7 @@ plot.BoundsObj <- function(x, plotate = FALSE, plot0 = FALSE,
   plot(bounds.obj$probs, bounds.obj$lb.qte,
     type = "l",
     ylim = ylim,
-    xlab = "tau", ylab = "QTET", col = qtecol, ...
+    xlab = "tau", ylab = "QTT", col = qtecol, ...
   )
   graphics::lines(bounds.obj$probs, bounds.obj$ub.qte, col = qtecol)
   if (plotate) {
@@ -334,9 +334,9 @@ plot.BoundsObj <- function(x, plotate = FALSE, plot0 = FALSE,
 
   if (uselegend) {
     if (plotate) {
-      legend(x = legloc, legend = c("QTET Bounds", "ATT"), col = c(qtecol, atecol), ...)
+      legend(x = legloc, legend = c("QTT Bounds", "ATT"), col = c(qtecol, atecol), ...)
     } else {
-      legend(x = legloc, legend = c("QTET Bounds"), col = c(qtecol), ...)
+      legend(x = legloc, legend = c("QTT Bounds"), col = c(qtecol), ...)
     }
   }
 }
