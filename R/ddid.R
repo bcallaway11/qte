@@ -6,7 +6,7 @@
 #   ddid2 is a deprecated alias retained for backwards compatibility.
 #   compute.ddid2 is an unexported helper kept only to support ddid2.
 # Author: Brant Callaway
-# Last update: 2026-05-18
+# Last update: 2026-05-22
 # Date created: 2026-05-18
 # =============================================================================
 

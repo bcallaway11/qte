@@ -45,6 +45,10 @@
 #' @param target Target parameter: \code{"qte"} (population QTE) or
 #'  \code{"qtt"} (QTT, quantile treatment effect on the treated).
 #'
+#' @return A named list with class \code{"QTEparams"} containing all supplied
+#'   arguments. Used internally by legacy estimators (\code{CiC}, \code{QDiD},
+#'   \code{MDiD}, \code{ddid2}, \code{panel.qtet}, \code{ci.qtet}) to pass
+#'   parameters to \code{setupData} and \code{compute.*} functions.
 #'
 #' @export
 QTEparams <- function(formla, xformla = NULL, t = NULL, tmin1 = NULL, tmin2 = NULL,

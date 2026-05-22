@@ -7,7 +7,7 @@
 #   QDiD is a deprecated alias retained for backwards compatibility.
 #   compute.QDiD is an unexported helper kept only to support the deprecated QDiD.
 # Author: Brant Callaway
-# Last update: 2026-05-18
+# Last update: 2026-05-22
 # Date created: 2026-05-18
 # =============================================================================
 
@@ -352,7 +352,38 @@ compute.QDiD <- function(qp) { # nolint: object_name_linter
 
 # --- Deprecated two-period wrapper -------------------------------------------
 
-#' @rdname qdid
+#' @title QDiD
+#'
+#' @description \strong{Deprecated.} Use \code{\link{qdid}} instead.
+#'
+#'   \code{QDiD} is a legacy two-period wrapper for the Quantile
+#'   Difference-in-Differences estimator. It accepts a formula and explicit
+#'   \code{t}/\code{tmin1} time period arguments. The modern replacement
+#'   \code{\link{qdid}} uses a \code{yname}/\code{gname}/\code{tname}
+#'   interface and supports staggered treatment adoption natively.
+#'
+#' @param formla formula of the form \code{y ~ treat}.
+#' @param xformla optional one-sided covariate formula.
+#' @param t post-treatment period.
+#' @param tmin1 pre-treatment period.
+#' @param tname name of the time column.
+#' @param data data.frame.
+#' @param panel logical; whether data are panel.
+#' @param se logical; whether to compute bootstrap SEs.
+#' @param idname name of the unit id column.
+#' @param alp significance level.
+#' @param probs quantile grid.
+#' @param iters bootstrap iterations.
+#' @param retEachIter logical; return per-iteration results.
+#' @param pl logical; parallel bootstrap.
+#' @param cores number of cores.
+#' @param biters alias for \code{iters}; takes precedence if supplied.
+#' @param cl alias for \code{cores}; takes precedence if supplied.
+#'
+#' @return \code{QTE} object.
+#'
+#' @seealso \code{\link{qdid}}
+#'
 #' @export
 # nolint start: object_name_linter
 QDiD <- function(formla, xformla = NULL, t, tmin1, tname, data,

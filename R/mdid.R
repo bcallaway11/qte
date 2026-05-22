@@ -7,7 +7,7 @@
 #   MDiD is a deprecated alias retained for backwards compatibility.
 #   compute.MDiD is an unexported helper kept only to support the deprecated MDiD.
 # Author: Brant Callaway
-# Last update: 2026-05-18
+# Last update: 2026-05-22
 # Date created: 2026-05-18
 # =============================================================================
 
@@ -293,6 +293,7 @@ mdid <- function(yname,
 
 # Kept only to support the deprecated MDiD() wrapper below. Do not use in new
 # code; use mdid_gt() instead.
+#' @keywords internal
 # nolint start: object_name_linter
 compute.MDiD <- function(formla, xformla = NULL, t, tmin1, tname, data,
                          panel = FALSE,

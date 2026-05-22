@@ -7,8 +7,8 @@
 #   CiC is a deprecated alias retained for backwards compatibility.
 #   compute.CiC is an unexported helper kept only to support the deprecated CiC.
 # Author: Brant Callaway
-# Last update: 2026-05-18
-
+# Last update: 2026-05-22
+# Date created: 2026-05-18
 # =============================================================================
 
 # --- 2x2 workhorse -----------------------------------------------------------
@@ -336,7 +336,37 @@ compute.CiC <- function(qp) {
 
 # --- Deprecated two-period wrapper -------------------------------------------
 
-#' @rdname cic
+#' @title CiC
+#'
+#' @description \strong{Deprecated.} Use \code{\link{cic}} instead.
+#'
+#'   \code{CiC} is a legacy two-period wrapper for the Change in Changes
+#'   estimator. It accepts a formula and explicit \code{t}/\code{tmin1} time
+#'   period arguments. The modern replacement \code{\link{cic}} uses a
+#'   \code{yname}/\code{gname}/\code{tname} interface and supports staggered
+#'   treatment adoption natively via \code{ptetools}.
+#'
+#' @inheritParams CiC
+#' @param formla formula of the form \code{y ~ treat}.
+#' @param xformla optional one-sided covariate formula.
+#' @param t post-treatment period.
+#' @param tmin1 pre-treatment period.
+#' @param tname name of the time column.
+#' @param data data.frame.
+#' @param panel logical; whether data are panel.
+#' @param se logical; whether to compute bootstrap SEs.
+#' @param idname name of the unit id column (required when \code{panel = TRUE}).
+#' @param alp significance level.
+#' @param probs quantile grid.
+#' @param iters bootstrap iterations.
+#' @param pl logical; parallel bootstrap.
+#' @param cores number of cores.
+#' @param retEachIter logical; return per-iteration results.
+#'
+#' @return \code{QTE} object.
+#'
+#' @seealso \code{\link{cic}}
+#'
 #' @export
 # nolint start: object_name_linter
 CiC <- function(formla, xformla = NULL, t, tmin1, tname, data,

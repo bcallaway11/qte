@@ -1,10 +1,11 @@
 # =============================================================================
-# Title: Cross-sectional QTE/QTT under unconfoundedness (unc_qte)
+# Title: Cross-sectional QTE/QTT under unconfoundedness (unc_qte / ci.qte / ci.qtet)
 # Description: Estimates the Quantile Treatment Effect (QTE) or Quantile
 #   Treatment Effect on the Treated (QTT) under unconfoundedness via three
 #   methods: IPW propensity-score reweighting (Firpo 2007), outcome regression
 #   via quantile regression inversion (OR), and a doubly-robust AIPW
 #   combination of IPW and OR. Standard errors via empirical bootstrap.
+#   Also contains deprecated wrappers ci.qte and ci.qtet.
 # Author: Brant Callaway
 # Last update: 2026-05-22
 # Date created: 2026-05-18
@@ -409,6 +410,9 @@ unc_qte <- function(yname, dname, data,
 #' @param biters alias for \code{iters}; takes precedence if supplied.
 #' @param cl alias for cores; takes precedence if supplied.
 #'
+#' @return A \code{pte_emp_boot} object from \code{ptetools}; same structure as
+#'   \code{\link{unc_qte}}.
+#'
 #' @keywords internal
 #' @export
 ci.qte <- function(formla, xformla = NULL, x = NULL, data, w = NULL,
@@ -430,6 +434,101 @@ ci.qte <- function(formla, xformla = NULL, x = NULL, data, w = NULL,
 
   unc_qte(yname = yname, dname = dname, data = data,
           xformla = if (is.null(xformla)) ~1 else xformla,
+          probs = probs, alp = alp, biters = iters,
+          method = method, cl = if (pl) cores else 1L)
+}
+
+
+# --- ci.qtet (deprecated) ----------------------------------------------------
+
+#' @title ci.qtet
+#'
+#' @description \strong{Deprecated.} Use \code{\link{unc_qte}}\code{(target = "qtt")}
+#'   for a cross-sectional QTT under unconfoundedness, or \code{\link{lou_qte}}
+#'   for staggered treatment adoption with optional lagged-outcome conditioning.
+#'
+#'   \code{ci.qtet} estimates the Quantile Treatment Effect on the Treated
+#'   (QTET) under a Conditional Independence Assumption (sometimes called
+#'   Selection on Observables) following Firpo (2007). It uses propensity score
+#'   re-weighting to estimate the counterfactual distribution. Standard errors
+#'   are computed via the bootstrap.
+#'
+#' @inheritParams panel.qtet
+#' @inheritParams ci.qte
+#' @param method Method to compute propensity score.  Default is logit; other
+#'  option is probit.
+#' @param indsample Binary variable for whether to treat the samples as
+#'  independent or dependent.  This affects bootstrap standard errors.  In
+#'  the job training example, the samples are independent because they
+#'  are two samples collected independently and then merged.  If the data is
+#'  from the same source, usually should set this option to be FALSE.
+#' @param printIter For debugging only; should leave at default FALSE unless
+#'  you want to see a lot of output
+#' @param biters Number of bootstrap iterations; alias for \code{iters}
+#'   matching the \code{did}/\code{ptetools} naming convention. If both are
+#'   supplied, \code{biters} takes precedence.
+#' @param cl Number of cores for parallel bootstrap; alias for
+#'   \code{pl}/\code{cores}. \code{cl = 1} (default) runs sequentially;
+#'   \code{cl > 1} enables parallelism.
+#'
+#' @references
+#' Firpo, Sergio. ``Efficient Semiparametric Estimation of Quantile Treatment
+#'  Effects.'' Econometrica 75.1, pp. 259-276, 2007.
+#'
+#' @examples
+#' ## Load the data
+#' data(lalonde)
+#'
+#' ## Estimate the QTET of participating in the job training program;
+#' ## This is the no covariate case.  Note: Because individuals that participate
+#' ## in the job training program are likely to be much different than
+#' ## individuals that do not (e.g. less experience and less education), this
+#' ## method is likely to perform poorly at estimating the true QTET
+#' q1 <- ci.qtet(re78 ~ treat,
+#'   x = NULL, data = lalonde.psid, se = FALSE,
+#'   probs = seq(0.05, 0.95, 0.05)
+#' )
+#' summary(q1)
+#'
+#' ## This estimation controls for all the available background characteristics.
+#' q2 <- ci.qtet(re78 ~ treat,
+#'   xformla = ~ age + I(age^2) + education + black + hispanic + married + nodegree,
+#'   data = lalonde.psid, se = FALSE, probs = seq(0.05, 0.95, 0.05)
+#' )
+#' summary(q2)
+#'
+#' @return A \code{pte_emp_boot} object from \code{ptetools}; same structure as
+#'   \code{\link{unc_qte}}.
+#' @export
+ci.qtet <- function(formla, xformla = NULL, w = NULL, data,
+                    probs = seq(0.05, 0.95, 0.05), se = TRUE,
+                    iters = 100, alp = 0.05, method = "logit",
+                    retEachIter = FALSE, indsample = TRUE,
+                    printIter = FALSE, pl = FALSE, cores = 2,
+                    biters = NULL, cl = NULL) {
+  .Deprecated(
+    msg = paste0(
+      "'ci.qtet' is deprecated.\n",
+      "For a cross-sectional QTT under unconfoundedness use:\n",
+      "  unc_qte(..., target = 'qtt')\n",
+      "For staggered treatment adoption with optional lagged-outcome conditioning use:\n",
+      "  lou_qte(...)"
+    )
+  )
+  if (!is.null(w)) {
+    warning("ci.qtet: 'w' cannot be forwarded to unc_qte; ",
+            "use 'weightsname' in unc_qte instead.", call. = FALSE)
+  }
+  if (!is.null(biters)) iters <- biters
+  if (!is.null(cl)) { pl <- cl > 1; cores <- cl }
+
+  form  <- as.formula(formla)
+  yname <- as.character(form[[2]])
+  dname <- as.character(form[[3]])
+
+  unc_qte(yname = yname, dname = dname, data = data,
+          xformla = if (is.null(xformla)) ~1 else xformla,
+          target = "qtt",
           probs = probs, alp = alp, biters = iters,
           method = method, cl = if (pl) cores else 1L)
 }

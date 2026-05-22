@@ -57,6 +57,10 @@ use \code{weightsname} in \code{unc_qte} instead.}
 
 \item{cl}{alias for cores; takes precedence if supplied.}
 }
+\value{
+A \code{pte_emp_boot} object from \code{ptetools}; same structure as
+\code{\link{unc_qte}}.
+}
 \description{
 Deprecated. Use \code{\link{unc_qte}} instead.
 }

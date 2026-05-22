@@ -182,3 +182,30 @@ Defer until the legacy cleanup is further along.
   `QDiD`, `MDiD`, `ddid2` should be harmonized (breaking change, low urgency).
 - **Staggered extensions**: `qdid2`, `ddid22`, `panel.qtet2` are planned but
   not yet implemented (see CLAUDE.md).
+
+- **Testing QTT ≠ ATT (replace `computeDiffSE`)**: Testing whether the QTT
+  curve differs from the ATT is a natural inference target — a constant QTT
+  equal to the ATT is the "no distributional heterogeneity" null. The current
+  `computeDiffSE` (exported, in `R/qte.R`, defined at line 413) is dead code:
+  it works against the old list-of-QTE-objects bootstrap format and is not
+  called anywhere. **Do not delete yet** — keep as a reference for the logic.
+
+  **Preferred future design**: Since ptetools runs both QTT and ATT from the
+  same bootstrap draws, the difference `QTT(τ) − ATT` is available within
+  each bootstrap iteration at no extra cost. The cleanest implementation:
+
+  1. In the `attgt`-level function (e.g., `cic_attgt`, `lou_gt`), return
+     both the QTT CDF (`F1`, `F0`) and the ATT scalar in `extra_gt_returns`.
+  2. In the aggregation step, compute `QTT(τ) − ATT` for each `(g, t)` cell,
+     then aggregate across cells (same weights as the overall QTT aggregation).
+  3. Bootstrap this aggregated difference directly — this gives uniform
+     inference via the empirical multiplier bootstrap already in ptetools,
+     rather than requiring a separate second bootstrap run.
+
+  An alternative function signature (for a standalone helper):
+  ```r
+  test_qtt_vs_att(qtt_result, alp = 0.05)
+  ```
+  where `qtt_result` already contains both the QTT curve and the ATT from
+  the same bootstrap run (i.e., both quantities were stored in the ptetools
+  result object). This avoids the paired-bootstrap complexity of the old API.

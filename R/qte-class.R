@@ -2,9 +2,9 @@
 # Title: QTE class and panel QTET estimator
 # Description: Defines the QTE and SE S3 classes and their print/summary/plot
 #   methods. Also contains the panel.qtet estimator (Callaway-Li 2019) and its
-#   internal compute function.
+#   internal compute function. Dataset documentation is in data.R.
 # Author: Brant Callaway
-# Last update: 2026-05-18
+# Last update: 2026-05-22
 # Date created: 2026-05-18
 # =============================================================================
 
@@ -205,7 +205,12 @@ compute.panel.qtet <- function(qp) {
 
 #' @title panel.qtet
 #'
-#' @description \code{panel.qtet} computes the Quantile Treatment Effect
+#' @description \strong{Deprecated.} Use \code{\link{panel_qtt}} instead.
+#'   \code{panel_qtt} supports staggered treatment adoption and exposes the
+#'   \code{pre_copula} option for controlling how the copula is transferred
+#'   across pre-treatment periods.
+#'
+#'   \code{panel.qtet} computes the Quantile Treatment Effect
 #' on the Treated (QTET) using the method of Callaway and Li (2015).  This
 #' method should be used when the researcher wants to invoke a Difference
 #' in Differences assumption to identify the QTET.  Relative to the other
@@ -307,6 +312,9 @@ compute.panel.qtet <- function(qp) {
 #' Callaway, Brantly and Tong Li.  ``Quantile Treatment Effects in Difference
 #'  in Differences Models with Panel Data.'' Working Paper, 2019.
 #'
+#' @seealso \code{\link{panel_qtt}} for the modern replacement supporting
+#'   staggered adoption.
+#'
 #' @return \code{QTE} object
 #'
 #' @export
@@ -316,6 +324,11 @@ panel.qtet <- function(formla, xformla = NULL, t, tmin1, tmin2,
                        iters = 100, alp = 0.05, method = c("qr", "pscore"), se = TRUE,
                        retEachIter = FALSE, pl = FALSE, cores = NULL,
                        biters = NULL, cl = NULL) {
+  .Deprecated(msg = paste0(
+    "panel.qtet() is deprecated. Use panel_qtt() instead.\n",
+    "panel_qtt() supports staggered treatment adoption and uses a ",
+    "yname/gname/tname interface. See ?panel_qtt."
+  ))
   # biters and cl are aliases matching the did/ptetools API
   if (!is.null(biters)) iters <- biters
   if (!is.null(cl)) {
@@ -387,73 +400,6 @@ panel.qtet <- function(formla, xformla = NULL, t, tmin1, tmin2,
 
 
 ###### GENERAL HELPER FUNCTIONS#######
-
-## return an SE object
-## bootIters should contain ATT as first object in list
-#' @title computeDiffSE
-#'
-#' @description Takes two sets of initial estimates and bootstrap
-#'  estimations
-#'  (they need to have the same number of iterations) and determines
-#'  whether or not the estimates are statistically different from each
-#'  other.  It can be used to compare any sets of estimates, but it is
-#'  particularly used here to compare estimates from observational methods
-#'  with observations from the experimental data (which also have standard
-#'  errors because, even though the estimates are cleanly identified, they
-#'  are still estimated).
-#'
-#' @param est1 A QTE object containing the first set of estimates
-#' @param bootIters1 A List of QTE objects that have been bootstrapped
-#' @param est2 A QTE object containing a second set of estimates
-#' @param bootIters2 A List of QTE objects that have been bootstrapped
-#'  using the second method
-#' @inheritParams panel.qtet
-#'
-#' @export
-computeDiffSE <- function(est1, bootIters1, est2, bootIters2, alp = 0.05) {
-  iters <- length(bootIters1)
-  ate.diff <- est1$ate - est2$ate
-  qte.diff <- est1$qte - est2$qte
-  ## For now, just plot the qte and att with standard errors
-  ## helper function to get the first element out of a list
-  getElement <- function(Lst, elemNum) {
-    return(as.numeric(unlist((Lst[elemNum])))) # as.numeric is a trick to
-    ## get numerical value of qte
-  }
-  all.ate1 <- unlist(sapply(bootIters1, FUN = getElement, elemNum = 2))
-  all.ate2 <- unlist(sapply(bootIters2, FUN = getElement, elemNum = 2))
-  all.ate.diff <- all.ate1 - all.ate2
-  ## get se
-  ate.diff.se <- sd(all.ate.diff)
-  ## reorder asc
-  all.ate.diff <- all.ate.diff[order(all.ate.diff)]
-  ate.diff.upper <- all.ate.diff[min(iters, round((1 - alp / 2) * iters))]
-  ate.diff.lower <- all.ate.diff[max(1, round((alp / 2) * iters))]
-
-  ## now get CI for qte:
-  all.qte1 <- lapply(bootIters1, FUN = getElement, elemNum = 1)
-  all.qte2 <- lapply(bootIters2, FUN = getElement, elemNum = 1)
-  ## all.qte.diff <- all.qte1 - all.qte2
-  qte1.mat <- do.call(rbind, lapply(all.qte1, FUN = as.numeric, ncol = length(all.qte1[[1]]), byrow = TRUE))
-  qte2.mat <- do.call(rbind, lapply(all.qte2, FUN = as.numeric, ncol = length(all.qte2[[1]]), byrow = TRUE))
-  qte.diff.mat <- qte1.mat - qte2.mat
-  ## standard error
-  qte.diff.se <- apply(qte.diff.mat, FUN = sd, MARGIN = 2)
-  ## order each column
-  sorted.qte.diff.mat <- apply(qte.diff.mat, 2, sort)
-  qte.diff.upper <- sorted.qte.diff.mat[round((1 - alp / 2) * iters), ]
-  qte.diff.lower <- sorted.qte.diff.mat[max(1, round((alp / 2) * iters)), ]
-
-  out <- list(
-    ate.diff = ate.diff, qte.diff = qte.diff,
-    ate.diff.se = ate.diff.se,
-    ate.diff.upper = ate.diff.upper, ate.diff.lower = ate.diff.lower,
-    qte.diff.se = qte.diff.se,
-    qte.diff.upper = qte.diff.upper, qte.diff.lower = qte.diff.lower
-  )
-  class(out) <- "DiffSEObj"
-  return(out)
-}
 
 ## return an SE object
 ## bootIters should contain ATT as first object in list
@@ -825,91 +771,3 @@ SE <- function(qte.se = NULL, ate.se = NULL, qte.upper = NULL, qte.lower = NULL,
   class(out) <- "SE"
   return(out)
 }
-
-
-############## DATA DOCUMENTATION ################
-#' @title Lalonde (1986)'s NSW Dataset
-#'
-#' @description \code{lalonde} contains data from the National Supported Work
-#'  Demonstration.  This program randomly assigned applicants to the job
-#'  training program (or out of the job training program).  The dataset is
-#'  discussed in Lalonde (1986).  The experimental part of the dataset is
-#'  combined with an observational dataset from the Panel Study of Income
-#'  Dynamics (PSID).  Lalonde (1986) and many subsequent papers (e.g.
-#'  Heckman and Hotz (1989), Dehejia and Wahba (1999), Smith and Todd (2005),
-#'  and Firpo (2007) have used this combination to study the effectiveness
-#'  of various `observational' methods (e.g. regression, Heckman selection,
-#'  Difference in Differences, and propensity score matching) of estimating
-#'  the Average Treatment Effect (ATE) of participating in the job training
-#'  program.  The idea is that the results from the observational method
-#'  can be compared to results that can be easily obtained from the
-#'  experimental portion of the dataset.
-#'
-#'  To be clear, the observational data combines the observations that are
-#'  treated from the experimental portion of the data with untreated observations
-#'  from the PSID.
-#'
-#' @format Four data.frames: (i) lalonde.exp contains a cross sectional version
-#'  of the experimental data, (ii) lalonde.psid contains a cross sectional
-#'  version of the observational data, (iii) lalonde.exp.panel contains a
-#'  panel version of the experimental data, and (iv) lalonde.psid.panel contains
-#'  a panel version of the observational data.  Note: the cross sectional
-#'  and panel versions of each dataset are identical up to their shape; in
-#'  demonstrating each of the methods, it is sometimes convenient to have
-#'  one form of the data or the other.
-#' @docType data
-#' @name lalonde
-#' @usage data(lalonde)
-#' @references LaLonde, Robert.  ``Evaluating the Econometric Evaluations of
-#'  Training Programs with Experimental Data.'' The American Economics Review,
-#'  pp. 604-620, 1986.
-#'  @source The dataset comes from Lalonde (1986) and has been studied in much
-#'  subsequent work.  The \code{qte} package uses a version from the
-#'  \code{causalsens} package
-#'  (\url{https://CRAN.R-project.org/package=causalsens})
-#' @keywords datasets
-NULL
-
-#' @title Lalonde's Experimental Dataset
-#'
-#' @description The cross sectional verion of the experimental part of the
-#'  \code{lalonde} dataset.  It
-#'  is loaded with all the datasets with the command \code{data(lalonde)}
-#'
-#' @docType data
-#' @name lalonde.exp
-#' @keywords datasets
-NULL
-
-#' @title Lalonde's Panel Experimental Dataset
-#'
-#' @description The panel verion of the experimental part of the
-#'  \code{lalonde} dataset.  It
-#'  is loaded with all the datasets with the command \code{data(lalonde)}
-#'
-#' @docType data
-#' @name lalonde.exp.panel
-#' @keywords datasets
-NULL
-
-#' @title Lalonde's Observational Dataset
-#'
-#' @description The cross sectional verion of the observational part of the
-#'  \code{lalonde} dataset.  It
-#'  is loaded with all the datasets with the command \code{data(lalonde)}
-#'
-#' @docType data
-#' @name lalonde.psid
-#' @keywords datasets
-NULL
-
-#' @title Lalonde's Experimental Dataset
-#'
-#' @description The panel verion of the observational part of the
-#'  \code{lalonde} dataset.  It
-#'  is loaded with all the datasets with the command \code{data(lalonde)}
-#'
-#' @docType data
-#' @name lalonde.psid.panel
-#' @keywords datasets
-NULL
