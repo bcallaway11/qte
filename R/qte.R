@@ -24,7 +24,7 @@
 #' Difference in Differences assumption (Fan and Yu, 2012)
 #' to point identify QTET.
 #'
-#' @inheritParams compute.ci.qte
+#' @inheritParams compute.unc_qte
 #'
 #' @return QTE object
 #'

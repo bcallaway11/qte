@@ -11,6 +11,10 @@ vignette: >
 
 # qte 1.5.0
 
+  * Renamed `ci.qte()` to `unc_qte()` with a modernised argument API:
+    `yname`/`dname` replace the formula interface, `weightsname` replaces
+    the `w` vector, `biters`/`cl`/`alp`/`cband` match the `did`/`ptetools`
+    conventions. `ci.qte()` is retained as a deprecated wrapper.
   * New `cic()` function: unified interface for the Change in Changes
     estimator covering two-period and staggered treatment adoption, for
     both panel and repeated cross sections data.  Replaces the older

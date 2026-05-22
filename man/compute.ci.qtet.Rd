@@ -7,7 +7,7 @@
 compute.ci.qtet(qp)
 }
 \arguments{
-\item{qp}{QTEparams object containing the parameters passed to ciqte}
+\item{qp}{QTEparams object}
 }
 \value{
 QTE object

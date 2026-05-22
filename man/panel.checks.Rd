@@ -7,7 +7,7 @@
 panel.checks(qp)
 }
 \arguments{
-\item{qp}{QTEparams object containing the parameters passed to ciqte}
+\item{qp}{QTEparams object}
 }
 \value{
 Invisibly returns \code{NULL}. Called for its side effects

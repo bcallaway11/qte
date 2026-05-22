@@ -16,7 +16,7 @@
 #' @description \code{compute.ci.qtet} computes the QTT under
 #' selection on observables
 #'
-#' @inheritParams compute.ci.qte
+#' @inheritParams compute.unc_qte
 #'
 #' @import Hmisc
 #'

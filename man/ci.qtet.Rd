@@ -32,7 +32,8 @@ in all time periods for individuals that are eventually treated}
 will be adjusted for.  E.g ~ age + education.  Additional covariates can
 also be passed by name using the x paramater.}
 
-\item{w}{an additional vector of sampling weights}
+\item{w}{sampling weight vector. Cannot be forwarded automatically;
+use \code{weightsname} in \code{unc_qte} instead.}
 
 \item{data}{A data.frame containing all the variables used}
 
