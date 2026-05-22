@@ -5,7 +5,7 @@
 #   on observables). Treated and untreated quantile functions are reweighted
 #   by IPW weights derived from an estimated propensity score.
 # Author: Brant Callaway
-# Last update: 2026-05-21
+# Last update: 2026-05-22
 # Date created: 2026-05-18
 # =============================================================================
 
@@ -31,13 +31,13 @@ compute.unc_qte <- function(qp) {
   setupData(qp)
   bootstrapiter <- qp$bootstrapiter
 
-  ate <- getWeightedMean(treated[, yname], treated[, wname]) -
-    getWeightedMean(untreated[, yname], untreated[, wname])
+  ate <- weighted_mean(treated[, yname], treated[, wname]) -
+    weighted_mean(untreated[, yname], untreated[, wname])
 
-  treated.firpo.quantiles <- getWeightedQuantiles(
+  treated.firpo.quantiles <- weighted_quantile(
     probs, treated[, yname], treated[, wname]
   )
-  untreated.firpo.quantiles <- getWeightedQuantiles(
+  untreated.firpo.quantiles <- weighted_quantile(
     probs, untreated[, yname], untreated[, wname]
   )
   qte <- treated.firpo.quantiles - untreated.firpo.quantiles
@@ -60,15 +60,15 @@ compute.unc_qte <- function(qp) {
     treated.weights   <- w * D / pscore
     untreated.weights <- w * (1 - D) / (1 - pscore)
 
-    treated.firpo.quantiles   <- getWeightedQuantiles(probs, y,
-                                                      treated.weights,
-                                                      norm = TRUE)
-    untreated.firpo.quantiles <- getWeightedQuantiles(probs, y,
-                                                      untreated.weights,
-                                                      norm = TRUE)
+    treated.firpo.quantiles   <- weighted_quantile(probs, y,
+                                                   treated.weights,
+                                                   norm = TRUE)
+    untreated.firpo.quantiles <- weighted_quantile(probs, y,
+                                                   untreated.weights,
+                                                   norm = TRUE)
     qte <- treated.firpo.quantiles - untreated.firpo.quantiles
-    ate <- getWeightedMean(y, treated.weights) -
-      getWeightedMean(y, untreated.weights)
+    ate <- weighted_mean(y, treated.weights) -
+      weighted_mean(y, untreated.weights)
   }
 
   if (is.null(untreated.firpo.quantiles)) {
