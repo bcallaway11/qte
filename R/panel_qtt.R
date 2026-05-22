@@ -229,8 +229,8 @@ panel_qtt_gt <- function(gt_data, xformula = ~1, ...) {
     # L_i = Q(Y^pre1 | u_i, X_pre2_i, D=1) via QR on pre1 treated,
     #        predicted at pre2 covariates (copula transfers conditional rank
     #        across pre2 → pre1 marginals holding X fixed)
-    QR_Y_pre2_trt <- rq(yformla, data = pre2_trt, tau = u_seq, weights = pre2_trt$.w) # nolint: object_name_linter
-    QR_Y_pre1_trt <- rq(yformla, data = pre1_trt, tau = u_seq, weights = pre1_trt$.w) # nolint: object_name_linter
+    QR_Y_pre2_trt <- suppressWarnings(rq(yformla, data = pre2_trt, tau = u_seq, weights = .w)) # nolint: object_name_linter
+    QR_Y_pre1_trt <- suppressWarnings(rq(yformla, data = pre1_trt, tau = u_seq, weights = .w)) # nolint: object_name_linter
 
     QR_Y_pre2F <- predict(QR_Y_pre2_trt, newdata = pre2_trt, type = "Fhat", stepfun = TRUE) # nolint: object_name_linter
     u <- sapply(seq_len(n1), function(i) QR_Y_pre2F[[i]](pre2_trt$Y[i]))
@@ -248,8 +248,8 @@ panel_qtt_gt <- function(gt_data, xformula = ~1, ...) {
     dY_ctrl_data   <- pre1_ctrl  # nolint: object_name_linter
     dY_ctrl_data$Y <- dY_ctrl
 
-    QR_dY_trt  <- rq(yformla, data = dY_trt_data,  tau = u_seq, weights = dY_trt_data$.w)  # nolint: object_name_linter
-    QR_dY_ctrl <- rq(yformla, data = dY_ctrl_data, tau = u_seq, weights = dY_ctrl_data$.w) # nolint: object_name_linter
+    QR_dY_trt  <- suppressWarnings(rq(yformla, data = dY_trt_data,  tau = u_seq, weights = .w)) # nolint: object_name_linter
+    QR_dY_ctrl <- suppressWarnings(rq(yformla, data = dY_ctrl_data, tau = u_seq, weights = .w)) # nolint: object_name_linter
 
     QR_dY_trtF <- predict(QR_dY_trt, newdata = dY_trt_data, type = "Fhat", stepfun = TRUE) # nolint: object_name_linter
     v <- sapply(seq_len(n1), function(i) QR_dY_trtF[[i]](dY_trt[i]))

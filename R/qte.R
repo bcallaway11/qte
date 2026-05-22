@@ -144,8 +144,8 @@ compute.panel.qtet <- function(qp) {
     F.treated.t.cf <- makeDist(y.seq, F.treated.t.cf.val)
   } else if (method == "qr") {
     u <- seq(.01, .99, .01) ## hard-coded for now
-    yformla <- BMisc::toformula("y", BMisc::rhs.vars(xformla))
-    dyformla <- BMisc::toformula("dy", BMisc::rhs.vars(xformla))
+    yformla <- BMisc::toformula("y", BMisc::rhs_vars(xformla))
+    dyformla <- BMisc::toformula("dy", BMisc::rhs_vars(xformla))
 
     dQRt <- quantreg::rq(dyformla, data = untreated.t, tau = u) ## holds by conditional did assumption
     dQRtmin1 <- quantreg::rq(dyformla, data = treated.tmin1, tau = u)

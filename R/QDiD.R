@@ -122,7 +122,7 @@ qdid_gt <- function(gt_data, xformula = ~1, ...) {
   # covariate adjustment via conditional quantile regression (Athey-Imbens 2006).
   # Conditional rank is estimated from the treated pre-period QR (QR1tmin1).
   # Sampling weights are passed to rq() for consistency with the weighted ATT.
-  if (length(BMisc::rhs.vars(xformula)) > 0) {
+  if (length(BMisc::rhs_vars(xformula)) > 0) {
     u_seq <- seq(0.01, 0.99, 0.01)
 
     pre_ctrl  <- gt_data[gt_data$name == "pre"  & gt_data$D == 0, ]
@@ -136,12 +136,12 @@ qdid_gt <- function(gt_data, xformula = ~1, ...) {
     }
 
     n1      <- nrow(pre_trt)
-    yformla <- BMisc::toformula("Y", BMisc::rhs.vars(xformula)) # nolint: object_name_linter
+    yformla <- BMisc::toformula("Y", BMisc::rhs_vars(xformula)) # nolint: object_name_linter
 
     # conditional rank in the treated pre-period distribution
-    QR1tmin1  <- rq(yformla, data = pre_trt,   tau = u_seq, weights = pre_trt$.w)   # nolint: object_name_linter
-    QR0t      <- rq(yformla, data = post_ctrl,  tau = u_seq, weights = post_ctrl$.w) # nolint: object_name_linter
-    QR0tmin1  <- rq(yformla, data = pre_ctrl,   tau = u_seq, weights = pre_ctrl$.w)  # nolint: object_name_linter
+    QR1tmin1  <- suppressWarnings(rq(yformla, data = pre_trt,   tau = u_seq, weights = .w)) # nolint: object_name_linter
+    QR0t      <- suppressWarnings(rq(yformla, data = post_ctrl, tau = u_seq, weights = .w)) # nolint: object_name_linter
+    QR0tmin1  <- suppressWarnings(rq(yformla, data = pre_ctrl,  tau = u_seq, weights = .w)) # nolint: object_name_linter
 
     QR1tmin1F  <- predict(QR1tmin1, newdata = pre_trt, type = "Fhat", stepfun = TRUE)  # nolint: object_name_linter
     rank1tmin1 <- sapply(seq_len(n1), function(i) QR1tmin1F[[i]](pre_trt$Y[i]))
@@ -251,28 +251,35 @@ qdid <- function(yname,
     ptetools::two_by_two_rcs_subset
   }
 
+  aggregation_fun <- if (gt_type == "qtt") {
+    ptetools::qtt_pte_aggregations
+  } else {
+    function(al, p, eg) ptetools::attgt_pte_aggregations(al, p)
+  }
+
   ptetools::pte(
-    yname         = yname,
-    gname         = gname,
-    tname         = tname,
-    idname        = idname,
-    data          = data,
-    panel         = panel,
-    setup_pte_fun = ptetools::setup_pte,
-    subset_fun    = subset_fun,
-    attgt_fun     = qdid_gt,
-    xformula      = xformula,
-    weightsname   = weightsname,
-    control_group = control_group,
-    anticipation  = anticipation,
-    cband         = cband,
-    alp           = alp,
-    boot_type     = "empirical",
-    biters        = biters,
-    cl            = cl,
-    ret_quantile  = ret_quantile,
-    gt_type       = gt_type,
-    probs         = probs
+    yname           = yname,
+    gname           = gname,
+    tname           = tname,
+    idname          = idname,
+    data            = data,
+    panel           = panel,
+    setup_pte_fun   = ptetools::setup_pte,
+    subset_fun      = subset_fun,
+    attgt_fun       = qdid_gt,
+    aggregation_fun = aggregation_fun,
+    xformula        = xformula,
+    weightsname     = weightsname,
+    control_group   = control_group,
+    anticipation    = anticipation,
+    cband           = cband,
+    alp             = alp,
+    boot_type       = "empirical",
+    biters          = biters,
+    cl              = cl,
+    ret_quantile    = ret_quantile,
+    gt_type         = gt_type,
+    probs           = probs
   )
 }
 
@@ -310,7 +317,7 @@ compute.QDiD <- function(qp) { # nolint: object_name_linter
   if (!is.null(xformla)) { # nolint: object_usage_linter
     u        <- seq(.01, .99, .01)
     n1tmin1  <- nrow(treated.tmin1) # nolint: object_usage_linter
-    yformla  <- toformula("y", rhs.vars(xformla)) # nolint: object_usage_linter
+    yformla  <- toformula("y", BMisc::rhs_vars(xformla)) # nolint: object_usage_linter
     QR0t     <- rq(yformla, data = untreated.t,    tau = u) # nolint: object_name_linter, object_usage_linter
     QR0tmin1 <- rq(yformla, data = untreated.tmin1, tau = u) # nolint: object_name_linter, object_usage_linter
     QR1tmin1 <- rq(yformla, data = treated.tmin1,  tau = u) # nolint: object_name_linter, object_usage_linter

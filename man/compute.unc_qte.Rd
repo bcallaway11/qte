@@ -13,8 +13,9 @@ compute.unc_qte(qp)
 QTE object
 }
 \description{
-Computes the QTE under unconfoundedness using Firpo (2007)
-propensity score reweighting. Called internally by \code{unc_qte} and
-during each bootstrap iteration.
+Computes the QTE or QTT under unconfoundedness. Dispatches to
+IPW, OR (outcome regression), or AIPW based on \code{qp$est_method} and
+\code{qp$target}. Called internally by \code{unc_qte} and during each
+bootstrap iteration.
 }
 \keyword{internal}

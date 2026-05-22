@@ -132,13 +132,13 @@ ddid_gt <- function(gt_data, xformula = ~1, ...) {
   # rank from QR0tmin1 and unconditional Q_{1,pre}(u_j) with a conditional
   # quantile from QR1tmin1, both evaluated at the control unit's covariates.
   # Sampling weights are passed to rq().
-  if (length(BMisc::rhs.vars(xformula)) > 0) {
+  if (length(BMisc::rhs_vars(xformula)) > 0) {
     u_seq    <- seq(0.01, 0.99, 0.01)
     n0       <- nrow(ctrl_pre)
-    yformla  <- BMisc::toformula("Y", BMisc::rhs.vars(xformula)) # nolint: object_name_linter
+    yformla  <- BMisc::toformula("Y", BMisc::rhs_vars(xformula)) # nolint: object_name_linter
 
-    QR0tmin1 <- rq(yformla, data = ctrl_pre, tau = u_seq, weights = ctrl_pre$.w)  # nolint: object_name_linter
-    QR1tmin1 <- rq(yformla, data = trt_pre,  tau = u_seq, weights = trt_pre$.w)   # nolint: object_name_linter
+    QR0tmin1 <- suppressWarnings(rq(yformla, data = ctrl_pre, tau = u_seq, weights = .w)) # nolint: object_name_linter
+    QR1tmin1 <- suppressWarnings(rq(yformla, data = trt_pre,  tau = u_seq, weights = .w)) # nolint: object_name_linter
 
     # conditional rank of each control unit in the control pre-period distribution
     QR0tmin1F  <- predict(QR0tmin1, type = "Fhat", stepfun = TRUE)                # nolint: object_name_linter
@@ -233,27 +233,34 @@ ddid <- function(yname,
                  gt_type       = "att",
                  probs         = NULL) {
 
+  aggregation_fun <- if (gt_type == "qtt") {
+    ptetools::qtt_pte_aggregations
+  } else {
+    function(al, p, eg) ptetools::attgt_pte_aggregations(al, p)
+  }
+
   ptetools::pte(
-    yname         = yname,
-    gname         = gname,
-    tname         = tname,
-    idname        = idname,
-    data          = data,
-    panel         = TRUE,
-    setup_pte_fun = ptetools::setup_pte,
-    subset_fun    = ptetools::two_by_two_subset,
-    attgt_fun     = ddid_gt,
-    xformula      = xformula,
-    weightsname   = weightsname,
-    control_group = control_group,
-    anticipation  = anticipation,
-    cband         = cband,
-    alp           = alp,
-    boot_type     = "empirical",
-    biters        = biters,
-    cl            = cl,
-    gt_type       = gt_type,
-    probs         = probs
+    yname           = yname,
+    gname           = gname,
+    tname           = tname,
+    idname          = idname,
+    data            = data,
+    panel           = TRUE,
+    setup_pte_fun   = ptetools::setup_pte,
+    subset_fun      = ptetools::two_by_two_subset,
+    attgt_fun       = ddid_gt,
+    aggregation_fun = aggregation_fun,
+    xformula        = xformula,
+    weightsname     = weightsname,
+    control_group   = control_group,
+    anticipation    = anticipation,
+    cband           = cband,
+    alp             = alp,
+    boot_type       = "empirical",
+    biters          = biters,
+    cl              = cl,
+    gt_type         = gt_type,
+    probs           = probs
   )
 }
 
@@ -282,7 +289,7 @@ compute.ddid2 <- function(qp) { # nolint: object_name_linter
   u <- seq(.01, .99, .01)
   if (!(is.null(x))) {
     n0 <- nrow(untreated.t)
-    yformla <- toformula("y", BMisc::rhs.vars(xformla))
+    yformla <- toformula("y", BMisc::rhs_vars(xformla))
     QR1tmin1 <- rq(yformla, data = treated.tmin1, tau = u)
     QR0tmin1 <- rq(yformla, data = untreated.tmin1, tau = u)
     rank0tmin1 <- predict(QR0tmin1, type = "Fhat", stepfun = TRUE)

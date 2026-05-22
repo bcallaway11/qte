@@ -48,9 +48,9 @@ test_that("panel_qtt panel QTT returns valid pte_qtt with correct structure", {
   res <- panel_qtt(yname = "y", gname = "group", tname = "period", idname = "id",
                    data = dat, biters = 20, gt_type = "qtt", probs = c(0.25, 0.5, 0.75))
   expect_s3_class(res, "pte_qtt")
-  expect_true(all(c("probs", "qtt", "se", "lower", "upper") %in% names(res$overall)))
+  expect_true(all(c("probs", "qtt", "se", "lower_pw", "upper_pw") %in% names(res$overall)))
   expect_equal(nrow(res$overall), 3L)
   expect_false(anyNA(res$overall$qtt))
-  expect_true(all(res$overall$lower < res$overall$upper))
+  expect_true(all(res$overall$lower_pw < res$overall$upper_pw))
   expect_equal(res$overall$qtt[res$overall$probs == 0.5], 0.9732522, tolerance = 1e-4)
 })

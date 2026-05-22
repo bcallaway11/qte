@@ -105,12 +105,12 @@ mdid_gt <- function(gt_data, xformula = ~1, ...) {
   # Y_pre_trt[i] + delta(X_i) consistently estimates F_{Y(0),post|D=1}.
   lm_pre_ctrl  <- NULL
   lm_post_ctrl <- NULL
-  if (length(BMisc::rhs.vars(xformula)) > 0) {
+  if (length(BMisc::rhs_vars(xformula)) > 0) {
     pre_ctrl  <- gt_data[gt_data$name == "pre"  & gt_data$D == 0, ]
     post_ctrl <- gt_data[gt_data$name == "post" & gt_data$D == 0, ]
     pre_trt   <- gt_data[gt_data$name == "pre"  & gt_data$D == 1, ]
 
-    yformla      <- BMisc::toformula("Y", BMisc::rhs.vars(xformula)) # nolint: object_name_linter
+    yformla      <- BMisc::toformula("Y", BMisc::rhs_vars(xformula)) # nolint: object_name_linter
     lm_pre_ctrl  <- lm(yformla, data = pre_ctrl,  weights = pre_ctrl$.w)  # nolint: object_name_linter
     lm_post_ctrl <- lm(yformla, data = post_ctrl, weights = post_ctrl$.w) # nolint: object_name_linter
 
@@ -256,28 +256,35 @@ mdid <- function(yname,
     ptetools::two_by_two_rcs_subset
   }
 
+  aggregation_fun <- if (gt_type == "qtt") {
+    ptetools::qtt_pte_aggregations
+  } else {
+    function(al, p, eg) ptetools::attgt_pte_aggregations(al, p)
+  }
+
   ptetools::pte(
-    yname         = yname,
-    gname         = gname,
-    tname         = tname,
-    idname        = idname,
-    data          = data,
-    panel         = panel,
-    setup_pte_fun = ptetools::setup_pte,
-    subset_fun    = subset_fun,
-    attgt_fun     = mdid_gt,
-    xformula      = xformula,
-    weightsname   = weightsname,
-    control_group = control_group,
-    anticipation  = anticipation,
-    cband         = cband,
-    alp           = alp,
-    boot_type     = "empirical",
-    biters        = biters,
-    cl            = cl,
-    ret_quantile  = ret_quantile,
-    gt_type       = gt_type,
-    probs         = probs
+    yname           = yname,
+    gname           = gname,
+    tname           = tname,
+    idname          = idname,
+    data            = data,
+    panel           = panel,
+    setup_pte_fun   = ptetools::setup_pte,
+    subset_fun      = subset_fun,
+    attgt_fun       = mdid_gt,
+    aggregation_fun = aggregation_fun,
+    xformula        = xformula,
+    weightsname     = weightsname,
+    control_group   = control_group,
+    anticipation    = anticipation,
+    cband           = cband,
+    alp             = alp,
+    boot_type       = "empirical",
+    biters          = biters,
+    cl              = cl,
+    ret_quantile    = ret_quantile,
+    gt_type         = gt_type,
+    probs           = probs
   )
 }
 

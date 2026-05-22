@@ -16,6 +16,8 @@ unc_qte(
   cband = TRUE,
   boot_type = "empirical",
   method = c("logit", "probit"),
+  est_method = c("ipw", "or", "aipw"),
+  target = c("qte", "qtt"),
   cl = 1
 )
 }
@@ -27,58 +29,143 @@ unc_qte(
 
 \item{data}{data.frame containing the analysis data.}
 
-\item{xformla}{one-sided formula for covariates used to estimate the
-propensity score, e.g. \code{~ age + education}. Default \code{~1}
-uses no covariates (simple quantile differences).}
+\item{xformla}{one-sided formula for covariates used in the propensity
+score and/or outcome model, e.g. \code{~ age + I(age^2) + education}.
+Default \code{~1} uses no covariates (simple quantile differences).}
 
 \item{weightsname}{character; name of a column in \code{data} containing
 sampling weights. Default \code{NULL} applies equal weights.}
 
 \item{probs}{numeric vector of quantile levels at which to evaluate the
-QTE. Default \code{seq(0.05, 0.95, 0.05)}.}
+QTE or QTT. Default \code{seq(0.05, 0.95, 0.05)}.}
 
 \item{alp}{significance level for confidence intervals. Default 0.05.}
 
-\item{biters}{number of bootstrap iterations. Default 100.}
+\item{biters}{number of bootstrap iterations for standard errors and
+confidence bands. Default 100.}
 
-\item{cband}{logical; if \code{TRUE} (default), compute a uniform
-confidence band in addition to pointwise intervals.}
+\item{cband}{logical; if \code{TRUE} (default), report a uniform confidence
+band (simultaneous over all quantiles in \code{probs}) in addition to
+pointwise intervals.}
 
-\item{boot_type}{bootstrap type. Currently only \code{"empirical"} is
+\item{boot_type}{bootstrap variant. Currently only \code{"empirical"} is
 supported.}
 
-\item{method}{propensity score model. One of \code{"logit"} (default) or
-\code{"probit"}.}
+\item{method}{propensity score link function: \code{"logit"} (default) or
+\code{"probit"}. Used by \code{est_method = "ipw"} and \code{"aipw"}.}
+
+\item{est_method}{estimation method; one of:
+\itemize{
+\item \code{"ipw"} (default) — inverse propensity weighting
+\item \code{"or"} — outcome regression via quantile regression inversion
+\item \code{"aipw"} — doubly-robust augmented IPW
+}}
+
+\item{target}{target parameter; one of:
+\itemize{
+\item \code{"qte"} (default) — population QTE:
+\eqn{Q_{Y(1)}(\tau) - Q_{Y(0)}(\tau)}
+\item \code{"qtt"} — QTT (effect on the treated):
+\eqn{Q_{Y(1)|D=1}(\tau) - Q_{Y(0)|D=1}(\tau)}
+}}
 
 \item{cl}{number of cores for parallel bootstrap. Default 1 (sequential).}
 }
 \value{
-QTE object
+An object of class \code{QTE} containing:
+\describe{
+\item{\code{qte}}{numeric vector of estimated QTE (or QTT) at each
+element of \code{probs}.}
+\item{\code{ate}}{estimated ATE (or ATT when \code{target = "qtt"}).}
+\item{\code{qte.se}}{bootstrap standard errors for \code{qte}.}
+\item{\code{qte.lower}, \code{qte.upper}}{confidence interval bounds
+for \code{qte}; uniform when \code{cband = TRUE}, pointwise otherwise.}
+\item{\code{ate.se}, \code{ate.lower}, \code{ate.upper}}{SE and CI
+for \code{ate}.}
+\item{\code{probs}}{the \code{probs} vector passed by the user.}
+\item{\code{pscore.reg}}{fitted propensity score \code{glm} object, or
+\code{NULL} when \code{est_method = "or"} or \code{xformla = ~1}.}
+}
+Use \code{summary()} to print a formatted table and \code{plot()} to
+display the QTE curve with confidence bands.
 }
 \description{
-Estimates the Quantile Treatment Effect (QTE) under
-unconfoundedness (selection on observables) using the method of
-Firpo (2007). Propensity score reweighting constructs the counterfactual
-quantile function. Standard errors and confidence bands are computed via
-the empirical bootstrap.
+Estimates the Quantile Treatment Effect (QTE) or Quantile
+Treatment Effect on the Treated (QTT) under unconfoundedness, also known
+as selection on observables. The key identifying assumption is
+\eqn{(Y(0), Y(1)) \perp D \mid X}, i.e., potential outcomes are
+independent of treatment conditional on covariates \eqn{X}.
+
+Three estimation methods are available via \code{est_method}:
+
+\describe{
+\item{\code{"ipw"}}{Propensity-score reweighting (Firpo 2007). The
+propensity score \eqn{p(X) = P(D=1|X)} is estimated by logit or
+probit and used to reweight the sample so that the covariate
+distributions of the treated and untreated groups match. For the QTE,
+both groups are reweighted toward the population distribution; for the
+QTT, only the untreated group is reweighted toward the treated
+covariate distribution.}
+\item{\code{"or"}}{Outcome regression via quantile regression inversion.
+\code{\link[quantreg]{rq}} is fit on a dense internal grid of
+\eqn{\tau} values, yielding a conditional quantile function
+\eqn{Q_{Y|X,D=j}(\tau)} for each arm \eqn{j}. The marginal
+distribution is recovered by averaging conditional quantile functions
+over the empirical covariate distribution (Melly 2006; Chernozhukov,
+Fernandez-Val, and Melly 2013).}
+\item{\code{"aipw"}}{Doubly-robust augmented IPW. Combines the
+propensity score model with the conditional quantile outcome model.
+The CDF estimator is consistent if either the propensity score or the
+outcome model is correctly specified (semiparametric efficiency when
+both are correct).}
+}
+
+When \code{xformla = ~1} (the default), all three methods reduce to
+simple quantile differences between the treated and untreated groups, which
+is consistent under unconditional unconfoundedness. Covariates are required
+for covariate-adjusted estimation.
+
+Standard errors and uniform confidence bands are computed via the
+empirical bootstrap. Setting \code{biters = 0} is planned for a future
+version to skip inference and return point estimates only.
 }
 \examples{
 data(lalonde)
 
-## No covariates
+## IPW, no covariates (simple quantile differences)
+\donttest{
 q1 <- unc_qte(yname = "re78", dname = "treat", data = lalonde.psid,
-              biters = 50, probs = seq(0.05, 0.95, 0.05))
+              biters = 100, probs = seq(0.05, 0.95, 0.05))
 summary(q1)
+plot(q1)
+}
 
-## With covariates
+## OR with covariates, QTE
+\donttest{
+xf <- ~ age + I(age^2) + education + black + hispanic + married + nodegree
 q2 <- unc_qte(yname = "re78", dname = "treat", data = lalonde.psid,
-              xformla = ~ age + I(age^2) + education + black +
-                          hispanic + married + nodegree,
-              biters = 50, probs = seq(0.05, 0.95, 0.05))
+              xformla = xf, est_method = "or",
+              biters = 100, probs = seq(0.05, 0.95, 0.05))
 summary(q2)
+}
+
+## AIPW with covariates, QTT
+\donttest{
+q3 <- unc_qte(yname = "re78", dname = "treat", data = lalonde.psid,
+              xformla = xf, est_method = "aipw", target = "qtt",
+              biters = 100, probs = seq(0.05, 0.95, 0.05))
+summary(q3)
+}
 
 }
 \references{
 Firpo, Sergio. ``Efficient Semiparametric Estimation of Quantile Treatment
-Effects.'' Econometrica 75.1, pp. 259-276, 2007.
+Effects.'' \emph{Econometrica} 75(1), pp. 259--276, 2007.
+
+Melly, Blaise. ``Estimation of Counterfactual Distributions Using Quantile
+Regression.'' Working paper, University of St. Gallen, 2006.
+
+Chernozhukov, Victor, Ivan Fernandez-Val, and Blaise Melly.
+``Inference on Counterfactual Distributions.''
+\emph{Econometrica} 81(6), pp. 2205--2268, 2013.
 }

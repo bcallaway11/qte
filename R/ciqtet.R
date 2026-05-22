@@ -173,6 +173,15 @@ ci.qtet <- function(formla, xformla = NULL, w = NULL, data,
                     retEachIter = FALSE, indsample = TRUE,
                     printIter = FALSE, pl = FALSE, cores = 2,
                     biters = NULL, cl = NULL) {
+  .Deprecated(
+    msg = paste0(
+      "'ci.qtet' is deprecated.\n",
+      "For a cross-sectional QTT under unconfoundedness use:\n",
+      "  unc_qte(..., target = 'qtt')\n",
+      "For staggered treatment adoption with optional lagged-outcome conditioning use:\n",
+      "  lou_qte(...)"
+    )
+  )
   # biters and cl are aliases matching the did/ptetools API
   if (!is.null(biters)) iters <- biters
   if (!is.null(cl)) {

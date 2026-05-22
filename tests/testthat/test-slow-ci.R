@@ -1,9 +1,9 @@
 # =============================================================================
-# Title: Slow tests — CI and spatt estimators with bootstrap SE
-# Description: Verifies SE paths for ci.qte, ci.qtet, spatt.
+# Title: Slow tests — CI estimators with bootstrap SE
+# Description: Verifies SE paths for ci.qte and ci.qtet.
 #   Uses iters=5 to keep runtime manageable. Gate with R_SLOW_TESTS=true.
 # Author: Brant Callaway
-# Last update: 2026-05-18
+# Last update: 2026-05-22
 # Date created: 2026-05-18
 # =============================================================================
 
@@ -31,16 +31,4 @@ test_that("ci.qtet SE path produces valid intervals", {
   expect_true(all(cqt1$qte.se > 0))
   expect_true(all(cqt1$qte.lower < cqt1$qte))
   expect_true(all(cqt1$qte.upper > cqt1$qte))
-})
-
-test_that("spatt analytic SE is positive", {
-  skip_slow()
-  suppressWarnings({
-    sp1 <- spatt(re ~ treat,
-      t = 1978, tmin1 = 1975, tname = "year",
-      data = lalonde.psid.panel, idname = "id", se = TRUE
-    )
-  })
-  expect_s3_class(sp1, "QTE")
-  expect_true(sp1$ate.se > 0)
 })

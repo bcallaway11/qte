@@ -116,7 +116,7 @@ cic_gt <- function(gt_data, xformula = ~1, ...) {
   # covariate adjustment via conditional quantile regression (Athey-Imbens 2006).
   # Sampling weights are passed to rq() so the quantile regressions respect
   # the same weights used for the ATT and CDF calculations.
-  if (length(BMisc::rhs.vars(xformula)) > 0) {
+  if (length(BMisc::rhs_vars(xformula)) > 0) {
     u_seq <- seq(0.01, 0.99, 0.01)
 
     pre_ctrl  <- gt_data[gt_data$name == "pre"  & gt_data$D == 0, ]
@@ -130,9 +130,9 @@ cic_gt <- function(gt_data, xformula = ~1, ...) {
       post_trt <- post_trt[order(post_trt$id), ]
     }
 
-    yformla  <- BMisc::toformula("Y", BMisc::rhs.vars(xformula))
-    QR0t     <- rq(yformla, data = post_ctrl, tau = u_seq, weights = post_ctrl$.w) # nolint: object_name_linter
-    QR0tmin1 <- rq(yformla, data = pre_ctrl,  tau = u_seq, weights = pre_ctrl$.w)  # nolint: object_name_linter
+    yformla  <- BMisc::toformula("Y", BMisc::rhs_vars(xformula))
+    QR0t     <- suppressWarnings(rq(yformla, data = post_ctrl, tau = u_seq, weights = .w)) # nolint: object_name_linter
+    QR0tmin1 <- suppressWarnings(rq(yformla, data = pre_ctrl,  tau = u_seq, weights = .w)) # nolint: object_name_linter
     n1       <- nrow(pre_trt)
 
     QR0tmin1F <- predict(QR0tmin1, newdata = pre_trt, type = "Fhat", stepfun = TRUE) # nolint: object_name_linter
@@ -247,28 +247,35 @@ cic <- function(yname,
     ptetools::two_by_two_rcs_subset
   }
 
+  aggregation_fun <- if (gt_type == "qtt") {
+    ptetools::qtt_pte_aggregations
+  } else {
+    function(al, p, eg) ptetools::attgt_pte_aggregations(al, p)
+  }
+
   ptetools::pte(
-    yname         = yname,
-    gname         = gname,
-    tname         = tname,
-    idname        = idname,
-    data          = data,
-    panel         = panel,
-    setup_pte_fun = ptetools::setup_pte,
-    subset_fun    = subset_fun,
-    attgt_fun     = cic_gt,
-    xformula      = xformula,
-    weightsname   = weightsname,
-    control_group = control_group,
-    anticipation  = anticipation,
-    cband         = cband,
-    alp           = alp,
-    boot_type     = "empirical",
-    biters        = biters,
-    cl            = cl,
-    ret_quantile  = ret_quantile,
-    gt_type       = gt_type,
-    probs         = probs
+    yname           = yname,
+    gname           = gname,
+    tname           = tname,
+    idname          = idname,
+    data            = data,
+    panel           = panel,
+    setup_pte_fun   = ptetools::setup_pte,
+    subset_fun      = subset_fun,
+    attgt_fun       = cic_gt,
+    aggregation_fun = aggregation_fun,
+    xformula        = xformula,
+    weightsname     = weightsname,
+    control_group   = control_group,
+    anticipation    = anticipation,
+    cband           = cband,
+    alp             = alp,
+    boot_type       = "empirical",
+    biters          = biters,
+    cl              = cl,
+    ret_quantile    = ret_quantile,
+    gt_type         = gt_type,
+    probs           = probs
   )
 }
 
@@ -294,7 +301,7 @@ compute.CiC <- function(qp) {
   QR1t  <- NULL
   if (!is.null(xformla)) { # nolint: object_usage_linter
     u        <- seq(.01, .99, .01)
-    yformla  <- toformula("y", rhs.vars(xformla))
+    yformla  <- toformula("y", rhs_vars(xformla))
     QR0t     <- rq(yformla, data = untreated.t,     tau = u)
     QR0tmin1 <- rq(yformla, data = untreated.tmin1, tau = u)
     QR1t     <- rq(yformla, data = treated.t,       tau = u)
