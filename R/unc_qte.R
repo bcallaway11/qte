@@ -315,7 +315,7 @@ compute.unc_qte <- function(qp) {
 #' ## IPW, no covariates (simple quantile differences)
 #' \donttest{
 #' q1 <- unc_qte(yname = "re78", dname = "treat", data = lalonde.psid,
-#'               biters = 100, probs = seq(0.05, 0.95, 0.05))
+#'               biters = 20, probs = seq(0.05, 0.95, 0.05))
 #' summary(q1)
 #' plot(q1)
 #' }
@@ -325,7 +325,7 @@ compute.unc_qte <- function(qp) {
 #' xf <- ~ age + I(age^2) + education + black + hispanic + married + nodegree
 #' q2 <- unc_qte(yname = "re78", dname = "treat", data = lalonde.psid,
 #'               xformla = xf, est_method = "or",
-#'               biters = 100, probs = seq(0.05, 0.95, 0.05))
+#'               biters = 20, probs = seq(0.05, 0.95, 0.05))
 #' summary(q2)
 #' }
 #'
@@ -333,7 +333,7 @@ compute.unc_qte <- function(qp) {
 #' \donttest{
 #' q3 <- unc_qte(yname = "re78", dname = "treat", data = lalonde.psid,
 #'               xformla = xf, est_method = "aipw", target = "qtt",
-#'               biters = 100, probs = seq(0.05, 0.95, 0.05))
+#'               biters = 20, probs = seq(0.05, 0.95, 0.05))
 #' summary(q3)
 #' }
 #'
@@ -382,7 +382,8 @@ unc_qte <- function(yname, dname, data,
       F.treated.t   = firpo.qte$F.treated.t,
       F.treated.t.cf = firpo.qte$F.treated.t.cf,
       eachIterList  = eachIter,
-      probs = probs)
+      probs = probs,
+      type = if (target == "qtt") "On the Treated" else "Overall")
 }
 
 
@@ -410,8 +411,7 @@ unc_qte <- function(yname, dname, data,
 #' @param biters alias for \code{iters}; takes precedence if supplied.
 #' @param cl alias for cores; takes precedence if supplied.
 #'
-#' @return A \code{pte_emp_boot} object from \code{ptetools}; same structure as
-#'   \code{\link{unc_qte}}.
+#' @return A \code{QTE} object; same structure as \code{\link{unc_qte}}.
 #'
 #' @keywords internal
 #' @export
@@ -476,7 +476,8 @@ ci.qte <- function(formla, xformla = NULL, x = NULL, data, w = NULL,
 #'  Effects.'' Econometrica 75.1, pp. 259-276, 2007.
 #'
 #' @examples
-#' ## Load the data
+#' # See ?unc_qte for the modern replacement.
+#' \dontrun{
 #' data(lalonde)
 #'
 #' ## Estimate the QTET of participating in the job training program;
@@ -496,9 +497,9 @@ ci.qte <- function(formla, xformla = NULL, x = NULL, data, w = NULL,
 #'   data = lalonde.psid, se = FALSE, probs = seq(0.05, 0.95, 0.05)
 #' )
 #' summary(q2)
+#' }
 #'
-#' @return A \code{pte_emp_boot} object from \code{ptetools}; same structure as
-#'   \code{\link{unc_qte}}.
+#' @return A \code{QTE} object; same structure as \code{\link{unc_qte}}.
 #' @export
 ci.qtet <- function(formla, xformla = NULL, w = NULL, data,
                     probs = seq(0.05, 0.95, 0.05), se = TRUE,

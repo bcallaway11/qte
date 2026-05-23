@@ -2,7 +2,6 @@
 % Please edit documentation in R/ddid.R
 \name{ddid}
 \alias{ddid}
-\alias{ddid2}
 \title{Distributional Difference-in-Differences}
 \usage{
 ddid(
@@ -21,29 +20,6 @@ ddid(
   cl = 1,
   gt_type = "att",
   probs = NULL
-)
-
-ddid2(
-  formla,
-  xformla = NULL,
-  t,
-  tmin1,
-  tname,
-  data,
-  panel = TRUE,
-  dropalwaystreated = TRUE,
-  idname = NULL,
-  probs = seq(0.05, 0.95, 0.05),
-  iters = 100,
-  alp = 0.05,
-  method = "logit",
-  se = TRUE,
-  retEachIter = FALSE,
-  seedvec = NULL,
-  pl = FALSE,
-  cores = NULL,
-  biters = NULL,
-  cl = NULL
 )
 }
 \arguments{
@@ -109,6 +85,24 @@ methods (e.g. \code{panel_qtt}) that require three periods.
 \code{mdid}, this estimator cannot be applied to repeated cross sections
 because it requires observing the within-unit outcome change for each
 control unit.
+}
+\examples{
+\donttest{
+data(mpdta, package = "did")
+
+## ATT aggregated across all groups and periods
+res_att <- ddid(yname = "lemp", gname = "first.treat", tname = "year",
+                idname = "countyreal", data = mpdta,
+                gt_type = "att", biters = 20)
+summary(res_att)
+
+## Full QTT curve at selected quantiles
+res_qtt <- ddid(yname = "lemp", gname = "first.treat", tname = "year",
+                idname = "countyreal", data = mpdta,
+                gt_type = "qtt", probs = seq(0.1, 0.9, 0.1), biters = 20)
+summary(res_qtt)
+}
+
 }
 \references{
 Callaway, Brantly, Tong Li, and Tatsushi Oka. ``Quantile Treatment Effects

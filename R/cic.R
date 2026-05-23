@@ -25,8 +25,8 @@
 #'   \code{ptetools}) with columns \code{name} (\code{"pre"} or
 #'   \code{"post"}), \code{D} (treatment dummy), \code{Y} (outcome), \code{id}
 #'   (unit identifier), and any covariate columns referenced by
-#'   \code{xformla}.
-#' @param xformla One-sided formula for covariates. Default \code{~1} uses no
+#'   \code{xformula}.
+#' @param xformula One-sided formula for covariates. Default \code{~1} uses no
 #'   covariates. With covariates, covariate-conditioned quantile regressions
 #'   are used following Athey and Imbens (2006).
 #' @param ... Additional arguments passed through by \code{ptetools}; not used
@@ -211,6 +211,23 @@ cic_gt <- function(gt_data, xformula = ~1, ...) {
 #'   Athey, Susan and Guido Imbens. ``Identification and Inference in Nonlinear
 #'   Difference-in-Differences Models.'' Econometrica 74(2), pp. 431-497, 2006.
 #'
+#' @examples
+#' \donttest{
+#' data(mpdta, package = "did")
+#'
+#' ## ATT aggregated across all groups and periods
+#' res_att <- cic(yname = "lemp", gname = "first.treat", tname = "year",
+#'                idname = "countyreal", data = mpdta,
+#'                gt_type = "att", biters = 20)
+#' summary(res_att)
+#'
+#' ## Full QTT curve at selected quantiles
+#' res_qtt <- cic(yname = "lemp", gname = "first.treat", tname = "year",
+#'                idname = "countyreal", data = mpdta,
+#'                gt_type = "qtt", probs = seq(0.1, 0.9, 0.1), biters = 20)
+#' summary(res_qtt)
+#' }
+#'
 #' @export
 cic <- function(yname,
                 gname,
@@ -346,7 +363,6 @@ compute.CiC <- function(qp) {
 #'   \code{yname}/\code{gname}/\code{tname} interface and supports staggered
 #'   treatment adoption natively via \code{ptetools}.
 #'
-#' @inheritParams CiC
 #' @param formla formula of the form \code{y ~ treat}.
 #' @param xformla optional one-sided covariate formula.
 #' @param t post-treatment period.
@@ -367,6 +383,8 @@ compute.CiC <- function(qp) {
 #'
 #' @seealso \code{\link{cic}}
 #'
+#' @name CiC-deprecated
+#' @aliases CiC
 #' @export
 # nolint start: object_name_linter
 CiC <- function(formla, xformla = NULL, t, tmin1, tname, data,

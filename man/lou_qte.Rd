@@ -132,7 +132,7 @@ res_att <- lou_qte(
   yname = "lemp", gname = "first.treat", tname = "year",
   idname = "countyreal", data = mpdta,
   lagged_outcome_cov = TRUE, est_method = "ipw",
-  gt_type = "att", biters = 50
+  gt_type = "att", biters = 20
 )
 summary(res_att)
 
@@ -141,7 +141,7 @@ res_qtt <- lou_qte(
   yname = "lemp", gname = "first.treat", tname = "year",
   idname = "countyreal", data = mpdta,
   lagged_outcome_cov = TRUE, est_method = "aipw",
-  gt_type = "qtt", probs = seq(0.1, 0.9, 0.1), biters = 50
+  gt_type = "qtt", probs = seq(0.1, 0.9, 0.1), biters = 20
 )
 summary(res_qtt)
 }

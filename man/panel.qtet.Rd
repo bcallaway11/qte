@@ -112,7 +112,8 @@ as a panel; the names of columns containing time periods and ids
 for each cross sectional unit need to be passed to the method.
 }
 \examples{
-## load the data
+# See ?panel_qtt for the modern replacement.
+\dontrun{
 data(lalonde)
 
 ## Run the panel.qtet method on the experimental data with no covariates
@@ -149,6 +150,7 @@ pq4 <- panel.qtet(re ~ treat,
   probs = seq(0.05, 0.95, 0.05)
 )
 summary(pq4)
+}
 
 }
 \references{

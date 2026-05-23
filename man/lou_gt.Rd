@@ -34,8 +34,9 @@ A list from \code{ptetools::attgt_noif} with \code{attgt} (ATT) and
 of counterfactual and observed treated outcomes).
 }
 \description{
-Estimates the ATT and counterfactual distribution F0 = F_{Y(0)|D=1}
-for a single (g,t) cell under lagged-outcome unconfoundedness. Called
-internally by \code{\link{lou_qte}} via \code{ptetools::pte()}.
+Estimates the ATT and counterfactual distribution
+\eqn{F_0 = F_{Y(0)|D=1}} for a single (g,t) cell under lagged-outcome
+unconfoundedness. Called internally by \code{\link{lou_qte}} via
+\code{ptetools::pte()}.
 }
 \keyword{internal}

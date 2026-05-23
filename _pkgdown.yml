@@ -1,16 +1,17 @@
+url: https://bcallaway11.github.io/qte
+
 template:
-  params:
-    bootswatch: sandstone
+  bootstrap: 5
+  bootswatch: sandstone
 
 authors:
   Brantly Callaway:
     href: https://bcallaway11.github.io/
 
-
 navbar:
-  title: "did"
+  title: "qte"
   left:
-    - text: "User Guides"
+    - text: "Vignettes"
       href: articles/index.html
     - text: "Functions"
       href: reference/index.html
@@ -25,72 +26,84 @@ home:
       href: https://github.com/bcallaway11/qte/issues
 
 articles:
-  - title: "Background on Quantile Treatment Effects Methods"
+  - title: "Getting Started"
     contents:
-      - R-QTEs
-  - title: "R qte Tutorials"
+      - intro
+  - title: "DiD-Based Methods"
     contents:
-      - panel-qtet
-      - ddid2
+      - did-estimators
+      - staggered-adoption
 
 reference:
-  - title: "Difference in Differences Methods"
+  - title: "Cross-sectional estimators"
     desc: >
-      Functions for computing quantile treatment effects with access to
-      repeated observations over time
-    contents: 
-      - panel.qtet
-      - ddid2
+      Estimators for the QTE and QTT under unconfoundedness (no panel data
+      required).
+    contents:
+      - unc_qte
+
+  - title: "DiD-based estimators"
+    desc: >
+      Estimators for the QTT under difference-in-differences and related
+      assumptions. All support staggered treatment adoption via ptetools.
+    contents:
+      - cic
+      - cic_gt
+      - qdid
+      - qdid_gt
+      - mdid
+      - mdid_gt
+      - ddid
+      - ddid_gt
+      - panel_qtt
+      - panel_qtt_gt
+      - lou_qte
+
+  - title: "Deprecated wrappers"
+    desc: >
+      Legacy two-period wrappers retained with deprecation warnings. Will be
+      removed in v2.1 (target 2026-08). See the linked modern replacement in
+      each function's documentation.
+    contents:
       - CiC
-      - cic2
       - QDiD
       - MDiD
-      - bounds
-  - title: "Unconfoundedness"
-    desc: >
-      Functions for computing quantile treatment effects under the assumption
-      of unconfoundedness
-    contents:
+      - ddid2
+      - panel.qtet
       - ci.qte
       - ci.qtet
-  - title: "Classes"
-    desc: >
-      Classes available in the **qte** package
+
+  - title: "Package overview"
     contents:
-      - DR
+      - qte-package
+
+  - title: "QTE class and output"
+    desc: >
+      The QTE S3 class returned by legacy estimators and unc_qte(), and
+      methods for printing, summarising, and plotting.
+    contents:
       - QTE
-      - QTEparams
-  - title: "Plotting Functions"
-    desc: >
-      Functions used for making **qte** plots
-    contents:
-      - ggqte
-      - plot.BoundsObj
-      - plot.QTE
-  - title: "Helper Functions"
-    desc: >
-      A number of other miscellaneous helper functions
-    contents:
-      - cic_attgt
-      - compute.panel.qtet
-      - computeDiffSE
-      - diffQ
-      - panel.checks
-      - panelize.data
-      - print.summary.BoundsObj
-      - print.summary.QTE
-      - qteToTexreg
-      - qtes2mat
-      - setupData
-      - spatt
-      - summary.BoundsObj
       - summary.QTE
+      - print.summary.QTE
+      - plot.QTE
+      - autoplot.QTE
+      - ggqte
+
   - title: "Data"
     desc: >
-      Available datasets in the package
+      Datasets bundled with the package.
     contents:
       - lalonde
       - lalonde.exp
       - lalonde.exp.panel
       - lalonde.psid
       - lalonde.psid.panel
+
+  - title: "Internal and legacy infrastructure"
+    desc: >
+      Exported for technical reasons but not intended for direct use. Subject
+      to removal in v2.1 alongside the deprecated wrappers.
+    contents:
+      - QTEparams
+      - panelize.data
+      - compute.panel.qtet

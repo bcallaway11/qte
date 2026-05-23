@@ -1,17 +1,74 @@
 # =============================================================================
 # Title: Helper functions for qte package
-# Description: Utility functions for plotting QTE objects.
+# Description: Utility functions for plotting QTE objects. Provides
+#   autoplot.QTE and plot.QTE for ggplot2-based plotting of QTE results,
+#   and retains ggqte() as a deprecated wrapper.
 # Author: Brant Callaway
-# Last update: 2026-05-21
+# Last update: 2026-05-22
 # Date created: 2026-05-18
 # =============================================================================
 
+
+# --- autoplot.QTE ------------------------------------------------------------
+
+#' @title autoplot.QTE
+#'
+#' @description Plot a \code{QTE} object as a quantile treatment effect curve
+#'   with optional confidence bands.
+#'
+#' @param object a \code{QTE} object, as returned by \code{\link{unc_qte}}.
+#' @param cband logical; if \code{TRUE} (default), show the uniform confidence
+#'   band stored in \code{object$qte.upper} / \code{object$qte.lower}.
+#'   If \code{FALSE}, show pointwise intervals computed from \code{object$qte.se}.
+#' @param ylab label for the y-axis. Default \code{"QTE"}.
+#' @param ... unused.
+#'
+#' @return a \code{ggplot} object.
+#' @method autoplot QTE
+#' @export
+autoplot.QTE <- function(object, cband = TRUE, ylab = "QTE", ...) {
+  probs <- object$probs
+  qte   <- object$qte
+  alp   <- if (is.null(object$alp)) 0.05 else object$alp
+
+  df <- data.frame(probs = probs, qte = qte)
+
+  has_se   <- !is.null(object$qte.se) && !anyNA(object$qte.se)
+  has_band <- !is.null(object$qte.upper) && !anyNA(object$qte.upper)
+
+  if (has_band && cband) {
+    df$lower <- object$qte.lower
+    df$upper <- object$qte.upper
+  } else if (has_se) {
+    cval     <- qnorm(1 - alp / 2)
+    df$lower <- qte - cval * object$qte.se
+    df$upper <- qte + cval * object$qte.se
+  }
+
+  p <- ggplot2::ggplot(df, ggplot2::aes(x = probs, y = qte)) +
+    ggplot2::geom_hline(yintercept = 0, color = "gray50") +
+    ggplot2::geom_line() +
+    ggplot2::geom_point() +
+    ggplot2::scale_x_continuous("Quantile", limits = c(0, 1)) +
+    ggplot2::scale_y_continuous(ylab) +
+    ggplot2::theme_bw()
+
+  if ("lower" %in% names(df)) {
+    p <- p +
+      ggplot2::geom_line(ggplot2::aes(y = .data$lower), linetype = "dashed") +
+      ggplot2::geom_line(ggplot2::aes(y = .data$upper), linetype = "dashed")
+  }
+
+  p
+}
+
+
+# --- ggqte (deprecated) ------------------------------------------------------
+
 #' @title ggqte
 #'
-#' @description Makes somewhat nicer plots of quantile treatment effects
-#'  by using ggplot
-#'
-#' @import ggplot2
+#' @description \strong{Deprecated.} Use \code{autoplot()} on a \code{QTE}
+#'   object instead.
 #'
 #' @param qteobj a QTE object
 #' @param main optional title
@@ -19,17 +76,17 @@
 #' @param ylim optional limits of y axis
 #' @param ybreaks optional breaks in y axis
 #' @param xbreaks optional breaks in x axis
-#' @param setype options are "pointwise", "uniform" or both; pointwise confidence
-#'  intervals cover the QTE at each particular point with a fixed probability,
-#'  uniform confidence bands cover the entire curve with a fixed
-#'  probability.  Uniform confidence bands will tend to be wider.  The option
-#'  "both" will plot both types of confidence intervals
-#' @param alp gives a way to override the significance level in the case where
-#'  `setype="pointwise"`.
+#' @param setype options are "pointwise", "uniform" or both
+#' @param alp significance level override
 #'
 #' @return a ggplot object
 #' @export
 ggqte <- function(qteobj, main = "", ylab = "QTE", ylim = NULL, ybreaks = NULL, xbreaks = c(.1, .3, .5, .7, .9), setype = "pointwise", alp = qteobj$alp) {
+  .Deprecated(msg = paste0(
+    "ggqte() is deprecated. Use autoplot() on a QTE object instead:\n",
+    "  autoplot(result)              # uniform band (default)\n",
+    "  autoplot(result, cband=FALSE) # pointwise intervals"
+  ))
   tau <- qteobj$probs
   qte <- qteobj$qte
   qte.se <- qteobj$qte.se

@@ -7,10 +7,16 @@
 \method{summary}{QTE}(object, ...)
 }
 \arguments{
-\item{object}{A QTE Object}
+\item{object}{A \code{QTE} object, as returned by \code{\link{unc_qte}}.}
 
-\item{...}{Other params (to work as generic method, but not used)}
+\item{...}{unused.}
+}
+\value{
+A \code{summary.QTE} object (a list with \code{overall_ate} and
+\code{qte_table} data frames).
 }
 \description{
-\code{summary.QTE} summarizes QTE objects
+\code{summary.QTE} summarizes a \code{QTE} object, returning
+formatted data frames for the overall ATE and the QTE table suitable for
+printing.
 }

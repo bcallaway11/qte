@@ -77,8 +77,7 @@ supplied, \code{biters} takes precedence.}
 \code{cl > 1} enables parallelism.}
 }
 \value{
-A \code{pte_emp_boot} object from \code{ptetools}; same structure as
-\code{\link{unc_qte}}.
+A \code{QTE} object; same structure as \code{\link{unc_qte}}.
 }
 \description{
 \strong{Deprecated.} Use \code{\link{unc_qte}}\code{(target = "qtt")}
@@ -92,7 +91,8 @@ re-weighting to estimate the counterfactual distribution. Standard errors
 are computed via the bootstrap.
 }
 \examples{
-## Load the data
+# See ?unc_qte for the modern replacement.
+\dontrun{
 data(lalonde)
 
 ## Estimate the QTET of participating in the job training program;
@@ -112,6 +112,7 @@ q2 <- ci.qtet(re78 ~ treat,
   data = lalonde.psid, se = FALSE, probs = seq(0.05, 0.95, 0.05)
 )
 summary(q2)
+}
 
 }
 \references{

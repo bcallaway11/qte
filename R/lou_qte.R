@@ -20,9 +20,10 @@
 
 #' @title lou_gt
 #'
-#' @description Estimates the ATT and counterfactual distribution F0 = F_{Y(0)|D=1}
-#'   for a single (g,t) cell under lagged-outcome unconfoundedness. Called
-#'   internally by \code{\link{lou_qte}} via \code{ptetools::pte()}.
+#' @description Estimates the ATT and counterfactual distribution
+#'   \eqn{F_0 = F_{Y(0)|D=1}} for a single (g,t) cell under lagged-outcome
+#'   unconfoundedness. Called internally by \code{\link{lou_qte}} via
+#'   \code{ptetools::pte()}.
 #'
 #' @param gt_data A \code{gt_data_frame} from \code{ptetools::two_by_two_subset}
 #'   or \code{ptetools::two_by_two_rcs_subset}. Contains columns \code{Y},
@@ -285,7 +286,7 @@ lou_gt <- function(gt_data, xformula = ~1, lagged_outcome_cov = TRUE,
 #'   yname = "lemp", gname = "first.treat", tname = "year",
 #'   idname = "countyreal", data = mpdta,
 #'   lagged_outcome_cov = TRUE, est_method = "ipw",
-#'   gt_type = "att", biters = 50
+#'   gt_type = "att", biters = 20
 #' )
 #' summary(res_att)
 #'
@@ -294,7 +295,7 @@ lou_gt <- function(gt_data, xformula = ~1, lagged_outcome_cov = TRUE,
 #'   yname = "lemp", gname = "first.treat", tname = "year",
 #'   idname = "countyreal", data = mpdta,
 #'   lagged_outcome_cov = TRUE, est_method = "aipw",
-#'   gt_type = "qtt", probs = seq(0.1, 0.9, 0.1), biters = 50
+#'   gt_type = "qtt", probs = seq(0.1, 0.9, 0.1), biters = 20
 #' )
 #' summary(res_qtt)
 #' }

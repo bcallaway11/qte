@@ -88,6 +88,18 @@ treatment onset.}
 Pre-test placebo cells always use the sliding base regardless of
 \code{pre_copula}.
 }
+\examples{
+\donttest{
+data(mpdta, package = "did")
+
+## Panel QTT with rolling pre-period copula (default pre_copula = "long")
+res <- panel_qtt(yname = "lemp", gname = "first.treat", tname = "year",
+                 idname = "countyreal", data = mpdta,
+                 gt_type = "qtt", probs = seq(0.1, 0.9, 0.1), biters = 20)
+summary(res)
+}
+
+}
 \references{
 Callaway, Brantly and Tong Li. ``Quantile Treatment Effects in
 Difference-in-Differences Models with Panel Data.'' Quantitative

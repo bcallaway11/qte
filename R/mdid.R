@@ -220,6 +220,23 @@ mdid_gt <- function(gt_data, xformula = ~1, ...) {
 #'   Thuysbaert, Bram. ``Distributional Comparisons in Difference in Differences
 #'   Models.'' Working Paper, 2007.
 #'
+#' @examples
+#' \donttest{
+#' data(mpdta, package = "did")
+#'
+#' ## ATT aggregated across all groups and periods
+#' res_att <- mdid(yname = "lemp", gname = "first.treat", tname = "year",
+#'                 idname = "countyreal", data = mpdta,
+#'                 gt_type = "att", biters = 20)
+#' summary(res_att)
+#'
+#' ## Full QTT curve at selected quantiles
+#' res_qtt <- mdid(yname = "lemp", gname = "first.treat", tname = "year",
+#'                 idname = "countyreal", data = mpdta,
+#'                 gt_type = "qtt", probs = seq(0.1, 0.9, 0.1), biters = 20)
+#' summary(res_qtt)
+#' }
+#'
 #' @export
 mdid <- function(yname,
                  gname,
@@ -352,8 +369,39 @@ compute.MDiD <- function(formla, xformla = NULL, t, tmin1, tname, data,
 
 # --- Deprecated two-period wrapper -------------------------------------------
 
-#' @rdname mdid
+#' @title MDiD
+#'
+#' @description \strong{Deprecated.} Use \code{\link{mdid}} instead.
+#'
+#'   \code{MDiD} is a legacy two-period wrapper for the Mean
+#'   Difference-in-Differences estimator. The modern replacement
+#'   \code{\link{mdid}} uses a \code{yname}/\code{gname}/\code{tname}
+#'   interface and supports staggered treatment adoption natively.
+#'
+#' @param formla formula of the form \code{y ~ treat}.
+#' @param xformla optional one-sided covariate formula (unused in this
+#'   estimator; accepted for consistency with other wrappers).
+#' @param t post-treatment period.
+#' @param tmin1 pre-treatment period.
+#' @param tname name of the time column.
+#' @param data data.frame.
+#' @param panel logical; whether data are panel.
+#' @param se logical; whether to compute bootstrap SEs.
+#' @param idname name of the unit id column (required when \code{panel = TRUE}).
+#' @param alp significance level.
+#' @param probs quantile grid.
+#' @param iters bootstrap iterations.
+#' @param retEachIter logical; return per-iteration results.
+#' @param biters alias for \code{iters}; takes precedence if supplied.
+#'
+#' @return \code{QTE} object.
+#'
+#' @seealso \code{\link{mdid}}
+#'
+#' @name MDiD-deprecated
+#' @aliases MDiD
 #' @export
+# nolint start: object_name_linter
 MDiD <- function(formla, xformla = NULL, t, tmin1, tname, data,
                  panel = FALSE, se = TRUE,
                  idname = NULL,
@@ -441,3 +489,4 @@ MDiD <- function(formla, xformla = NULL, t, tmin1, tname, data,
     mdid_result
   }
 }
+# nolint end: object_name_linter

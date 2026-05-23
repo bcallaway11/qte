@@ -1,0 +1,158 @@
+# ci.qtet
+
+**Deprecated.** Use
+[`unc_qte`](https://bcallaway11.github.io/qte/reference/unc_qte.md)`(target = "qtt")`
+for a cross-sectional QTT under unconfoundedness, or
+[`lou_qte`](https://bcallaway11.github.io/qte/reference/lou_qte.md) for
+staggered treatment adoption with optional lagged-outcome conditioning.
+
+`ci.qtet` estimates the Quantile Treatment Effect on the Treated (QTET)
+under a Conditional Independence Assumption (sometimes called Selection
+on Observables) following Firpo (2007). It uses propensity score
+re-weighting to estimate the counterfactual distribution. Standard
+errors are computed via the bootstrap.
+
+## Usage
+
+``` r
+ci.qtet(
+  formla,
+  xformla = NULL,
+  w = NULL,
+  data,
+  probs = seq(0.05, 0.95, 0.05),
+  se = TRUE,
+  iters = 100,
+  alp = 0.05,
+  method = "logit",
+  retEachIter = FALSE,
+  indsample = TRUE,
+  printIter = FALSE,
+  pl = FALSE,
+  cores = 2,
+  biters = NULL,
+  cl = NULL
+)
+```
+
+## Arguments
+
+- formla:
+
+  The formula y ~ d where y is the outcome and d is the treatment
+  indicator (d should be binary), d should be equal to one in all time
+  periods for individuals that are eventually treated
+
+- xformla:
+
+  A optional one sided formula for additional covariates that will be
+  adjusted for. E.g ~ age + education. Additional covariates can also be
+  passed by name using the x paramater.
+
+- w:
+
+  sampling weight vector. Cannot be forwarded automatically; use
+  `weightsname` in `unc_qte` instead.
+
+- data:
+
+  A data.frame containing all the variables used
+
+- probs:
+
+  A vector of values between 0 and 1 to compute the QTET at
+
+- se:
+
+  Boolean whether or not to compute standard errors
+
+- iters:
+
+  The number of iterations to compute bootstrap standard errors. This is
+  only used if se=TRUE
+
+- alp:
+
+  The significance level used for constructing bootstrap confidence
+  intervals
+
+- method:
+
+  Method to compute propensity score. Default is logit; other option is
+  probit.
+
+- retEachIter:
+
+  Boolean whether or not to return list of results from each iteration
+  of the bootstrap procedure (default is FALSE). This is potentially
+  useful for debugging but can cause errors due to running out of
+  memory.
+
+- indsample:
+
+  Binary variable for whether to treat the samples as independent or
+  dependent. This affects bootstrap standard errors. In the job training
+  example, the samples are independent because they are two samples
+  collected independently and then merged. If the data is from the same
+  source, usually should set this option to be FALSE.
+
+- printIter:
+
+  For debugging only; should leave at default FALSE unless you want to
+  see a lot of output
+
+- pl:
+
+  Whether or not to compute standard errors in parallel
+
+- cores:
+
+  Number of cores to use if computing in parallel
+
+- biters:
+
+  Number of bootstrap iterations; alias for `iters` matching the
+  `did`/`ptetools` naming convention. If both are supplied, `biters`
+  takes precedence.
+
+- cl:
+
+  Number of cores for parallel bootstrap; alias for `pl`/`cores`.
+  `cl = 1` (default) runs sequentially; `cl > 1` enables parallelism.
+
+## Value
+
+A `QTE` object; same structure as
+[`unc_qte`](https://bcallaway11.github.io/qte/reference/unc_qte.md).
+
+## References
+
+Firpo, Sergio. “Efficient Semiparametric Estimation of Quantile
+Treatment Effects.” Econometrica 75.1, pp. 259-276, 2007.
+
+## Examples
+
+``` r
+# See ?unc_qte for the modern replacement.
+if (FALSE) { # \dontrun{
+data(lalonde)
+
+## Estimate the QTET of participating in the job training program;
+## This is the no covariate case.  Note: Because individuals that participate
+## in the job training program are likely to be much different than
+## individuals that do not (e.g. less experience and less education), this
+## method is likely to perform poorly at estimating the true QTET
+q1 <- ci.qtet(re78 ~ treat,
+  x = NULL, data = lalonde.psid, se = FALSE,
+  probs = seq(0.05, 0.95, 0.05)
+)
+summary(q1)
+
+## This estimation controls for all the available background characteristics.
+q2 <- ci.qtet(re78 ~ treat,
+  xformla = ~ age + I(age^2) + education + black + hispanic + married + nodegree,
+  data = lalonde.psid, se = FALSE, probs = seq(0.05, 0.95, 0.05)
+)
+summary(q2)
+} # }
+```

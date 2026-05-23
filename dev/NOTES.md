@@ -95,9 +95,45 @@ aggregation_fun(attgt.list, ptep, extra_gt_returns)
 
 ### Next Update — Delete Legacy Infrastructure (Target: 2026-08-01)
 
+**Trim `globalVariables()` in `R/imports.R`**: Once the deprecated wrappers
+(`CiC`, `QDiD`, `MDiD`, `ddid2`, `panel.qtet`, `ci.qte`, `ci.qtet`) and
+`ggqte()` are removed, most of the `globalVariables()` list in `R/imports.R`
+becomes dead weight. The `setupData()`-injected names (`yname`, `treat`,
+`panel`, `treated.t`, etc.) and the ggplot2 names (`aes`, `element_rect`,
+`element_text`) can all go. Only `.w`, `G`, and `period` (ptetools/data.table
+column references) are likely to remain.
+
+
+
 **What to keep:** `ci.qte` (cross-sectional Firpo 2007 estimator, no staggered
 extension planned). `ci.qtet` will get a new ptetools-based staggered version
 before the legacy version is removed — do not delete it until that is done.
+
+**`formula.tools` dependency removal:** `formula.tools` is used at exactly two
+lines in `R/qte-class.R` (lines 70–71), inside `compute.panel.qtet`, in the
+`method == "pscore"` branch:
+
+```r
+formula.tools::rhs(this.formla) <- formula.tools::rhs(xformla)
+formula.tools::lhs(this.formla) <- as.name(treat)
+```
+
+These two lines build a formula with `treat` as the response and the RHS of
+`xformla` as predictors. The base R equivalent (no extra dependency):
+
+```r
+this.formla <- reformulate(
+  response  = treat,
+  termlabels = attr(terms(xformla), "term.labels")
+)
+```
+
+**Recommended action:** do not replace now. Since `compute.panel.qtet` and
+`panel.qtet` are both deprecated and scheduled for deletion in the 2026-08
+pass, the cleanest path is to delete the whole function (and `formula.tools`
+from DESCRIPTION Imports) at that point. Only bother with the `reformulate`
+replacement if there is a reason to drop the dependency before deleting the
+function.
 
 Once the remaining legacy two-period functions (`CiC`, `QDiD`, `MDiD`,
 `ddid2`, `panel.qtet`, `ci.qtet`) are removed, the following
@@ -132,6 +168,14 @@ infrastructure files, then regenerate NAMESPACE with `devtools::document()`.
   `mdid()`, `ddid()` currently rely on the deprecated NULL fallback in
   `pte_emp_boot()`, which generates warnings during tests. Pass the appropriate
   function explicitly to silence those.
+
+- **Correctness regression tests**: Add focused numerical regression tests for
+  the main estimators after the API cleanup settles. Expected values should be
+  generated once from a trusted package version, commit, or independent
+  calculation, then stored directly in tests or small fixture files with a note
+  documenting their source. Prefer checking stable quantities (ATE, selected QTE
+  values, dimensions, classes, and missing-value behavior) rather than entire
+  result objects.
 
 ### Medium Priority
 
@@ -178,6 +222,13 @@ Defer until the legacy cleanup is further along.
 
 - **Uniform parallel interface**: `MDiD` lacks `pl`/`cores`; standardize across
   all estimators when touching those files.
+- **Benchmark comparisons**: Keep performance testing separate from
+  `R CMD check`. A useful future setup would run representative benchmarks for
+  current code versus a saved release/tag baseline and compare median runtimes
+  with loose thresholds for large slowdowns. The current `bench/` scripts are
+  developer-only and stale (`spatt` has been removed and several benchmarked
+  functions are deprecated), so either refresh them around the new API or delete
+  them after recording the intended benchmark plan.
 - **`panel` defaults**: Consider whether inconsistent defaults across `CiC`,
   `QDiD`, `MDiD`, `ddid2` should be harmonized (breaking change, low urgency).
 - **Staggered extensions**: `qdid2`, `ddid22`, `panel.qtet2` are planned but

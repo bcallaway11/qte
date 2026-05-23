@@ -215,6 +215,23 @@ qdid_gt <- function(gt_data, xformula = ~1, ...) {
 #'   Athey, Susan and Guido Imbens. ``Identification and Inference in Nonlinear
 #'   Difference-in-Differences Models.'' Econometrica 74(2), pp. 431-497, 2006.
 #'
+#' @examples
+#' \donttest{
+#' data(mpdta, package = "did")
+#'
+#' ## ATT aggregated across all groups and periods
+#' res_att <- qdid(yname = "lemp", gname = "first.treat", tname = "year",
+#'                 idname = "countyreal", data = mpdta,
+#'                 gt_type = "att", biters = 20)
+#' summary(res_att)
+#'
+#' ## Full QTT curve at selected quantiles
+#' res_qtt <- qdid(yname = "lemp", gname = "first.treat", tname = "year",
+#'                 idname = "countyreal", data = mpdta,
+#'                 gt_type = "qtt", probs = seq(0.1, 0.9, 0.1), biters = 20)
+#' summary(res_qtt)
+#' }
+#'
 #' @export
 qdid <- function(yname,
                  gname,
@@ -384,6 +401,8 @@ compute.QDiD <- function(qp) { # nolint: object_name_linter
 #'
 #' @seealso \code{\link{qdid}}
 #'
+#' @name QDiD-deprecated
+#' @aliases QDiD
 #' @export
 # nolint start: object_name_linter
 QDiD <- function(formla, xformla = NULL, t, tmin1, tname, data,

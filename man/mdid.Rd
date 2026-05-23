@@ -2,7 +2,6 @@
 % Please edit documentation in R/mdid.R
 \name{mdid}
 \alias{mdid}
-\alias{MDiD}
 \title{Mean Difference-in-Differences}
 \usage{
 mdid(
@@ -23,23 +22,6 @@ mdid(
   ret_quantile = NULL,
   gt_type = "att",
   probs = NULL
-)
-
-MDiD(
-  formla,
-  xformla = NULL,
-  t,
-  tmin1,
-  tname,
-  data,
-  panel = FALSE,
-  se = TRUE,
-  idname = NULL,
-  alp = 0.05,
-  probs = seq(0.05, 0.95, 0.05),
-  iters = 100,
-  retEachIter = FALSE,
-  biters = NULL
 )
 }
 \arguments{
@@ -119,6 +101,24 @@ estimated by weighted OLS. The counterfactual for treated unit \eqn{i} is
 \eqn{Y_{\text{pre},i} + \Delta(X_i)}, and the unconditional counterfactual
 distribution is the empirical CDF of these values. By the law of iterated
 expectations, this consistently estimates \eqn{F_{Y(0),\text{post}|D=1}}.
+}
+\examples{
+\donttest{
+data(mpdta, package = "did")
+
+## ATT aggregated across all groups and periods
+res_att <- mdid(yname = "lemp", gname = "first.treat", tname = "year",
+                idname = "countyreal", data = mpdta,
+                gt_type = "att", biters = 20)
+summary(res_att)
+
+## Full QTT curve at selected quantiles
+res_qtt <- mdid(yname = "lemp", gname = "first.treat", tname = "year",
+                idname = "countyreal", data = mpdta,
+                gt_type = "qtt", probs = seq(0.1, 0.9, 0.1), biters = 20)
+summary(res_qtt)
+}
+
 }
 \references{
 Athey, Susan and Guido Imbens. ``Identification and Inference in Nonlinear

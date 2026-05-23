@@ -135,7 +135,7 @@ data(lalonde)
 ## IPW, no covariates (simple quantile differences)
 \donttest{
 q1 <- unc_qte(yname = "re78", dname = "treat", data = lalonde.psid,
-              biters = 100, probs = seq(0.05, 0.95, 0.05))
+              biters = 20, probs = seq(0.05, 0.95, 0.05))
 summary(q1)
 plot(q1)
 }
@@ -145,7 +145,7 @@ plot(q1)
 xf <- ~ age + I(age^2) + education + black + hispanic + married + nodegree
 q2 <- unc_qte(yname = "re78", dname = "treat", data = lalonde.psid,
               xformla = xf, est_method = "or",
-              biters = 100, probs = seq(0.05, 0.95, 0.05))
+              biters = 20, probs = seq(0.05, 0.95, 0.05))
 summary(q2)
 }
 
@@ -153,7 +153,7 @@ summary(q2)
 \donttest{
 q3 <- unc_qte(yname = "re78", dname = "treat", data = lalonde.psid,
               xformla = xf, est_method = "aipw", target = "qtt",
-              biters = 100, probs = seq(0.05, 0.95, 0.05))
+              biters = 20, probs = seq(0.05, 0.95, 0.05))
 summary(q3)
 }
 

@@ -11,14 +11,14 @@ cic_gt(gt_data, xformula = ~1, ...)
 \code{ptetools}) with columns \code{name} (\code{"pre"} or
 \code{"post"}), \code{D} (treatment dummy), \code{Y} (outcome), \code{id}
 (unit identifier), and any covariate columns referenced by
-\code{xformla}.}
+\code{xformula}.}
+
+\item{xformula}{One-sided formula for covariates. Default \code{~1} uses no
+covariates. With covariates, covariate-conditioned quantile regressions
+are used following Athey and Imbens (2006).}
 
 \item{...}{Additional arguments passed through by \code{ptetools}; not used
 directly.}
-
-\item{xformla}{One-sided formula for covariates. Default \code{~1} uses no
-covariates. With covariates, covariate-conditioned quantile regressions
-are used following Athey and Imbens (2006).}
 }
 \value{
 A \code{ptetools::attgt_noif} object with the ATT estimate and, in

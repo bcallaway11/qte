@@ -216,6 +216,23 @@ ddid_gt <- function(gt_data, xformula = ~1, ...) {
 #'   in Difference in Differences Models under Dependence Restrictions and with
 #'   Only Two Time Periods.'' Journal of Econometrics 206(2), pp. 395-413, 2018.
 #'
+#' @examples
+#' \donttest{
+#' data(mpdta, package = "did")
+#'
+#' ## ATT aggregated across all groups and periods
+#' res_att <- ddid(yname = "lemp", gname = "first.treat", tname = "year",
+#'                 idname = "countyreal", data = mpdta,
+#'                 gt_type = "att", biters = 20)
+#' summary(res_att)
+#'
+#' ## Full QTT curve at selected quantiles
+#' res_qtt <- ddid(yname = "lemp", gname = "first.treat", tname = "year",
+#'                 idname = "countyreal", data = mpdta,
+#'                 gt_type = "qtt", probs = seq(0.1, 0.9, 0.1), biters = 20)
+#' summary(res_qtt)
+#' }
+#'
 #' @export
 ddid <- function(yname,
                  gname,
@@ -335,7 +352,40 @@ compute.ddid2 <- function(qp) { # nolint: object_name_linter
 
 # --- Deprecated two-period wrapper -------------------------------------------
 
-#' @rdname ddid
+#' @title ddid2
+#'
+#' @description \strong{Deprecated.} Use \code{\link{ddid}} instead.
+#'
+#'   \code{ddid2} is a legacy two-period wrapper for the Distributional
+#'   Difference-in-Differences estimator. The modern replacement
+#'   \code{\link{ddid}} uses a \code{yname}/\code{gname}/\code{tname}
+#'   interface and supports staggered treatment adoption natively.
+#'
+#' @param formla formula of the form \code{y ~ treat}.
+#' @param xformla optional one-sided covariate formula.
+#' @param t post-treatment period.
+#' @param tmin1 pre-treatment period.
+#' @param tname name of the time column.
+#' @param data data.frame.
+#' @param panel logical; whether data are panel (must be \code{TRUE}).
+#' @param dropalwaystreated logical; whether to drop always-treated units.
+#' @param idname name of the unit id column.
+#' @param probs quantile grid.
+#' @param iters bootstrap iterations.
+#' @param alp significance level.
+#' @param method propensity score estimation method (\code{"logit"}).
+#' @param se logical; whether to compute bootstrap SEs.
+#' @param retEachIter logical; return per-iteration results.
+#' @param seedvec optional vector of seeds for reproducible bootstrap.
+#' @param pl logical; parallel bootstrap.
+#' @param cores number of cores.
+#' @param biters alias for \code{iters}; takes precedence if supplied.
+#' @param cl alias for \code{cores}; takes precedence if supplied.
+#'
+#' @return \code{QTE} object.
+#'
+#' @seealso \code{\link{ddid}}
+#'
 #' @export
 ddid2 <- function(formla, xformla = NULL, t, tmin1,
                   tname, data, panel = TRUE,

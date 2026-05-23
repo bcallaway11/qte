@@ -4,56 +4,21 @@
 \alias{plot.QTE}
 \title{plot.QTE}
 \usage{
-\method{plot}{QTE}(
-  x,
-  plotate = FALSE,
-  plot0 = FALSE,
-  qtecol = "black",
-  atecol = "black",
-  col0 = "black",
-  xlab = "tau",
-  ylab = "QTE",
-  legend = NULL,
-  ontreated = FALSE,
-  ylim = NULL,
-  uselegend = FALSE,
-  legendcol = NULL,
-  legloc = "topright",
-  ...
-)
+\method{plot}{QTE}(x, cband = TRUE, ylab = "QTE", ...)
 }
 \arguments{
-\item{x}{a QTE Object}
+\item{x}{a \code{QTE} object, as returned by \code{\link{unc_qte}}.}
 
-\item{plotate}{Boolean whether or not to plot the ATE}
+\item{cband}{logical; if \code{TRUE} (default), show the uniform confidence
+band. If \code{FALSE}, show pointwise intervals.}
 
-\item{plot0}{Boolean whether to plot a line at 0}
+\item{ylab}{label for the y-axis. Default \code{"QTE"}.}
 
-\item{qtecol}{Color for qte plot.  Default "black"}
-
-\item{atecol}{Color for ate plot.  Default "black"}
-
-\item{col0}{Color for 0 plot.  Default "black"}
-
-\item{xlab}{Custom label for x-axis.  Default "tau"}
-
-\item{ylab}{Custom label for y-axis.  Default "QTE"}
-
-\item{legend}{Vector of strings to add to legend}
-
-\item{ontreated}{Boolean whether parameters are "on the treated group"}
-
-\item{ylim}{The ylim for the plot; if not passed, it will be automatically
-set based on the values that the QTE takes}
-
-\item{uselegend}{Boolean whether or not to print a legend}
-
-\item{legendcol}{Legend Colors for plotting}
-
-\item{legloc}{String location for the legend.  Default "topright"}
-
-\item{...}{Other parameters to be passed to plot (e.g lwd)}
+\item{...}{passed to \code{\link{autoplot.QTE}}.}
+}
+\value{
+invisibly returns the \code{ggplot} object.
 }
 \description{
-Plots a QTE Object
+Plots a \code{QTE} object using \code{\link{autoplot.QTE}}.
 }

@@ -270,7 +270,8 @@ compute.panel.qtet <- function(qp) {
 #'   \code{cl > 1} enables parallelism.
 #'
 #' @examples
-#' ## load the data
+#' # See ?panel_qtt for the modern replacement.
+#' \dontrun{
 #' data(lalonde)
 #'
 #' ## Run the panel.qtet method on the experimental data with no covariates
@@ -307,6 +308,7 @@ compute.panel.qtet <- function(qp) {
 #'   probs = seq(0.05, 0.95, 0.05)
 #' )
 #' summary(pq4)
+#' }
 #'
 #' @references
 #' Callaway, Brantly and Tong Li.  ``Quantile Treatment Effects in Difference
@@ -471,77 +473,128 @@ computeSE <- function(bootIters, qteobj, alp = 0.05) {
 ## summary function for QTE objects
 #' @title Summary
 #'
-#' @description \code{summary.QTE} summarizes QTE objects
+#' @description \code{summary.QTE} summarizes a \code{QTE} object, returning
+#'   formatted data frames for the overall ATE and the QTE table suitable for
+#'   printing.
 #'
-#' @param object A QTE Object
-#' @param ... Other params (to work as generic method, but not used)
+#' @param object A \code{QTE} object, as returned by \code{\link{unc_qte}}.
+#' @param ... unused.
 #'
+#' @return A \code{summary.QTE} object (a list with \code{overall_ate} and
+#'   \code{qte_table} data frames).
 #' @export
 summary.QTE <- function(object, ...) {
-  ## to follow lm, use this function to create a summary.BootQTE object
-  ## then that object will have a print method
-  ## to check it out for lm, call getAnywhere(print.summary.lm)
-  ## and can easily see summary.lm w/o special call
-  qte.obj <- object
+  alp  <- if (!is.null(object$alp)) object$alp else 0.05
+  z    <- qnorm(1 - alp / 2)
+  on_treated <- isTRUE(grepl("Treated", object$type, ignore.case = TRUE))
+
+  # --- overall ATE/ATT ---
+  ate    <- object$ate
+  ate.se <- object$ate.se
+  if (!is.null(ate.se) && !is.na(ate.se)) {
+    ate.lower <- if (!is.null(object$ate.lower)) object$ate.lower else ate - z * ate.se
+    ate.upper <- if (!is.null(object$ate.upper)) object$ate.upper else ate + z * ate.se
+    ate_sig   <- !is.na(ate.upper) & ((ate.upper < 0) | (ate.lower > 0))
+    out_ate   <- cbind.data.frame(
+      round(ate,       4),
+      round(ate.se,    4),
+      round(ate.lower, 4),
+      round(ate.upper, 4),
+      ifelse(ate_sig, "*", "")
+    )
+  } else {
+    out_ate <- cbind.data.frame(round(ate, 4))
+  }
+
+  # --- QTE table ---
+  if (!is.null(object$qte)) {
+    probs  <- object$probs
+    qte    <- object$qte
+    qte.se <- object$qte.se
+    if (!is.null(qte.se)) {
+      # prefer stored uniform band; fall back to pointwise from SE
+      qte.lower <- if (!is.null(object$qte.lower)) object$qte.lower else qte - z * qte.se
+      qte.upper <- if (!is.null(object$qte.upper)) object$qte.upper else qte + z * qte.se
+      qte_sig   <- !is.na(qte.upper) & ((qte.upper < 0) | (qte.lower > 0))
+      out_qte   <- cbind.data.frame(
+        probs,
+        round(qte,       4),
+        round(qte.se,    4),
+        round(qte.lower, 4),
+        round(qte.upper, 4),
+        ifelse(qte_sig, "*", "")
+      )
+    } else {
+      out_qte <- cbind.data.frame(probs, round(qte, 4))
+    }
+  } else {
+    out_qte <- NULL
+  }
 
   out <- list(
-    probs = qte.obj$probs, qte = qte.obj$qte,
-    qte.se = qte.obj$qte.se,
-    ate = qte.obj$ate, ate.se = qte.obj$ate.se
+    overall_ate = out_ate,
+    qte_table   = out_qte,
+    alp         = alp,
+    on_treated  = on_treated,
+    has_se      = !is.null(object$qte.se),
+    has_cband   = !is.null(object$qte.upper)
   )
   class(out) <- "summary.QTE"
-  return(out)
+  out
 }
 
-#' @title Print
+#' @title Print summary.QTE
 #'
-#' @description Prints a Summary QTE Object
+#' @description Prints a \code{summary.QTE} object.
 #'
-#' @param x A summary.QTE object
-#' @param ... Other params (required as generic function, but not used)
+#' @param x A \code{summary.QTE} object.
+#' @param ... unused.
 #'
+#' @return None. Called for its side effect of printing.
 #' @export
 print.summary.QTE <- function(x, ...) {
-  summary.qte.obj <- x
-  qte <- summary.qte.obj$qte
-  qte.se <- summary.qte.obj$qte.se
-  ate <- summary.qte.obj$ate
-  ate.se <- summary.qte.obj$ate.se
-  probs <- summary.qte.obj$probs
-  if (!is.null(qte)) { ## that is we just have att
-    ## then, print the qte stuff; otherwise just att stuff
-    if (is.null(qte.se)) {
-      header <- "QTE"
-      body <- qte
-    } else {
-      header <- c("QTE", "Std. Error")
-      body <- cbind(qte, qte.se)
-    }
-    body <- round(body, digits = 3)
-    ## colnames(body) <- header
-    cat("\n")
-    cat("Quantile Treatment Effect:\n")
-    cat("\t\t")
-    ## cat(header, sep="\t\t")
-    cat("\n")
-    ## for (i in 1:length(qte)) {
-    ##    cat("\t\t")
-    ##    cat(format(body[i,],digits=5), sep="\t\t")
-    ##    cat("\n")
-    ## }
-    qte_print_mat(body, probs, header = c("tau", header), digits = 2, nsmall = 2)
-    cat("\n")
-  }
-  cat("Average Treatment Effect:")
-  cat("\t")
-  cat(format(ate, digits = 2, nsmall = 2))
+  alp        <- x$alp
+  ci_header  <- paste0("[ ", 100 * (1 - alp), "% ")
+  band_label <- if (x$has_cband) "Simult. " else "Pointwise "
+  ate_label  <- if (x$on_treated) "Overall ATT" else "Overall ATE"
+  qte_label  <- if (x$on_treated) "QTT" else "QTE"
+
+  # --- overall ATE/ATT ---
   cat("\n")
-  if (!is.null(ate.se)) {
-    cat("\t Std. Error: \t\t")
-    cat(format(ate.se, digits = 2, nsmall = 2))
-    cat("\n")
+  cat(paste0(ate_label, ":  \n"))
+  out1 <- x$overall_ate
+  if (x$has_se) {
+    colnames(out1) <- c(
+      if (x$on_treated) "ATT" else "ATE",
+      "   Std. Error",
+      paste0("    ", ci_header),
+      "Conf. Int.]",
+      ""
+    )
   }
-  ## print(data.frame(body), digits=2)
+  print(out1, row.names = FALSE)
+  cat("\n\n")
+
+  # --- QTE table ---
+  if (!is.null(x$qte_table)) {
+    cat(paste0(qte_label, ":\n"))
+    out2 <- x$qte_table
+    if (x$has_se) {
+      colnames(out2) <- c(
+        "Tau",
+        qte_label,
+        "Std. Error",
+        paste0(ci_header, band_label),
+        "Conf. Band]",
+        ""
+      )
+    } else {
+      colnames(out2) <- c("Tau", qte_label)
+    }
+    print(out2, row.names = FALSE, justify = "centre")
+    cat("---\n")
+    cat("Signif. codes: `*' confidence band does not cover 0\n\n")
+  }
 }
 
 #' @keywords internal
@@ -563,85 +616,20 @@ qte_print_mat <- function(m, probs = NULL, header = NULL, digits = 2, nsmall = 2
 ##
 #' @title plot.QTE
 #'
-#' @description Plots a QTE Object
+#' @description Plots a \code{QTE} object using \code{\link{autoplot.QTE}}.
 #'
-#' @param x a QTE Object
-#' @param plotate Boolean whether or not to plot the ATE
-#' @param plot0 Boolean whether to plot a line at 0
-#' @param qtecol Color for qte plot.  Default "black"
-#' @param atecol Color for ate plot.  Default "black"
-#' @param col0 Color for 0 plot.  Default "black"
-#' @param xlab Custom label for x-axis.  Default "tau"
-#' @param ylab Custom label for y-axis.  Default "QTE"
-#' @param legend Vector of strings to add to legend
-#' @param ontreated Boolean whether parameters are "on the treated group"
-#' @param ylim The ylim for the plot; if not passed, it will be automatically
-#'  set based on the values that the QTE takes
-#' @param uselegend Boolean whether or not to print a legend
-#' @param legendcol Legend Colors for plotting
-#' @param legloc String location for the legend.  Default "topright"
-#' @param ... Other parameters to be passed to plot (e.g lwd)
+#' @param x a \code{QTE} object, as returned by \code{\link{unc_qte}}.
+#' @param cband logical; if \code{TRUE} (default), show the uniform confidence
+#'   band. If \code{FALSE}, show pointwise intervals.
+#' @param ylab label for the y-axis. Default \code{"QTE"}.
+#' @param ... passed to \code{\link{autoplot.QTE}}.
 #'
+#' @return invisibly returns the \code{ggplot} object.
 #' @export
-plot.QTE <- function(x, plotate = FALSE, plot0 = FALSE,
-                     qtecol = "black", atecol = "black", col0 = "black",
-                     xlab = "tau", ylab = "QTE",
-                     legend = NULL,
-                     ontreated = FALSE,
-                     ylim = NULL, uselegend = FALSE,
-                     legendcol = NULL,
-                     legloc = "topright", ...) {
-  warning("This method is no longer supported.  Try the \"ggqte\" function instead")
-
-  qte.obj <- x
-
-  if (is.null(qte.obj$alp)) {
-    qte.obj$alp <- .05
-  }
-
-  if (!is.null(qte.obj$qte.se)) {
-    qte.obj$qte.upper <- qte.obj$qte +
-      abs(qnorm(qte.obj$alp / 2)) * qte.obj$qte.se
-    qte.obj$qte.lower <- qte.obj$qte -
-      abs(qnorm(qte.obj$alp / 2)) * qte.obj$qte.se
-  }
-
-  if (!is.null(qte.obj$ate.se)) {
-    qte.obj$ate.upper <- qte.obj$ate +
-      abs(qnorm(qte.obj$alp / 2)) * qte.obj$ate.se
-    qte.obj$ate.lower <- qte.obj$qte -
-      abs(qnorm(qte.obj$alp / 2)) * qte.obj$ate.se
-  }
-
-  if (is.null(ylim)) {
-    ylim <- c(
-      min(qte.obj$qte.lower) - abs(median(qte.obj$qte)),
-      max(qte.obj$qte.upper) + abs(median(qte.obj$qte))
-    )
-  }
-  plot(qte.obj$probs, qte.obj$qte,
-    type = "l",
-    ylim = ylim,
-    xlab = xlab, ylab = ylab, col = qtecol, ...
-  )
-  lines(qte.obj$probs, qte.obj$qte.lower, lty = 2, col = qtecol)
-  lines(qte.obj$probs, qte.obj$qte.upper, lty = 2, col = qtecol)
-  if (plotate) {
-    abline(h = qte.obj$ate, col = atecol, ...)
-    abline(h = qte.obj$ate.lower, lty = 2, col = atecol)
-    abline(h = qte.obj$ate.upper, lty = 2, col = atecol)
-  }
-  if (plot0) {
-    abline(h = 0, col = col0)
-  }
-
-  if (uselegend) {
-    if (plotate) {
-      legend(x = legloc, legend = ifelse(is.null(legend), ifelse(!ontreated, c("QTE", "ATE"), c("QTET", "ATT")), legend), col = ifelse(is.null(legend), c(qtecol, atecol), legendcol), ...)
-    } else {
-      legend(x = legloc, legend = ifelse(is.null(legend), ifelse(!ontreated, c("QTE"), c("QTET")), legend), col = ifelse(is.null(legend), c(qtecol), legendcol), ...)
-    }
-  }
+plot.QTE <- function(x, cband = TRUE, ylab = "QTE", ...) {
+  p <- ggplot2::autoplot(x, cband = cband, ylab = ylab, ...)
+  print(p)
+  invisible(p)
 }
 
 

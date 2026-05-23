@@ -316,7 +316,10 @@ panel_qtt_long_agg <- function(attgt.list, ptep, extra_gt_returns) {
   groups       <- ptep$glist
   original_tp  <- sort(unique(data[, ptep$tname]))
 
-  if (!all(time.periods %in% original_tp)) {
+  # must capture the flag before converting time.periods, so the same
+  # conversion is applied consistently to cell_g/cell_tp below
+  needs_t2orig <- !all(time.periods %in% original_tp)
+  if (needs_t2orig) {
     time.periods <- sapply(time.periods, BMisc::t2orig, original_tp)
     groups       <- sapply(groups,       BMisc::t2orig, original_tp)
   }
@@ -326,7 +329,7 @@ panel_qtt_long_agg <- function(attgt.list, ptep, extra_gt_returns) {
   cell_tp  <- vapply(attgt.list, function(r) r$time.period, numeric(1L))
   cell_att <- vapply(attgt.list, function(r) r$att,         numeric(1L))
 
-  if (!all(time.periods %in% original_tp)) {
+  if (needs_t2orig) {
     cell_g  <- sapply(cell_g,  BMisc::t2orig, original_tp)
     cell_tp <- sapply(cell_tp, BMisc::t2orig, original_tp)
   }
@@ -501,6 +504,17 @@ panel_qtt_long_agg <- function(attgt.list, ptep, extra_gt_returns) {
 #'
 #' @seealso \code{\link{cic}}, \code{\link{qdid}}, \code{\link{mdid}},
 #'   \code{\link{ddid}}
+#'
+#' @examples
+#' \donttest{
+#' data(mpdta, package = "did")
+#'
+#' ## Panel QTT with rolling pre-period copula (default pre_copula = "long")
+#' res <- panel_qtt(yname = "lemp", gname = "first.treat", tname = "year",
+#'                  idname = "countyreal", data = mpdta,
+#'                  gt_type = "qtt", probs = seq(0.1, 0.9, 0.1), biters = 20)
+#' summary(res)
+#' }
 #'
 #' @export
 panel_qtt <- function(yname,
