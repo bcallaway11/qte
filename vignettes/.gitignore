@@ -1,0 +1,7 @@
+/.quarto/
+*_cache/
+*_files/
+tmp/
+.Rhistory
+
+**/*.quarto_ipynb

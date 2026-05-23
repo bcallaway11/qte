@@ -1,0 +1,168 @@
+---
+title: "Quantile Treatment Effects in R"
+author: "Brantly Callaway"
+date: today
+format: html
+bibliography: refs.bib
+knitr:
+  opts_chunk:
+    collapse: true
+    comment: "#>"
+    fig.width: 6
+    fig.height: 4
+vignette: >
+  %\VignetteIndexEntry{Quantile Treatment Effects in R}
+  %\VignetteEngine{quarto::html}
+  %\VignetteEncoding{UTF-8}
+---
+
+## What are Quantile Treatment Effects?
+
+The Average Treatment Effect (ATE) or Average Treatment Effect on the Treated
+(ATT) summarizes the causal impact of a policy by a single number: the mean
+difference in outcomes between treated and untreated units. This is often a
+natural quantity, but it can miss important heterogeneity. If a job training
+program substantially raises earnings at the bottom of the distribution while
+having little effect at the top, the ATE obscures this. If a minimum wage
+increase compresses the wage distribution, an average effect conceals the
+compression.
+
+The Quantile Treatment Effect at level $\tau$ is $QTE(\tau) = Q_Y(1)(\tau) -
+Q_Y(0)(\tau)$, where $Q_Y(d)(\tau)$ is the $\tau$-th quantile of the
+potential outcome distribution under treatment status $d$. Mapping $QTE(\tau)$
+across $\tau \in (0,1)$ traces how the treatment shifts the entire outcome
+distribution. The Quantile Treatment Effect on the Treated ($QTT$) conditions
+on the treated group.
+
+This vignette demonstrates `unc_qte()`, the `qte` package's estimator for
+cross-sectional settings (no panel data required). For DiD-based estimators
+and staggered treatment adoption, see `vignette("did-estimators")` and
+`vignette("staggered-adoption")`.
+
+```{r}
+#| label: setup
+#| message: false
+library(qte)
+library(ggplot2)
+set.seed(42)
+data(lalonde)
+```
+
+## Random assignment
+
+Under random assignment, no covariate adjustment is needed: the unconditional
+quantiles of the treated and control outcome distributions identify the QTE
+directly. We use the experimental Lalonde data (`lalonde.exp`), where
+treatment was randomly assigned.
+
+```{r}
+#| label: random-qte
+#| cache: true
+res_exp <- unc_qte(
+  yname  = "re78",
+  dname  = "treat",
+  data   = lalonde.exp,
+  target = "qte",
+  probs  = seq(0.1, 0.9, 0.1),
+  biters = 50
+)
+summary(res_exp)
+```
+
+```{r}
+#| label: random-qte-plot
+#| fig-alt: "QTE curve under random assignment"
+autoplot(res_exp, ylab = "QTE (earnings, 1978)")
+```
+
+The confidence band indicates that the QTE is positive across much of the
+distribution, with the effect somewhat larger in the lower quantiles.
+
+## Selection on observables
+
+When treatment is not randomly assigned, the unconfoundedness assumption
+(conditional independence of potential outcomes given covariates) provides
+identification. We use the observational Lalonde data (`lalonde.psid`), which
+combines the treated group from the experiment with a comparison group from
+the PSID.
+
+`unc_qte()` supports three estimation methods:
+
+- `"ipw"` — inverse probability weighting (propensity score re-weighting)
+- `"or"` — outcome regression (conditional quantile regression)
+- `"aipw"` — augmented IPW (doubly robust; recommended)
+
+```{r}
+#| label: obs-qte
+#| cache: true
+xf <- ~ age + I(age^2) + education + black + hispanic + married + nodegree
+
+res_psid <- unc_qte(
+  yname      = "re78",
+  dname      = "treat",
+  data       = lalonde.psid,
+  xformla    = xf,
+  est_method = "aipw",
+  target     = "qte",
+  probs      = seq(0.1, 0.9, 0.1),
+  biters     = 100
+)
+summary(res_psid)
+```
+
+```{r}
+#| label: obs-qte-plot
+#| fig-alt: "QTE curve under selection on observables"
+autoplot(res_psid, ylab = "QTE (earnings, 1978)")
+```
+
+## QTT under selection on observables
+
+Setting `target = "qtt"` estimates the Quantile Treatment Effect on the
+Treated — the distributional effect for the subpopulation that actually
+received treatment.
+
+```{r}
+#| label: qtt
+#| cache: true
+res_qtt <- unc_qte(
+  yname      = "re78",
+  dname      = "treat",
+  data       = lalonde.psid,
+  xformla    = xf,
+  est_method = "aipw",
+  target     = "qtt",
+  probs      = seq(0.1, 0.9, 0.1),
+  biters     = 100
+)
+summary(res_qtt)
+```
+
+```{r}
+#| label: qtt-plot
+#| fig-alt: "QTT curve under selection on observables"
+autoplot(res_qtt, ylab = "QTT (earnings, 1978)")
+```
+
+## Reading the output
+
+`summary()` prints the overall ATT, the QTE/QTT at each quantile, and
+standard errors with confidence intervals. `autoplot()` returns a `ggplot`
+object so you can add layers:
+
+```{r}
+#| label: custom-plot
+#| eval: false
+autoplot(res_qtt) +
+  ggplot2::labs(title = "QTT — Lalonde (observational)",
+                subtitle = "AIPW with pre-treatment covariates")
+```
+
+By default `autoplot()` shows the uniform confidence band (`cband = TRUE`).
+Pass `cband = FALSE` for pointwise intervals.
+
+Standard errors are computed via the empirical bootstrap. The `biters`
+argument controls the number of iterations (default 100; use 499 or more for
+publication). Parallel computation is available via the `cl` argument.
+
+## References

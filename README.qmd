@@ -1,0 +1,175 @@
+---
+format: gfm
+---
+
+<!-- README.md is generated from README.qmd. Please edit that file. -->
+
+```{r}
+#| echo: false
+knitr::opts_chunk$set(
+  collapse  = TRUE,
+  comment   = "#>",
+  fig.path  = "man/figures/README-",
+  out.width = "70%"
+)
+```
+
+# qte — Quantile Treatment Effects in R <img src="man/figures/logo.png" align="right" height="139" alt="" />
+
+<!-- badges: start -->
+[![CRAN status](https://www.r-pkg.org/badges/version/qte)](https://CRAN.R-project.org/package=qte)
+[![R-CMD-check](https://github.com/bcallaway11/qte/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/bcallaway11/qte/actions/workflows/R-CMD-check.yaml)
+<!-- badges: end -->
+
+## Overview
+
+The `qte` package provides methods for estimating Quantile Treatment Effects
+(QTE) and Quantile Treatment Effects on the Treated (QTT) in R. Where the
+average treatment effect summarizes the impact of a policy by a single number,
+the QTE describes how treatment effects vary across the outcome distribution —
+useful whenever the policy's impact is heterogeneous or when distributional
+consequences (e.g., for inequality) are of interest.
+
+**Cross-sectional estimators** (no panel data required):
+
+- `unc_qte()` — QTE/QTT under unconfoundedness (IPW, outcome regression, or
+  doubly robust); covers random assignment as a special case
+
+**DiD-based estimators** (staggered treatment adoption supported for all):
+
+- `cic()` — Change in Changes (Athey and Imbens 2006)
+- `qdid()` — Quantile Difference-in-Differences (Callaway, Li, and Oka 2018)
+- `ddid()` — Distributional Difference-in-Differences (Callaway and Li 2019)
+- `mdid()` — Mean Difference-in-Differences (Callaway and Li 2019)
+- `panel_qtt()` — Panel QTT via copula transfer (Callaway and Li 2019)
+- `lou_qte()` — Lagged-outcome unconfoundedness QTT
+
+## Installation
+
+```{r}
+#| eval: false
+# Install from CRAN:
+install.packages("qte")
+
+# Install the development version from GitHub:
+# install.packages("pak")
+pak::pak("bcallaway11/qte")
+```
+
+## Quick start — selection on observables
+
+The `unc_qte()` function estimates the QTE or QTT under an unconfoundedness
+assumption. Here we use the observational Lalonde (1986) data to estimate the
+QTT of a job training program, controlling for pre-treatment characteristics
+via doubly robust estimation.
+
+```{r}
+#| label: unc-qte
+#| cache: true
+library(qte)
+data(lalonde)
+
+xf <- ~ age + I(age^2) + education + black + hispanic + married + nodegree
+
+res_cs <- unc_qte(
+  yname      = "re78",
+  dname      = "treat",
+  data       = lalonde.psid,
+  xformla    = xf,
+  est_method = "aipw",
+  target     = "qtt",
+  probs      = seq(0.1, 0.9, 0.1),
+  biters     = 100
+)
+summary(res_cs)
+```
+
+Plot the QTT curve with a uniform confidence band:
+
+```{r}
+#| label: unc-qte-plot
+#| fig-alt: "QTT estimates across quantiles with uniform confidence band"
+autoplot(res_cs)
+```
+
+## Staggered treatment adoption
+
+All DiD-based estimators use a common `yname`/`gname`/`tname`/`idname`
+interface and support staggered treatment adoption via
+[ptetools](https://github.com/bcallaway11/ptetools). The example below uses
+the `mpdta` dataset (county-level employment, from the `did` package) with
+the Change in Changes estimator.
+
+```{r}
+#| label: cic-att
+#| cache: true
+data(mpdta, package = "did")
+
+res_att <- cic(
+  yname   = "lemp",
+  gname   = "first.treat",
+  tname   = "year",
+  idname  = "countyreal",
+  data    = mpdta,
+  gt_type = "att",
+  biters  = 100
+)
+summary(res_att)
+```
+
+Event-study plot showing pre-trends and post-treatment ATT by event time:
+
+```{r}
+#| label: cic-att-plot
+#| fig-alt: "Event-study plot of ATT estimates by event time"
+autoplot(res_att, type = "dynamic")
+```
+
+The same estimator returns a full QTT curve when `gt_type = "qtt"`:
+
+```{r}
+#| label: cic-qtt
+#| cache: true
+res_qtt <- cic(
+  yname   = "lemp",
+  gname   = "first.treat",
+  tname   = "year",
+  idname  = "countyreal",
+  data    = mpdta,
+  gt_type = "qtt",
+  probs   = seq(0.1, 0.9, 0.1),
+  biters  = 100
+)
+autoplot(res_qtt)
+```
+
+## Available estimators
+
+| Function | Method | Target | Panel required |
+|---|---|---|---|
+| `unc_qte()` | Unconfoundedness (IPW / OR / AIPW) | QTE or QTT | No |
+| `cic()` | Change in Changes | ATT or QTT | Optional |
+| `qdid()` | Quantile DiD | ATT or QTT | Optional |
+| `ddid()` | Distributional DiD | ATT or QTT | Yes |
+| `mdid()` | Mean DiD | ATT or QTT | Optional |
+| `panel_qtt()` | Panel QTT (copula transfer) | QTT | Yes |
+| `lou_qte()` | Lagged-outcome unconfoundedness | ATT or QTT | Yes |
+
+All DiD-based estimators support staggered treatment adoption and return
+group-specific, event-study, and overall aggregations.
+
+Legacy wrappers `CiC()`, `QDiD()`, `MDiD()`, `ddid2()`, `panel.qtet()`,
+`ci.qte()`, and `ci.qtet()` are retained with deprecation warnings pointing
+to their modern replacements. They will be removed in v2.1.
+
+## Documentation and vignettes
+
+Full documentation and vignettes are available at the
+[pkgdown site](https://bcallaway11.github.io/qte/):
+
+- **Quantile Treatment Effects in R** — `unc_qte()` under random assignment
+  and selection on observables
+- **DiD-Based Quantile Treatment Effects** — identification assumptions and
+  usage for all six DiD estimators
+- **Staggered Treatment Adoption** — applied workflow with `mpdta`: overall,
+  group-specific, and event-study aggregations; ATT vs. QTT

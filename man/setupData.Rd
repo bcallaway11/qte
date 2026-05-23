@@ -7,12 +7,17 @@
 setupData(qteParams)
 }
 \arguments{
-\item{qteParams}{object holding the function parameters}
+\item{qteParams}{A \code{QTEparams} object holding the function parameters.}
 }
 \value{
-qteData object holding data to be used in QTE functions
+Invisibly returns \code{NULL}. The function's effect is the
+assignment of data objects into the calling environment.
 }
 \description{
-\code{setupData} sets up the data to use in each
-compute method in the QTE package
+\code{setupData} extracts treated/untreated subsets, ECDFs,
+and auxiliary vectors from a \code{QTEparams} object and \strong{injects them
+into the caller's environment} via \code{assign(..., envir=parent.frame())}.
+This side-effectful pattern is intentional — all \code{compute.*} functions
+rely on the variables created here being available in their local scope.
 }
+\keyword{internal}

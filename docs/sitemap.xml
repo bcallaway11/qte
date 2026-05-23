@@ -1,180 +1,88 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <url>
-    <loc>/404.html</loc>
-  </url>
-  <url>
-    <loc>/articles/R-QTEs.html</loc>
-  </url>
-  <url>
-    <loc>/articles/ddid2.html</loc>
-  </url>
-  <url>
-    <loc>/articles/index.html</loc>
-  </url>
-  <url>
-    <loc>/articles/panel-qtet.html</loc>
-  </url>
-  <url>
-    <loc>/authors.html</loc>
-  </url>
-  <url>
-    <loc>/index.html</loc>
-  </url>
-  <url>
-    <loc>/news/index.html</loc>
-  </url>
-  <url>
-    <loc>/reference/BoundsObj.html</loc>
-  </url>
-  <url>
-    <loc>/reference/CiC.html</loc>
-  </url>
-  <url>
-    <loc>/reference/DR.html</loc>
-  </url>
-  <url>
-    <loc>/reference/MDiD.html</loc>
-  </url>
-  <url>
-    <loc>/reference/QDiD.html</loc>
-  </url>
-  <url>
-    <loc>/reference/QTE.html</loc>
-  </url>
-  <url>
-    <loc>/reference/QTEparams.html</loc>
-  </url>
-  <url>
-    <loc>/reference/SE.html</loc>
-  </url>
-  <url>
-    <loc>/reference/bootiter.html</loc>
-  </url>
-  <url>
-    <loc>/reference/bootstrap.html</loc>
-  </url>
-  <url>
-    <loc>/reference/bounds.html</loc>
-  </url>
-  <url>
-    <loc>/reference/ci.qte.html</loc>
-  </url>
-  <url>
-    <loc>/reference/ci.qtet.html</loc>
-  </url>
-  <url>
-    <loc>/reference/cic2.html</loc>
-  </url>
-  <url>
-    <loc>/reference/cic_attgt.html</loc>
-  </url>
-  <url>
-    <loc>/reference/compute.CiC.html</loc>
-  </url>
-  <url>
-    <loc>/reference/compute.MDiD.html</loc>
-  </url>
-  <url>
-    <loc>/reference/compute.QDiD.html</loc>
-  </url>
-  <url>
-    <loc>/reference/compute.ci.qte.html</loc>
-  </url>
-  <url>
-    <loc>/reference/compute.ci.qtet.html</loc>
-  </url>
-  <url>
-    <loc>/reference/compute.ddid2.html</loc>
-  </url>
-  <url>
-    <loc>/reference/compute.panel.qtet.html</loc>
-  </url>
-  <url>
-    <loc>/reference/compute.spatt.html</loc>
-  </url>
-  <url>
-    <loc>/reference/computeDiffSE.html</loc>
-  </url>
-  <url>
-    <loc>/reference/computeSE.html</loc>
-  </url>
-  <url>
-    <loc>/reference/ddid2.html</loc>
-  </url>
-  <url>
-    <loc>/reference/diffQ.html</loc>
-  </url>
-  <url>
-    <loc>/reference/getlb.html</loc>
-  </url>
-  <url>
-    <loc>/reference/getub.html</loc>
-  </url>
-  <url>
-    <loc>/reference/ggqte.html</loc>
-  </url>
-  <url>
-    <loc>/reference/index.html</loc>
-  </url>
-  <url>
-    <loc>/reference/lalonde.exp.html</loc>
-  </url>
-  <url>
-    <loc>/reference/lalonde.exp.panel.html</loc>
-  </url>
-  <url>
-    <loc>/reference/lalonde.html</loc>
-  </url>
-  <url>
-    <loc>/reference/lalonde.psid.html</loc>
-  </url>
-  <url>
-    <loc>/reference/lalonde.psid.panel.html</loc>
-  </url>
-  <url>
-    <loc>/reference/panel.checks.html</loc>
-  </url>
-  <url>
-    <loc>/reference/panel.qtet.html</loc>
-  </url>
-  <url>
-    <loc>/reference/panelize.data.html</loc>
-  </url>
-  <url>
-    <loc>/reference/plot.BoundsObj.html</loc>
-  </url>
-  <url>
-    <loc>/reference/plot.QTE.html</loc>
-  </url>
-  <url>
-    <loc>/reference/print.matrix1.html</loc>
-  </url>
-  <url>
-    <loc>/reference/print.matrix2.html</loc>
-  </url>
-  <url>
-    <loc>/reference/print.summary.BoundsObj.html</loc>
-  </url>
-  <url>
-    <loc>/reference/print.summary.QTE.html</loc>
-  </url>
-  <url>
-    <loc>/reference/qteToTexreg.html</loc>
-  </url>
-  <url>
-    <loc>/reference/qtes2mat.html</loc>
-  </url>
-  <url>
-    <loc>/reference/setupData.html</loc>
-  </url>
-  <url>
-    <loc>/reference/spatt.html</loc>
-  </url>
-  <url>
-    <loc>/reference/summary.BoundsObj.html</loc>
-  </url>
-  <url>
-    <loc>/reference/summary.QTE.html</loc>
-  </url>
+<urlset xmlns = 'http://www.sitemaps.org/schemas/sitemap/0.9'>
+<url><loc>https://bcallaway11.github.io/qte/404.html</loc></url>
+<url><loc>https://bcallaway11.github.io/qte/AGENTS.html</loc></url>
+<url><loc>https://bcallaway11.github.io/qte/CLAUDE.html</loc></url>
+<url><loc>https://bcallaway11.github.io/qte/articles/R-QTEs.html</loc></url>
+<url><loc>https://bcallaway11.github.io/qte/articles/ddid2.html</loc></url>
+<url><loc>https://bcallaway11.github.io/qte/articles/did-estimators.html</loc></url>
+<url><loc>https://bcallaway11.github.io/qte/articles/index.html</loc></url>
+<url><loc>https://bcallaway11.github.io/qte/articles/intro.html</loc></url>
+<url><loc>https://bcallaway11.github.io/qte/articles/panel-qtet.html</loc></url>
+<url><loc>https://bcallaway11.github.io/qte/articles/staggered-adoption.html</loc></url>
+<url><loc>https://bcallaway11.github.io/qte/authors.html</loc></url>
+<url><loc>https://bcallaway11.github.io/qte/index.html</loc></url>
+<url><loc>https://bcallaway11.github.io/qte/news/index.html</loc></url>
+<url><loc>https://bcallaway11.github.io/qte/reference/BoundsObj.html</loc></url>
+<url><loc>https://bcallaway11.github.io/qte/reference/CiC-deprecated.html</loc></url>
+<url><loc>https://bcallaway11.github.io/qte/reference/DR.html</loc></url>
+<url><loc>https://bcallaway11.github.io/qte/reference/MDiD-deprecated.html</loc></url>
+<url><loc>https://bcallaway11.github.io/qte/reference/QDiD-deprecated.html</loc></url>
+<url><loc>https://bcallaway11.github.io/qte/reference/QTE.html</loc></url>
+<url><loc>https://bcallaway11.github.io/qte/reference/QTEparams.html</loc></url>
+<url><loc>https://bcallaway11.github.io/qte/reference/SE.html</loc></url>
+<url><loc>https://bcallaway11.github.io/qte/reference/autoplot.QTE.html</loc></url>
+<url><loc>https://bcallaway11.github.io/qte/reference/bootiter.html</loc></url>
+<url><loc>https://bcallaway11.github.io/qte/reference/bootstrap.html</loc></url>
+<url><loc>https://bcallaway11.github.io/qte/reference/bounds.html</loc></url>
+<url><loc>https://bcallaway11.github.io/qte/reference/ci.qte.html</loc></url>
+<url><loc>https://bcallaway11.github.io/qte/reference/ci.qtet.html</loc></url>
+<url><loc>https://bcallaway11.github.io/qte/reference/cic (Case Conflict 1).html</loc></url>
+<url><loc>https://bcallaway11.github.io/qte/reference/cic (Case Conflict).html</loc></url>
+<url><loc>https://bcallaway11.github.io/qte/reference/cic2.html</loc></url>
+<url><loc>https://bcallaway11.github.io/qte/reference/cic_attgt.html</loc></url>
+<url><loc>https://bcallaway11.github.io/qte/reference/cic_gt.html</loc></url>
+<url><loc>https://bcallaway11.github.io/qte/reference/compute.CiC.html</loc></url>
+<url><loc>https://bcallaway11.github.io/qte/reference/compute.MDiD.html</loc></url>
+<url><loc>https://bcallaway11.github.io/qte/reference/compute.QDiD.html</loc></url>
+<url><loc>https://bcallaway11.github.io/qte/reference/compute.ci.qte.html</loc></url>
+<url><loc>https://bcallaway11.github.io/qte/reference/compute.ci.qtet.html</loc></url>
+<url><loc>https://bcallaway11.github.io/qte/reference/compute.ddid2.html</loc></url>
+<url><loc>https://bcallaway11.github.io/qte/reference/compute.panel.qtet.html</loc></url>
+<url><loc>https://bcallaway11.github.io/qte/reference/compute.spatt.html</loc></url>
+<url><loc>https://bcallaway11.github.io/qte/reference/compute.unc_qte.html</loc></url>
+<url><loc>https://bcallaway11.github.io/qte/reference/computeDiffSE.html</loc></url>
+<url><loc>https://bcallaway11.github.io/qte/reference/computeSE.html</loc></url>
+<url><loc>https://bcallaway11.github.io/qte/reference/ddid.html</loc></url>
+<url><loc>https://bcallaway11.github.io/qte/reference/ddid2.html</loc></url>
+<url><loc>https://bcallaway11.github.io/qte/reference/ddid_gt.html</loc></url>
+<url><loc>https://bcallaway11.github.io/qte/reference/diffQ.html</loc></url>
+<url><loc>https://bcallaway11.github.io/qte/reference/getlb.html</loc></url>
+<url><loc>https://bcallaway11.github.io/qte/reference/getub.html</loc></url>
+<url><loc>https://bcallaway11.github.io/qte/reference/ggqte.html</loc></url>
+<url><loc>https://bcallaway11.github.io/qte/reference/index.html</loc></url>
+<url><loc>https://bcallaway11.github.io/qte/reference/lalonde.exp.html</loc></url>
+<url><loc>https://bcallaway11.github.io/qte/reference/lalonde.exp.panel.html</loc></url>
+<url><loc>https://bcallaway11.github.io/qte/reference/lalonde.html</loc></url>
+<url><loc>https://bcallaway11.github.io/qte/reference/lalonde.psid.html</loc></url>
+<url><loc>https://bcallaway11.github.io/qte/reference/lalonde.psid.panel.html</loc></url>
+<url><loc>https://bcallaway11.github.io/qte/reference/lou_gt.html</loc></url>
+<url><loc>https://bcallaway11.github.io/qte/reference/lou_qte.html</loc></url>
+<url><loc>https://bcallaway11.github.io/qte/reference/mdid (Case Conflict 1).html</loc></url>
+<url><loc>https://bcallaway11.github.io/qte/reference/mdid (Case Conflict).html</loc></url>
+<url><loc>https://bcallaway11.github.io/qte/reference/mdid_gt.html</loc></url>
+<url><loc>https://bcallaway11.github.io/qte/reference/panel.checks.html</loc></url>
+<url><loc>https://bcallaway11.github.io/qte/reference/panel.qtet.html</loc></url>
+<url><loc>https://bcallaway11.github.io/qte/reference/panel_qtt.html</loc></url>
+<url><loc>https://bcallaway11.github.io/qte/reference/panel_qtt_gt.html</loc></url>
+<url><loc>https://bcallaway11.github.io/qte/reference/panel_qtt_long_agg.html</loc></url>
+<url><loc>https://bcallaway11.github.io/qte/reference/panelize.data.html</loc></url>
+<url><loc>https://bcallaway11.github.io/qte/reference/plot.BoundsObj.html</loc></url>
+<url><loc>https://bcallaway11.github.io/qte/reference/plot.QTE.html</loc></url>
+<url><loc>https://bcallaway11.github.io/qte/reference/print.matrix1.html</loc></url>
+<url><loc>https://bcallaway11.github.io/qte/reference/print.matrix2.html</loc></url>
+<url><loc>https://bcallaway11.github.io/qte/reference/print.summary.BoundsObj.html</loc></url>
+<url><loc>https://bcallaway11.github.io/qte/reference/print.summary.QTE.html</loc></url>
+<url><loc>https://bcallaway11.github.io/qte/reference/qdid (Case Conflict 1).html</loc></url>
+<url><loc>https://bcallaway11.github.io/qte/reference/qdid (Case Conflict).html</loc></url>
+<url><loc>https://bcallaway11.github.io/qte/reference/qdid_gt.html</loc></url>
+<url><loc>https://bcallaway11.github.io/qte/reference/qte-package.html</loc></url>
+<url><loc>https://bcallaway11.github.io/qte/reference/qteToTexreg.html</loc></url>
+<url><loc>https://bcallaway11.github.io/qte/reference/qtes2mat.html</loc></url>
+<url><loc>https://bcallaway11.github.io/qte/reference/setupData.html</loc></url>
+<url><loc>https://bcallaway11.github.io/qte/reference/spatt.html</loc></url>
+<url><loc>https://bcallaway11.github.io/qte/reference/summary.BoundsObj.html</loc></url>
+<url><loc>https://bcallaway11.github.io/qte/reference/summary.QTE.html</loc></url>
+<url><loc>https://bcallaway11.github.io/qte/reference/three_period_subset.html</loc></url>
+<url><loc>https://bcallaway11.github.io/qte/reference/unc_qte.html</loc></url>
 </urlset>
+

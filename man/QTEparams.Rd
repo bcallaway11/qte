@@ -25,7 +25,9 @@ QTEparams(
   bootstrapiter = NULL,
   seedvec = NULL,
   pl = NULL,
-  cores = NULL
+  cores = NULL,
+  est_method = NULL,
+  target = NULL
 )
 }
 \arguments{
@@ -75,6 +77,19 @@ in parallel}
 
 \item{cores}{The number of cores to use if computing standard errors in
 in parallel}
+
+\item{est_method}{Estimation method: \code{"ipw"} (propensity score
+reweighting), \code{"or"} (outcome regression via quantile regression
+inversion), or \code{"aipw"} (doubly-robust combination of IPW and OR).}
+
+\item{target}{Target parameter: \code{"qte"} (population QTE) or
+\code{"qtt"} (QTT, quantile treatment effect on the treated).}
+}
+\value{
+A named list with class \code{"QTEparams"} containing all supplied
+arguments. Used internally by legacy estimators (\code{CiC}, \code{QDiD},
+\code{MDiD}, \code{ddid2}, \code{panel.qtet}, \code{ci.qtet}) to pass
+parameters to \code{setupData} and \code{compute.*} functions.
 }
 \description{
 \code{QTEparams} is an object that contains all the

@@ -2,6 +2,7 @@
 ^_pkgdown\.yml$
 ^cran-comments\.md$
 ^qte\.Rproj$
+^qte-ptetools\.code-workspace$
 ^docs$
 ^revdep$
 ^R/old-code$
@@ -11,3 +12,8 @@
 ^\.Rproj\.user$
 ^CRAN-RELEASE$
 ^CRAN-SUBMISSION$
+^dev$
+^\.claude$
+^AGENTS\.md$
+^CLAUDE\.md$
+^README\.qmd$

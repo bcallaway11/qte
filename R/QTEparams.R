@@ -1,4 +1,13 @@
-#####SETUP CLASSES################
+# =============================================================================
+# Title: QTEparams parameter container
+# Description: Constructor for QTEparams, an S3 list class that packages all
+#   user arguments for passing into setupData and compute.* functions.
+# Author: Brant Callaway
+# Last update: 2026-05-22
+# Date created: 2026-05-18
+# =============================================================================
+
+##### SETUP CLASSES################
 #' @title QTEparams
 #'
 #' @description \code{QTEparams} is an object that contains all the
@@ -30,21 +39,32 @@
 #'  in parallel
 #' @param cores The number of cores to use if computing standard errors in
 #'  in parallel
-#' 
+#' @param est_method Estimation method: \code{"ipw"} (propensity score
+#'  reweighting), \code{"or"} (outcome regression via quantile regression
+#'  inversion), or \code{"aipw"} (doubly-robust combination of IPW and OR).
+#' @param target Target parameter: \code{"qte"} (population QTE) or
+#'  \code{"qtt"} (QTT, quantile treatment effect on the treated).
+#'
+#' @return A named list with class \code{"QTEparams"} containing all supplied
+#'   arguments. Used internally by legacy estimators (\code{CiC}, \code{QDiD},
+#'   \code{MDiD}, \code{ddid2}, \code{panel.qtet}, \code{ci.qtet}) to pass
+#'   parameters to \code{setupData} and \code{compute.*} functions.
 #'
 #' @export
-QTEparams <- function(formla, xformla=NULL, t=NULL, tmin1=NULL, tmin2=NULL,
-                      tname=NULL, data, panel=FALSE, w=NULL,
-                      idname=NULL, probs,
-                      alp=NULL, method=NULL, plot=NULL, se=NULL, iters=NULL,
-                      retEachIter=NULL, bootstrapiter=NULL, seedvec=NULL,
-                      pl=NULL, cores=NULL) {
-    
-    out <- list(formla=formla, xformla=xformla, t=t, tmin1=tmin1,
-                tmin2=tmin2, tname=tname, data=data, panel=panel, w=w,
-                idname=idname, probs=probs, alp=alp, method=method,
-                plot=plot, se=se, iters=iters, retEachIter=retEachIter,
-                bootstrapiter=bootstrapiter, seedvec=seedvec, pl=pl, cores=cores)
-    class(out) <- "QTEparams"
-    return(out)
+QTEparams <- function(formla, xformla = NULL, t = NULL, tmin1 = NULL, tmin2 = NULL,
+                      tname = NULL, data, panel = FALSE, w = NULL,
+                      idname = NULL, probs,
+                      alp = NULL, method = NULL, plot = NULL, se = NULL, iters = NULL,
+                      retEachIter = NULL, bootstrapiter = NULL, seedvec = NULL,
+                      pl = NULL, cores = NULL, est_method = NULL, target = NULL) {
+  out <- list(
+    formla = formla, xformla = xformla, t = t, tmin1 = tmin1,
+    tmin2 = tmin2, tname = tname, data = data, panel = panel, w = w,
+    idname = idname, probs = probs, alp = alp, method = method,
+    plot = plot, se = se, iters = iters, retEachIter = retEachIter,
+    bootstrapiter = bootstrapiter, seedvec = seedvec, pl = pl, cores = cores,
+    est_method = est_method, target = target
+  )
+  class(out) <- "QTEparams"
+  return(out)
 }
