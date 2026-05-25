@@ -51,12 +51,12 @@ reference:
       - cic_gt
       - qdid
       - qdid_gt
-      - mdid
-      - mdid_gt
-      - ddid
-      - ddid_gt
       - panel_qtt
       - panel_qtt_gt
+      - ddid
+      - ddid_gt
+      - mdid
+      - mdid_gt
       - lou_qtt
 
   - title: "Package overview"

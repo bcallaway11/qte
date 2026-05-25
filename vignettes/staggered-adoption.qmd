@@ -176,6 +176,12 @@ res_qdid <- qdid(
   gt_type = "qtt", probs = 0.5, biters = 50
 )
 
+res_pqtt <- panel_qtt(
+  yname = "lemp", gname = "first.treat", tname = "year",
+  idname = "countyreal", data = mpdta,
+  gt_type = "qtt", probs = 0.5, biters = 50
+)
+
 res_ddid <- ddid(
   yname = "lemp", gname = "first.treat", tname = "year",
   idname = "countyreal", data = mpdta,
@@ -183,12 +189,6 @@ res_ddid <- ddid(
 )
 
 res_mdid <- mdid(
-  yname = "lemp", gname = "first.treat", tname = "year",
-  idname = "countyreal", data = mpdta,
-  gt_type = "qtt", probs = 0.5, biters = 50
-)
-
-res_pqtt <- panel_qtt(
   yname = "lemp", gname = "first.treat", tname = "year",
   idname = "countyreal", data = mpdta,
   gt_type = "qtt", probs = 0.5, biters = 50
@@ -211,9 +211,9 @@ median_qtt <- function(res, label) {
 do.call(rbind, list(
   median_qtt(res_cic,  "cic()"),
   median_qtt(res_qdid, "qdid()"),
+  median_qtt(res_pqtt, "panel_qtt()"),
   median_qtt(res_ddid, "ddid()"),
   median_qtt(res_mdid, "mdid()"),
-  median_qtt(res_pqtt, "panel_qtt()"),
   median_qtt(res_lou,  "lou_qtt()")
 ))
 ```

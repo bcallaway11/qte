@@ -138,6 +138,55 @@ summary(res_qdid)
 
 ------------------------------------------------------------------------
 
+## Panel QTT — `panel_qtt()`
+
+**Reference:** Callaway and Li ([2019](#ref-callaway-li-2019))
+
+**Identifying assumptions:** The first assumption is
+$\Delta Y_{t}(0) \perp D$ — the distribution of the change in untreated
+potential outcomes is the same for both groups:
+$$F_{\Delta Y_{t}(0)|D = 1} = F_{\Delta Y_{t}(0)|D = 0}.$$ This
+identifies the marginal distribution of $\Delta Y_{t}(0)$ for the
+treated group. As shown in Fan and Yu ([2012](#ref-fan-yu-2012)), this
+is not sufficient on its own to identify the QTT. Identification is
+completed by a copula stability assumption: the copula linking
+$\Delta Y_{t}(0)$ to the lagged outcome $Y_{t - 1}(0)$ is stable over
+time within the treated group,
+$$C_{\Delta Y_{t}(0),\, Y_{t - 1}(0)|D = 1} = C_{\Delta Y_{t - 1}(0),\, Y_{t - 2}(0)|D = 1}.$$
+
+**Intuition:** For treated units, $Y_{t - 1}$ and $Y_{t - 2}$ are
+observed pre-treatment, so the right-hand copula can be estimated
+directly from the data. Copula stability says this same dependence
+structure governs $(\Delta Y_{t}(0),Y_{t - 1}(0))$ in the post-period.
+Combined with the identified marginals, this pins down the conditional
+distribution of $\Delta Y_{t}(0)$ given $Y_{t - 1}(0) = y$ for treated
+units. Since $Y_{t}(0) = Y_{t - 1} + \Delta Y_{t}(0)$ and $Y_{t - 1}$ is
+observed, the QTT is identified. Requires panel data with at least two
+pre-treatment periods per cohort.
+
+``` r
+res_pqtt <- panel_qtt(
+  yname  = "lemp", gname = "first.treat", tname = "year",
+  idname = "countyreal", data = mpdta,
+  gt_type = "qtt", probs = seq(0.1, 0.9, 0.1), biters = 50
+)
+summary(res_pqtt)
+#> 
+#> Overall QTT Curve:
+#>  Quantile     QTT Std. Error 95% CB Lower 95% CB Upper
+#>       0.1 -0.0270     0.1296      -0.5674       0.5133
+#>       0.2 -0.0852     0.0711      -0.3818       0.2115
+#>       0.3 -0.0250     0.0601      -0.2756       0.2257
+#>       0.4 -0.0680     0.0553      -0.2984       0.1625
+#>       0.5 -0.0965     0.0530      -0.3176       0.1246
+#>       0.6  0.0070     0.0385      -0.1536       0.1675
+#>       0.7  0.0409     0.0622      -0.2187       0.3004
+#>       0.8 -0.0201     0.0836      -0.3686       0.3284
+#>       0.9 -0.0832     0.0603      -0.3344       0.1680
+```
+
+------------------------------------------------------------------------
+
 ## Distributional DiD — `ddid()`
 
 **Reference:** Callaway and Li ([2019](#ref-callaway-li-2019))
@@ -237,55 +286,6 @@ summary(res_mdid)
 
 ------------------------------------------------------------------------
 
-## Panel QTT — `panel_qtt()`
-
-**Reference:** Callaway and Li ([2019](#ref-callaway-li-2019))
-
-**Identifying assumptions:** The first assumption is
-$\Delta Y_{t}(0) \perp D$ — the distribution of the change in untreated
-potential outcomes is the same for both groups:
-$$F_{\Delta Y_{t}(0)|D = 1} = F_{\Delta Y_{t}(0)|D = 0}.$$ This
-identifies the marginal distribution of $\Delta Y_{t}(0)$ for the
-treated group. As shown in Fan and Yu ([2012](#ref-fan-yu-2012)), this
-is not sufficient on its own to identify the QTT. Identification is
-completed by a copula stability assumption: the copula linking
-$\Delta Y_{t}(0)$ to the lagged outcome $Y_{t - 1}(0)$ is stable over
-time within the treated group,
-$$C_{\Delta Y_{t}(0),\, Y_{t - 1}(0)|D = 1} = C_{\Delta Y_{t - 1}(0),\, Y_{t - 2}(0)|D = 1}.$$
-
-**Intuition:** For treated units, $Y_{t - 1}$ and $Y_{t - 2}$ are
-observed pre-treatment, so the right-hand copula can be estimated
-directly from the data. Copula stability says this same dependence
-structure governs $(\Delta Y_{t}(0),Y_{t - 1}(0))$ in the post-period.
-Combined with the identified marginals, this pins down the conditional
-distribution of $\Delta Y_{t}(0)$ given $Y_{t - 1}(0) = y$ for treated
-units. Since $Y_{t}(0) = Y_{t - 1} + \Delta Y_{t}(0)$ and $Y_{t - 1}$ is
-observed, the QTT is identified. Requires panel data with at least two
-pre-treatment periods per cohort.
-
-``` r
-res_pqtt <- panel_qtt(
-  yname  = "lemp", gname = "first.treat", tname = "year",
-  idname = "countyreal", data = mpdta,
-  gt_type = "qtt", probs = seq(0.1, 0.9, 0.1), biters = 50
-)
-summary(res_pqtt)
-#> 
-#> Overall QTT Curve:
-#>  Quantile     QTT Std. Error 95% CB Lower 95% CB Upper
-#>       0.1 -0.0270     0.1296      -0.5674       0.5133
-#>       0.2 -0.0852     0.0711      -0.3818       0.2115
-#>       0.3 -0.0250     0.0601      -0.2756       0.2257
-#>       0.4 -0.0680     0.0553      -0.2984       0.1625
-#>       0.5 -0.0965     0.0530      -0.3176       0.1246
-#>       0.6  0.0070     0.0385      -0.1536       0.1675
-#>       0.7  0.0409     0.0622      -0.2187       0.3004
-#>       0.8 -0.0201     0.0836      -0.3686       0.3284
-#>       0.9 -0.0832     0.0603      -0.3344       0.1680
-```
-
-------------------------------------------------------------------------
-
 ## Lagged-Outcome Unconfoundedness — `lou_qtt()`
 
 **Identification assumption:** Unconfoundedness conditional on the
@@ -331,9 +331,9 @@ summary(res_lou)
 |---------------------------------------------------------------------------|---------------------------------|----------------|-------------------------------------|
 | [`cic()`](https://bcallaway11.github.io/qte/reference/cic.md)             | Rank invariance + support       | Optional       | Nonparametric; strongest assumption |
 | [`qdid()`](https://bcallaway11.github.io/qte/reference/qdid.md)           | Distributional parallel trends  | Optional       | DiD analog for distributions        |
+| [`panel_qtt()`](https://bcallaway11.github.io/qte/reference/panel_qtt.md) | Copula stability                | Yes            | Requires ≥ 2 pre-periods per cohort |
 | [`ddid()`](https://bcallaway11.github.io/qte/reference/ddid.md)           | Conditional distributional PT   | Yes            | Adds covariate adjustment to QDiD   |
 | [`mdid()`](https://bcallaway11.github.io/qte/reference/mdid.md)           | Mean parallel trends            | Optional       | Weakest DiD assumption              |
-| [`panel_qtt()`](https://bcallaway11.github.io/qte/reference/panel_qtt.md) | Copula stability                | Yes            | Requires ≥ 2 pre-periods per cohort |
 | [`lou_qtt()`](https://bcallaway11.github.io/qte/reference/lou_qtt.md)     | Lagged-outcome unconfoundedness | Yes            | Not a parallel trends assumption    |
 
 All estimators return either a `pte_results` object (`gt_type = "att"`)

@@ -22,15 +22,15 @@ adoption supported for all):
 - [`cic()`](https://bcallaway11.github.io/qte/reference/cic.md) — Change
   in Changes (Athey and Imbens 2006)
 - [`qdid()`](https://bcallaway11.github.io/qte/reference/qdid.md) —
-  Quantile Difference-in-Differences (Callaway, Li, and Oka
-  2018. 
+  Quantile Difference-in-Differences (Athey and Imbens 2006; Meyer,
+  Viscusi, and Durbin 1995)
+- [`panel_qtt()`](https://bcallaway11.github.io/qte/reference/panel_qtt.md)
+  — Panel QTT via copula stability (Callaway and Li 2019)
 - [`ddid()`](https://bcallaway11.github.io/qte/reference/ddid.md) —
   Distributional Difference-in-Differences (Callaway and Li
   2019. 
 - [`mdid()`](https://bcallaway11.github.io/qte/reference/mdid.md) — Mean
-  Difference-in-Differences (Callaway and Li 2019)
-- [`panel_qtt()`](https://bcallaway11.github.io/qte/reference/panel_qtt.md)
-  — Panel QTT via copula transfer (Callaway and Li 2019)
+  Difference-in-Differences (Thuysbaert 2007)
 - [`lou_qtt()`](https://bcallaway11.github.io/qte/reference/lou_qtt.md)
   — Lagged-outcome unconfoundedness QTT
 
@@ -41,8 +41,8 @@ adoption supported for all):
 install.packages("qte")
 
 # Install the development version from GitHub:
-# install.packages("pak")
-pak::pak("bcallaway11/qte")
+# install.packages("remotes")
+remotes::install_github("bcallaway11/qte")
 ```
 
 ## Quick start — selection on observables
@@ -73,20 +73,20 @@ summary(res_cs)
 #> 
 #> Overall ATT:  
 #>        ATT    Std. Error     [ 95%  Conf. Int.]  
-#>  -4685.583      743.9741  -6143.745   -3227.421 *
+#>  -4685.583      894.7962  -6439.351   -2931.815 *
 #> 
 #> 
 #> QTT:
 #>  Tau         QTT Std. Error [ 95% Simult.  Conf. Band]  
-#>  0.1      0.0001    24.0967       -47.2285     47.2287  
-#>  0.2  -1002.7420   695.5313     -2365.9582    360.4742  
-#>  0.3  -3400.5673  1540.4002     -6419.6963   -381.4383 *
-#>  0.4  -5009.2491   966.6736     -6903.8944  -3114.6037 *
-#>  0.5  -4602.4652   790.3271     -6151.4779  -3053.4526 *
-#>  0.6  -5229.1454  1205.5112     -7591.9041  -2866.3868 *
-#>  0.7  -5507.4720  1356.3377     -8165.8450  -2849.0989 *
-#>  0.8  -6885.7529  1381.0892     -9592.6381  -4178.8677 *
-#>  0.9 -10517.0625  2450.1185    -15319.2066  -5714.9184 *
+#>  0.1      0.0001   124.4783      -243.9729    243.9730  
+#>  0.2  -1002.7420   786.6609     -2544.5690    539.0850  
+#>  0.3  -3400.5673  1618.9629     -6573.6763   -227.4584 *
+#>  0.4  -5009.2491  1198.3518     -7357.9755  -2660.5226 *
+#>  0.5  -4602.4652  1019.0238     -6599.7151  -2605.2154 *
+#>  0.6  -5229.1454  1256.5955     -7692.0273  -2766.2636 *
+#>  0.7  -5507.4720  1226.0522     -7910.4901  -3104.4538 *
+#>  0.8  -6885.7529  1496.4593     -9818.7592  -3952.7467 *
+#>  0.9 -10517.0625  2549.1099    -15513.2262  -5520.8989 *
 #> ---
 #> Signif. codes: `*' confidence band does not cover 0
 ```
@@ -101,7 +101,7 @@ autoplot(res_cs)
 
 ## Staggered treatment adoption
 
-All DiD-based estimators use a common `yname`/`gname`/`tname`/`idname`
+All panel estimators use a common `yname`/`gname`/`tname`/`idname`
 interface and support staggered treatment adoption via
 [ptetools](https://github.com/bcallaway11/ptetools). The example below
 uses the `mpdta` dataset (county-level employment, from the `did`
@@ -123,18 +123,18 @@ summary(res_att)
 #> 
 #> Overall ATT:  
 #>      ATT    Std. Error     [ 95%  Conf. Int.] 
-#>  -0.0197        0.0143    -0.0485      0.0091 
+#>  -0.0197        0.0158    -0.0543      0.0149 
 #> 
 #> 
 #> Dynamic Effects:
 #>  Event Time Estimate Std. Error [95% Simult.  Conf. Band]  
-#>          -3   0.0508     0.0250        0.0019      0.0998 *
-#>          -2   0.0158     0.0141       -0.0118      0.0435  
-#>          -1  -0.0128     0.0159       -0.0440      0.0184  
-#>           0  -0.0081     0.0140       -0.0355      0.0194  
-#>           1  -0.0364     0.0194       -0.0744      0.0016  
-#>           2  -0.1226     0.0465       -0.2137     -0.0315 *
-#>           3  -0.0930     0.0449       -0.1809     -0.0050 *
+#>          -3   0.0508     0.0211        0.0095      0.0922 *
+#>          -2   0.0158     0.0155       -0.0145      0.0462  
+#>          -1  -0.0128     0.0157       -0.0436      0.0179  
+#>           0  -0.0081     0.0155       -0.0385      0.0224  
+#>           1  -0.0364     0.0254       -0.0862      0.0134  
+#>           2  -0.1226     0.0415       -0.2039     -0.0413 *
+#>           3  -0.0930     0.0467       -0.1844     -0.0015 *
 #> ---
 #> Signif. codes: `*' confidence band does not cover 0
 ```
@@ -173,9 +173,9 @@ autoplot(res_qtt)
 | [`unc_qte()`](https://bcallaway11.github.io/qte/reference/unc_qte.md)     | Unconfoundedness (IPW / OR / AIPW) | QTE or QTT | No             |
 | [`cic()`](https://bcallaway11.github.io/qte/reference/cic.md)             | Change in Changes                  | ATT or QTT | Optional       |
 | [`qdid()`](https://bcallaway11.github.io/qte/reference/qdid.md)           | Quantile DiD                       | ATT or QTT | Optional       |
+| [`panel_qtt()`](https://bcallaway11.github.io/qte/reference/panel_qtt.md) | Panel QTT (copula stability)       | QTT        | Yes            |
 | [`ddid()`](https://bcallaway11.github.io/qte/reference/ddid.md)           | Distributional DiD                 | ATT or QTT | Yes            |
 | [`mdid()`](https://bcallaway11.github.io/qte/reference/mdid.md)           | Mean DiD                           | ATT or QTT | Optional       |
-| [`panel_qtt()`](https://bcallaway11.github.io/qte/reference/panel_qtt.md) | Panel QTT (copula transfer)        | QTT        | Yes            |
 | [`lou_qtt()`](https://bcallaway11.github.io/qte/reference/lou_qtt.md)     | Lagged-outcome unconfoundedness    | ATT or QTT | Yes            |
 
 All panel estimators support staggered treatment adoption and return

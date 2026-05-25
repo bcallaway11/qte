@@ -32,10 +32,10 @@ adoption supported for all):
 - `cic()` — Change in Changes (Athey and Imbens 2006)
 - `qdid()` — Quantile Difference-in-Differences (Athey and Imbens 2006;
   Meyer, Viscusi, and Durbin 1995)
+- `panel_qtt()` — Panel QTT via copula stability (Callaway and Li 2019)
 - `ddid()` — Distributional Difference-in-Differences (Callaway and Li
   2019)
 - `mdid()` — Mean Difference-in-Differences (Thuysbaert 2007)
-- `panel_qtt()` — Panel QTT via copula stability (Callaway and Li 2019)
 - `lou_qtt()` — Lagged-outcome unconfoundedness QTT
 
 ## Installation
@@ -75,20 +75,20 @@ summary(res_cs)
 #> 
 #> Overall ATT:  
 #>        ATT    Std. Error     [ 95%  Conf. Int.]  
-#>  -4685.583       868.226  -6387.275   -2983.891 *
+#>  -4685.583      894.7962  -6439.351   -2931.815 *
 #> 
 #> 
 #> QTT:
 #>  Tau         QTT Std. Error [ 95% Simult.  Conf. Band]  
-#>  0.1      0.0001   152.1425      -298.1938    298.1940  
-#>  0.2  -1002.7420   823.2062     -2616.1965    610.7125  
-#>  0.3  -3400.5673  1666.5363     -6666.9184   -134.2163 *
-#>  0.4  -5009.2491  1358.9281     -7672.6991  -2345.7990 *
-#>  0.5  -4602.4652  1021.2978     -6604.1722  -2600.7583 *
-#>  0.6  -5229.1454  1324.7191     -7825.5472  -2632.7437 *
-#>  0.7  -5507.4720  1381.3583     -8214.8844  -2800.0595 *
-#>  0.8  -6885.7529  1526.9716     -9878.5622  -3892.9436 *
-#>  0.9 -10517.0625  2280.6228    -14987.0011  -6047.1240 *
+#>  0.1      0.0001   124.4783      -243.9729    243.9730  
+#>  0.2  -1002.7420   786.6609     -2544.5690    539.0850  
+#>  0.3  -3400.5673  1618.9629     -6573.6763   -227.4584 *
+#>  0.4  -5009.2491  1198.3518     -7357.9755  -2660.5226 *
+#>  0.5  -4602.4652  1019.0238     -6599.7151  -2605.2154 *
+#>  0.6  -5229.1454  1256.5955     -7692.0273  -2766.2636 *
+#>  0.7  -5507.4720  1226.0522     -7910.4901  -3104.4538 *
+#>  0.8  -6885.7529  1496.4593     -9818.7592  -3952.7467 *
+#>  0.9 -10517.0625  2549.1099    -15513.2262  -5520.8989 *
 #> ---
 #> Signif. codes: `*' confidence band does not cover 0
 ```
@@ -126,18 +126,18 @@ summary(res_att)
 #> 
 #> Overall ATT:  
 #>      ATT    Std. Error     [ 95%  Conf. Int.] 
-#>  -0.0197        0.0151     -0.057      0.0177 
+#>  -0.0197        0.0158    -0.0543      0.0149 
 #> 
 #> 
 #> Dynamic Effects:
 #>  Event Time Estimate Std. Error [95% Simult.  Conf. Band]  
-#>          -3   0.0508     0.0213        0.0091      0.0926 *
-#>          -2   0.0158     0.0156       -0.0148      0.0465  
-#>          -1  -0.0128     0.0180       -0.0481      0.0224  
-#>           0  -0.0081     0.0151       -0.0377      0.0216  
-#>           1  -0.0364     0.0212       -0.0779      0.0051  
-#>           2  -0.1226     0.0427       -0.2063     -0.0388 *
-#>           3  -0.0930     0.0473       -0.1856     -0.0003 *
+#>          -3   0.0508     0.0211        0.0095      0.0922 *
+#>          -2   0.0158     0.0155       -0.0145      0.0462  
+#>          -1  -0.0128     0.0157       -0.0436      0.0179  
+#>           0  -0.0081     0.0155       -0.0385      0.0224  
+#>           1  -0.0364     0.0254       -0.0862      0.0134  
+#>           2  -0.1226     0.0415       -0.2039     -0.0413 *
+#>           3  -0.0930     0.0467       -0.1844     -0.0015 *
 #> ---
 #> Signif. codes: `*' confidence band does not cover 0
 ```
@@ -178,9 +178,9 @@ data-fig-alt="Overall QTT curve from cic()" />
 | `unc_qte()`   | Unconfoundedness (IPW / OR / AIPW) | QTE or QTT | No             |
 | `cic()`       | Change in Changes                  | ATT or QTT | Optional       |
 | `qdid()`      | Quantile DiD                       | ATT or QTT | Optional       |
+| `panel_qtt()` | Panel QTT (copula stability)       | QTT        | Yes            |
 | `ddid()`      | Distributional DiD                 | ATT or QTT | Yes            |
 | `mdid()`      | Mean DiD                           | ATT or QTT | Optional       |
-| `panel_qtt()` | Panel QTT (copula stability)       | QTT        | Yes            |
 | `lou_qtt()`   | Lagged-outcome unconfoundedness    | ATT or QTT | Yes            |
 
 All panel estimators support staggered treatment adoption and return

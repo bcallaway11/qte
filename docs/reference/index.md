@@ -21,18 +21,18 @@ support staggered treatment adoption via ptetools.
   Quantile Difference-in-Differences
 - [`qdid_gt()`](https://bcallaway11.github.io/qte/reference/qdid_gt.md)
   : Quantile Difference-in-Differences: group-time estimator
-- [`mdid()`](https://bcallaway11.github.io/qte/reference/mdid.md) : Mean
-  Difference-in-Differences
-- [`mdid_gt()`](https://bcallaway11.github.io/qte/reference/mdid_gt.md)
-  : Mean Difference-in-Differences: group-time estimator
-- [`ddid()`](https://bcallaway11.github.io/qte/reference/ddid.md) :
-  Distributional Difference-in-Differences
-- [`ddid_gt()`](https://bcallaway11.github.io/qte/reference/ddid_gt.md)
-  : Distributional DiD: group-time estimator
 - [`panel_qtt()`](https://bcallaway11.github.io/qte/reference/panel_qtt.md)
   : Panel QTT (Callaway-Li 2019)
 - [`panel_qtt_gt()`](https://bcallaway11.github.io/qte/reference/panel_qtt_gt.md)
   : Panel QTT: group-time estimator (Callaway-Li 2019)
+- [`ddid()`](https://bcallaway11.github.io/qte/reference/ddid.md) :
+  Distributional Difference-in-Differences
+- [`ddid_gt()`](https://bcallaway11.github.io/qte/reference/ddid_gt.md)
+  : Distributional DiD: group-time estimator
+- [`mdid()`](https://bcallaway11.github.io/qte/reference/mdid.md) : Mean
+  Difference-in-Differences
+- [`mdid_gt()`](https://bcallaway11.github.io/qte/reference/mdid_gt.md)
+  : Mean Difference-in-Differences: group-time estimator
 - [`lou_qtt()`](https://bcallaway11.github.io/qte/reference/lou_qtt.md)
   : Lagged Outcome Unconfoundedness QTT
 

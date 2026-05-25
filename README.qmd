@@ -42,9 +42,9 @@ consequences (e.g., for inequality) are of interest.
 
 - `cic()` — Change in Changes (Athey and Imbens 2006)
 - `qdid()` — Quantile Difference-in-Differences (Athey and Imbens 2006; Meyer, Viscusi, and Durbin 1995)
+- `panel_qtt()` — Panel QTT via copula stability (Callaway and Li 2019)
 - `ddid()` — Distributional Difference-in-Differences (Callaway and Li 2019)
 - `mdid()` — Mean Difference-in-Differences (Thuysbaert 2007)
-- `panel_qtt()` — Panel QTT via copula stability (Callaway and Li 2019)
 - `lou_qtt()` — Lagged-outcome unconfoundedness QTT
 
 ## Installation
@@ -150,9 +150,9 @@ autoplot(res_qtt)
 | `unc_qte()` | Unconfoundedness (IPW / OR / AIPW) | QTE or QTT | No |
 | `cic()` | Change in Changes | ATT or QTT | Optional |
 | `qdid()` | Quantile DiD | ATT or QTT | Optional |
+| `panel_qtt()` | Panel QTT (copula stability) | QTT | Yes |
 | `ddid()` | Distributional DiD | ATT or QTT | Yes |
 | `mdid()` | Mean DiD | ATT or QTT | Optional |
-| `panel_qtt()` | Panel QTT (copula stability) | QTT | Yes |
 | `lou_qtt()` | Lagged-outcome unconfoundedness | ATT or QTT | Yes |
 
 All panel estimators support staggered treatment adoption and return

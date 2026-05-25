@@ -74,19 +74,16 @@
 <li>
 <code><a href="reference/cic.html">cic()</a></code> — Change in Changes (Athey and Imbens 2006)</li>
 <li>
-<code><a href="reference/qdid.html">qdid()</a></code> — Quantile Difference-in-Differences (Callaway, Li, and Oka
-<ol start="2018" style="list-style-type: decimal"><li>
-</li></ol>
-</li>
+<code><a href="reference/qdid.html">qdid()</a></code> — Quantile Difference-in-Differences (Athey and Imbens 2006; Meyer, Viscusi, and Durbin 1995)</li>
+<li>
+<code><a href="reference/panel_qtt.html">panel_qtt()</a></code> — Panel QTT via copula stability (Callaway and Li 2019)</li>
 <li>
 <code><a href="reference/ddid.html">ddid()</a></code> — Distributional Difference-in-Differences (Callaway and Li
 <ol start="2019" style="list-style-type: decimal"><li>
 </li></ol>
 </li>
 <li>
-<code><a href="reference/mdid.html">mdid()</a></code> — Mean Difference-in-Differences (Callaway and Li 2019)</li>
-<li>
-<code><a href="reference/panel_qtt.html">panel_qtt()</a></code> — Panel QTT via copula transfer (Callaway and Li 2019)</li>
+<code><a href="reference/mdid.html">mdid()</a></code> — Mean Difference-in-Differences (Thuysbaert 2007)</li>
 <li>
 <code><a href="reference/lou_qtt.html">lou_qtt()</a></code> — Lagged-outcome unconfoundedness QTT</li>
 </ul>
@@ -99,8 +96,8 @@
 <span><span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html" class="external-link">install.packages</a></span><span class="op">(</span><span class="st">"qte"</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Install the development version from GitHub:</span></span>
-<span><span class="co"># install.packages("pak")</span></span>
-<span><span class="fu">pak</span><span class="fu">::</span><span class="fu"><a href="https://pak.r-lib.org/reference/pak.html" class="external-link">pak</a></span><span class="op">(</span><span class="st">"bcallaway11/qte"</span><span class="op">)</span></span></code></pre></div>
+<span><span class="co"># install.packages("remotes")</span></span>
+<span><span class="fu">remotes</span><span class="fu">::</span><span class="fu"><a href="https://remotes.r-lib.org/reference/install_github.html" class="external-link">install_github</a></span><span class="op">(</span><span class="st">"bcallaway11/qte"</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="quick-start--selection-on-observables">Quick start — selection on observables<a class="anchor" aria-label="anchor" href="#quick-start--selection-on-observables"></a>
@@ -125,20 +122,20 @@
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Overall ATT:  </span></span>
 <span><span class="co">#&gt;        ATT    Std. Error     [ 95%  Conf. Int.]  </span></span>
-<span><span class="co">#&gt;  -4685.583      743.9741  -6143.745   -3227.421 *</span></span>
+<span><span class="co">#&gt;  -4685.583      894.7962  -6439.351   -2931.815 *</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; QTT:</span></span>
 <span><span class="co">#&gt;  Tau         QTT Std. Error [ 95% Simult.  Conf. Band]  </span></span>
-<span><span class="co">#&gt;  0.1      0.0001    24.0967       -47.2285     47.2287  </span></span>
-<span><span class="co">#&gt;  0.2  -1002.7420   695.5313     -2365.9582    360.4742  </span></span>
-<span><span class="co">#&gt;  0.3  -3400.5673  1540.4002     -6419.6963   -381.4383 *</span></span>
-<span><span class="co">#&gt;  0.4  -5009.2491   966.6736     -6903.8944  -3114.6037 *</span></span>
-<span><span class="co">#&gt;  0.5  -4602.4652   790.3271     -6151.4779  -3053.4526 *</span></span>
-<span><span class="co">#&gt;  0.6  -5229.1454  1205.5112     -7591.9041  -2866.3868 *</span></span>
-<span><span class="co">#&gt;  0.7  -5507.4720  1356.3377     -8165.8450  -2849.0989 *</span></span>
-<span><span class="co">#&gt;  0.8  -6885.7529  1381.0892     -9592.6381  -4178.8677 *</span></span>
-<span><span class="co">#&gt;  0.9 -10517.0625  2450.1185    -15319.2066  -5714.9184 *</span></span>
+<span><span class="co">#&gt;  0.1      0.0001   124.4783      -243.9729    243.9730  </span></span>
+<span><span class="co">#&gt;  0.2  -1002.7420   786.6609     -2544.5690    539.0850  </span></span>
+<span><span class="co">#&gt;  0.3  -3400.5673  1618.9629     -6573.6763   -227.4584 *</span></span>
+<span><span class="co">#&gt;  0.4  -5009.2491  1198.3518     -7357.9755  -2660.5226 *</span></span>
+<span><span class="co">#&gt;  0.5  -4602.4652  1019.0238     -6599.7151  -2605.2154 *</span></span>
+<span><span class="co">#&gt;  0.6  -5229.1454  1256.5955     -7692.0273  -2766.2636 *</span></span>
+<span><span class="co">#&gt;  0.7  -5507.4720  1226.0522     -7910.4901  -3104.4538 *</span></span>
+<span><span class="co">#&gt;  0.8  -6885.7529  1496.4593     -9818.7592  -3952.7467 *</span></span>
+<span><span class="co">#&gt;  0.9 -10517.0625  2549.1099    -15513.2262  -5520.8989 *</span></span>
 <span><span class="co">#&gt; ---</span></span>
 <span><span class="co">#&gt; Signif. codes: `*' confidence band does not cover 0</span></span></code></pre></div>
 <p>Plot the QTT curve with a uniform confidence band:</p>
@@ -149,7 +146,7 @@
 <div class="section level2">
 <h2 id="staggered-treatment-adoption">Staggered treatment adoption<a class="anchor" aria-label="anchor" href="#staggered-treatment-adoption"></a>
 </h2>
-<p>All DiD-based estimators use a common <code>yname</code>/<code>gname</code>/<code>tname</code>/<code>idname</code> interface and support staggered treatment adoption via <a href="https://github.com/bcallaway11/ptetools" class="external-link">ptetools</a>. The example below uses the <code>mpdta</code> dataset (county-level employment, from the <code>did</code> package) with the Change in Changes estimator.</p>
+<p>All panel estimators use a common <code>yname</code>/<code>gname</code>/<code>tname</code>/<code>idname</code> interface and support staggered treatment adoption via <a href="https://github.com/bcallaway11/ptetools" class="external-link">ptetools</a>. The example below uses the <code>mpdta</code> dataset (county-level employment, from the <code>did</code> package) with the Change in Changes estimator.</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="va">mpdta</span>, package <span class="op">=</span> <span class="st">"did"</span><span class="op">)</span></span>
 <span></span>
@@ -166,18 +163,18 @@
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Overall ATT:  </span></span>
 <span><span class="co">#&gt;      ATT    Std. Error     [ 95%  Conf. Int.] </span></span>
-<span><span class="co">#&gt;  -0.0197        0.0143    -0.0485      0.0091 </span></span>
+<span><span class="co">#&gt;  -0.0197        0.0158    -0.0543      0.0149 </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Dynamic Effects:</span></span>
 <span><span class="co">#&gt;  Event Time Estimate Std. Error [95% Simult.  Conf. Band]  </span></span>
-<span><span class="co">#&gt;          -3   0.0508     0.0250        0.0019      0.0998 *</span></span>
-<span><span class="co">#&gt;          -2   0.0158     0.0141       -0.0118      0.0435  </span></span>
-<span><span class="co">#&gt;          -1  -0.0128     0.0159       -0.0440      0.0184  </span></span>
-<span><span class="co">#&gt;           0  -0.0081     0.0140       -0.0355      0.0194  </span></span>
-<span><span class="co">#&gt;           1  -0.0364     0.0194       -0.0744      0.0016  </span></span>
-<span><span class="co">#&gt;           2  -0.1226     0.0465       -0.2137     -0.0315 *</span></span>
-<span><span class="co">#&gt;           3  -0.0930     0.0449       -0.1809     -0.0050 *</span></span>
+<span><span class="co">#&gt;          -3   0.0508     0.0211        0.0095      0.0922 *</span></span>
+<span><span class="co">#&gt;          -2   0.0158     0.0155       -0.0145      0.0462  </span></span>
+<span><span class="co">#&gt;          -1  -0.0128     0.0157       -0.0436      0.0179  </span></span>
+<span><span class="co">#&gt;           0  -0.0081     0.0155       -0.0385      0.0224  </span></span>
+<span><span class="co">#&gt;           1  -0.0364     0.0254       -0.0862      0.0134  </span></span>
+<span><span class="co">#&gt;           2  -0.1226     0.0415       -0.2039     -0.0413 *</span></span>
+<span><span class="co">#&gt;           3  -0.0930     0.0467       -0.1844     -0.0015 *</span></span>
 <span><span class="co">#&gt; ---</span></span>
 <span><span class="co">#&gt; Signif. codes: `*' confidence band does not cover 0</span></span></code></pre></div>
 <p>Event-study plot showing pre-trends and post-treatment ATT by event time:</p>
@@ -235,22 +232,22 @@
 <td>Optional</td>
 </tr>
 <tr class="even">
+<td><code><a href="reference/panel_qtt.html">panel_qtt()</a></code></td>
+<td>Panel QTT (copula stability)</td>
+<td>QTT</td>
+<td>Yes</td>
+</tr>
+<tr class="odd">
 <td><code><a href="reference/ddid.html">ddid()</a></code></td>
 <td>Distributional DiD</td>
 <td>ATT or QTT</td>
 <td>Yes</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td><code><a href="reference/mdid.html">mdid()</a></code></td>
 <td>Mean DiD</td>
 <td>ATT or QTT</td>
 <td>Optional</td>
-</tr>
-<tr class="even">
-<td><code><a href="reference/panel_qtt.html">panel_qtt()</a></code></td>
-<td>Panel QTT (copula transfer)</td>
-<td>QTT</td>
-<td>Yes</td>
 </tr>
 <tr class="odd">
 <td><code><a href="reference/lou_qtt.html">lou_qtt()</a></code></td>

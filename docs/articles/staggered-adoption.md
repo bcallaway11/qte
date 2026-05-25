@@ -201,6 +201,12 @@ res_qdid <- qdid(
   gt_type = "qtt", probs = 0.5, biters = 50
 )
 
+res_pqtt <- panel_qtt(
+  yname = "lemp", gname = "first.treat", tname = "year",
+  idname = "countyreal", data = mpdta,
+  gt_type = "qtt", probs = 0.5, biters = 50
+)
+
 res_ddid <- ddid(
   yname = "lemp", gname = "first.treat", tname = "year",
   idname = "countyreal", data = mpdta,
@@ -208,12 +214,6 @@ res_ddid <- ddid(
 )
 
 res_mdid <- mdid(
-  yname = "lemp", gname = "first.treat", tname = "year",
-  idname = "countyreal", data = mpdta,
-  gt_type = "qtt", probs = 0.5, biters = 50
-)
-
-res_pqtt <- panel_qtt(
   yname = "lemp", gname = "first.treat", tname = "year",
   idname = "countyreal", data = mpdta,
   gt_type = "qtt", probs = 0.5, biters = 50
@@ -235,18 +235,18 @@ median_qtt <- function(res, label) {
 do.call(rbind, list(
   median_qtt(res_cic,  "cic()"),
   median_qtt(res_qdid, "qdid()"),
+  median_qtt(res_pqtt, "panel_qtt()"),
   median_qtt(res_ddid, "ddid()"),
   median_qtt(res_mdid, "mdid()"),
-  median_qtt(res_pqtt, "panel_qtt()"),
   median_qtt(res_lou,  "lou_qtt()")
 ))
 #>     estimator     qtt     se
 #> 1       cic() -0.0455 0.0439
 #> 2      qdid() -0.0614 0.0512
-#> 3      ddid() -0.0614 0.0418
-#> 4      mdid() -0.0384 0.0498
-#> 5 panel_qtt() -0.0965 0.0662
-#> 6   lou_qtt() -0.0102 0.1295
+#> 3 panel_qtt() -0.0965 0.0578
+#> 4      ddid() -0.0614 0.0528
+#> 5      mdid() -0.0384 0.0427
+#> 6   lou_qtt() -0.0102 0.1159
 ```
 
 Estimates will generally differ because each estimator relies on a
