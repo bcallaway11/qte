@@ -6,12 +6,15 @@ format: gfm
 
 ```{r}
 #| echo: false
+#| message: false
 knitr::opts_chunk$set(
   collapse  = TRUE,
   comment   = "#>",
   fig.path  = "man/figures/README-",
   out.width = "70%"
 )
+library(qte)
+library(ggplot2)
 ```
 
 # qte — Quantile Treatment Effects in R <img src="man/figures/logo.png" align="right" height="139" alt="" />
@@ -35,14 +38,14 @@ consequences (e.g., for inequality) are of interest.
 - `unc_qte()` — QTE/QTT under unconfoundedness (IPW, outcome regression, or
   doubly robust); covers random assignment as a special case
 
-**DiD-based estimators** (staggered treatment adoption supported for all):
+**Panel and repeated cross-section estimators** (staggered treatment adoption supported for all):
 
 - `cic()` — Change in Changes (Athey and Imbens 2006)
 - `qdid()` — Quantile Difference-in-Differences (Callaway, Li, and Oka 2018)
 - `ddid()` — Distributional Difference-in-Differences (Callaway and Li 2019)
 - `mdid()` — Mean Difference-in-Differences (Callaway and Li 2019)
 - `panel_qtt()` — Panel QTT via copula transfer (Callaway and Li 2019)
-- `lou_qte()` — Lagged-outcome unconfoundedness QTT
+- `lou_qtt()` — Lagged-outcome unconfoundedness QTT
 
 ## Installation
 
@@ -65,8 +68,6 @@ via doubly robust estimation.
 
 ```{r}
 #| label: unc-qte
-#| cache: true
-library(qte)
 data(lalonde)
 
 xf <- ~ age + I(age^2) + education + black + hispanic + married + nodegree
@@ -88,7 +89,7 @@ Plot the QTT curve with a uniform confidence band:
 
 ```{r}
 #| label: unc-qte-plot
-#| fig-alt: "QTT estimates across quantiles with uniform confidence band"
+#| fig.alt: "QTT estimates across quantiles with uniform confidence band"
 autoplot(res_cs)
 ```
 
@@ -102,7 +103,6 @@ the Change in Changes estimator.
 
 ```{r}
 #| label: cic-att
-#| cache: true
 data(mpdta, package = "did")
 
 res_att <- cic(
@@ -121,7 +121,7 @@ Event-study plot showing pre-trends and post-treatment ATT by event time:
 
 ```{r}
 #| label: cic-att-plot
-#| fig-alt: "Event-study plot of ATT estimates by event time"
+#| fig.alt: "Event-study plot of ATT estimates by event time"
 autoplot(res_att, type = "dynamic")
 ```
 
@@ -129,7 +129,7 @@ The same estimator returns a full QTT curve when `gt_type = "qtt"`:
 
 ```{r}
 #| label: cic-qtt
-#| cache: true
+#| fig.alt: "Overall QTT curve from cic()"
 res_qtt <- cic(
   yname   = "lemp",
   gname   = "first.treat",
@@ -153,14 +153,10 @@ autoplot(res_qtt)
 | `ddid()` | Distributional DiD | ATT or QTT | Yes |
 | `mdid()` | Mean DiD | ATT or QTT | Optional |
 | `panel_qtt()` | Panel QTT (copula transfer) | QTT | Yes |
-| `lou_qte()` | Lagged-outcome unconfoundedness | ATT or QTT | Yes |
+| `lou_qtt()` | Lagged-outcome unconfoundedness | ATT or QTT | Yes |
 
-All DiD-based estimators support staggered treatment adoption and return
+All panel estimators support staggered treatment adoption and return
 group-specific, event-study, and overall aggregations.
-
-Legacy wrappers `CiC()`, `QDiD()`, `MDiD()`, `ddid2()`, `panel.qtet()`,
-`ci.qte()`, and `ci.qtet()` are retained with deprecation warnings pointing
-to their modern replacements. They will be removed in v2.1.
 
 ## Documentation and vignettes
 
@@ -169,7 +165,7 @@ Full documentation and vignettes are available at the
 
 - **Quantile Treatment Effects in R** — `unc_qte()` under random assignment
   and selection on observables
-- **DiD-Based Quantile Treatment Effects** — identification assumptions and
-  usage for all six DiD estimators
-- **Staggered Treatment Adoption** — applied workflow with `mpdta`: overall,
-  group-specific, and event-study aggregations; ATT vs. QTT
+- **Panel Data Estimators for Quantile Treatment Effects** — identification
+  assumptions and usage for all six panel estimators
+- **Staggered Treatment Adoption** — applied workflow with `mpdta`: QTT
+  curves, event-study plots, and cross-estimator comparison

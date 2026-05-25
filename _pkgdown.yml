@@ -31,7 +31,7 @@ articles:
       - intro
   - title: "DiD-Based Methods"
     contents:
-      - did-estimators
+      - panel-estimators
       - staggered-adoption
 
 reference:
@@ -42,10 +42,10 @@ reference:
     contents:
       - unc_qte
 
-  - title: "DiD-based estimators"
+  - title: "Panel and repeated cross-section estimators"
     desc: >
-      Estimators for the QTT under difference-in-differences and related
-      assumptions. All support staggered treatment adoption via ptetools.
+      Estimators for the QTT using panel or repeated cross-section data.
+      All support staggered treatment adoption via ptetools.
     contents:
       - cic
       - cic_gt
@@ -57,30 +57,16 @@ reference:
       - ddid_gt
       - panel_qtt
       - panel_qtt_gt
-      - lou_qte
-
-  - title: "Deprecated wrappers"
-    desc: >
-      Legacy two-period wrappers retained with deprecation warnings. Will be
-      removed in v2.1 (target 2026-08). See the linked modern replacement in
-      each function's documentation.
-    contents:
-      - CiC
-      - QDiD
-      - MDiD
-      - ddid2
-      - panel.qtet
-      - ci.qte
-      - ci.qtet
+      - lou_qtt
 
   - title: "Package overview"
     contents:
       - qte-package
 
-  - title: "QTE class and output"
+  - title: "Output and plotting"
     desc: >
-      The QTE S3 class returned by legacy estimators and unc_qte(), and
-      methods for printing, summarising, and plotting.
+      The QTE S3 class returned by unc_qte(), and methods for printing,
+      summarising, and plotting.
     contents:
       - QTE
       - summary.QTE
@@ -98,12 +84,3 @@ reference:
       - lalonde.exp.panel
       - lalonde.psid
       - lalonde.psid.panel
-
-  - title: "Internal and legacy infrastructure"
-    desc: >
-      Exported for technical reasons but not intended for direct use. Subject
-      to removal in v2.1 alongside the deprecated wrappers.
-    contents:
-      - QTEparams
-      - panelize.data
-      - compute.panel.qtet

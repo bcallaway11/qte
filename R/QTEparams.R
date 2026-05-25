@@ -50,6 +50,7 @@
 #'   \code{MDiD}, \code{ddid2}, \code{panel.qtet}, \code{ci.qtet}) to pass
 #'   parameters to \code{setupData} and \code{compute.*} functions.
 #'
+#' @keywords internal
 #' @export
 QTEparams <- function(formla, xformla = NULL, t = NULL, tmin1 = NULL, tmin2 = NULL,
                       tname = NULL, data, panel = FALSE, w = NULL,

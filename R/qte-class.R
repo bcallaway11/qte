@@ -319,6 +319,7 @@ compute.panel.qtet <- function(qp) {
 #'
 #' @return \code{QTE} object
 #'
+#' @keywords internal
 #' @export
 panel.qtet <- function(formla, xformla = NULL, t, tmin1, tmin2,
                        tname, data,

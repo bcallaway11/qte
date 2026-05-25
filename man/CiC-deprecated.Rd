@@ -69,3 +69,4 @@ treatment adoption natively via \code{ptetools}.
 \seealso{
 \code{\link{cic}}
 }
+\keyword{internal}

@@ -385,6 +385,7 @@ compute.CiC <- function(qp) {
 #'
 #' @name CiC-deprecated
 #' @aliases CiC
+#' @keywords internal
 #' @export
 # nolint start: object_name_linter
 CiC <- function(formla, xformla = NULL, t, tmin1, tname, data,

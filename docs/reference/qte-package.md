@@ -18,6 +18,16 @@ and Oka (2018)
 'ptetools') for all DiD-based estimators, as well as a new
 lagged-outcome unconfoundedness estimator ('lou_qte').
 
+## See also
+
+Useful links:
+
+- <https://bcallaway11.github.io/qte>
+
+- <https://github.com/bcallaway11/qte>
+
+- Report bugs at <https://github.com/bcallaway11/qte/issues>
+
 ## Author
 
 **Maintainer**: Brantly Callaway <brantly.callaway@uga.edu>

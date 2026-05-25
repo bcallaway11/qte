@@ -75,3 +75,4 @@ interface and supports staggered treatment adoption natively.
 \seealso{
 \code{\link{qdid}}
 }
+\keyword{internal}

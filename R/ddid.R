@@ -386,6 +386,7 @@ compute.ddid2 <- function(qp) { # nolint: object_name_linter
 #'
 #' @seealso \code{\link{ddid}}
 #'
+#' @keywords internal
 #' @export
 ddid2 <- function(formla, xformla = NULL, t, tmin1,
                   tname, data, panel = TRUE,

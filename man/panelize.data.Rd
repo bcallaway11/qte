@@ -30,3 +30,4 @@ data.frame
 \description{
 get data in correct format for using panel methods in qte package
 }
+\keyword{internal}

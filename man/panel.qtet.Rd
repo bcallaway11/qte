@@ -161,3 +161,4 @@ in Differences Models with Panel Data.'' Working Paper, 2019.
 \code{\link{panel_qtt}} for the modern replacement supporting
 staggered adoption.
 }
+\keyword{internal}

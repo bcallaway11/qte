@@ -3,7 +3,7 @@
 ## What are Quantile Treatment Effects?
 
 The Average Treatment Effect (ATE) or Average Treatment Effect on the
-Treated (ATT) summarizes the causal impact of a policy by a single
+Treated (ATT) summarizes the causal effect of a treatment by a single
 number: the mean difference in outcomes between treated and untreated
 units. This is often a natural quantity, but it can miss important
 heterogeneity. If a job training program substantially raises earnings
@@ -12,7 +12,7 @@ the ATE obscures this. If a minimum wage increase compresses the wage
 distribution, an average effect conceals the compression.
 
 The Quantile Treatment Effect at level $\tau$ is
-$QTE(\tau) = Q_{Y}(1)(\tau) - Q_{Y}(0)(\tau)$, where $Q_{Y}(d)(\tau)$ is
+$QTE(\tau) = Q_{Y(1)}(\tau) - Q_{Y(0)}(\tau)$, where $Q_{Y(d)}(\tau)$ is
 the $\tau$-th quantile of the potential outcome distribution under
 treatment status $d$. Mapping $QTE(\tau)$ across $\tau \in (0,1)$ traces
 how the treatment shifts the entire outcome distribution. The Quantile
@@ -23,7 +23,7 @@ This vignette demonstrates
 the `qte` package’s estimator for cross-sectional settings (no panel
 data required). For DiD-based estimators and staggered treatment
 adoption, see
-[`vignette("did-estimators")`](https://bcallaway11.github.io/qte/articles/did-estimators.md)
+[`vignette("panel-estimators")`](https://bcallaway11.github.io/qte/articles/panel-estimators.md)
 and
 [`vignette("staggered-adoption")`](https://bcallaway11.github.io/qte/articles/staggered-adoption.md).
 
@@ -809,12 +809,13 @@ autoplot(res_qtt) +
 
 By default
 [`autoplot()`](https://ggplot2.tidyverse.org/reference/autoplot.html)
-shows the uniform confidence band (`cband = TRUE`). Pass `cband = FALSE`
-for pointwise intervals.
+shows a uniform confidence band (`cband = TRUE`), which provides
+simultaneous coverage over all quantile levels — a stronger guarantee
+than pointwise intervals. Pass `cband = FALSE` for pointwise intervals
+instead.
 
 Standard errors are computed via the empirical bootstrap. The `biters`
-argument controls the number of iterations (default 100; use 499 or more
-for publication). Parallel computation is available via the `cl`
-argument.
+argument controls the number of iterations (default 100). Parallel
+computation is available via the `cl` argument.
 
 ## References

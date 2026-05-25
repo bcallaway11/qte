@@ -60,6 +60,7 @@ panel.checks <- function(qp) {
 #'
 #' @return data.frame
 #'
+#' @keywords internal
 #' @export
 panelize.data <- function(data, idname, tname, t, tmin1, tmin2 = NULL) {
   ## drop obs that are not in period t, tmin1, tmin2

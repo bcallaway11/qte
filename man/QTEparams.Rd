@@ -95,3 +95,4 @@ parameters to \code{setupData} and \code{compute.*} functions.
 \code{QTEparams} is an object that contains all the
 parameters passed to QTE methods
 }
+\keyword{internal}

@@ -82,3 +82,4 @@ interface and supports staggered treatment adoption natively.
 \seealso{
 \code{\link{ddid}}
 }
+\keyword{internal}

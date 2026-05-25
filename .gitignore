@@ -9,3 +9,5 @@ Meta
 /Meta/
 *.code-workspace
 tests/testthat/_problems/
+dev/
+README_cache/

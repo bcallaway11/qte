@@ -1,7 +1,8 @@
 # qte 2.0.0
 
-This is the largest update in the package's history. The API has changed
-substantially — please read this section before upgrading.
+This is a major update that extends all estimators to support staggered
+treatment adoption. The API has changed substantially — please read this
+section before upgrading.
 
 ## New functions
 

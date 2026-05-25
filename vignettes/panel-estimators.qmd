@@ -1,0 +1,220 @@
+---
+title: "Panel Data Estimators for Quantile Treatment Effects"
+author: "Brantly Callaway"
+date: today
+format: html
+bibliography: refs.bib
+knitr:
+  opts_chunk:
+    collapse: true
+    comment: "#>"
+    fig.width: 6
+    fig.height: 4
+vignette: >
+  %\VignetteIndexEntry{Panel Data Estimators for Quantile Treatment Effects}
+  %\VignetteEngine{quarto::html}
+  %\VignetteEncoding{UTF-8}
+---
+
+## Overview
+
+The `qte` package provides six DiD-based estimators for the QTT. All share
+the same `yname`/`gname`/`tname`/`idname` interface and support staggered
+treatment adoption natively. They differ in their identification assumptions
+and the restrictions those assumptions impose on the data-generating process.
+
+This vignette describes each estimator conceptually and shows the minimal
+call. For a full applied workflow with aggregations and event-study plots, see
+`vignette("staggered-adoption")`.
+
+```{r}
+#| label: setup
+#| message: false
+library(qte)
+set.seed(42)
+data(mpdta, package = "did")
+```
+
+We use `mpdta` throughout: a balanced panel of 500 US counties observed
+annually from 2003–2007, with `lemp` (log employment) as the outcome and
+`first.treat` as the cohort variable (year of first minimum wage increase; 0
+= never treated).
+
+The common call structure for all six estimators is:
+
+```r
+estimator(
+  yname  = "lemp",        # outcome
+  gname  = "first.treat", # first treatment period (0 = never treated)
+  tname  = "year",        # calendar time
+  idname = "countyreal",  # unit id
+  data   = mpdta,
+  gt_type = "att",        # "att" or "qtt"
+  biters  = 100
+)
+```
+
+---
+
+## Change in Changes — `cic()`
+
+**Reference:** @athey-imbens-2006
+
+**Identifying assumption:** The distributional time-change is the same for both groups:
+$$Q_{Y_t(0)|D=1}\!\left(F_{Y_{t-1}(0)|D=1}(y)\right) = Q_{Y_t(0)|D=0}\!\left(F_{Y_{t-1}(0)|D=0}(y)\right) \quad \text{for all } y,$$
+along with a support condition: $\text{supp}(Y_{t-1}(0)|D=1) \subseteq \text{supp}(Y_{t-1}(0)|D=0)$.
+
+**Intuition:** The expression $Q_{Y_t(0)|D=g}(F_{Y_{t-1}(0)|D=g}(y))$ takes a pre-period value $y$, finds its quantile rank in group $g$'s pre-period distribution, and returns the post-period value at that same rank within group $g$'s distribution. The assumption requires this operation to give the same result for both groups at every $y$. It can be thought of as a nonlinear version of parallel trends: where parallel trends requires the *mean* of $Y(0)$ to shift equally across groups, CiC requires the *entire distributional time-change* to be the same.
+
+**Identification:** Under this assumption the counterfactual quantile function is
+$$Q_{Y_t(0)|D=1}(\tau) = Q_{Y_t|D=0}\!\left(F_{Y_{t-1}|D=0}\!\left(Q_{Y_{t-1}|D=1}(\tau)\right)\right).$$
+
+**When to use:** Works with panel or repeated cross sections.
+
+```{r}
+#| label: cic-att
+#| cache: true
+res_cic <- cic(
+  yname  = "lemp", gname = "first.treat", tname = "year",
+  idname = "countyreal", data = mpdta,
+  gt_type = "att", biters = 50
+)
+summary(res_cic)
+```
+
+---
+
+## Quantile Difference-in-Differences — `qdid()`
+
+**References:** @athey-imbens-2006; @meyer-viscusi-durbin-1995
+
+**Identifying assumption:** The change in quantiles over time is the same for both groups:
+$$Q_{Y_t(0)|D=1}(\tau) - Q_{Y_{t-1}(0)|D=1}(\tau) = Q_{Y_t(0)|D=0}(\tau) - Q_{Y_{t-1}(0)|D=0}(\tau) \quad \text{for all } \tau \in (0,1).$$
+
+**Intuition:** This requires parallel trends to hold at every quantile level $\tau$, not just in the mean. It directly identifies the counterfactual:
+$$Q_{Y_t(0)|D=1}(\tau) = Q_{Y_{t-1}|D=1}(\tau) + Q_{Y_t|D=0}(\tau) - Q_{Y_{t-1}|D=0}(\tau).$$
+
+**When to use:** Works with panel or repeated cross sections.
+
+```{r}
+#| label: qdid-att
+#| cache: true
+res_qdid <- qdid(
+  yname  = "lemp", gname = "first.treat", tname = "year",
+  idname = "countyreal", data = mpdta,
+  gt_type = "att", biters = 50
+)
+summary(res_qdid)
+```
+
+---
+
+## Distributional DiD — `ddid()`
+
+**Reference:** @callaway-li-2019
+
+**Identifying assumptions:** The first is $\Delta Y_t(0) \perp D$ — the same as in `panel_qtt()`. The copula assumption differs: rather than stability over time, `ddid()` assumes the copula of $(\Delta Y_t(0), Y_{t-1}(0))$ is the same for treated and untreated groups,
+$$C_{\Delta Y_t(0),\, Y_{t-1}(0)|D=1} = C_{\Delta Y_t(0),\, Y_{t-1}(0)|D=0}.$$
+
+**Intuition:** For the untreated group, $\Delta Y_t(0) = \Delta Y_t$ is observed, so the right-hand copula can be estimated directly. The assumption transfers it to the treated group. Combined with the identified marginals, this pins down the joint distribution of $(\Delta Y_t(0), Y_{t-1}(0))$ for treated units and identifies the QTT — in exactly the same way as `panel_qtt()`. The key contrast is the source of the copula: `ddid()` borrows it from the untreated group at the same point in time, while `panel_qtt()` borrows it from the treated group's own pre-treatment history.
+
+```{r}
+#| label: ddid-att
+#| cache: true
+res_ddid <- ddid(
+  yname  = "lemp", gname = "first.treat", tname = "year",
+  idname = "countyreal", data = mpdta,
+  gt_type = "att", biters = 50
+)
+summary(res_ddid)
+```
+
+---
+
+## Mean Difference-in-Differences — `mdid()`
+
+**Reference:** @thuysbaert-2007
+
+**Identifying assumption:** The counterfactual quantile for the treated group in the post-period is the pre-period quantile shifted by the mean change in outcomes for the untreated group:
+$$Q_{Y_t(0)|D=1}(\tau) = Q_{Y_{t-1}|D=1}(\tau) + E[Y_t|D=0] - E[Y_{t-1}|D=0].$$
+
+**Intuition:** The assumption says the shape of the treated group's outcome distribution is unchanged in the counterfactual — the entire distribution simply shifts by the amount the untreated group's mean changed. This implies mean parallel trends (so the ATT is identified), but is stronger: it additionally requires that only the location of the distribution shifts, not its shape. Works with panel or repeated cross sections.
+
+```{r}
+#| label: mdid-att
+#| cache: true
+res_mdid <- mdid(
+  yname  = "lemp", gname = "first.treat", tname = "year",
+  idname = "countyreal", data = mpdta,
+  gt_type = "att", biters = 50
+)
+summary(res_mdid)
+```
+
+---
+
+## Panel QTT — `panel_qtt()`
+
+**Reference:** @callaway-li-2019
+
+**Identifying assumptions:** The first assumption is $\Delta Y_t(0) \perp D$ — the distribution of the change in untreated potential outcomes is the same for both groups:
+$$F_{\Delta Y_t(0)|D=1} = F_{\Delta Y_t(0)|D=0}.$$
+This identifies the marginal distribution of $\Delta Y_t(0)$ for the treated group. As shown in @fan-yu-2012, this is not sufficient on its own to identify the QTT. Identification is completed by a copula stability assumption: the copula linking $\Delta Y_t(0)$ to the lagged outcome $Y_{t-1}(0)$ is stable over time within the treated group,
+$$C_{\Delta Y_t(0),\, Y_{t-1}(0)|D=1} = C_{\Delta Y_{t-1}(0),\, Y_{t-2}(0)|D=1}.$$
+
+**Intuition:** For treated units, $Y_{t-1}$ and $Y_{t-2}$ are observed pre-treatment, so the right-hand copula can be estimated directly from the data. Copula stability says this same dependence structure governs $(\Delta Y_t(0), Y_{t-1}(0))$ in the post-period. Combined with the identified marginals, this pins down the conditional distribution of $\Delta Y_t(0)$ given $Y_{t-1}(0) = y$ for treated units. Since $Y_t(0) = Y_{t-1} + \Delta Y_t(0)$ and $Y_{t-1}$ is observed, the QTT is identified. Requires panel data with at least two pre-treatment periods per cohort.
+
+```{r}
+#| label: panel-qtt
+#| cache: true
+res_pqtt <- panel_qtt(
+  yname  = "lemp", gname = "first.treat", tname = "year",
+  idname = "countyreal", data = mpdta,
+  gt_type = "qtt", probs = seq(0.1, 0.9, 0.1), biters = 50
+)
+summary(res_pqtt)
+```
+
+---
+
+## Lagged-Outcome Unconfoundedness — `lou_qtt()`
+
+**Identification assumption:** Unconfoundedness conditional on the lagged
+outcome — treatment is as good as randomly assigned after conditioning on the
+pre-treatment value of the outcome.
+
+**When to use:** When selection into treatment may depend on lagged outcomes
+but not on unobserved heterogeneity — i.e., once you condition on the
+pre-treatment outcome, treatment assignment is as good as random. Requires
+panel data.
+
+```{r}
+#| label: lou-att
+#| cache: true
+res_lou <- lou_qtt(
+  yname  = "lemp", gname = "first.treat", tname = "year",
+  idname = "countyreal", data = mpdta,
+  gt_type = "att", biters = 50
+)
+summary(res_lou)
+```
+
+---
+
+## Summary
+
+| Function | Assumption | Panel required | Notes |
+|---|---|---|---|
+| `cic()` | Rank invariance + support | Optional | Nonparametric; strongest assumption |
+| `qdid()` | Distributional parallel trends | Optional | DiD analog for distributions |
+| `ddid()` | Conditional distributional PT | Yes | Adds covariate adjustment to QDiD |
+| `mdid()` | Mean parallel trends | Optional | Weakest DiD assumption |
+| `panel_qtt()` | Copula stability | Yes | Requires ≥ 2 pre-periods per cohort |
+| `lou_qtt()` | Lagged-outcome unconfoundedness | Yes | Not a parallel trends assumption |
+
+All estimators return either a `pte_results` object (`gt_type = "att"`) or a
+`pte_qtt` object (`gt_type = "qtt"`), and support `autoplot()` for plotting
+overall curves and event-study summaries. See `vignette("staggered-adoption")`
+for the full applied workflow.
+
+## References

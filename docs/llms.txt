@@ -1,34 +1,198 @@
-# README
+# qte — Quantile Treatment Effects in R
 
-Brantly Callaway 2023-09-16
+## Overview
 
-# qte
+The `qte` package provides methods for estimating Quantile Treatment
+Effects (QTE) and Quantile Treatment Effects on the Treated (QTT) in R.
+Where the average treatment effect summarizes the impact of a policy by
+a single number, the QTE describes how treatment effects vary across the
+outcome distribution — useful whenever the policy’s impact is
+heterogeneous or when distributional consequences (e.g., for inequality)
+are of interest.
 
-The R `qte` package implements many methods used, especially in
-economics, to estimate quantile treatment effects. These include the
-case where treatment is randomly assigned, under selection on
-observables, under a Difference in Differences Assumtpion.
+**Cross-sectional estimators** (no panel data required):
 
-The package is available on CRAN and can be loaded as follows
+- [`unc_qte()`](https://bcallaway11.github.io/qte/reference/unc_qte.md)
+  — QTE/QTT under unconfoundedness (IPW, outcome regression, or doubly
+  robust); covers random assignment as a special case
+
+**Panel and repeated cross-section estimators** (staggered treatment
+adoption supported for all):
+
+- [`cic()`](https://bcallaway11.github.io/qte/reference/cic.md) — Change
+  in Changes (Athey and Imbens 2006)
+- [`qdid()`](https://bcallaway11.github.io/qte/reference/qdid.md) —
+  Quantile Difference-in-Differences (Callaway, Li, and Oka
+  2018. 
+- [`ddid()`](https://bcallaway11.github.io/qte/reference/ddid.md) —
+  Distributional Difference-in-Differences (Callaway and Li
+  2019. 
+- [`mdid()`](https://bcallaway11.github.io/qte/reference/mdid.md) — Mean
+  Difference-in-Differences (Callaway and Li 2019)
+- [`panel_qtt()`](https://bcallaway11.github.io/qte/reference/panel_qtt.md)
+  — Panel QTT via copula transfer (Callaway and Li 2019)
+- [`lou_qtt()`](https://bcallaway11.github.io/qte/reference/lou_qtt.md)
+  — Lagged-outcome unconfoundedness QTT
+
+## Installation
 
 ``` r
-  library(qte)
+# Install from CRAN:
+install.packages("qte")
+
+# Install the development version from GitHub:
+# install.packages("pak")
+pak::pak("bcallaway11/qte")
 ```
 
-The following example shows how to use the `ci.qte` method in the `qte`
-package using data about an experimental job training program.
+## Quick start — selection on observables
+
+The
+[`unc_qte()`](https://bcallaway11.github.io/qte/reference/unc_qte.md)
+function estimates the QTE or QTT under an unconfoundedness assumption.
+Here we use the observational Lalonde (1986) data to estimate the QTT of
+a job training program, controlling for pre-treatment characteristics
+via doubly robust estimation.
 
 ``` r
 data(lalonde)
- jt.cia <- ci.qte(re78 ~ treat,
-   xformla=~age + education + black + hispanic + married + nodegree,
-   data=lalonde.psid,
-   probs=seq(0.05,0.95,0.05), se=T)
- summary(jt.cia)
+
+xf <- ~ age + I(age^2) + education + black + hispanic + married + nodegree
+
+res_cs <- unc_qte(
+  yname      = "re78",
+  dname      = "treat",
+  data       = lalonde.psid,
+  xformla    = xf,
+  est_method = "aipw",
+  target     = "qtt",
+  probs      = seq(0.1, 0.9, 0.1),
+  biters     = 100
+)
+summary(res_cs)
+#> 
+#> Overall ATT:  
+#>        ATT    Std. Error     [ 95%  Conf. Int.]  
+#>  -4685.583      743.9741  -6143.745   -3227.421 *
+#> 
+#> 
+#> QTT:
+#>  Tau         QTT Std. Error [ 95% Simult.  Conf. Band]  
+#>  0.1      0.0001    24.0967       -47.2285     47.2287  
+#>  0.2  -1002.7420   695.5313     -2365.9582    360.4742  
+#>  0.3  -3400.5673  1540.4002     -6419.6963   -381.4383 *
+#>  0.4  -5009.2491   966.6736     -6903.8944  -3114.6037 *
+#>  0.5  -4602.4652   790.3271     -6151.4779  -3053.4526 *
+#>  0.6  -5229.1454  1205.5112     -7591.9041  -2866.3868 *
+#>  0.7  -5507.4720  1356.3377     -8165.8450  -2849.0989 *
+#>  0.8  -6885.7529  1381.0892     -9592.6381  -4178.8677 *
+#>  0.9 -10517.0625  2450.1185    -15319.2066  -5714.9184 *
+#> ---
+#> Signif. codes: `*' confidence band does not cover 0
 ```
 
-More examples and details about other functions in the package can be
-found at the package’s [website](http://bcallaway11.github.io/qte/)
+Plot the QTT curve with a uniform confidence band:
+
+``` r
+autoplot(res_cs)
+```
+
+![](reference/figures/README-unc-qte-plot-1.png)
+
+## Staggered treatment adoption
+
+All DiD-based estimators use a common `yname`/`gname`/`tname`/`idname`
+interface and support staggered treatment adoption via
+[ptetools](https://github.com/bcallaway11/ptetools). The example below
+uses the `mpdta` dataset (county-level employment, from the `did`
+package) with the Change in Changes estimator.
+
+``` r
+data(mpdta, package = "did")
+
+res_att <- cic(
+  yname   = "lemp",
+  gname   = "first.treat",
+  tname   = "year",
+  idname  = "countyreal",
+  data    = mpdta,
+  gt_type = "att",
+  biters  = 100
+)
+summary(res_att)
+#> 
+#> Overall ATT:  
+#>      ATT    Std. Error     [ 95%  Conf. Int.] 
+#>  -0.0197        0.0143    -0.0485      0.0091 
+#> 
+#> 
+#> Dynamic Effects:
+#>  Event Time Estimate Std. Error [95% Simult.  Conf. Band]  
+#>          -3   0.0508     0.0250        0.0019      0.0998 *
+#>          -2   0.0158     0.0141       -0.0118      0.0435  
+#>          -1  -0.0128     0.0159       -0.0440      0.0184  
+#>           0  -0.0081     0.0140       -0.0355      0.0194  
+#>           1  -0.0364     0.0194       -0.0744      0.0016  
+#>           2  -0.1226     0.0465       -0.2137     -0.0315 *
+#>           3  -0.0930     0.0449       -0.1809     -0.0050 *
+#> ---
+#> Signif. codes: `*' confidence band does not cover 0
+```
+
+Event-study plot showing pre-trends and post-treatment ATT by event
+time:
+
+``` r
+autoplot(res_att, type = "dynamic")
+```
+
+![](reference/figures/README-cic-att-plot-1.png)
+
+The same estimator returns a full QTT curve when `gt_type = "qtt"`:
+
+``` r
+res_qtt <- cic(
+  yname   = "lemp",
+  gname   = "first.treat",
+  tname   = "year",
+  idname  = "countyreal",
+  data    = mpdta,
+  gt_type = "qtt",
+  probs   = seq(0.1, 0.9, 0.1),
+  biters  = 100
+)
+autoplot(res_qtt)
+```
+
+![](reference/figures/README-cic-qtt-1.png)
+
+## Available estimators
+
+| Function                                                                  | Method                             | Target     | Panel required |
+|---------------------------------------------------------------------------|------------------------------------|------------|----------------|
+| [`unc_qte()`](https://bcallaway11.github.io/qte/reference/unc_qte.md)     | Unconfoundedness (IPW / OR / AIPW) | QTE or QTT | No             |
+| [`cic()`](https://bcallaway11.github.io/qte/reference/cic.md)             | Change in Changes                  | ATT or QTT | Optional       |
+| [`qdid()`](https://bcallaway11.github.io/qte/reference/qdid.md)           | Quantile DiD                       | ATT or QTT | Optional       |
+| [`ddid()`](https://bcallaway11.github.io/qte/reference/ddid.md)           | Distributional DiD                 | ATT or QTT | Yes            |
+| [`mdid()`](https://bcallaway11.github.io/qte/reference/mdid.md)           | Mean DiD                           | ATT or QTT | Optional       |
+| [`panel_qtt()`](https://bcallaway11.github.io/qte/reference/panel_qtt.md) | Panel QTT (copula transfer)        | QTT        | Yes            |
+| [`lou_qtt()`](https://bcallaway11.github.io/qte/reference/lou_qtt.md)     | Lagged-outcome unconfoundedness    | ATT or QTT | Yes            |
+
+All panel estimators support staggered treatment adoption and return
+group-specific, event-study, and overall aggregations.
+
+## Documentation and vignettes
+
+Full documentation and vignettes are available at the [pkgdown
+site](https://bcallaway11.github.io/qte/):
+
+- **Quantile Treatment Effects in R** —
+  [`unc_qte()`](https://bcallaway11.github.io/qte/reference/unc_qte.md)
+  under random assignment and selection on observables
+- **Panel Data Estimators for Quantile Treatment Effects** —
+  identification assumptions and usage for all six panel estimators
+- **Staggered Treatment Adoption** — applied workflow with `mpdta`: QTT
+  curves, event-study plots, and cross-estimator comparison
 
 # Package index
 
@@ -40,10 +204,10 @@ required).
 - [`unc_qte()`](https://bcallaway11.github.io/qte/reference/unc_qte.md)
   : unc_qte
 
-## DiD-based estimators
+## Panel and repeated cross-section estimators
 
-Estimators for the QTT under difference-in-differences and related
-assumptions. All support staggered treatment adoption via ptetools.
+Estimators for the QTT using panel or repeated cross-section data. All
+support staggered treatment adoption via ptetools.
 
 - [`cic()`](https://bcallaway11.github.io/qte/reference/cic.md) : Change
   in Changes
@@ -65,29 +229,8 @@ assumptions. All support staggered treatment adoption via ptetools.
   : Panel QTT (Callaway-Li 2019)
 - [`panel_qtt_gt()`](https://bcallaway11.github.io/qte/reference/panel_qtt_gt.md)
   : Panel QTT: group-time estimator (Callaway-Li 2019)
-- [`lou_qte()`](https://bcallaway11.github.io/qte/reference/lou_qte.md)
+- [`lou_qtt()`](https://bcallaway11.github.io/qte/reference/lou_qtt.md)
   : Lagged Outcome Unconfoundedness QTT
-
-## Deprecated wrappers
-
-Legacy two-period wrappers retained with deprecation warnings. Will be
-removed in v2.1 (target 2026-08). See the linked modern replacement in
-each function’s documentation.
-
-- [`CiC()`](https://bcallaway11.github.io/qte/reference/CiC-deprecated.md)
-  : CiC
-- [`QDiD()`](https://bcallaway11.github.io/qte/reference/QDiD-deprecated.md)
-  : QDiD
-- [`MDiD()`](https://bcallaway11.github.io/qte/reference/MDiD-deprecated.md)
-  : MDiD
-- [`ddid2()`](https://bcallaway11.github.io/qte/reference/ddid2.md) :
-  ddid2
-- [`panel.qtet()`](https://bcallaway11.github.io/qte/reference/panel.qtet.md)
-  : panel.qtet
-- [`ci.qte()`](https://bcallaway11.github.io/qte/reference/ci.qte.md) :
-  ci.qte
-- [`ci.qtet()`](https://bcallaway11.github.io/qte/reference/ci.qtet.md)
-  : ci.qtet
 
 ## Package overview
 
@@ -95,10 +238,10 @@ each function’s documentation.
   [`qte-package`](https://bcallaway11.github.io/qte/reference/qte-package.md)
   : qte: A package for computing quantile treatment effects
 
-## QTE class and output
+## Output and plotting
 
-The QTE S3 class returned by legacy estimators and unc_qte(), and
-methods for printing, summarising, and plotting.
+The QTE S3 class returned by unc_qte(), and methods for printing,
+summarising, and plotting.
 
 - [`QTE()`](https://bcallaway11.github.io/qte/reference/QTE.md) : QTE
 - [`summary(`*`<QTE>`*`)`](https://bcallaway11.github.io/qte/reference/summary.QTE.md)
@@ -127,18 +270,6 @@ Datasets bundled with the package.
 - [`lalonde.psid.panel`](https://bcallaway11.github.io/qte/reference/lalonde.psid.panel.md)
   : Lalonde's Panel Observational Dataset
 
-## Internal and legacy infrastructure
-
-Exported for technical reasons but not intended for direct use. Subject
-to removal in v2.1 alongside the deprecated wrappers.
-
-- [`QTEparams()`](https://bcallaway11.github.io/qte/reference/QTEparams.md)
-  : QTEparams
-- [`panelize.data()`](https://bcallaway11.github.io/qte/reference/panelize.data.md)
-  : panelize.data
-- [`compute.panel.qtet()`](https://bcallaway11.github.io/qte/reference/compute.panel.qtet.md)
-  : compute.panel.qtet
-
 # Articles
 
 ### Getting Started
@@ -148,7 +279,7 @@ to removal in v2.1 alongside the deprecated wrappers.
 
 ### DiD-Based Methods
 
-- [DiD-Based Quantile Treatment
-  Effects](https://bcallaway11.github.io/qte/articles/did-estimators.md):
+- [Panel Data Estimators for Quantile Treatment
+  Effects](https://bcallaway11.github.io/qte/articles/panel-estimators.md):
 - [Staggered Treatment Adoption with the qte
   Package](https://bcallaway11.github.io/qte/articles/staggered-adoption.md):

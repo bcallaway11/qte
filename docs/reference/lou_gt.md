@@ -3,7 +3,7 @@
 Estimates the ATT and counterfactual distribution \\F_0 =
 F\_{Y(0)\|D=1}\\ for a single (g,t) cell under lagged-outcome
 unconfoundedness. Called internally by
-[`lou_qte`](https://bcallaway11.github.io/qte/reference/lou_qte.md) via
+[`lou_qtt`](https://bcallaway11.github.io/qte/reference/lou_qtt.md) via
 [`ptetools::pte()`](https://rdrr.io/pkg/ptetools/man/pte.html).
 
 ## Usage

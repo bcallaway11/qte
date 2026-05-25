@@ -3,7 +3,7 @@
 **Deprecated.** Use
 [`unc_qte`](https://bcallaway11.github.io/qte/reference/unc_qte.md)`(target = "qtt")`
 for a cross-sectional QTT under unconfoundedness, or
-[`lou_qte`](https://bcallaway11.github.io/qte/reference/lou_qte.md) for
+[`lou_qtt`](https://bcallaway11.github.io/qte/reference/lou_qtt.md) for
 staggered treatment adoption with optional lagged-outcome conditioning.
 
 `ci.qtet` estimates the Quantile Treatment Effect on the Treated (QTET)

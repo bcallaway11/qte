@@ -2,8 +2,9 @@
 
 ## qte 2.0.0
 
-This is the largest update in the package’s history. The API has changed
-substantially — please read this section before upgrading.
+This is a major update that extends all estimators to support staggered
+treatment adoption. The API has changed substantially — please read this
+section before upgrading.
 
 ### New functions
 
@@ -58,10 +59,9 @@ substantially — please read this section before upgrading.
   [`panel.qtet()`](https://bcallaway11.github.io/qte/reference/panel.qtet.md),
   which is retained as a deprecated wrapper.
 
-- [`lou_qte()`](https://bcallaway11.github.io/qte/reference/lou_qte.md)
-  — Lagged-outcome unconfoundedness QTT estimator for staggered
-  treatment adoption. Uses the lagged outcome as a control variable to
-  identify the QTT. New; no prior equivalent in the package.
+- `lou_qte()` — Lagged-outcome unconfoundedness QTT estimator for
+  staggered treatment adoption. Uses the lagged outcome as a control
+  variable to identify the QTT. New; no prior equivalent in the package.
 
 ### Deprecated functions
 

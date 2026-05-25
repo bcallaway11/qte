@@ -20,6 +20,7 @@
 <li class="nav-item"><a class="nav-link" href="../news/index.html">News</a></li>
       </ul><ul class="navbar-nav"><li class="nav-item"><form class="form-inline" role="search">
  <input class="form-control" type="search" name="search-input" id="search-input" autocomplete="off" aria-label="Search site" placeholder="Search for" data-search-index="../search.json"></form></li>
+<li class="nav-item"><a class="external-link nav-link" href="https://github.com/bcallaway11/qte/" aria-label="GitHub"><span class="fa fab fa-github fa-lg"></span></a></li>
       </ul></div>
 
 
@@ -47,9 +48,9 @@
         </dt>
         <dd>unc_qte</dd>
       </dl></div><div class="section level2">
-      <h2 id="did-based-estimators">DiD-based estimators<a class="anchor" aria-label="anchor" href="#did-based-estimators"></a></h2>
+      <h2 id="panel-and-repeated-cross-section-estimators">Panel and repeated cross-section estimators<a class="anchor" aria-label="anchor" href="#panel-and-repeated-cross-section-estimators"></a></h2>
 
-      <div class="section-desc"><p>Estimators for the QTT under difference-in-differences and related assumptions. All support staggered treatment adoption via ptetools.</p></div>
+      <div class="section-desc"><p>Estimators for the QTT using panel or repeated cross-section data. All support staggered treatment adoption via ptetools.</p></div>
 
       <dl></dl></div><div class="section level2">
 
@@ -128,68 +129,10 @@
 
         <dt>
 
-          <code><a href="lou_qte.html">lou_qte()</a></code>
+          <code><a href="lou_qtt.html">lou_qtt()</a></code>
 
         </dt>
         <dd>Lagged Outcome Unconfoundedness QTT</dd>
-      </dl></div><div class="section level2">
-      <h2 id="deprecated-wrappers">Deprecated wrappers<a class="anchor" aria-label="anchor" href="#deprecated-wrappers"></a></h2>
-
-      <div class="section-desc"><p>Legacy two-period wrappers retained with deprecation warnings. Will be removed in v2.1 (target 2026-08). See the linked modern replacement in each function’s documentation.</p></div>
-
-      <dl></dl></div><div class="section level2">
-
-
-
-
-      <dl><dt>
-
-          <code><a href="CiC-deprecated.html">CiC()</a></code>
-
-        </dt>
-        <dd>CiC</dd>
-
-        <dt>
-
-          <code><a href="QDiD-deprecated.html">QDiD()</a></code>
-
-        </dt>
-        <dd>QDiD</dd>
-
-        <dt>
-
-          <code><a href="MDiD-deprecated.html">MDiD()</a></code>
-
-        </dt>
-        <dd>MDiD</dd>
-
-        <dt>
-
-          <code><a href="ddid2.html">ddid2()</a></code>
-
-        </dt>
-        <dd>ddid2</dd>
-
-        <dt>
-
-          <code><a href="panel.qtet.html">panel.qtet()</a></code>
-
-        </dt>
-        <dd>panel.qtet</dd>
-
-        <dt>
-
-          <code><a href="ci.qte.html">ci.qte()</a></code>
-
-        </dt>
-        <dd>ci.qte</dd>
-
-        <dt>
-
-          <code><a href="ci.qtet.html">ci.qtet()</a></code>
-
-        </dt>
-        <dd>ci.qtet</dd>
       </dl></div><div class="section level2">
       <h2 id="package-overview">Package overview<a class="anchor" aria-label="anchor" href="#package-overview"></a></h2>
 
@@ -207,9 +150,9 @@
         </dt>
         <dd>qte: A package for computing quantile treatment effects</dd>
       </dl></div><div class="section level2">
-      <h2 id="qte-class-and-output">QTE class and output<a class="anchor" aria-label="anchor" href="#qte-class-and-output"></a></h2>
+      <h2 id="output-and-plotting">Output and plotting<a class="anchor" aria-label="anchor" href="#output-and-plotting"></a></h2>
 
-      <div class="section-desc"><p>The QTE S3 class returned by legacy estimators and unc_qte(), and methods for printing, summarising, and plotting.</p></div>
+      <div class="section-desc"><p>The QTE S3 class returned by unc_qte(), and methods for printing, summarising, and plotting.</p></div>
 
       <dl></dl></div><div class="section level2">
 
@@ -301,36 +244,6 @@
 
         </dt>
         <dd>Lalonde's Panel Observational Dataset</dd>
-      </dl></div><div class="section level2">
-      <h2 id="internal-and-legacy-infrastructure">Internal and legacy infrastructure<a class="anchor" aria-label="anchor" href="#internal-and-legacy-infrastructure"></a></h2>
-
-      <div class="section-desc"><p>Exported for technical reasons but not intended for direct use. Subject to removal in v2.1 alongside the deprecated wrappers.</p></div>
-
-      <dl></dl></div><div class="section level2">
-
-
-
-
-      <dl><dt>
-
-          <code><a href="QTEparams.html">QTEparams()</a></code>
-
-        </dt>
-        <dd>QTEparams</dd>
-
-        <dt>
-
-          <code><a href="panelize.data.html">panelize.data()</a></code>
-
-        </dt>
-        <dd>panelize.data</dd>
-
-        <dt>
-
-          <code><a href="compute.panel.qtet.html">compute.panel.qtet()</a></code>
-
-        </dt>
-        <dd>compute.panel.qtet</dd>
       </dl></div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside></div>

@@ -81,7 +81,7 @@ A \code{QTE} object; same structure as \code{\link{unc_qte}}.
 }
 \description{
 \strong{Deprecated.} Use \code{\link{unc_qte}}\code{(target = "qtt")}
-for a cross-sectional QTT under unconfoundedness, or \code{\link{lou_qte}}
+for a cross-sectional QTT under unconfoundedness, or \code{\link{lou_qtt}}
 for staggered treatment adoption with optional lagged-outcome conditioning.
 
 \code{ci.qtet} estimates the Quantile Treatment Effect on the Treated
@@ -119,3 +119,4 @@ summary(q2)
 Firpo, Sergio. ``Efficient Semiparametric Estimation of Quantile Treatment
 Effects.'' Econometrica 75.1, pp. 259-276, 2007.
 }
+\keyword{internal}

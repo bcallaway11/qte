@@ -20,6 +20,7 @@
 <li class="active nav-item"><a class="nav-link" href="../news/index.html">News</a></li>
       </ul><ul class="navbar-nav"><li class="nav-item"><form class="form-inline" role="search">
  <input class="form-control" type="search" name="search-input" id="search-input" autocomplete="off" aria-label="Search site" placeholder="Search for" data-search-index="../search.json"></form></li>
+<li class="nav-item"><a class="external-link nav-link" href="https://github.com/bcallaway11/qte/" aria-label="GitHub"><span class="fa fab fa-github fa-lg"></span></a></li>
       </ul></div>
 
 
@@ -28,12 +29,12 @@
 <div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
       <img src="../logo.png" class="logo" alt=""><h1>Changelog</h1>
-
+      <small>Source: <a href="https://github.com/bcallaway11/qte/blob/HEAD/NEWS.md" class="external-link"><code>NEWS.md</code></a></small>
     </div>
 
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="2.0.0" id="qte-200">qte 2.0.0<a class="anchor" aria-label="anchor" href="#qte-200"></a></h2>
-<p>This is the largest update in the package’s history. The API has changed substantially — please read this section before upgrading.</p>
+<p>This is a major update that extends all estimators to support staggered treatment adoption. The API has changed substantially — please read this section before upgrading.</p>
 <div class="section level3">
 <h3 id="new-functions-2-0-0">New functions<a class="anchor" aria-label="anchor" href="#new-functions-2-0-0"></a></h3>
 <ul><li><p><code><a href="../reference/unc_qte.html">unc_qte()</a></code> — cross-sectional QTE and QTT under unconfoundedness. Supports IPW, outcome regression, and doubly robust (AIPW) estimation. Uses a <code>yname</code>/<code>dname</code> interface consistent with the <code>did</code>/<code>ptetools</code> convention. Replaces <code><a href="../reference/ci.qte.html">ci.qte()</a></code> and <code><a href="../reference/ci.qtet.html">ci.qtet()</a></code>, which are retained as deprecated wrappers.</p></li>
@@ -42,7 +43,7 @@
 <li><p><code><a href="../reference/mdid.html">mdid()</a></code> / <code><a href="../reference/mdid_gt.html">mdid_gt()</a></code> — Mean Difference in Differences estimator for staggered treatment adoption (Callaway and Li 2019). Replaces <code><a href="../reference/MDiD-deprecated.html">MDiD()</a></code>, which is retained as a deprecated wrapper.</p></li>
 <li><p><code><a href="../reference/ddid.html">ddid()</a></code> / <code><a href="../reference/ddid_gt.html">ddid_gt()</a></code> — Distributional Difference in Differences estimator for staggered treatment adoption (Callaway and Li 2019). Replaces <code><a href="../reference/ddid2.html">ddid2()</a></code>, which is retained as a deprecated wrapper.</p></li>
 <li><p><code><a href="../reference/panel_qtt.html">panel_qtt()</a></code> / <code><a href="../reference/panel_qtt_gt.html">panel_qtt_gt()</a></code> — Panel QTT estimator using copula transfer across pre-treatment periods (Callaway and Li 2019), with staggered treatment adoption support. The <code>pre_copula</code> argument controls whether a rolling (<code>"long"</code>, default) or fixed (<code>"short"</code>) base period is used to transfer the copula. Replaces <code><a href="../reference/panel.qtet.html">panel.qtet()</a></code>, which is retained as a deprecated wrapper.</p></li>
-<li><p><code><a href="../reference/lou_qte.html">lou_qte()</a></code> — Lagged-outcome unconfoundedness QTT estimator for staggered treatment adoption. Uses the lagged outcome as a control variable to identify the QTT. New; no prior equivalent in the package.</p></li>
+<li><p><code>lou_qte()</code> — Lagged-outcome unconfoundedness QTT estimator for staggered treatment adoption. Uses the lagged outcome as a control variable to identify the QTT. New; no prior equivalent in the package.</p></li>
 </ul></div>
 <div class="section level3">
 <h3 id="deprecated-functions-2-0-0">Deprecated functions<a class="anchor" aria-label="anchor" href="#deprecated-functions-2-0-0"></a></h3>

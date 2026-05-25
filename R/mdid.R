@@ -400,6 +400,7 @@ compute.MDiD <- function(formla, xformla = NULL, t, tmin1, tname, data,
 #'
 #' @name MDiD-deprecated
 #' @aliases MDiD
+#' @keywords internal
 #' @export
 # nolint start: object_name_linter
 MDiD <- function(formla, xformla = NULL, t, tmin1, tname, data,

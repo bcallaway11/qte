@@ -403,6 +403,7 @@ compute.QDiD <- function(qp) { # nolint: object_name_linter
 #'
 #' @name QDiD-deprecated
 #' @aliases QDiD
+#' @keywords internal
 #' @export
 # nolint start: object_name_linter
 QDiD <- function(formla, xformla = NULL, t, tmin1, tname, data,

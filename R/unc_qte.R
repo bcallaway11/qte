@@ -7,7 +7,7 @@
 #   combination of IPW and OR. Standard errors via empirical bootstrap.
 #   Also contains deprecated wrappers ci.qte and ci.qtet.
 # Author: Brant Callaway
-# Last update: 2026-05-22
+# Last update: 2026-05-24
 # Date created: 2026-05-18
 # =============================================================================
 
@@ -148,7 +148,7 @@ compute.unc_qte <- function(qp) {
         mean(F_cond + (1 - D) / (1 - pscore) * (as.numeric(y <= yy) - F_cond))
       }, numeric(1))
       F0 <- cummax(pmax(0, pmin(1, F0)))
-      q0 <- approx(F0, y_grid, xout = probs, rule = 2)$y
+      q0 <- approx(F0, y_grid, xout = probs, rule = 2, ties = min)$y
 
       # AIPW CDF for Y(1)
       M1        <- suppressWarnings(
@@ -161,7 +161,7 @@ compute.unc_qte <- function(qp) {
         mean(F_cond + D / pscore * (as.numeric(y <= yy) - F_cond))
       }, numeric(1))
       F1 <- cummax(pmax(0, pmin(1, F1)))
-      q1 <- approx(F1, y_grid, xout = probs, rule = 2)$y
+      q1 <- approx(F1, y_grid, xout = probs, rule = 2, ties = min)$y
 
       t_wts <- w * D       / pscore
       u_wts <- w * (1 - D) / (1 - pscore)
@@ -177,7 +177,7 @@ compute.unc_qte <- function(qp) {
         mean(aipw_term) / pbar
       }, numeric(1))
       F_qtt <- cummax(pmax(0, pmin(1, F_qtt)))
-      q0    <- approx(F_qtt, y_grid, xout = probs, rule = 2)$y
+      q0    <- approx(F_qtt, y_grid, xout = probs, rule = 2, ties = min)$y
 
       q1   <- weighted_quantile(probs, treated[, yname], treated[, wname])
       att1 <- weighted_mean(treated[, yname], treated[, wname])
@@ -444,7 +444,7 @@ ci.qte <- function(formla, xformla = NULL, x = NULL, data, w = NULL,
 #' @title ci.qtet
 #'
 #' @description \strong{Deprecated.} Use \code{\link{unc_qte}}\code{(target = "qtt")}
-#'   for a cross-sectional QTT under unconfoundedness, or \code{\link{lou_qte}}
+#'   for a cross-sectional QTT under unconfoundedness, or \code{\link{lou_qtt}}
 #'   for staggered treatment adoption with optional lagged-outcome conditioning.
 #'
 #'   \code{ci.qtet} estimates the Quantile Treatment Effect on the Treated
@@ -500,6 +500,7 @@ ci.qte <- function(formla, xformla = NULL, x = NULL, data, w = NULL,
 #' }
 #'
 #' @return A \code{QTE} object; same structure as \code{\link{unc_qte}}.
+#' @keywords internal
 #' @export
 ci.qtet <- function(formla, xformla = NULL, w = NULL, data,
                     probs = seq(0.05, 0.95, 0.05), se = TRUE,
@@ -513,7 +514,7 @@ ci.qtet <- function(formla, xformla = NULL, w = NULL, data,
       "For a cross-sectional QTT under unconfoundedness use:\n",
       "  unc_qte(..., target = 'qtt')\n",
       "For staggered treatment adoption with optional lagged-outcome conditioning use:\n",
-      "  lou_qte(...)"
+      "  lou_qtt(...)"
     )
   )
   if (!is.null(w)) {

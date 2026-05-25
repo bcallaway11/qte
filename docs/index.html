@@ -45,6 +45,7 @@
 <li class="nav-item"><form class="form-inline" role="search">
  <input class="form-control" type="search" name="search-input" id="search-input" autocomplete="off" aria-label="Search site" placeholder="Search for" data-search-index="search.json">
 </form></li>
+<li class="nav-item"><a class="external-link nav-link" href="https://github.com/bcallaway11/qte/" aria-label="GitHub"><span class="fa fab fa-github fa-lg"></span></a></li>
       </ul>
 </div>
 
@@ -54,34 +55,233 @@
 <div class="row">
   <main id="main" class="col-md-9"><div class="section level1">
 <div class="page-header">
-<img src="logo.png" class="logo" alt=""><h1 id="readme">README<a class="anchor" aria-label="anchor" href="#readme"></a>
+<img src="logo.png" class="logo" alt=""><h1 id="qte--quantile-treatment-effects-in-r-">qte — Quantile Treatment Effects in R <a class="anchor" aria-label="anchor" href="#qte--quantile-treatment-effects-in-r-"></a>
 </h1>
 </div>
-<p>Brantly Callaway 2023-09-16</p>
-<!-- README.md is generated from README.Rmd. Please edit that file -->
+<!-- badges: start -->
+
+<div class="section level2">
+<h2 id="overview">Overview<a class="anchor" aria-label="anchor" href="#overview"></a>
+</h2>
+<p>The <code>qte</code> package provides methods for estimating Quantile Treatment Effects (QTE) and Quantile Treatment Effects on the Treated (QTT) in R. Where the average treatment effect summarizes the impact of a policy by a single number, the QTE describes how treatment effects vary across the outcome distribution — useful whenever the policy’s impact is heterogeneous or when distributional consequences (e.g., for inequality) are of interest.</p>
+<p><strong>Cross-sectional estimators</strong> (no panel data required):</p>
+<ul>
+<li>
+<code><a href="reference/unc_qte.html">unc_qte()</a></code> — QTE/QTT under unconfoundedness (IPW, outcome regression, or doubly robust); covers random assignment as a special case</li>
+</ul>
+<p><strong>Panel and repeated cross-section estimators</strong> (staggered treatment adoption supported for all):</p>
+<ul>
+<li>
+<code><a href="reference/cic.html">cic()</a></code> — Change in Changes (Athey and Imbens 2006)</li>
+<li>
+<code><a href="reference/qdid.html">qdid()</a></code> — Quantile Difference-in-Differences (Callaway, Li, and Oka
+<ol start="2018" style="list-style-type: decimal"><li>
+</li></ol>
+</li>
+<li>
+<code><a href="reference/ddid.html">ddid()</a></code> — Distributional Difference-in-Differences (Callaway and Li
+<ol start="2019" style="list-style-type: decimal"><li>
+</li></ol>
+</li>
+<li>
+<code><a href="reference/mdid.html">mdid()</a></code> — Mean Difference-in-Differences (Callaway and Li 2019)</li>
+<li>
+<code><a href="reference/panel_qtt.html">panel_qtt()</a></code> — Panel QTT via copula transfer (Callaway and Li 2019)</li>
+<li>
+<code><a href="reference/lou_qtt.html">lou_qtt()</a></code> — Lagged-outcome unconfoundedness QTT</li>
+</ul>
 </div>
-<div class="section level1">
-<h1 id="qte-">qte <a class="anchor" aria-label="anchor" href="#qte-"></a>
-</h1>
-<p>The R <code>qte</code> package implements many methods used, especially in economics, to estimate quantile treatment effects. These include the case where treatment is randomly assigned, under selection on observables, under a Difference in Differences Assumtpion.</p>
-<p>The package is available on CRAN and can be loaded as follows</p>
+<div class="section level2">
+<h2 id="installation">Installation<a class="anchor" aria-label="anchor" href="#installation"></a>
+</h2>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span>  <span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va">qte</span><span class="op">)</span></span></code></pre></div>
-<p>The following example shows how to use the <code>ci.qte</code> method in the <code>qte</code> package using data about an experimental job training program.</p>
+<code class="sourceCode R"><span><span class="co"># Install from CRAN:</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html" class="external-link">install.packages</a></span><span class="op">(</span><span class="st">"qte"</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Install the development version from GitHub:</span></span>
+<span><span class="co"># install.packages("pak")</span></span>
+<span><span class="fu">pak</span><span class="fu">::</span><span class="fu"><a href="https://pak.r-lib.org/reference/pak.html" class="external-link">pak</a></span><span class="op">(</span><span class="st">"bcallaway11/qte"</span><span class="op">)</span></span></code></pre></div>
+</div>
+<div class="section level2">
+<h2 id="quick-start--selection-on-observables">Quick start — selection on observables<a class="anchor" aria-label="anchor" href="#quick-start--selection-on-observables"></a>
+</h2>
+<p>The <code><a href="reference/unc_qte.html">unc_qte()</a></code> function estimates the QTE or QTT under an unconfoundedness assumption. Here we use the observational Lalonde (1986) data to estimate the QTT of a job training program, controlling for pre-treatment characteristics via doubly robust estimation.</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="va">lalonde</span><span class="op">)</span></span>
-<span> <span class="va">jt.cia</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/ci.qte.html">ci.qte</a></span><span class="op">(</span><span class="va">re78</span> <span class="op">~</span> <span class="va">treat</span>,</span>
-<span>   xformla<span class="op">=</span><span class="op">~</span><span class="va">age</span> <span class="op">+</span> <span class="va">education</span> <span class="op">+</span> <span class="va">black</span> <span class="op">+</span> <span class="va">hispanic</span> <span class="op">+</span> <span class="va">married</span> <span class="op">+</span> <span class="va">nodegree</span>,</span>
-<span>   data<span class="op">=</span><span class="va">lalonde.psid</span>,</span>
-<span>   probs<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="fl">0.05</span>,<span class="fl">0.95</span>,<span class="fl">0.05</span><span class="op">)</span>, se<span class="op">=</span><span class="cn">T</span><span class="op">)</span></span>
-<span> <span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">jt.cia</span><span class="op">)</span></span></code></pre></div>
-<p>More examples and details about other functions in the package can be found at the package’s <a href="http://bcallaway11.github.io/qte/" class="external-link">website</a></p>
+<span></span>
+<span><span class="va">xf</span> <span class="op">&lt;-</span> <span class="op">~</span> <span class="va">age</span> <span class="op">+</span> <span class="fu"><a href="https://rdrr.io/r/base/AsIs.html" class="external-link">I</a></span><span class="op">(</span><span class="va">age</span><span class="op">^</span><span class="fl">2</span><span class="op">)</span> <span class="op">+</span> <span class="va">education</span> <span class="op">+</span> <span class="va">black</span> <span class="op">+</span> <span class="va">hispanic</span> <span class="op">+</span> <span class="va">married</span> <span class="op">+</span> <span class="va">nodegree</span></span>
+<span></span>
+<span><span class="va">res_cs</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/unc_qte.html">unc_qte</a></span><span class="op">(</span></span>
+<span>  yname      <span class="op">=</span> <span class="st">"re78"</span>,</span>
+<span>  dname      <span class="op">=</span> <span class="st">"treat"</span>,</span>
+<span>  data       <span class="op">=</span> <span class="va">lalonde.psid</span>,</span>
+<span>  xformla    <span class="op">=</span> <span class="va">xf</span>,</span>
+<span>  est_method <span class="op">=</span> <span class="st">"aipw"</span>,</span>
+<span>  target     <span class="op">=</span> <span class="st">"qtt"</span>,</span>
+<span>  probs      <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="fl">0.1</span>, <span class="fl">0.9</span>, <span class="fl">0.1</span><span class="op">)</span>,</span>
+<span>  biters     <span class="op">=</span> <span class="fl">100</span></span>
+<span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">res_cs</span><span class="op">)</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Overall ATT:  </span></span>
+<span><span class="co">#&gt;        ATT    Std. Error     [ 95%  Conf. Int.]  </span></span>
+<span><span class="co">#&gt;  -4685.583      743.9741  -6143.745   -3227.421 *</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; QTT:</span></span>
+<span><span class="co">#&gt;  Tau         QTT Std. Error [ 95% Simult.  Conf. Band]  </span></span>
+<span><span class="co">#&gt;  0.1      0.0001    24.0967       -47.2285     47.2287  </span></span>
+<span><span class="co">#&gt;  0.2  -1002.7420   695.5313     -2365.9582    360.4742  </span></span>
+<span><span class="co">#&gt;  0.3  -3400.5673  1540.4002     -6419.6963   -381.4383 *</span></span>
+<span><span class="co">#&gt;  0.4  -5009.2491   966.6736     -6903.8944  -3114.6037 *</span></span>
+<span><span class="co">#&gt;  0.5  -4602.4652   790.3271     -6151.4779  -3053.4526 *</span></span>
+<span><span class="co">#&gt;  0.6  -5229.1454  1205.5112     -7591.9041  -2866.3868 *</span></span>
+<span><span class="co">#&gt;  0.7  -5507.4720  1356.3377     -8165.8450  -2849.0989 *</span></span>
+<span><span class="co">#&gt;  0.8  -6885.7529  1381.0892     -9592.6381  -4178.8677 *</span></span>
+<span><span class="co">#&gt;  0.9 -10517.0625  2450.1185    -15319.2066  -5714.9184 *</span></span>
+<span><span class="co">#&gt; ---</span></span>
+<span><span class="co">#&gt; Signif. codes: `*' confidence band does not cover 0</span></span></code></pre></div>
+<p>Plot the QTT curve with a uniform confidence band:</p>
+<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu">autoplot</span><span class="op">(</span><span class="va">res_cs</span><span class="op">)</span></span></code></pre></div>
+<p><img src="reference/figures/README-unc-qte-plot-1.png" style="width:70.0%" data-fig-alt="QTT estimates across quantiles with uniform confidence band"></p>
 </div>
-
+<div class="section level2">
+<h2 id="staggered-treatment-adoption">Staggered treatment adoption<a class="anchor" aria-label="anchor" href="#staggered-treatment-adoption"></a>
+</h2>
+<p>All DiD-based estimators use a common <code>yname</code>/<code>gname</code>/<code>tname</code>/<code>idname</code> interface and support staggered treatment adoption via <a href="https://github.com/bcallaway11/ptetools" class="external-link">ptetools</a>. The example below uses the <code>mpdta</code> dataset (county-level employment, from the <code>did</code> package) with the Change in Changes estimator.</p>
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="va">mpdta</span>, package <span class="op">=</span> <span class="st">"did"</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">res_att</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/cic.html">cic</a></span><span class="op">(</span></span>
+<span>  yname   <span class="op">=</span> <span class="st">"lemp"</span>,</span>
+<span>  gname   <span class="op">=</span> <span class="st">"first.treat"</span>,</span>
+<span>  tname   <span class="op">=</span> <span class="st">"year"</span>,</span>
+<span>  idname  <span class="op">=</span> <span class="st">"countyreal"</span>,</span>
+<span>  data    <span class="op">=</span> <span class="va">mpdta</span>,</span>
+<span>  gt_type <span class="op">=</span> <span class="st">"att"</span>,</span>
+<span>  biters  <span class="op">=</span> <span class="fl">100</span></span>
+<span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">res_att</span><span class="op">)</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Overall ATT:  </span></span>
+<span><span class="co">#&gt;      ATT    Std. Error     [ 95%  Conf. Int.] </span></span>
+<span><span class="co">#&gt;  -0.0197        0.0143    -0.0485      0.0091 </span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; Dynamic Effects:</span></span>
+<span><span class="co">#&gt;  Event Time Estimate Std. Error [95% Simult.  Conf. Band]  </span></span>
+<span><span class="co">#&gt;          -3   0.0508     0.0250        0.0019      0.0998 *</span></span>
+<span><span class="co">#&gt;          -2   0.0158     0.0141       -0.0118      0.0435  </span></span>
+<span><span class="co">#&gt;          -1  -0.0128     0.0159       -0.0440      0.0184  </span></span>
+<span><span class="co">#&gt;           0  -0.0081     0.0140       -0.0355      0.0194  </span></span>
+<span><span class="co">#&gt;           1  -0.0364     0.0194       -0.0744      0.0016  </span></span>
+<span><span class="co">#&gt;           2  -0.1226     0.0465       -0.2137     -0.0315 *</span></span>
+<span><span class="co">#&gt;           3  -0.0930     0.0449       -0.1809     -0.0050 *</span></span>
+<span><span class="co">#&gt; ---</span></span>
+<span><span class="co">#&gt; Signif. codes: `*' confidence band does not cover 0</span></span></code></pre></div>
+<p>Event-study plot showing pre-trends and post-treatment ATT by event time:</p>
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu">autoplot</span><span class="op">(</span><span class="va">res_att</span>, type <span class="op">=</span> <span class="st">"dynamic"</span><span class="op">)</span></span></code></pre></div>
+<p><img src="reference/figures/README-cic-att-plot-1.png" style="width:70.0%" data-fig-alt="Event-study plot of ATT estimates by event time"></p>
+<p>The same estimator returns a full QTT curve when <code>gt_type = "qtt"</code>:</p>
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">res_qtt</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/cic.html">cic</a></span><span class="op">(</span></span>
+<span>  yname   <span class="op">=</span> <span class="st">"lemp"</span>,</span>
+<span>  gname   <span class="op">=</span> <span class="st">"first.treat"</span>,</span>
+<span>  tname   <span class="op">=</span> <span class="st">"year"</span>,</span>
+<span>  idname  <span class="op">=</span> <span class="st">"countyreal"</span>,</span>
+<span>  data    <span class="op">=</span> <span class="va">mpdta</span>,</span>
+<span>  gt_type <span class="op">=</span> <span class="st">"qtt"</span>,</span>
+<span>  probs   <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="fl">0.1</span>, <span class="fl">0.9</span>, <span class="fl">0.1</span><span class="op">)</span>,</span>
+<span>  biters  <span class="op">=</span> <span class="fl">100</span></span>
+<span><span class="op">)</span></span>
+<span><span class="fu">autoplot</span><span class="op">(</span><span class="va">res_qtt</span><span class="op">)</span></span></code></pre></div>
+<p><img src="reference/figures/README-cic-qtt-1.png" style="width:70.0%" data-fig-alt="Overall QTT curve from cic()"></p>
+</div>
+<div class="section level2">
+<h2 id="available-estimators">Available estimators<a class="anchor" aria-label="anchor" href="#available-estimators"></a>
+</h2>
+<table class="table">
+<colgroup>
+<col width="18%">
+<col width="45%">
+<col width="15%">
+<col width="20%">
+</colgroup>
+<thead><tr class="header">
+<th>Function</th>
+<th>Method</th>
+<th>Target</th>
+<th>Panel required</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td><code><a href="reference/unc_qte.html">unc_qte()</a></code></td>
+<td>Unconfoundedness (IPW / OR / AIPW)</td>
+<td>QTE or QTT</td>
+<td>No</td>
+</tr>
+<tr class="even">
+<td><code><a href="reference/cic.html">cic()</a></code></td>
+<td>Change in Changes</td>
+<td>ATT or QTT</td>
+<td>Optional</td>
+</tr>
+<tr class="odd">
+<td><code><a href="reference/qdid.html">qdid()</a></code></td>
+<td>Quantile DiD</td>
+<td>ATT or QTT</td>
+<td>Optional</td>
+</tr>
+<tr class="even">
+<td><code><a href="reference/ddid.html">ddid()</a></code></td>
+<td>Distributional DiD</td>
+<td>ATT or QTT</td>
+<td>Yes</td>
+</tr>
+<tr class="odd">
+<td><code><a href="reference/mdid.html">mdid()</a></code></td>
+<td>Mean DiD</td>
+<td>ATT or QTT</td>
+<td>Optional</td>
+</tr>
+<tr class="even">
+<td><code><a href="reference/panel_qtt.html">panel_qtt()</a></code></td>
+<td>Panel QTT (copula transfer)</td>
+<td>QTT</td>
+<td>Yes</td>
+</tr>
+<tr class="odd">
+<td><code><a href="reference/lou_qtt.html">lou_qtt()</a></code></td>
+<td>Lagged-outcome unconfoundedness</td>
+<td>ATT or QTT</td>
+<td>Yes</td>
+</tr>
+</tbody>
+</table>
+<p>All panel estimators support staggered treatment adoption and return group-specific, event-study, and overall aggregations.</p>
+</div>
+<div class="section level2">
+<h2 id="documentation-and-vignettes">Documentation and vignettes<a class="anchor" aria-label="anchor" href="#documentation-and-vignettes"></a>
+</h2>
+<p>Full documentation and vignettes are available at the <a href="https://bcallaway11.github.io/qte/">pkgdown site</a>:</p>
+<ul>
+<li>
+<strong>Quantile Treatment Effects in R</strong> — <code><a href="reference/unc_qte.html">unc_qte()</a></code> under random assignment and selection on observables</li>
+<li>
+<strong>Panel Data Estimators for Quantile Treatment Effects</strong> — identification assumptions and usage for all six panel estimators</li>
+<li>
+<strong>Staggered Treatment Adoption</strong> — applied workflow with <code>mpdta</code>: QTT curves, event-study plots, and cross-estimator comparison</li>
+</ul>
+</div>
+</div>
   </main><aside class="col-md-3"><div class="links">
 <h2 data-toc-skip>Links</h2>
 <ul class="list-unstyled">
 <li><a href="https://cloud.r-project.org/package=qte" class="external-link">View on CRAN</a></li>
+<li><a href="https://github.com/bcallaway11/qte/" class="external-link">Browse source code</a></li>
+<li><a href="https://github.com/bcallaway11/qte/issues" class="external-link">Report a bug</a></li>
 <li><a href="https://github.com/bcallaway11/qte" class="external-link">Source Code</a></li>
 <li><a href="https://github.com/bcallaway11/qte/issues" class="external-link">Report Bugs or Feature Requests</a></li>
 </ul>
@@ -110,7 +310,13 @@
 </ul>
 </div>
 
-
+<div class="dev-status">
+<h2 data-toc-skip>Dev status</h2>
+<ul class="list-unstyled">
+<li><a href="https://CRAN.R-project.org/package=qte" class="external-link"><img src="https://www.r-pkg.org/badges/version/qte.png" alt="CRAN status"></a></li>
+<li><a href="https://github.com/bcallaway11/qte/actions/workflows/R-CMD-check.yaml" class="external-link"><img src="https://github.com/bcallaway11/qte/actions/workflows/R-CMD-check.yaml/badge.svg" alt="R-CMD-check"></a></li>
+</ul>
+</div>
 
   </aside>
 </div>

@@ -8,10 +8,10 @@ required).
 - [`unc_qte()`](https://bcallaway11.github.io/qte/reference/unc_qte.md)
   : unc_qte
 
-## DiD-based estimators
+## Panel and repeated cross-section estimators
 
-Estimators for the QTT under difference-in-differences and related
-assumptions. All support staggered treatment adoption via ptetools.
+Estimators for the QTT using panel or repeated cross-section data. All
+support staggered treatment adoption via ptetools.
 
 - [`cic()`](https://bcallaway11.github.io/qte/reference/cic.md) : Change
   in Changes
@@ -33,29 +33,8 @@ assumptions. All support staggered treatment adoption via ptetools.
   : Panel QTT (Callaway-Li 2019)
 - [`panel_qtt_gt()`](https://bcallaway11.github.io/qte/reference/panel_qtt_gt.md)
   : Panel QTT: group-time estimator (Callaway-Li 2019)
-- [`lou_qte()`](https://bcallaway11.github.io/qte/reference/lou_qte.md)
+- [`lou_qtt()`](https://bcallaway11.github.io/qte/reference/lou_qtt.md)
   : Lagged Outcome Unconfoundedness QTT
-
-## Deprecated wrappers
-
-Legacy two-period wrappers retained with deprecation warnings. Will be
-removed in v2.1 (target 2026-08). See the linked modern replacement in
-each function’s documentation.
-
-- [`CiC()`](https://bcallaway11.github.io/qte/reference/CiC-deprecated.md)
-  : CiC
-- [`QDiD()`](https://bcallaway11.github.io/qte/reference/QDiD-deprecated.md)
-  : QDiD
-- [`MDiD()`](https://bcallaway11.github.io/qte/reference/MDiD-deprecated.md)
-  : MDiD
-- [`ddid2()`](https://bcallaway11.github.io/qte/reference/ddid2.md) :
-  ddid2
-- [`panel.qtet()`](https://bcallaway11.github.io/qte/reference/panel.qtet.md)
-  : panel.qtet
-- [`ci.qte()`](https://bcallaway11.github.io/qte/reference/ci.qte.md) :
-  ci.qte
-- [`ci.qtet()`](https://bcallaway11.github.io/qte/reference/ci.qtet.md)
-  : ci.qtet
 
 ## Package overview
 
@@ -63,10 +42,10 @@ each function’s documentation.
   [`qte-package`](https://bcallaway11.github.io/qte/reference/qte-package.md)
   : qte: A package for computing quantile treatment effects
 
-## QTE class and output
+## Output and plotting
 
-The QTE S3 class returned by legacy estimators and unc_qte(), and
-methods for printing, summarising, and plotting.
+The QTE S3 class returned by unc_qte(), and methods for printing,
+summarising, and plotting.
 
 - [`QTE()`](https://bcallaway11.github.io/qte/reference/QTE.md) : QTE
 - [`summary(`*`<QTE>`*`)`](https://bcallaway11.github.io/qte/reference/summary.QTE.md)
@@ -94,15 +73,3 @@ Datasets bundled with the package.
   : Lalonde's Observational Dataset
 - [`lalonde.psid.panel`](https://bcallaway11.github.io/qte/reference/lalonde.psid.panel.md)
   : Lalonde's Panel Observational Dataset
-
-## Internal and legacy infrastructure
-
-Exported for technical reasons but not intended for direct use. Subject
-to removal in v2.1 alongside the deprecated wrappers.
-
-- [`QTEparams()`](https://bcallaway11.github.io/qte/reference/QTEparams.md)
-  : QTEparams
-- [`panelize.data()`](https://bcallaway11.github.io/qte/reference/panelize.data.md)
-  : panelize.data
-- [`compute.panel.qtet()`](https://bcallaway11.github.io/qte/reference/compute.panel.qtet.md)
-  : compute.panel.qtet

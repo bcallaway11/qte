@@ -66,3 +66,4 @@ interface and supports staggered treatment adoption natively.
 \seealso{
 \code{\link{mdid}}
 }
+\keyword{internal}

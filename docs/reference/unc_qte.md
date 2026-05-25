@@ -282,27 +282,6 @@ summary(q2)
 q3 <- unc_qte(yname = "re78", dname = "treat", data = lalonde.psid,
               xformla = xf, est_method = "aipw", target = "qtt",
               biters = 20, probs = seq(0.05, 0.95, 0.05))
-#> Warning: collapsing to unique 'x' values
-#> Warning: collapsing to unique 'x' values
-#> Warning: collapsing to unique 'x' values
-#> Warning: collapsing to unique 'x' values
-#> Warning: collapsing to unique 'x' values
-#> Warning: collapsing to unique 'x' values
-#> Warning: collapsing to unique 'x' values
-#> Warning: collapsing to unique 'x' values
-#> Warning: collapsing to unique 'x' values
-#> Warning: collapsing to unique 'x' values
-#> Warning: collapsing to unique 'x' values
-#> Warning: collapsing to unique 'x' values
-#> Warning: collapsing to unique 'x' values
-#> Warning: collapsing to unique 'x' values
-#> Warning: collapsing to unique 'x' values
-#> Warning: collapsing to unique 'x' values
-#> Warning: collapsing to unique 'x' values
-#> Warning: collapsing to unique 'x' values
-#> Warning: collapsing to unique 'x' values
-#> Warning: collapsing to unique 'x' values
-#> Warning: collapsing to unique 'x' values
 summary(q3)
 #> 
 #> Overall ATT:  
@@ -312,25 +291,25 @@ summary(q3)
 #> 
 #> QTT:
 #>   Tau         QTT Std. Error [ 95% Simult.  Conf. Band]  
-#>  0.05      0.0001   103.2261      -202.3194    202.3195  
-#>  0.10      0.0001   103.2261      -202.3194    202.3195  
-#>  0.15      0.0001   393.5429      -771.3299    771.3300  
-#>  0.20  -1002.7420   560.2172     -2100.7476     95.2636  
-#>  0.25  -1877.9927  1081.8291     -3998.3386    242.3533  
-#>  0.30  -3427.3187  1675.6185     -6711.4706   -143.1667 *
-#>  0.35  -4425.7038  1708.3212     -7773.9519  -1077.4558 *
-#>  0.40  -5022.1405  1335.9215     -7640.4986  -2403.7824 *
-#>  0.45  -4721.0091  1279.2568     -7228.3063  -2213.7119 *
-#>  0.50  -4611.6428  1105.5460     -6778.4731  -2444.8124 *
-#>  0.55  -4639.0952  1145.4495     -6884.1349  -2394.0554 *
-#>  0.60  -5229.1685  1253.0258     -7685.0540  -2773.2830 *
-#>  0.65  -5161.0693  1277.2571     -7664.4472  -2657.6914 *
-#>  0.70  -5588.8001  1181.6992     -7904.8880  -3272.7121 *
-#>  0.75  -6455.6064  1304.6995     -9012.7704  -3898.4425 *
-#>  0.80  -7030.0171  1512.0858     -9993.6508  -4066.3834 *
-#>  0.85  -8086.5424  1802.5416    -11619.4590  -4553.6257 *
-#>  0.90 -10540.3830  2176.9199    -14807.0677  -6273.6984 *
-#>  0.95 -10894.5859  2900.3955    -16579.2566  -5209.9153 *
+#>  0.05      0.0001     0.0000         0.0001      0.0001 *
+#>  0.10      0.0001     0.0000         0.0001      0.0001 *
+#>  0.15      0.0001   383.8113      -752.2563    752.2564  
+#>  0.20  -1002.7420   574.5027     -2128.7465    123.2625  
+#>  0.25  -1866.2895  1081.3499     -3985.6964    253.1174  
+#>  0.30  -3400.5673  1625.2306     -6585.9609   -215.1738 *
+#>  0.35  -4425.4366  1709.7962     -7776.5756  -1074.2977 *
+#>  0.40  -5009.2491  1332.0766     -7620.0712  -2398.4269 *
+#>  0.45  -4673.7768  1296.9578     -7215.7674  -2131.7861 *
+#>  0.50  -4602.4652  1117.7569     -6793.2285  -2411.7020 *
+#>  0.55  -4579.3967  1169.9553     -6872.4670  -2286.3264 *
+#>  0.60  -5229.1685  1257.1331     -7693.1040  -2765.2330 *
+#>  0.65  -5101.4965  1256.5516     -7564.2924  -2638.7006 *
+#>  0.70  -5507.4720  1177.2351     -7814.8104  -3200.1336 *
+#>  0.75  -6367.7241  1303.4433     -8922.4260  -3813.0223 *
+#>  0.80  -6885.7529  1502.1072     -9829.8289  -3941.6769 *
+#>  0.85  -8075.3068  1816.4340    -11635.4520  -4515.1617 *
+#>  0.90 -10517.0625  2167.8397    -14765.9502  -6268.1749 *
+#>  0.95 -10757.3772  2919.2854    -16479.0715  -5035.6829 *
 #> ---
 #> Signif. codes: `*' confidence band does not cover 0
 #> 
