@@ -41,10 +41,10 @@ consequences (e.g., for inequality) are of interest.
 **Panel and repeated cross-section estimators** (staggered treatment adoption supported for all):
 
 - `cic()` — Change in Changes (Athey and Imbens 2006)
-- `qdid()` — Quantile Difference-in-Differences (Callaway, Li, and Oka 2018)
+- `qdid()` — Quantile Difference-in-Differences (Athey and Imbens 2006; Meyer, Viscusi, and Durbin 1995)
 - `ddid()` — Distributional Difference-in-Differences (Callaway and Li 2019)
-- `mdid()` — Mean Difference-in-Differences (Callaway and Li 2019)
-- `panel_qtt()` — Panel QTT via copula transfer (Callaway and Li 2019)
+- `mdid()` — Mean Difference-in-Differences (Thuysbaert 2007)
+- `panel_qtt()` — Panel QTT via copula stability (Callaway and Li 2019)
 - `lou_qtt()` — Lagged-outcome unconfoundedness QTT
 
 ## Installation
@@ -55,8 +55,8 @@ consequences (e.g., for inequality) are of interest.
 install.packages("qte")
 
 # Install the development version from GitHub:
-# install.packages("pak")
-pak::pak("bcallaway11/qte")
+# install.packages("remotes")
+remotes::install_github("bcallaway11/qte")
 ```
 
 ## Quick start — selection on observables
@@ -95,7 +95,7 @@ autoplot(res_cs)
 
 ## Staggered treatment adoption
 
-All DiD-based estimators use a common `yname`/`gname`/`tname`/`idname`
+All panel estimators use a common `yname`/`gname`/`tname`/`idname`
 interface and support staggered treatment adoption via
 [ptetools](https://github.com/bcallaway11/ptetools). The example below uses
 the `mpdta` dataset (county-level employment, from the `did` package) with
@@ -152,7 +152,7 @@ autoplot(res_qtt)
 | `qdid()` | Quantile DiD | ATT or QTT | Optional |
 | `ddid()` | Distributional DiD | ATT or QTT | Yes |
 | `mdid()` | Mean DiD | ATT or QTT | Optional |
-| `panel_qtt()` | Panel QTT (copula transfer) | QTT | Yes |
+| `panel_qtt()` | Panel QTT (copula stability) | QTT | Yes |
 | `lou_qtt()` | Lagged-outcome unconfoundedness | ATT or QTT | Yes |
 
 All panel estimators support staggered treatment adoption and return
