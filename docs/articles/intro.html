@@ -126,7 +126,7 @@ Q_{Y(0)}(\tau)</annotation></semantics></math>, where <math display="inline" xml
 </div>
 </div>
 <p>The confidence band indicates that the QTE is positive across much of the distribution, with the effect somewhat larger in the lower quantiles.</p>
-</section><section class="level2"><h2 id="selection-on-observables">Selection on observables<a class="anchor" aria-label="anchor" href="#selection-on-observables"></a>
+</section><section class="level2"><h2 id="unconfoundedness">Unconfoundedness<a class="anchor" aria-label="anchor" href="#unconfoundedness"></a>
 </h2>
 <p>When treatment is not randomly assigned, the unconfoundedness assumption (conditional independence of potential outcomes given covariates) provides identification. We use the observational Lalonde data (<code>lalonde.psid</code>), which combines the treated group from the experiment with a comparison group from the PSID.</p>
 <p><code><a href="../reference/unc_qte.html">unc_qte()</a></code> supports three estimation methods:</p>
@@ -582,12 +582,12 @@ Q_{Y(0)}(\tau)</annotation></semantics></math>, where <math display="inline" xml
 <code class="sourceCode R"><span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/autoplot.html" class="external-link">autoplot</a></span><span class="op">(</span><span class="va">res_psid</span>, ylab <span class="op">=</span> <span class="st">"QTE (earnings, 1978)"</span><span class="op">)</span></span></code></pre></div>
 <div class="cell-output-display">
 <div>
-<figure><p><img src="intro_files/figure-html/obs-qte-plot-1.png" alt="QTE curve under selection on observables" width="576"></p>
+<figure><p><img src="intro_files/figure-html/obs-qte-plot-1.png" alt="QTE curve under unconfoundedness" width="576"></p>
 </figure>
 </div>
 </div>
 </div>
-</section><section class="level2"><h2 id="qtt-under-selection-on-observables">QTT under selection on observables<a class="anchor" aria-label="anchor" href="#qtt-under-selection-on-observables"></a>
+</section><section class="level2"><h2 id="qtt-under-unconfoundedness">QTT under unconfoundedness<a class="anchor" aria-label="anchor" href="#qtt-under-unconfoundedness"></a>
 </h2>
 <p>Setting <code>target = "qtt"</code> estimates the Quantile Treatment Effect on the Treated — the distributional effect for the subpopulation that actually received treatment.</p>
 <div class="cell">
@@ -830,7 +830,7 @@ Q_{Y(0)}(\tau)</annotation></semantics></math>, where <math display="inline" xml
 <code class="sourceCode R"><span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/autoplot.html" class="external-link">autoplot</a></span><span class="op">(</span><span class="va">res_qtt</span>, ylab <span class="op">=</span> <span class="st">"QTT (earnings, 1978)"</span><span class="op">)</span></span></code></pre></div>
 <div class="cell-output-display">
 <div>
-<figure><p><img src="intro_files/figure-html/qtt-plot-1.png" alt="QTT curve under selection on observables" width="576"></p>
+<figure><p><img src="intro_files/figure-html/qtt-plot-1.png" alt="QTT curve under unconfoundedness" width="576"></p>
 </figure>
 </div>
 </div>

@@ -78,7 +78,7 @@ autoplot(res_exp, ylab = "QTE (earnings, 1978)")
 The confidence band indicates that the QTE is positive across much of the
 distribution, with the effect somewhat larger in the lower quantiles.
 
-## Selection on observables
+## Unconfoundedness
 
 When treatment is not randomly assigned, the unconfoundedness assumption
 (conditional independence of potential outcomes given covariates) provides
@@ -112,11 +112,11 @@ summary(res_psid)
 
 ```{r}
 #| label: obs-qte-plot
-#| fig-alt: "QTE curve under selection on observables"
+#| fig-alt: "QTE curve under unconfoundedness"
 autoplot(res_psid, ylab = "QTE (earnings, 1978)")
 ```
 
-## QTT under selection on observables
+## QTT under unconfoundedness
 
 Setting `target = "qtt"` estimates the Quantile Treatment Effect on the
 Treated — the distributional effect for the subpopulation that actually
@@ -140,7 +140,7 @@ summary(res_qtt)
 
 ```{r}
 #| label: qtt-plot
-#| fig-alt: "QTT curve under selection on observables"
+#| fig-alt: "QTT curve under unconfoundedness"
 autoplot(res_qtt, ylab = "QTT (earnings, 1978)")
 ```
 

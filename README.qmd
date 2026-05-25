@@ -59,7 +59,7 @@ install.packages("qte")
 remotes::install_github("bcallaway11/qte")
 ```
 
-## Quick start — selection on observables
+## Quick start — unconfoundedness
 
 The `unc_qte()` function estimates the QTE or QTT under an unconfoundedness
 assumption. Here we use the observational Lalonde (1986) data to estimate the

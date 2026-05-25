@@ -100,7 +100,7 @@
 <span><span class="fu">remotes</span><span class="fu">::</span><span class="fu"><a href="https://remotes.r-lib.org/reference/install_github.html" class="external-link">install_github</a></span><span class="op">(</span><span class="st">"bcallaway11/qte"</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level2">
-<h2 id="quick-start--selection-on-observables">Quick start — selection on observables<a class="anchor" aria-label="anchor" href="#quick-start--selection-on-observables"></a>
+<h2 id="quick-start--unconfoundedness">Quick start — unconfoundedness<a class="anchor" aria-label="anchor" href="#quick-start--unconfoundedness"></a>
 </h2>
 <p>The <code><a href="reference/unc_qte.html">unc_qte()</a></code> function estimates the QTE or QTT under an unconfoundedness assumption. Here we use the observational Lalonde (1986) data to estimate the QTT of a job training program, controlling for pre-treatment characteristics via doubly robust estimation.</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
@@ -122,20 +122,20 @@
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Overall ATT:  </span></span>
 <span><span class="co">#&gt;        ATT    Std. Error     [ 95%  Conf. Int.]  </span></span>
-<span><span class="co">#&gt;  -4685.583      894.7962  -6439.351   -2931.815 *</span></span>
+<span><span class="co">#&gt;  -4685.583       748.226  -6152.079   -3219.087 *</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; QTT:</span></span>
 <span><span class="co">#&gt;  Tau         QTT Std. Error [ 95% Simult.  Conf. Band]  </span></span>
-<span><span class="co">#&gt;  0.1      0.0001   124.4783      -243.9729    243.9730  </span></span>
-<span><span class="co">#&gt;  0.2  -1002.7420   786.6609     -2544.5690    539.0850  </span></span>
-<span><span class="co">#&gt;  0.3  -3400.5673  1618.9629     -6573.6763   -227.4584 *</span></span>
-<span><span class="co">#&gt;  0.4  -5009.2491  1198.3518     -7357.9755  -2660.5226 *</span></span>
-<span><span class="co">#&gt;  0.5  -4602.4652  1019.0238     -6599.7151  -2605.2154 *</span></span>
-<span><span class="co">#&gt;  0.6  -5229.1454  1256.5955     -7692.0273  -2766.2636 *</span></span>
-<span><span class="co">#&gt;  0.7  -5507.4720  1226.0522     -7910.4901  -3104.4538 *</span></span>
-<span><span class="co">#&gt;  0.8  -6885.7529  1496.4593     -9818.7592  -3952.7467 *</span></span>
-<span><span class="co">#&gt;  0.9 -10517.0625  2549.1099    -15513.2262  -5520.8989 *</span></span>
+<span><span class="co">#&gt;  0.1      0.0001    95.2199      -186.6276    186.6277  </span></span>
+<span><span class="co">#&gt;  0.2  -1002.7420   776.9108     -2525.4592    519.9752  </span></span>
+<span><span class="co">#&gt;  0.3  -3400.5673  1429.5969     -6202.5258   -598.6089 *</span></span>
+<span><span class="co">#&gt;  0.4  -5009.2491  1024.5269     -7017.2849  -3001.2132 *</span></span>
+<span><span class="co">#&gt;  0.5  -4602.4652   940.8123     -6446.4235  -2758.5069 *</span></span>
+<span><span class="co">#&gt;  0.6  -5229.1454  1063.0822     -7312.7482  -3145.5426 *</span></span>
+<span><span class="co">#&gt;  0.7  -5507.4720  1226.5376     -7911.4415  -3103.5024 *</span></span>
+<span><span class="co">#&gt;  0.8  -6885.7529  1287.3819     -9408.9750  -4362.5308 *</span></span>
+<span><span class="co">#&gt;  0.9 -10517.0625  2183.2832    -14796.2190  -6237.9060 *</span></span>
 <span><span class="co">#&gt; ---</span></span>
 <span><span class="co">#&gt; Signif. codes: `*' confidence band does not cover 0</span></span></code></pre></div>
 <p>Plot the QTT curve with a uniform confidence band:</p>
@@ -163,18 +163,18 @@
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Overall ATT:  </span></span>
 <span><span class="co">#&gt;      ATT    Std. Error     [ 95%  Conf. Int.] </span></span>
-<span><span class="co">#&gt;  -0.0197        0.0158    -0.0543      0.0149 </span></span>
+<span><span class="co">#&gt;  -0.0197        0.0149    -0.0492      0.0099 </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Dynamic Effects:</span></span>
 <span><span class="co">#&gt;  Event Time Estimate Std. Error [95% Simult.  Conf. Band]  </span></span>
-<span><span class="co">#&gt;          -3   0.0508     0.0211        0.0095      0.0922 *</span></span>
-<span><span class="co">#&gt;          -2   0.0158     0.0155       -0.0145      0.0462  </span></span>
-<span><span class="co">#&gt;          -1  -0.0128     0.0157       -0.0436      0.0179  </span></span>
-<span><span class="co">#&gt;           0  -0.0081     0.0155       -0.0385      0.0224  </span></span>
-<span><span class="co">#&gt;           1  -0.0364     0.0254       -0.0862      0.0134  </span></span>
-<span><span class="co">#&gt;           2  -0.1226     0.0415       -0.2039     -0.0413 *</span></span>
-<span><span class="co">#&gt;           3  -0.0930     0.0467       -0.1844     -0.0015 *</span></span>
+<span><span class="co">#&gt;          -3   0.0508     0.0213        0.0091      0.0926 *</span></span>
+<span><span class="co">#&gt;          -2   0.0158     0.0132       -0.0100      0.0417  </span></span>
+<span><span class="co">#&gt;          -1  -0.0128     0.0181       -0.0484      0.0227  </span></span>
+<span><span class="co">#&gt;           0  -0.0081     0.0145       -0.0364      0.0203  </span></span>
+<span><span class="co">#&gt;           1  -0.0364     0.0210       -0.0776      0.0048  </span></span>
+<span><span class="co">#&gt;           2  -0.1226     0.0425       -0.2059     -0.0392 *</span></span>
+<span><span class="co">#&gt;           3  -0.0930     0.0452       -0.1816     -0.0043 *</span></span>
 <span><span class="co">#&gt; ---</span></span>
 <span><span class="co">#&gt; Signif. codes: `*' confidence band does not cover 0</span></span></code></pre></div>
 <p>Event-study plot showing pre-trends and post-treatment ATT by event time:</p>

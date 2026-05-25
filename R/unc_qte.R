@@ -148,7 +148,7 @@ compute.unc_qte <- function(qp) {
         mean(F_cond + (1 - D) / (1 - pscore) * (as.numeric(y <= yy) - F_cond))
       }, numeric(1))
       F0 <- cummax(pmax(0, pmin(1, F0)))
-      q0 <- approx(F0, y_grid, xout = probs, rule = 2, ties = min)$y
+      q0 <- approx(F0[!duplicated(F0)], y_grid[!duplicated(F0)], xout = probs, rule = 2)$y
 
       # AIPW CDF for Y(1)
       M1        <- suppressWarnings(
@@ -161,7 +161,7 @@ compute.unc_qte <- function(qp) {
         mean(F_cond + D / pscore * (as.numeric(y <= yy) - F_cond))
       }, numeric(1))
       F1 <- cummax(pmax(0, pmin(1, F1)))
-      q1 <- approx(F1, y_grid, xout = probs, rule = 2, ties = min)$y
+      q1 <- approx(F1[!duplicated(F1)], y_grid[!duplicated(F1)], xout = probs, rule = 2)$y
 
       t_wts <- w * D       / pscore
       u_wts <- w * (1 - D) / (1 - pscore)
@@ -177,7 +177,7 @@ compute.unc_qte <- function(qp) {
         mean(aipw_term) / pbar
       }, numeric(1))
       F_qtt <- cummax(pmax(0, pmin(1, F_qtt)))
-      q0    <- approx(F_qtt, y_grid, xout = probs, rule = 2, ties = min)$y
+      q0    <- approx(F_qtt[!duplicated(F_qtt)], y_grid[!duplicated(F_qtt)], xout = probs, rule = 2)$y
 
       q1   <- weighted_quantile(probs, treated[, yname], treated[, wname])
       att1 <- weighted_mean(treated[, yname], treated[, wname])
