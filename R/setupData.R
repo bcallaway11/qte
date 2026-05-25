@@ -76,7 +76,7 @@ setupData <- function(qteParams) {
   if (!is.null(tname)) {
     if (panel) {
       ndta <- nrow(data)
-      data <- setDF(makeBalancedPanel(data, idname, tname))
+      data <- setDF(make_balanced_panel(data, idname, tname))
       if (nrow(data) != ndta) {
         warning("forcing data to be balanced panel")
       }

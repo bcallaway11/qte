@@ -325,7 +325,7 @@ compute.ddid2 <- function(qp) { # nolint: object_name_linter
     FUN = function(y) mean(1 * (quantys1 + quantys2 <= y)),
     FUN.VALUE = 1
   )
-  F.treated.t.cf <- makeDist(y.seq, F.treated.t.cf.val) # nolint: object_name_linter
+  F.treated.t.cf <- make_dist(y.seq, F.treated.t.cf.val) # nolint: object_name_linter
   F.treated.t    <- stats::ecdf(treated.t[, yname])     # nolint: object_name_linter, object_usage_linter
 
   qte <- stats::quantile(F.treated.t, probs = probs) - # nolint: object_usage_linter

@@ -334,7 +334,7 @@ compute.MDiD <- function(formla, xformla = NULL, t, tmin1, tname, data,
   data <- subset(data, (data[, tname] == tmin1 | data[, tname] == t))
 
   if (panel) {
-    data <- makeBalancedPanel(data, idname, tname)
+    data <- make_balanced_panel(data, idname, tname)
   }
 
   data <- droplevels(data)
@@ -430,7 +430,7 @@ MDiD <- function(formla, xformla = NULL, t, tmin1, tname, data,
 
   if (panel) {
     if (is.null(idname)) stop("Must provide idname when using panel option")
-    data <- makeBalancedPanel(data, idname, tname)
+    data <- make_balanced_panel(data, idname, tname)
   }
 
   data <- droplevels(data)

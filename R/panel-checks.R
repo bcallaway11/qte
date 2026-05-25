@@ -72,7 +72,7 @@ panelize.data <- function(data, idname, tname, t, tmin1, tmin2 = NULL) {
 
   ## make a balanced panel
   pren <- nrow(data)
-  data <- setDF(makeBalancedPanel(data, idname, tname))
+  data <- setDF(make_balanced_panel(data, idname, tname))
   if (!(nrow(data) == pren)) {
     warning(paste0("enforcing balanced panel condition...\n  this drops ", (pren - nrow(data)) / 3, " observations..."))
   }

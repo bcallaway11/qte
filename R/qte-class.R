@@ -93,7 +93,7 @@ compute.panel.qtet <- function(qp) {
         ## mean( (1-pscore.data[,treat])*pscore/((1-pscore)*pD1) )
       }
 
-      F.untreated.change.t <- makeDist(p.dy.seq, distvals)
+      F.untreated.change.t <- make_dist(p.dy.seq, distvals)
 
       ## after we have the propensity score
       ## use it to estimate the att using abadie's method.
@@ -115,7 +115,7 @@ compute.panel.qtet <- function(qp) {
       }
       pscore.data.tmin1$distvals <- distvals.tmin1
       pscore.data1.tmin1 <- pscore.data.tmin1[order(pscore.data.tmin1$dy), ]
-      F.untreated.change.tmin1 <- makeDist(
+      F.untreated.change.tmin1 <- make_dist(
         pscore.data1.tmin1$dy,
         pscore.data1.tmin1$distvals
       )
@@ -141,7 +141,7 @@ compute.panel.qtet <- function(qp) {
       }, FUN.VALUE = 1
     )
 
-    F.treated.t.cf <- makeDist(y.seq, F.treated.t.cf.val)
+    F.treated.t.cf <- make_dist(y.seq, F.treated.t.cf.val)
   } else if (method == "qr") {
     u <- seq(.01, .99, .01) ## hard-coded for now
     yformla <- BMisc::toformula("y", BMisc::rhs_vars(xformla))
@@ -170,7 +170,7 @@ compute.panel.qtet <- function(qp) {
     yvals <- sort(yvals)
     F.treated.t.cf.val <- sapply(yvals, function(yy) mean(1 * (dQt + Qtmin1 <= yy)))
 
-    F.treated.t.cf <- makeDist(yvals, F.treated.t.cf.val)
+    F.treated.t.cf <- make_dist(yvals, F.treated.t.cf.val)
 
     att <- mean(treated.t$y) - sum(quantile(F.treated.t.cf, probs = u, type = 1)) / length(u)
   } else {
