@@ -273,7 +273,7 @@ panel_qtt_gt <- function(gt_data, xformula = ~1, ...) {
 
 #' @title QTT Aggregation for pre_copula = "long"
 #'
-#' @description Custom \code{aggregation_fun} for \code{ptetools::pte} that
+#' @description Custom \code{aggte_fun} for \code{ptetools::pte} that
 #'   handles the two-step weight renormalization needed when
 #'   \code{pre_copula = "long"}: some (g,t) cells are structurally
 #'   uncomputable (their pre2 does not exist in the data), and those cells
@@ -536,18 +536,18 @@ panel_qtt <- function(yname,
 
   pre_copula <- match.arg(pre_copula, c("long", "short"))
 
-  # Select aggregation_fun based on gt_type and pre_copula.
+  # Select aggte_fun based on gt_type and pre_copula.
   # For ATT mode, attgt_pte_aggregations already drops NA cells (complete.cases)
   # and applies group-size weights over surviving groups — correct two-step
   # behaviour for both pre_copula variants.
   # For QTT mode with "long", custom two-step aggregation is required because
   # qtt_pte_aggregations does not filter invalid cells before combine_ecdfs.
-  aggregation_fun <- if (gt_type == "qtt" && pre_copula == "long") {
+  aggte_fun <- if (gt_type == "qtt" && pre_copula == "long") {
     panel_qtt_long_agg
   } else if (gt_type == "qtt") {
     ptetools::qtt_pte_aggregations
   } else {
-    # wrap to match the 3-argument aggregation_fun signature
+    # wrap to match the 3-argument aggte_fun signature
     function(al, p, eg) ptetools::attgt_pte_aggregations(al, p)
   }
 
@@ -564,7 +564,7 @@ panel_qtt <- function(yname,
     setup_pte_fun    = ptetools::setup_pte,
     subset_fun       = three_period_subset,
     attgt_fun        = panel_qtt_gt,
-    aggregation_fun  = aggregation_fun,
+    aggte_fun        = aggte_fun,
     xformula         = xformula,
     weightsname      = weightsname,
     control_group    = control_group,

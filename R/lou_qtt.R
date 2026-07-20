@@ -332,7 +332,7 @@ lou_qtt <- function(yname, gname, tname, idname = NULL, data,
     ptetools::two_by_two_rcs_subset
   }
 
-  aggregation_fun <- if (gt_type == "qtt") {
+  aggte_fun <- if (gt_type == "qtt") {
     ptetools::qtt_pte_aggregations
   } else {
     function(al, p, eg) ptetools::attgt_pte_aggregations(al, p)
@@ -348,7 +348,7 @@ lou_qtt <- function(yname, gname, tname, idname = NULL, data,
     setup_pte_fun      = ptetools::setup_pte,
     subset_fun         = subset_fun,
     attgt_fun          = lou_gt,
-    aggregation_fun    = aggregation_fun,
+    aggte_fun          = aggte_fun,
     xformula           = xformula,
     lagged_outcome_cov = lagged_outcome_cov,
     est_method         = est_method,

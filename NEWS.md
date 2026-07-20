@@ -76,7 +76,7 @@ replacement in the warning message.
   pattern makes it straightforward to add new identification strategies without
   duplicating bootstrap or aggregation code.
 
-* Estimators now pass an explicit `aggregation_fun` to `ptetools::pte()`,
+* Estimators now pass an explicit `aggte_fun` to `ptetools::pte()`,
   replacing the earlier implicit dispatch based on `gt_type`.
 
 * `ptetools` added to `Imports` (was missing from `DESCRIPTION` despite being

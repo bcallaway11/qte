@@ -20,7 +20,7 @@ A list with \code{overall_results}, \code{dyn_results},
 \code{ptetools::qtt_pte_aggregations}.
 }
 \description{
-Custom \code{aggregation_fun} for \code{ptetools::pte} that
+Custom \code{aggte_fun} for \code{ptetools::pte} that
 handles the two-step weight renormalization needed when
 \code{pre_copula = "long"}: some (g,t) cells are structurally
 uncomputable (their pre2 does not exist in the data), and those cells
