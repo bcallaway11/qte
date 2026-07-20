@@ -52,7 +52,8 @@ data(lalonde)
 
 Under random assignment, no covariate adjustment is needed: the unconditional
 quantiles of the treated and control outcome distributions identify the QTE
-directly. We use the experimental Lalonde data (`lalonde.exp`), where
+directly. `unc_qte()` implements the semiparametrically efficient estimator
+of @firpo-2007. We use the experimental Lalonde data (`lalonde.exp`), where
 treatment was randomly assigned.
 
 ```{r}
@@ -82,9 +83,9 @@ distribution, with the effect somewhat larger in the lower quantiles.
 
 When treatment is not randomly assigned, the unconfoundedness assumption
 (conditional independence of potential outcomes given covariates) provides
-identification. We use the observational Lalonde data (`lalonde.psid`), which
-combines the treated group from the experiment with a comparison group from
-the PSID.
+identification [@firpo-2007]. We use the observational Lalonde data
+(`lalonde.psid`), which combines the treated group from the experiment with
+a comparison group from the PSID.
 
 `unc_qte()` supports three estimation methods:
 

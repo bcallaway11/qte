@@ -89,7 +89,7 @@ Plot the QTT curve with a uniform confidence band:
 
 ```{r}
 #| label: unc-qte-plot
-#| fig.alt: "QTT estimates across quantiles with uniform confidence band"
+#| fig-alt: "QTT estimates across quantiles with uniform confidence band"
 autoplot(res_cs)
 ```
 
@@ -121,7 +121,7 @@ Event-study plot showing pre-trends and post-treatment ATT by event time:
 
 ```{r}
 #| label: cic-att-plot
-#| fig.alt: "Event-study plot of ATT estimates by event time"
+#| fig-alt: "Event-study plot of ATT estimates by event time"
 autoplot(res_att, type = "dynamic")
 ```
 
@@ -129,7 +129,7 @@ The same estimator returns a full QTT curve when `gt_type = "qtt"`:
 
 ```{r}
 #| label: cic-qtt
-#| fig.alt: "Overall QTT curve from cic()"
+#| fig-alt: "Overall QTT curve from cic()"
 res_qtt <- cic(
   yname   = "lemp",
   gname   = "first.treat",

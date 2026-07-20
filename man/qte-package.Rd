@@ -13,7 +13,7 @@ Provides several methods for computing the Quantile Treatment Effect (QTE) and Q
 \seealso{
 Useful links:
 \itemize{
-  \item \url{https://bcallaway11.github.io/qte}
+  \item \url{https://bcallaway11.github.io/qte/}
   \item \url{https://github.com/bcallaway11/qte}
   \item Report bugs at \url{https://github.com/bcallaway11/qte/issues}
 }

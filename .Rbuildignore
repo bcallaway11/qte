@@ -17,3 +17,8 @@
 ^AGENTS\.md$
 ^CLAUDE\.md$
 ^README\.qmd$
+^README_cache$
+^pkgdown$
+^vignettes/\.quarto$
+^\.revdeplite$
+^CITATION\.cff$

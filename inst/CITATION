@@ -1,0 +1,21 @@
+citHeader("To cite this package, use:")
+
+
+bibentry(
+
+  bibtype = "Manual",
+
+  title = "Quantile Treatment Effects",
+
+  author =
+    person(given = "Brantly",
+           family = "Callaway",
+           role = c("aut", "cre"),
+           email = "brantly.callaway@uga.edu"),
+
+  year = "2026",
+
+  note = "R package version 2.0.0",
+
+  url = "https://github.com/bcallaway11/qte"
+)

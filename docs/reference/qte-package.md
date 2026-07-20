@@ -22,7 +22,7 @@ lagged-outcome unconfoundedness estimator ('lou_qte').
 
 Useful links:
 
-- <https://bcallaway11.github.io/qte>
+- <https://bcallaway11.github.io/qte/>
 
 - <https://github.com/bcallaway11/qte>
 

@@ -73,20 +73,20 @@ summary(res_cs)
 #> 
 #> Overall ATT:  
 #>        ATT    Std. Error     [ 95%  Conf. Int.]  
-#>  -4685.583       748.226  -6152.079   -3219.087 *
+#>  -4685.583      855.4827  -6362.298   -3008.868 *
 #> 
 #> 
 #> QTT:
 #>  Tau         QTT Std. Error [ 95% Simult.  Conf. Band]  
-#>  0.1      0.0001    95.2199      -186.6276    186.6277  
-#>  0.2  -1002.7420   776.9108     -2525.4592    519.9752  
-#>  0.3  -3400.5673  1429.5969     -6202.5258   -598.6089 *
-#>  0.4  -5009.2491  1024.5269     -7017.2849  -3001.2132 *
-#>  0.5  -4602.4652   940.8123     -6446.4235  -2758.5069 *
-#>  0.6  -5229.1454  1063.0822     -7312.7482  -3145.5426 *
-#>  0.7  -5507.4720  1226.5376     -7911.4415  -3103.5024 *
-#>  0.8  -6885.7529  1287.3819     -9408.9750  -4362.5308 *
-#>  0.9 -10517.0625  2183.2832    -14796.2190  -6237.9060 *
+#>  0.1      0.0001   142.1003      -278.5113    278.5114  
+#>  0.2  -1002.7420   666.7031     -2309.4561    303.9721  
+#>  0.3  -3400.5673  1591.9883     -6520.8071   -280.3276 *
+#>  0.4  -5009.2491  1245.6738     -7450.7249  -2567.7732 *
+#>  0.5  -4602.4652   975.5104     -6514.4305  -2690.5000 *
+#>  0.6  -5229.1454  1137.8351     -7459.2613  -2999.0296 *
+#>  0.7  -5507.4720  1257.6699     -7972.4596  -3042.4843 *
+#>  0.8  -6885.7529  1414.2328     -9657.5982  -4113.9076 *
+#>  0.9 -10517.0625  2383.6646    -15188.9593  -5845.1657 *
 #> ---
 #> Signif. codes: `*' confidence band does not cover 0
 ```
@@ -97,7 +97,8 @@ Plot the QTT curve with a uniform confidence band:
 autoplot(res_cs)
 ```
 
-![](reference/figures/README-unc-qte-plot-1.png)
+![QTT estimates across quantiles with uniform confidence
+band](reference/figures/README-unc-qte-plot-1.png)
 
 ## Staggered treatment adoption
 
@@ -123,18 +124,18 @@ summary(res_att)
 #> 
 #> Overall ATT:  
 #>      ATT    Std. Error     [ 95%  Conf. Int.] 
-#>  -0.0197        0.0149    -0.0492      0.0099 
+#>  -0.0197         0.015    -0.0494      0.0101 
 #> 
 #> 
 #> Dynamic Effects:
 #>  Event Time Estimate Std. Error [95% Simult.  Conf. Band]  
-#>          -3   0.0508     0.0213        0.0091      0.0926 *
-#>          -2   0.0158     0.0132       -0.0100      0.0417  
-#>          -1  -0.0128     0.0181       -0.0484      0.0227  
-#>           0  -0.0081     0.0145       -0.0364      0.0203  
-#>           1  -0.0364     0.0210       -0.0776      0.0048  
-#>           2  -0.1226     0.0425       -0.2059     -0.0392 *
-#>           3  -0.0930     0.0452       -0.1816     -0.0043 *
+#>          -3   0.0508     0.0232        0.0053      0.0964 *
+#>          -2   0.0158     0.0151       -0.0138      0.0455  
+#>          -1  -0.0128     0.0161       -0.0444      0.0187  
+#>           0  -0.0081     0.0147       -0.0368      0.0207  
+#>           1  -0.0364     0.0219       -0.0792      0.0064  
+#>           2  -0.1226     0.0360       -0.1932     -0.0520 *
+#>           3  -0.0930     0.0402       -0.1717     -0.0142 *
 #> ---
 #> Signif. codes: `*' confidence band does not cover 0
 ```
@@ -146,7 +147,8 @@ time:
 autoplot(res_att, type = "dynamic")
 ```
 
-![](reference/figures/README-cic-att-plot-1.png)
+![Event-study plot of ATT estimates by event
+time](reference/figures/README-cic-att-plot-1.png)
 
 The same estimator returns a full QTT curve when `gt_type = "qtt"`:
 
@@ -164,7 +166,7 @@ res_qtt <- cic(
 autoplot(res_qtt)
 ```
 
-![](reference/figures/README-cic-qtt-1.png)
+![Overall QTT curve from cic()](reference/figures/README-cic-qtt-1.png)
 
 ## Available estimators
 

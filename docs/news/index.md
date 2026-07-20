@@ -104,7 +104,7 @@ in the warning message.
   identification strategies without duplicating bootstrap or aggregation
   code.
 
-- Estimators now pass an explicit `aggregation_fun` to
+- Estimators now pass an explicit `aggte_fun` to
   [`ptetools::pte()`](https://rdrr.io/pkg/ptetools/man/pte.html),
   replacing the earlier implicit dispatch based on `gt_type`.
 

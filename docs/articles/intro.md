@@ -38,7 +38,10 @@ data(lalonde)
 
 Under random assignment, no covariate adjustment is needed: the
 unconditional quantiles of the treated and control outcome distributions
-identify the QTE directly. We use the experimental Lalonde data
+identify the QTE directly.
+[`unc_qte()`](https://bcallaway11.github.io/qte/reference/unc_qte.md)
+implements the semiparametrically efficient estimator of Firpo
+([2007](#ref-firpo-2007)). We use the experimental Lalonde data
 (`lalonde.exp`), where treatment was randomly assigned.
 
 ``` r
@@ -87,9 +90,9 @@ quantiles.
 
 When treatment is not randomly assigned, the unconfoundedness assumption
 (conditional independence of potential outcomes given covariates)
-provides identification. We use the observational Lalonde data
-(`lalonde.psid`), which combines the treated group from the experiment
-with a comparison group from the PSID.
+provides identification ([Firpo 2007](#ref-firpo-2007)). We use the
+observational Lalonde data (`lalonde.psid`), which combines the treated
+group from the experiment with a comparison group from the PSID.
 
 [`unc_qte()`](https://bcallaway11.github.io/qte/reference/unc_qte.md)
 supports three estimation methods:
@@ -819,3 +822,6 @@ argument controls the number of iterations (default 100). Parallel
 computation is available via the `cl` argument.
 
 ## References
+
+Firpo, Sergio. 2007. “Efficient Semiparametric Estimation of Quantile
+Treatment Effects.” *Econometrica* 75 (1): 259–76.

@@ -1,6 +1,6 @@
 # QTT Aggregation for pre_copula = "long"
 
-Custom `aggregation_fun` for
+Custom `aggte_fun` for
 [`ptetools::pte`](https://rdrr.io/pkg/ptetools/man/pte.html) that
 handles the two-step weight renormalization needed when
 `pre_copula = "long"`: some (g,t) cells are structurally uncomputable

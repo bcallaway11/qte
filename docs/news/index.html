@@ -75,7 +75,7 @@
 <h3 id="infrastructure-2-0-0">Infrastructure<a class="anchor" aria-label="anchor" href="#infrastructure-2-0-0"></a></h3>
 <ul><li><p>Full <code>testthat</code> test suite added (83 fast tests; 10 slow bootstrap tests skipped by default, enabled via <code>R_SLOW_TESTS=true</code>). The package previously had no tests.</p></li>
 <li><p>All new estimators are backed by <code><a href="https://rdrr.io/pkg/ptetools/man/pte.html" class="external-link">ptetools::pte()</a></code>. The <code>attgt_fun</code> hook pattern makes it straightforward to add new identification strategies without duplicating bootstrap or aggregation code.</p></li>
-<li><p>Estimators now pass an explicit <code>aggregation_fun</code> to <code><a href="https://rdrr.io/pkg/ptetools/man/pte.html" class="external-link">ptetools::pte()</a></code>, replacing the earlier implicit dispatch based on <code>gt_type</code>.</p></li>
+<li><p>Estimators now pass an explicit <code>aggte_fun</code> to <code><a href="https://rdrr.io/pkg/ptetools/man/pte.html" class="external-link">ptetools::pte()</a></code>, replacing the earlier implicit dispatch based on <code>gt_type</code>.</p></li>
 <li><p><code>ptetools</code> added to <code>Imports</code> (was missing from <code>DESCRIPTION</code> despite being used).</p></li>
 <li><p><code>Hmisc</code> and <code>texreg</code> removed from <code>Imports</code> (were unused after earlier cleanup).</p></li>
 <li><p>License updated from GPL-2 to GPL-3.</p></li>
@@ -131,7 +131,7 @@
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.0.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.1.</p>
 </div>
 
     </footer></div>

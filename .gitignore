@@ -12,3 +12,8 @@ tests/testthat/_problems/
 dev/
 README_cache/
 *Case Conflict*
+.revdeplite/results
+.revdeplite/github
+.revdeplite/*.rds
+.revdeplite/*.tar.gz
+.revdeplite/*.md

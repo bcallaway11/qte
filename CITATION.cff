@@ -1,0 +1,38 @@
+# --------------------------------------------
+# CITATION file for qte
+# --------------------------------------------
+
+cff-version: 1.2.0
+message: 'To cite package "qte" in publications use:'
+type: software
+license: GPL-3.0-only
+title: 'qte: Quantile Treatment Effects'
+version: 2.0.0
+abstract: Provides several methods for computing the Quantile Treatment Effect (QTE)
+  and Quantile Treatment Effect on the Treated (QTT). The main cases covered are
+  (i) treatment is randomly assigned, (ii) treatment is as good as randomly assigned
+  after conditioning on covariates (selection on observables), and (iii) identification
+  is based on a Difference in Differences assumption, with support for several varieties.
+  Version 2.0 adds a unified staggered treatment adoption API (built on 'ptetools')
+  for all DiD-based estimators, as well as a new lagged-outcome unconfoundedness
+  estimator ('lou_qte').
+authors:
+- family-names: Callaway
+  given-names: Brantly
+  email: brantly.callaway@uga.edu
+preferred-citation:
+  type: manual
+  title: Quantile Treatment Effects
+  authors:
+  - family-names: Callaway
+    given-names: Brantly
+    email: brantly.callaway@uga.edu
+  year: '2026'
+  notes: R package version 2.0.0
+  url: https://github.com/bcallaway11/qte
+repository-code: https://github.com/bcallaway11/qte
+url: https://github.com/bcallaway11/qte
+contact:
+- family-names: Callaway
+  given-names: Brantly
+  email: brantly.callaway@uga.edu
