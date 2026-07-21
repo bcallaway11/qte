@@ -38,11 +38,6 @@ See NEWS.md for the full list of changes.
 * checking CRAN incoming feasibility ... NOTE — new submission, package was
   previously archived (expected; see "Resubmission after archival" above).
 
-Some check platforms may additionally show environment-dependent NOTEs
-(e.g. "unable to verify current time" when the build machine lacks network
-access, or a missing 'tidy' HTML validator) — these are build-environment
-issues, not package issues.
-
 ## Downstream dependencies
 
 Checked reverse dependencies on CRAN (`sccic`) and on GitHub (`csabounds`);
