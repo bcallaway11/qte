@@ -33,12 +33,15 @@ See NEWS.md for the full list of changes.
 
 ## R CMD check results
 
-0 errors | 0 warnings | 2 notes
+0 errors | 0 warnings | 1 note
 
-* checking for future file timestamps ... NOTE — unable to verify current
-  time (a build-machine/network issue, not a package issue).
-* checking HTML validation ... NOTE — 'tidy' HTML validator not installed
-  on the build machine (not a package issue).
+* checking CRAN incoming feasibility ... NOTE — new submission, package was
+  previously archived (expected; see "Resubmission after archival" above).
+
+Some check platforms may additionally show environment-dependent NOTEs
+(e.g. "unable to verify current time" when the build machine lacks network
+access, or a missing 'tidy' HTML validator) — these are build-environment
+issues, not package issues.
 
 ## Downstream dependencies
 

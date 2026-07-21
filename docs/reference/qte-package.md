@@ -16,7 +16,7 @@ and Oka (2018)
 [doi:10.1016/j.jeconom.2018.06.008](https://doi.org/10.1016/j.jeconom.2018.06.008)
 . Version 2.0 adds a unified staggered treatment adoption API (built on
 'ptetools') for all DiD-based estimators, as well as a new
-lagged-outcome unconfoundedness estimator ('lou_qte').
+lagged-outcome unconfoundedness estimator ('lou_qtt').
 
 ## See also
 

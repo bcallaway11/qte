@@ -16,8 +16,8 @@
 <script src="deps/bootstrap-5.3.8/bootstrap.bundle.min.js"></script><link href="deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
 <link href="deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
 <script src="deps/headroom-0.11.0/headroom.min.js"></script><script src="deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="deps/search-1.0.0/fuse.min.js"></script><script src="deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="pkgdown.js"></script><meta property="og:title" content="Quantile Treatment Effects">
-<meta name="description" content="Provides several methods for computing the Quantile Treatment Effect (QTE) and Quantile Treatment Effect on the Treated (QTT). The main cases covered are (i) treatment is randomly assigned, (ii) treatment is as good as randomly assigned after conditioning on covariates (selection on observables) using the methods of Firpo (2007) &lt;doi:10.1111/j.1468-0262.2007.00738.x&gt;, and (iii) identification is based on a Difference in Differences assumption, with support for several varieties including Athey and Imbens (2006) &lt;doi:10.1111/j.1468-0262.2006.00668.x&gt;, Callaway and Li (2019) &lt;doi:10.3982/QE935&gt;, and Callaway, Li, and Oka (2018) &lt;doi:10.1016/j.jeconom.2018.06.008&gt;. Version 2.0 adds a unified staggered treatment adoption API (built on ptetools) for all DiD-based estimators, as well as a new lagged-outcome unconfoundedness estimator (lou_qte).">
-<meta property="og:description" content="Provides several methods for computing the Quantile Treatment Effect (QTE) and Quantile Treatment Effect on the Treated (QTT). The main cases covered are (i) treatment is randomly assigned, (ii) treatment is as good as randomly assigned after conditioning on covariates (selection on observables) using the methods of Firpo (2007) &lt;doi:10.1111/j.1468-0262.2007.00738.x&gt;, and (iii) identification is based on a Difference in Differences assumption, with support for several varieties including Athey and Imbens (2006) &lt;doi:10.1111/j.1468-0262.2006.00668.x&gt;, Callaway and Li (2019) &lt;doi:10.3982/QE935&gt;, and Callaway, Li, and Oka (2018) &lt;doi:10.1016/j.jeconom.2018.06.008&gt;. Version 2.0 adds a unified staggered treatment adoption API (built on ptetools) for all DiD-based estimators, as well as a new lagged-outcome unconfoundedness estimator (lou_qte).">
+<meta name="description" content="Provides several methods for computing the Quantile Treatment Effect (QTE) and Quantile Treatment Effect on the Treated (QTT). The main cases covered are (i) treatment is randomly assigned, (ii) treatment is as good as randomly assigned after conditioning on covariates (selection on observables) using the methods of Firpo (2007) &lt;doi:10.1111/j.1468-0262.2007.00738.x&gt;, and (iii) identification is based on a Difference in Differences assumption, with support for several varieties including Athey and Imbens (2006) &lt;doi:10.1111/j.1468-0262.2006.00668.x&gt;, Callaway and Li (2019) &lt;doi:10.3982/QE935&gt;, and Callaway, Li, and Oka (2018) &lt;doi:10.1016/j.jeconom.2018.06.008&gt;. Version 2.0 adds a unified staggered treatment adoption API (built on ptetools) for all DiD-based estimators, as well as a new lagged-outcome unconfoundedness estimator (lou_qtt).">
+<meta property="og:description" content="Provides several methods for computing the Quantile Treatment Effect (QTE) and Quantile Treatment Effect on the Treated (QTT). The main cases covered are (i) treatment is randomly assigned, (ii) treatment is as good as randomly assigned after conditioning on covariates (selection on observables) using the methods of Firpo (2007) &lt;doi:10.1111/j.1468-0262.2007.00738.x&gt;, and (iii) identification is based on a Difference in Differences assumption, with support for several varieties including Athey and Imbens (2006) &lt;doi:10.1111/j.1468-0262.2006.00668.x&gt;, Callaway and Li (2019) &lt;doi:10.3982/QE935&gt;, and Callaway, Li, and Oka (2018) &lt;doi:10.1016/j.jeconom.2018.06.008&gt;. Version 2.0 adds a unified staggered treatment adoption API (built on ptetools) for all DiD-based estimators, as well as a new lagged-outcome unconfoundedness estimator (lou_qtt).">
 <meta property="og:image" content="https://bcallaway11.github.io/qte/logo.png">
 </head>
 <body>
@@ -122,26 +122,26 @@
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Overall ATT:  </span></span>
 <span><span class="co">#&gt;        ATT    Std. Error     [ 95%  Conf. Int.]  </span></span>
-<span><span class="co">#&gt;  -4685.583      855.4827  -6362.298   -3008.868 *</span></span>
+<span><span class="co">#&gt;  -4685.583      856.1013  -6363.511   -3007.655 *</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; QTT:</span></span>
 <span><span class="co">#&gt;  Tau         QTT Std. Error [ 95% Simult.  Conf. Band]  </span></span>
-<span><span class="co">#&gt;  0.1      0.0001   142.1003      -278.5113    278.5114  </span></span>
-<span><span class="co">#&gt;  0.2  -1002.7420   666.7031     -2309.4561    303.9721  </span></span>
-<span><span class="co">#&gt;  0.3  -3400.5673  1591.9883     -6520.8071   -280.3276 *</span></span>
-<span><span class="co">#&gt;  0.4  -5009.2491  1245.6738     -7450.7249  -2567.7732 *</span></span>
-<span><span class="co">#&gt;  0.5  -4602.4652   975.5104     -6514.4305  -2690.5000 *</span></span>
-<span><span class="co">#&gt;  0.6  -5229.1454  1137.8351     -7459.2613  -2999.0296 *</span></span>
-<span><span class="co">#&gt;  0.7  -5507.4720  1257.6699     -7972.4596  -3042.4843 *</span></span>
-<span><span class="co">#&gt;  0.8  -6885.7529  1414.2328     -9657.5982  -4113.9076 *</span></span>
-<span><span class="co">#&gt;  0.9 -10517.0625  2383.6646    -15188.9593  -5845.1657 *</span></span>
+<span><span class="co">#&gt;  0.1      0.0001    30.0232       -58.8443     58.8444  </span></span>
+<span><span class="co">#&gt;  0.2  -1002.7420   688.8295     -2352.8229    347.3389  </span></span>
+<span><span class="co">#&gt;  0.3  -3400.5673  1731.1817     -6793.6212     -7.5135 *</span></span>
+<span><span class="co">#&gt;  0.4  -5009.2491  1181.6380     -7325.2170  -2693.2811 *</span></span>
+<span><span class="co">#&gt;  0.5  -4602.4652   848.2877     -6265.0786  -2939.8519 *</span></span>
+<span><span class="co">#&gt;  0.6  -5229.1454  1230.4344     -7640.7526  -2817.5383 *</span></span>
+<span><span class="co">#&gt;  0.7  -5507.4720  1199.7046     -7858.8498  -3156.0942 *</span></span>
+<span><span class="co">#&gt;  0.8  -6885.7529  1376.9064     -9584.4399  -4187.0659 *</span></span>
+<span><span class="co">#&gt;  0.9 -10517.0625  2373.8362    -15169.6961  -5864.4290 *</span></span>
 <span><span class="co">#&gt; ---</span></span>
 <span><span class="co">#&gt; Signif. codes: `*' confidence band does not cover 0</span></span></code></pre></div>
 <p>Plot the QTT curve with a uniform confidence band:</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu">autoplot</span><span class="op">(</span><span class="va">res_cs</span><span class="op">)</span></span></code></pre></div>
-<p><img src="reference/figures/README-unc-qte-plot-1.png" style="width:70.0%" alt="QTT estimates across quantiles with uniform confidence band" data-fig-alt="QTT estimates across quantiles with uniform confidence band"></p>
+<p><img src="reference/figures/README-unc-qte-plot-1.png" style="width:70.0%" data-fig-alt="QTT estimates across quantiles with uniform confidence band"></p>
 </div>
 <div class="section level2">
 <h2 id="staggered-treatment-adoption">Staggered treatment adoption<a class="anchor" aria-label="anchor" href="#staggered-treatment-adoption"></a>
@@ -163,24 +163,24 @@
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Overall ATT:  </span></span>
 <span><span class="co">#&gt;      ATT    Std. Error     [ 95%  Conf. Int.] </span></span>
-<span><span class="co">#&gt;  -0.0197         0.015    -0.0494      0.0101 </span></span>
+<span><span class="co">#&gt;  -0.0197         0.018    -0.0617      0.0224 </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Dynamic Effects:</span></span>
 <span><span class="co">#&gt;  Event Time Estimate Std. Error [95% Simult.  Conf. Band]  </span></span>
-<span><span class="co">#&gt;          -3   0.0508     0.0232        0.0053      0.0964 *</span></span>
-<span><span class="co">#&gt;          -2   0.0158     0.0151       -0.0138      0.0455  </span></span>
-<span><span class="co">#&gt;          -1  -0.0128     0.0161       -0.0444      0.0187  </span></span>
-<span><span class="co">#&gt;           0  -0.0081     0.0147       -0.0368      0.0207  </span></span>
-<span><span class="co">#&gt;           1  -0.0364     0.0219       -0.0792      0.0064  </span></span>
-<span><span class="co">#&gt;           2  -0.1226     0.0360       -0.1932     -0.0520 *</span></span>
-<span><span class="co">#&gt;           3  -0.0930     0.0402       -0.1717     -0.0142 *</span></span>
+<span><span class="co">#&gt;          -3   0.0508     0.0222        0.0074      0.0943 *</span></span>
+<span><span class="co">#&gt;          -2   0.0158     0.0147       -0.0130      0.0447  </span></span>
+<span><span class="co">#&gt;          -1  -0.0128     0.0165       -0.0452      0.0196  </span></span>
+<span><span class="co">#&gt;           0  -0.0081     0.0171       -0.0416      0.0255  </span></span>
+<span><span class="co">#&gt;           1  -0.0364     0.0233       -0.0820      0.0092  </span></span>
+<span><span class="co">#&gt;           2  -0.1226     0.0443       -0.2093     -0.0358 *</span></span>
+<span><span class="co">#&gt;           3  -0.0930     0.0473       -0.1857     -0.0002 *</span></span>
 <span><span class="co">#&gt; ---</span></span>
 <span><span class="co">#&gt; Signif. codes: `*' confidence band does not cover 0</span></span></code></pre></div>
 <p>Event-study plot showing pre-trends and post-treatment ATT by event time:</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu">autoplot</span><span class="op">(</span><span class="va">res_att</span>, type <span class="op">=</span> <span class="st">"dynamic"</span><span class="op">)</span></span></code></pre></div>
-<p><img src="reference/figures/README-cic-att-plot-1.png" style="width:70.0%" alt="Event-study plot of ATT estimates by event time" data-fig-alt="Event-study plot of ATT estimates by event time"></p>
+<p><img src="reference/figures/README-cic-att-plot-1.png" style="width:70.0%" data-fig-alt="Event-study plot of ATT estimates by event time"></p>
 <p>The same estimator returns a full QTT curve when <code>gt_type = "qtt"</code>:</p>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">res_qtt</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/cic.html">cic</a></span><span class="op">(</span></span>
@@ -194,7 +194,7 @@
 <span>  biters  <span class="op">=</span> <span class="fl">100</span></span>
 <span><span class="op">)</span></span>
 <span><span class="fu">autoplot</span><span class="op">(</span><span class="va">res_qtt</span><span class="op">)</span></span></code></pre></div>
-<p><img src="reference/figures/README-cic-qtt-1.png" style="width:70.0%" alt="Overall QTT curve from cic()" data-fig-alt="Overall QTT curve from cic()"></p>
+<p><img src="reference/figures/README-cic-qtt-1.png" style="width:70.0%" data-fig-alt="Overall QTT curve from cic()"></p>
 </div>
 <div class="section level2">
 <h2 id="available-estimators">Available estimators<a class="anchor" aria-label="anchor" href="#available-estimators"></a>
@@ -311,7 +311,7 @@
 <h2 data-toc-skip>Dev status</h2>
 <ul class="list-unstyled">
 <li><a href="https://CRAN.R-project.org/package=qte" class="external-link"><img src="https://www.r-pkg.org/badges/version/qte.png" alt="CRAN status"></a></li>
-<li><a href="https://github.com/bcallaway11/qte/actions/workflows/R-CMD-check.yaml" class="external-link"><img src="https://github.com/bcallaway11/qte/actions/workflows/R-CMD-check.yaml/badge.svg" alt="R-CMD-check"></a></li>
+<li><a href="https://github.com/bcallaway11/qte/actions/workflows/R-CMD-check.yml" class="external-link"><img src="https://github.com/bcallaway11/qte/actions/workflows/R-CMD-check.yml/badge.svg" alt="R-CMD-check"></a></li>
 </ul>
 </div>
 

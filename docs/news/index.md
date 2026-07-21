@@ -59,9 +59,10 @@ section before upgrading.
   [`panel.qtet()`](https://bcallaway11.github.io/qte/reference/panel.qtet.md),
   which is retained as a deprecated wrapper.
 
-- `lou_qte()` — Lagged-outcome unconfoundedness QTT estimator for
-  staggered treatment adoption. Uses the lagged outcome as a control
-  variable to identify the QTT. New; no prior equivalent in the package.
+- [`lou_qtt()`](https://bcallaway11.github.io/qte/reference/lou_qtt.md)
+  — Lagged-outcome unconfoundedness QTT estimator for staggered
+  treatment adoption. Uses the lagged outcome as a control variable to
+  identify the QTT. New; no prior equivalent in the package.
 
 ### Deprecated functions
 
