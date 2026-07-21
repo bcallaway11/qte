@@ -22,3 +22,4 @@
 ^vignettes/\.quarto$
 ^\.revdeplite$
 ^CITATION\.cff$
+^\.github$
