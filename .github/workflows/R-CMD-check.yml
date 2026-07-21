@@ -29,8 +29,11 @@ jobs:
 
       - uses: r-lib/actions/setup-r-dependencies@v2
         with:
-          extra-packages: any::rcmdcheck
+          extra-packages: any::rcmdcheck, any::remotes
           needs: check
+
+      - name: Install package (quarto vignette engine needs it pre-installed)
+        run: Rscript -e "remotes::install_local('.', dependencies = FALSE, upgrade = 'never', force = TRUE)"
 
       - uses: r-lib/actions/check-r-package@v2
         with:

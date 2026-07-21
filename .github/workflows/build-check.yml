@@ -24,6 +24,9 @@ jobs:
       - name: Build README
         run: quarto render README.qmd
 
+      - name: Install package (quarto vignette engine needs it pre-installed)
+        run: Rscript -e "devtools::install(quick = TRUE, upgrade = 'never')"
+
       - name: Build vignettes
         run: Rscript -e "devtools::build_vignettes()"
 
