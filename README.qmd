@@ -21,7 +21,7 @@ library(ggplot2)
 
 <!-- badges: start -->
 [![CRAN status](https://www.r-pkg.org/badges/version/qte)](https://CRAN.R-project.org/package=qte)
-[![R-CMD-check](https://github.com/bcallaway11/qte/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/bcallaway11/qte/actions/workflows/R-CMD-check.yaml)
+[![R-CMD-check](https://github.com/bcallaway11/qte/actions/workflows/R-CMD-check.yml/badge.svg)](https://github.com/bcallaway11/qte/actions/workflows/R-CMD-check.yml)
 <!-- badges: end -->
 
 ## Overview

@@ -4,7 +4,7 @@
 #   autoplot.QTE and plot.QTE for ggplot2-based plotting of QTE results,
 #   and retains ggqte() as a deprecated wrapper.
 # Author: Brant Callaway
-# Last update: 2026-05-22
+# Last update: 2026-07-20
 # Date created: 2026-05-18
 # =============================================================================
 
@@ -80,6 +80,7 @@ autoplot.QTE <- function(object, cband = TRUE, ylab = "QTE", ...) {
 #' @param alp significance level override
 #'
 #' @return a ggplot object
+#' @keywords internal
 #' @export
 ggqte <- function(qteobj, main = "", ylab = "QTE", ylim = NULL, ybreaks = NULL, xbreaks = c(.1, .3, .5, .7, .9), setype = "pointwise", alp = qteobj$alp) {
   .Deprecated(msg = paste0(

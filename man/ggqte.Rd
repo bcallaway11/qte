@@ -39,3 +39,4 @@ a ggplot object
 \strong{Deprecated.} Use \code{autoplot()} on a \code{QTE}
 object instead.
 }
+\keyword{internal}

@@ -15,7 +15,7 @@ Description: Provides several methods for computing the Quantile Treatment
     <doi:10.3982/QE935>, and Callaway, Li, and Oka (2018)
     <doi:10.1016/j.jeconom.2018.06.008>. Version 2.0 adds a unified staggered
     treatment adoption API (built on 'ptetools') for all DiD-based estimators,
-    as well as a new lagged-outcome unconfoundedness estimator ('lou_qte').
+    as well as a new lagged-outcome unconfoundedness estimator ('lou_qtt').
 Depends: R (>= 3.5)
 Imports: parallel,
     quantreg,

@@ -4,7 +4,7 @@
 #   methods. Also contains the panel.qtet estimator (Callaway-Li 2019) and its
 #   internal compute function. Dataset documentation is in data.R.
 # Author: Brant Callaway
-# Last update: 2026-05-22
+# Last update: 2026-07-20
 # Date created: 2026-05-18
 # =============================================================================
 
@@ -697,6 +697,7 @@ plot.QTE <- function(x, cband = TRUE, ylab = "QTE", ...) {
 #'  terms in the variance-covariance matrix.
 #' @param inffuncu The influence function for the untreated group
 #'
+#' @keywords internal
 #' @export
 QTE <- function(qte, ate = NULL, qte.se = NULL, qte.lower = NULL,
                 qte.upper = NULL, ate.se = NULL, ate.lower = NULL, ate.upper = NULL,

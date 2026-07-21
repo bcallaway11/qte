@@ -36,7 +36,7 @@ section before upgrading.
   (`"long"`, default) or fixed (`"short"`) base period is used to transfer the
   copula. Replaces `panel.qtet()`, which is retained as a deprecated wrapper.
 
-* `lou_qte()` — Lagged-outcome unconfoundedness QTT estimator for staggered
+* `lou_qtt()` — Lagged-outcome unconfoundedness QTT estimator for staggered
   treatment adoption. Uses the lagged outcome as a control variable to identify
   the QTT. New; no prior equivalent in the package.
 
