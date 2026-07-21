@@ -6,7 +6,7 @@
 #   ddid2 is a deprecated alias retained for backwards compatibility.
 #   compute.ddid2 is an unexported helper kept only to support ddid2.
 # Author: Brant Callaway
-# Last update: 2026-05-22
+# Last update: 2026-07-21
 # Date created: 2026-05-18
 # =============================================================================
 
@@ -101,17 +101,6 @@ ddid_gt <- function(gt_data, xformula = ~1, ...) {
 
   # observed within-unit changes for each control unit (requires panel)
   delta_ctrl <- Y_post_ctrl - Y_pre_ctrl # nolint: object_name_linter
-
-  # Helper: weighted type-1 quantile (smallest y with weighted CDF >= p).
-  wquant <- function(y_vec, w_vec, probs) {
-    ord <- order(y_vec)
-    y_s <- y_vec[ord]
-    cdf <- cumsum(w_vec[ord])
-    y_s[vapply(probs, function(p) {
-      idx <- which(cdf >= p)
-      if (length(idx) == 0L) length(y_s) else idx[1L]
-    }, integer(1))]
-  }
 
   # DDiD transform (no covariates):
   # u_j   = weighted rank of control unit j in the control pre-period distribution

@@ -7,7 +7,7 @@
 #   QDiD is a deprecated alias retained for backwards compatibility.
 #   compute.QDiD is an unexported helper kept only to support the deprecated QDiD.
 # Author: Brant Callaway
-# Last update: 2026-05-22
+# Last update: 2026-07-21
 # Date created: 2026-05-18
 # =============================================================================
 
@@ -66,18 +66,6 @@ qdid_gt <- function(gt_data, xformula = ~1, ...) {
   w_post_ctrl <- w_post_ctrl / sum(w_post_ctrl)
   w_pre_trt   <- w_pre_trt   / sum(w_pre_trt)
   w_post_trt  <- w_post_trt  / sum(w_post_trt)
-
-  # Helper: weighted type-1 quantile (smallest y with weighted CDF >= p).
-  # Handles vectorised probs; reduces to quantile(type=1) for uniform weights.
-  wquant <- function(y_vec, w_vec, probs) {
-    ord <- order(y_vec)
-    y_s <- y_vec[ord]
-    cdf <- cumsum(w_vec[ord])
-    y_s[vapply(probs, function(p) {
-      idx <- which(cdf >= p)
-      if (length(idx) == 0L) length(y_s) else idx[1L]
-    }, integer(1))]
-  }
 
   # QDiD transform (A-I 2006): rank each treated pre-period unit in its own
   # pre-period distribution, then apply the control group's DiD shift at
