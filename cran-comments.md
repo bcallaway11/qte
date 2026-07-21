@@ -45,5 +45,5 @@ issues, not package issues.
 
 ## Downstream dependencies
 
-Checked reverse dependencies on CRAN as well as known GitHub-only reverse
-dependents (csabounds, contdid); no issues found.
+Checked reverse dependencies on CRAN (`sccic`) and on GitHub (`csabounds`);
+no issues found.

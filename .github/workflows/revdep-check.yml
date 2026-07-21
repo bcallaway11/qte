@@ -75,7 +75,6 @@ jobs:
     env:
       GH_REPOS: |
         bcallaway11/csabounds
-        bcallaway11/contdid
       CHECK_ARGS: "--no-manual"
     steps:
       - uses: actions/checkout@v6
