@@ -140,6 +140,59 @@ file.remove(file.path("docs", c("AGENTS.md", "AGENTS.html",
 
 Always run `devtools::document()` after editing roxygen2 tags.
 
+### Vignette caching — do not skip this when editing vignettes
+
+All three vignettes (`intro.qmd`, `panel-estimators.qmd`,
+`staggered-adoption.qmd`) precompute their estimator results and cache them
+in `vignettes/precomputed/*.rds`. Each vignette's setup chunk does:
+```r
+cache_file <- "precomputed/<name>-results.rds"
+use_cache <- file.exists(cache_file)
+if (use_cache) cached <- readRDS(cache_file)
+```
+and each estimator chunk is `if (use_cache) <- cached$x else { compute; }`,
+with a final `save-cache` chunk that writes the whole list once if the cache
+didn't already exist. This exists because CRAN rejected the first 2.0.0
+submission for **tarball size >10MB** and **vignette rebuild time >10 min**
+(see `dev/CRAN_SUBMISSION_PLAN.md`) — without caching, every `R CMD check`
+re-runs the full `biters=100` bootstrap for every estimator in every
+vignette.
+
+**Two different "cache" concepts here — don't confuse them:**
+- `vignettes/precomputed/*.rds` — the deliberate cache above. Tracked in
+  git, **not** excluded by `.Rbuildignore`/`.gitignore` — it must ship in
+  the tarball so CRAN's build loads it instead of recomputing.
+- `vignettes/*_cache/`, `vignettes/*_files/` — quarto/knitr's own automatic
+  rendering cache/assets. These *are* excluded via `.Rbuildignore` and
+  `.gitignore` (added 2026-07-21) and must never be committed — committing
+  `intro_cache/` (9.6MB) is exactly what caused the tarball-size rejection.
+
+**When you edit a vignette's R code** (new estimator call, changed
+arguments/data, anything that changes what gets computed), its cache is now
+stale:
+1. Delete `vignettes/precomputed/<vignette>-results.rds`.
+2. Install the package first — `devtools::install()`, not just
+   `load_all()`. The quarto vignette engine shells out to a fresh R
+   subprocess that only sees the normally-installed package, not an
+   in-session `load_all()`.
+3. Render from within `vignettes/` so the relative cache path resolves:
+   `cd vignettes && quarto render <file>.qmd`. This leaves a stray
+   `<file>.html` (and sometimes `<file>.rmarkdown`) next to the source —
+   delete them; both are also in `.Rbuildignore`/`.gitignore` since `R CMD
+   build` includes anything in `vignettes/` not explicitly excluded there,
+   regardless of git status.
+4. The full `biters=100` bootstrap can be slow to regenerate. To speed it
+   up, temporarily add `cl = 10` (or similar) to the estimator calls, then
+   remove it before committing — every estimator function uses `cl` for
+   parallel bootstrap iterations.
+
+**Gotcha:** `ptetools` is a hard dependency but isn't loaded by `library(qte)`
+alone — only when code actually calls into it (e.g. `cic()`). Loading a
+cached result skips that call, so `autoplot()`/`summary()` on a
+`pte_qtt`/`pte_results` object can silently dispatch to the wrong method.
+`staggered-adoption.qmd`'s setup chunk has `library(ptetools)` to guard
+against this; add it to any vignette that plots or summarizes those classes.
+
 ## Related Packages
 
 - **ptetools** — multi-period/staggered treatment framework all six DiD

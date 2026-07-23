@@ -57,7 +57,7 @@
       <img src="../logo.png" class="logo" alt=""><h1>Panel Data Estimators for Quantile Treatment Effects</h1>
 
       <p class="author">Brantly Callaway</p>
-      <p class="date">2026-07-21</p>
+      <p class="date">2026-07-22</p>
 
       <small class="dont-index">Source: <a href="https://github.com/bcallaway11/qte/blob/HEAD/vignettes/panel-estimators.qmd" class="external-link"><code>vignettes/panel-estimators.qmd</code></a></small>
       <div class="d-none name"><code></code></div>
@@ -75,6 +75,7 @@
 <div class="cell">
 <div class="sourceCode cell-code" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://bcallaway11.github.io/qte/">qte</a></span><span class="op">)</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/bcallaway11/ptetools" class="external-link">ptetools</a></span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">42</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="va">mpdta</span>, package <span class="op">=</span> <span class="st">"did"</span><span class="op">)</span></span></code></pre></div>
 </div>
@@ -103,26 +104,28 @@
 <code class="sourceCode R"><span><span class="va">res_cic</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/cic.html">cic</a></span><span class="op">(</span></span>
 <span>  yname  <span class="op">=</span> <span class="st">"lemp"</span>, gname <span class="op">=</span> <span class="st">"first.treat"</span>, tname <span class="op">=</span> <span class="st">"year"</span>,</span>
 <span>  idname <span class="op">=</span> <span class="st">"countyreal"</span>, data <span class="op">=</span> <span class="va">mpdta</span>,</span>
-<span>  gt_type <span class="op">=</span> <span class="st">"att"</span>, biters <span class="op">=</span> <span class="fl">50</span></span>
+<span>  gt_type <span class="op">=</span> <span class="st">"att"</span>, biters <span class="op">=</span> <span class="fl">100</span></span>
 <span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">res_cic</span><span class="op">)</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Overall ATT:  </span></span>
-<span><span class="co">#&gt;      ATT    Std. Error     [ 95%  Conf. Int.] </span></span>
-<span><span class="co">#&gt;  -0.0197        0.0185    -0.0532      0.0139 </span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; </span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">res_cic</span><span class="op">)</span></span></code></pre></div>
+</div>
+<div class="cell">
+<pre><code><span><span class="co">#&gt;</span></span>
+<span><span class="co">#&gt; Overall ATT:</span></span>
+<span><span class="co">#&gt;      ATT    Std. Error     [ 95%  Conf. Int.]</span></span>
+<span><span class="co">#&gt;  -0.0197        0.0157    -0.0541      0.0147</span></span>
+<span><span class="co">#&gt;</span></span>
+<span><span class="co">#&gt;</span></span>
 <span><span class="co">#&gt; Dynamic Effects:</span></span>
-<span><span class="co">#&gt;  Event Time Estimate Std. Error [95% Simult.  Conf. Band]  </span></span>
-<span><span class="co">#&gt;          -3   0.0508     0.0176        0.0164      0.0853 *</span></span>
-<span><span class="co">#&gt;          -2   0.0158     0.0159       -0.0154      0.0471  </span></span>
-<span><span class="co">#&gt;          -1  -0.0128     0.0156       -0.0434      0.0178  </span></span>
-<span><span class="co">#&gt;           0  -0.0081     0.0185       -0.0442      0.0281  </span></span>
-<span><span class="co">#&gt;           1  -0.0364     0.0196       -0.0748      0.0020  </span></span>
-<span><span class="co">#&gt;           2  -0.1226     0.0348       -0.1907     -0.0544 *</span></span>
-<span><span class="co">#&gt;           3  -0.0930     0.0369       -0.1653     -0.0206 *</span></span>
+<span><span class="co">#&gt;  Event Time Estimate Std. Error [95% Simult.  Conf. Band]</span></span>
+<span><span class="co">#&gt;          -3   0.0508     0.0214        0.0090      0.0927 *</span></span>
+<span><span class="co">#&gt;          -2   0.0158     0.0169       -0.0174      0.0491</span></span>
+<span><span class="co">#&gt;          -1  -0.0128     0.0179       -0.0478      0.0222</span></span>
+<span><span class="co">#&gt;           0  -0.0081     0.0154       -0.0383      0.0221</span></span>
+<span><span class="co">#&gt;           1  -0.0364     0.0233       -0.0820      0.0092</span></span>
+<span><span class="co">#&gt;           2  -0.1226     0.0500       -0.2206     -0.0245 *</span></span>
+<span><span class="co">#&gt;           3  -0.0930     0.0502       -0.1914      0.0055</span></span>
 <span><span class="co">#&gt; ---</span></span>
-<span><span class="co">#&gt; Signif. codes: `*' confidence band does not cover 0</span></span></code></pre></div>
+<span><span class="co">#&gt; Signif. codes: `*' confidence band does not cover 0</span></span></code></pre>
 </div>
 <hr></section><section class="level2"><h2 id="quantile-difference-in-differences-qdid">Quantile Difference-in-Differences — <code>qdid()</code>
 <a class="anchor" aria-label="anchor" href="#quantile-difference-in-differences-qdid"></a>
@@ -132,30 +135,32 @@
 <p><strong>Intuition:</strong> This requires parallel trends to hold at every quantile level <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>τ</mi><annotation encoding="application/x-tex">\tau</annotation></semantics></math>, not just in the mean. It directly identifies the counterfactual: <math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>Q</mi><mrow><msub><mi>Y</mi><mi>t</mi></msub><mo stretchy="false" form="prefix">(</mo><mn>0</mn><mo stretchy="false" form="postfix">)</mo><mo stretchy="false" form="prefix">|</mo><mi>D</mi><mo>=</mo><mn>1</mn></mrow></msub><mo stretchy="false" form="prefix">(</mo><mi>τ</mi><mo stretchy="false" form="postfix">)</mo><mo>=</mo><msub><mi>Q</mi><mrow><msub><mi>Y</mi><mrow><mi>t</mi><mo>−</mo><mn>1</mn></mrow></msub><mo stretchy="false" form="prefix">|</mo><mi>D</mi><mo>=</mo><mn>1</mn></mrow></msub><mo stretchy="false" form="prefix">(</mo><mi>τ</mi><mo stretchy="false" form="postfix">)</mo><mo>+</mo><msub><mi>Q</mi><mrow><msub><mi>Y</mi><mi>t</mi></msub><mo stretchy="false" form="prefix">|</mo><mi>D</mi><mo>=</mo><mn>0</mn></mrow></msub><mo stretchy="false" form="prefix">(</mo><mi>τ</mi><mo stretchy="false" form="postfix">)</mo><mo>−</mo><msub><mi>Q</mi><mrow><msub><mi>Y</mi><mrow><mi>t</mi><mo>−</mo><mn>1</mn></mrow></msub><mo stretchy="false" form="prefix">|</mo><mi>D</mi><mo>=</mo><mn>0</mn></mrow></msub><mo stretchy="false" form="prefix">(</mo><mi>τ</mi><mo stretchy="false" form="postfix">)</mo><mi>.</mi></mrow><annotation encoding="application/x-tex">Q_{Y_t(0)|D=1}(\tau) = Q_{Y_{t-1}|D=1}(\tau) + Q_{Y_t|D=0}(\tau) - Q_{Y_{t-1}|D=0}(\tau).</annotation></semantics></math></p>
 <p><strong>When to use:</strong> Works with panel or repeated cross sections.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb4"><pre class="downlit sourceCode r">
+<div class="sourceCode cell-code" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">res_qdid</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/qdid.html">qdid</a></span><span class="op">(</span></span>
 <span>  yname  <span class="op">=</span> <span class="st">"lemp"</span>, gname <span class="op">=</span> <span class="st">"first.treat"</span>, tname <span class="op">=</span> <span class="st">"year"</span>,</span>
 <span>  idname <span class="op">=</span> <span class="st">"countyreal"</span>, data <span class="op">=</span> <span class="va">mpdta</span>,</span>
-<span>  gt_type <span class="op">=</span> <span class="st">"att"</span>, biters <span class="op">=</span> <span class="fl">50</span></span>
+<span>  gt_type <span class="op">=</span> <span class="st">"att"</span>, biters <span class="op">=</span> <span class="fl">100</span></span>
 <span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">res_qdid</span><span class="op">)</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Overall ATT:  </span></span>
-<span><span class="co">#&gt;      ATT    Std. Error     [ 95%  Conf. Int.] </span></span>
-<span><span class="co">#&gt;  -0.0271        0.0136    -0.0567      0.0026 </span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; </span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">res_qdid</span><span class="op">)</span></span></code></pre></div>
+</div>
+<div class="cell">
+<pre><code><span><span class="co">#&gt;</span></span>
+<span><span class="co">#&gt; Overall ATT:</span></span>
+<span><span class="co">#&gt;      ATT    Std. Error     [ 95%  Conf. Int.]</span></span>
+<span><span class="co">#&gt;  -0.0282        0.0125    -0.0506     -0.0058 *</span></span>
+<span><span class="co">#&gt;</span></span>
+<span><span class="co">#&gt;</span></span>
 <span><span class="co">#&gt; Dynamic Effects:</span></span>
-<span><span class="co">#&gt;  Event Time Estimate Std. Error [95% Simult.  Conf. Band]  </span></span>
-<span><span class="co">#&gt;          -3   0.0266     0.0145       -0.0018      0.0550  </span></span>
-<span><span class="co">#&gt;          -2  -0.0027     0.0143       -0.0308      0.0254  </span></span>
-<span><span class="co">#&gt;          -1  -0.0257     0.0143       -0.0538      0.0023  </span></span>
-<span><span class="co">#&gt;           0  -0.0148     0.0129       -0.0401      0.0105  </span></span>
-<span><span class="co">#&gt;           1  -0.0588     0.0196       -0.0972     -0.0203 *</span></span>
-<span><span class="co">#&gt;           2  -0.1366     0.0374       -0.2099     -0.0632 *</span></span>
-<span><span class="co">#&gt;           3  -0.1111     0.0400       -0.1895     -0.0328 *</span></span>
+<span><span class="co">#&gt;  Event Time Estimate Std. Error [95% Simult.  Conf. Band]</span></span>
+<span><span class="co">#&gt;          -3   0.0266     0.0172       -0.0070      0.0602</span></span>
+<span><span class="co">#&gt;          -2  -0.0040     0.0133       -0.0301      0.0221</span></span>
+<span><span class="co">#&gt;          -1  -0.0247     0.0126       -0.0493     -0.0001 *</span></span>
+<span><span class="co">#&gt;           0  -0.0164     0.0128       -0.0415      0.0086</span></span>
+<span><span class="co">#&gt;           1  -0.0584     0.0189       -0.0953     -0.0214 *</span></span>
+<span><span class="co">#&gt;           2  -0.1470     0.0408       -0.2269     -0.0671 *</span></span>
+<span><span class="co">#&gt;           3  -0.1111     0.0404       -0.1904     -0.0319 *</span></span>
 <span><span class="co">#&gt; ---</span></span>
-<span><span class="co">#&gt; Signif. codes: `*' confidence band does not cover 0</span></span></code></pre></div>
+<span><span class="co">#&gt; Signif. codes: `*' confidence band does not cover 0</span></span></code></pre>
 </div>
 <hr></section><section class="level2"><h2 id="panel-qtt-panel_qtt">Panel QTT — <code>panel_qtt()</code>
 <a class="anchor" aria-label="anchor" href="#panel-qtt-panel_qtt"></a>
@@ -164,25 +169,27 @@
 <p><strong>Identifying assumptions:</strong> The first assumption is <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="normal">Δ</mi><msub><mi>Y</mi><mi>t</mi></msub><mo stretchy="false" form="prefix">(</mo><mn>0</mn><mo stretchy="false" form="postfix">)</mo><mo>⟂</mo><mi>D</mi></mrow><annotation encoding="application/x-tex">\Delta Y_t(0) \perp D</annotation></semantics></math> — the distribution of the change in untreated potential outcomes is the same for both groups: <math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>F</mi><mrow><mi mathvariant="normal">Δ</mi><msub><mi>Y</mi><mi>t</mi></msub><mo stretchy="false" form="prefix">(</mo><mn>0</mn><mo stretchy="false" form="postfix">)</mo><mo stretchy="false" form="prefix">|</mo><mi>D</mi><mo>=</mo><mn>1</mn></mrow></msub><mo>=</mo><msub><mi>F</mi><mrow><mi mathvariant="normal">Δ</mi><msub><mi>Y</mi><mi>t</mi></msub><mo stretchy="false" form="prefix">(</mo><mn>0</mn><mo stretchy="false" form="postfix">)</mo><mo stretchy="false" form="prefix">|</mo><mi>D</mi><mo>=</mo><mn>0</mn></mrow></msub><mi>.</mi></mrow><annotation encoding="application/x-tex">F_{\Delta Y_t(0)|D=1} = F_{\Delta Y_t(0)|D=0}.</annotation></semantics></math> This identifies the marginal distribution of <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="normal">Δ</mi><msub><mi>Y</mi><mi>t</mi></msub><mo stretchy="false" form="prefix">(</mo><mn>0</mn><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\Delta Y_t(0)</annotation></semantics></math> for the treated group. As shown in <span class="citation" data-cites="fan-yu-2012">Fan and Yu (<a href="#ref-fan-yu-2012" role="doc-biblioref">2012</a>)</span>, this is not sufficient on its own to identify the QTT. Identification is completed by a copula stability assumption: the copula linking <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="normal">Δ</mi><msub><mi>Y</mi><mi>t</mi></msub><mo stretchy="false" form="prefix">(</mo><mn>0</mn><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\Delta Y_t(0)</annotation></semantics></math> to the lagged outcome <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>Y</mi><mrow><mi>t</mi><mo>−</mo><mn>1</mn></mrow></msub><mo stretchy="false" form="prefix">(</mo><mn>0</mn><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">Y_{t-1}(0)</annotation></semantics></math> is stable over time within the treated group, <math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>C</mi><mrow><mi mathvariant="normal">Δ</mi><msub><mi>Y</mi><mi>t</mi></msub><mo stretchy="false" form="prefix">(</mo><mn>0</mn><mo stretchy="false" form="postfix">)</mo><mo>,</mo><mspace width="0.167em"></mspace><msub><mi>Y</mi><mrow><mi>t</mi><mo>−</mo><mn>1</mn></mrow></msub><mo stretchy="false" form="prefix">(</mo><mn>0</mn><mo stretchy="false" form="postfix">)</mo><mo stretchy="false" form="prefix">|</mo><mi>D</mi><mo>=</mo><mn>1</mn></mrow></msub><mo>=</mo><msub><mi>C</mi><mrow><mi mathvariant="normal">Δ</mi><msub><mi>Y</mi><mrow><mi>t</mi><mo>−</mo><mn>1</mn></mrow></msub><mo stretchy="false" form="prefix">(</mo><mn>0</mn><mo stretchy="false" form="postfix">)</mo><mo>,</mo><mspace width="0.167em"></mspace><msub><mi>Y</mi><mrow><mi>t</mi><mo>−</mo><mn>2</mn></mrow></msub><mo stretchy="false" form="prefix">(</mo><mn>0</mn><mo stretchy="false" form="postfix">)</mo><mo stretchy="false" form="prefix">|</mo><mi>D</mi><mo>=</mo><mn>1</mn></mrow></msub><mi>.</mi></mrow><annotation encoding="application/x-tex">C_{\Delta Y_t(0),\, Y_{t-1}(0)|D=1} = C_{\Delta Y_{t-1}(0),\, Y_{t-2}(0)|D=1}.</annotation></semantics></math></p>
 <p><strong>Intuition:</strong> For treated units, <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>Y</mi><mrow><mi>t</mi><mo>−</mo><mn>1</mn></mrow></msub><annotation encoding="application/x-tex">Y_{t-1}</annotation></semantics></math> and <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>Y</mi><mrow><mi>t</mi><mo>−</mo><mn>2</mn></mrow></msub><annotation encoding="application/x-tex">Y_{t-2}</annotation></semantics></math> are observed pre-treatment, so the right-hand copula can be estimated directly from the data. Copula stability says this same dependence structure governs <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false" form="prefix">(</mo><mi mathvariant="normal">Δ</mi><msub><mi>Y</mi><mi>t</mi></msub><mo stretchy="false" form="prefix">(</mo><mn>0</mn><mo stretchy="false" form="postfix">)</mo><mo>,</mo><msub><mi>Y</mi><mrow><mi>t</mi><mo>−</mo><mn>1</mn></mrow></msub><mo stretchy="false" form="prefix">(</mo><mn>0</mn><mo stretchy="false" form="postfix">)</mo><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">(\Delta Y_t(0), Y_{t-1}(0))</annotation></semantics></math> in the post-period. Combined with the identified marginals, this pins down the conditional distribution of <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="normal">Δ</mi><msub><mi>Y</mi><mi>t</mi></msub><mo stretchy="false" form="prefix">(</mo><mn>0</mn><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\Delta Y_t(0)</annotation></semantics></math> given <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>Y</mi><mrow><mi>t</mi><mo>−</mo><mn>1</mn></mrow></msub><mo stretchy="false" form="prefix">(</mo><mn>0</mn><mo stretchy="false" form="postfix">)</mo><mo>=</mo><mi>y</mi></mrow><annotation encoding="application/x-tex">Y_{t-1}(0) = y</annotation></semantics></math> for treated units. Since <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>Y</mi><mi>t</mi></msub><mo stretchy="false" form="prefix">(</mo><mn>0</mn><mo stretchy="false" form="postfix">)</mo><mo>=</mo><msub><mi>Y</mi><mrow><mi>t</mi><mo>−</mo><mn>1</mn></mrow></msub><mo>+</mo><mi mathvariant="normal">Δ</mi><msub><mi>Y</mi><mi>t</mi></msub><mo stretchy="false" form="prefix">(</mo><mn>0</mn><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">Y_t(0) = Y_{t-1} + \Delta Y_t(0)</annotation></semantics></math> and <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>Y</mi><mrow><mi>t</mi><mo>−</mo><mn>1</mn></mrow></msub><annotation encoding="application/x-tex">Y_{t-1}</annotation></semantics></math> is observed, the QTT is identified. Requires panel data with at least two pre-treatment periods per cohort.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb5"><pre class="downlit sourceCode r">
+<div class="sourceCode cell-code" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">res_pqtt</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/panel_qtt.html">panel_qtt</a></span><span class="op">(</span></span>
 <span>  yname  <span class="op">=</span> <span class="st">"lemp"</span>, gname <span class="op">=</span> <span class="st">"first.treat"</span>, tname <span class="op">=</span> <span class="st">"year"</span>,</span>
 <span>  idname <span class="op">=</span> <span class="st">"countyreal"</span>, data <span class="op">=</span> <span class="va">mpdta</span>,</span>
-<span>  gt_type <span class="op">=</span> <span class="st">"qtt"</span>, probs <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="fl">0.1</span>, <span class="fl">0.9</span>, <span class="fl">0.1</span><span class="op">)</span>, biters <span class="op">=</span> <span class="fl">50</span></span>
+<span>  gt_type <span class="op">=</span> <span class="st">"qtt"</span>, probs <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="fl">0.1</span>, <span class="fl">0.9</span>, <span class="fl">0.1</span><span class="op">)</span>, biters <span class="op">=</span> <span class="fl">100</span></span>
 <span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">res_pqtt</span><span class="op">)</span></span>
-<span><span class="co">#&gt; </span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">res_pqtt</span><span class="op">)</span></span></code></pre></div>
+</div>
+<div class="cell">
+<pre><code><span><span class="co">#&gt;</span></span>
 <span><span class="co">#&gt; Overall QTT Curve:</span></span>
 <span><span class="co">#&gt;  Quantile     QTT Std. Error 95% CB Lower 95% CB Upper</span></span>
-<span><span class="co">#&gt;       0.1 -0.0270     0.1296      -0.5674       0.5133</span></span>
-<span><span class="co">#&gt;       0.2 -0.0852     0.0711      -0.3818       0.2115</span></span>
-<span><span class="co">#&gt;       0.3 -0.0250     0.0601      -0.2756       0.2257</span></span>
-<span><span class="co">#&gt;       0.4 -0.0680     0.0553      -0.2984       0.1625</span></span>
-<span><span class="co">#&gt;       0.5 -0.0965     0.0530      -0.3176       0.1246</span></span>
-<span><span class="co">#&gt;       0.6  0.0070     0.0385      -0.1536       0.1675</span></span>
-<span><span class="co">#&gt;       0.7  0.0409     0.0622      -0.2187       0.3004</span></span>
-<span><span class="co">#&gt;       0.8 -0.0201     0.0836      -0.3686       0.3284</span></span>
-<span><span class="co">#&gt;       0.9 -0.0832     0.0603      -0.3344       0.1680</span></span></code></pre></div>
+<span><span class="co">#&gt;       0.1 -0.0270     0.1625      -0.6175       0.5634</span></span>
+<span><span class="co">#&gt;       0.2 -0.0852     0.0833      -0.3879       0.2176</span></span>
+<span><span class="co">#&gt;       0.3 -0.0250     0.0523      -0.2149       0.1650</span></span>
+<span><span class="co">#&gt;       0.4 -0.0680     0.0612      -0.2905       0.1546</span></span>
+<span><span class="co">#&gt;       0.5 -0.0965     0.0545      -0.2944       0.1014</span></span>
+<span><span class="co">#&gt;       0.6  0.0070     0.0375      -0.1294       0.1433</span></span>
+<span><span class="co">#&gt;       0.7  0.0409     0.0567      -0.1652       0.2470</span></span>
+<span><span class="co">#&gt;       0.8 -0.0201     0.0581      -0.2312       0.1910</span></span>
+<span><span class="co">#&gt;       0.9 -0.0832     0.0632      -0.3130       0.1466</span></span></code></pre>
 </div>
 <hr></section><section class="level2"><h2 id="distributional-did-ddid">Distributional DiD — <code>ddid()</code>
 <a class="anchor" aria-label="anchor" href="#distributional-did-ddid"></a>
@@ -191,30 +198,32 @@
 <p><strong>Identifying assumptions:</strong> The first is <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="normal">Δ</mi><msub><mi>Y</mi><mi>t</mi></msub><mo stretchy="false" form="prefix">(</mo><mn>0</mn><mo stretchy="false" form="postfix">)</mo><mo>⟂</mo><mi>D</mi></mrow><annotation encoding="application/x-tex">\Delta Y_t(0) \perp D</annotation></semantics></math> — the same as in <code><a href="../reference/panel_qtt.html">panel_qtt()</a></code>. The copula assumption differs: rather than stability over time, <code><a href="../reference/ddid.html">ddid()</a></code> assumes the copula of <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false" form="prefix">(</mo><mi mathvariant="normal">Δ</mi><msub><mi>Y</mi><mi>t</mi></msub><mo stretchy="false" form="prefix">(</mo><mn>0</mn><mo stretchy="false" form="postfix">)</mo><mo>,</mo><msub><mi>Y</mi><mrow><mi>t</mi><mo>−</mo><mn>1</mn></mrow></msub><mo stretchy="false" form="prefix">(</mo><mn>0</mn><mo stretchy="false" form="postfix">)</mo><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">(\Delta Y_t(0), Y_{t-1}(0))</annotation></semantics></math> is the same for treated and untreated groups, <math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>C</mi><mrow><mi mathvariant="normal">Δ</mi><msub><mi>Y</mi><mi>t</mi></msub><mo stretchy="false" form="prefix">(</mo><mn>0</mn><mo stretchy="false" form="postfix">)</mo><mo>,</mo><mspace width="0.167em"></mspace><msub><mi>Y</mi><mrow><mi>t</mi><mo>−</mo><mn>1</mn></mrow></msub><mo stretchy="false" form="prefix">(</mo><mn>0</mn><mo stretchy="false" form="postfix">)</mo><mo stretchy="false" form="prefix">|</mo><mi>D</mi><mo>=</mo><mn>1</mn></mrow></msub><mo>=</mo><msub><mi>C</mi><mrow><mi mathvariant="normal">Δ</mi><msub><mi>Y</mi><mi>t</mi></msub><mo stretchy="false" form="prefix">(</mo><mn>0</mn><mo stretchy="false" form="postfix">)</mo><mo>,</mo><mspace width="0.167em"></mspace><msub><mi>Y</mi><mrow><mi>t</mi><mo>−</mo><mn>1</mn></mrow></msub><mo stretchy="false" form="prefix">(</mo><mn>0</mn><mo stretchy="false" form="postfix">)</mo><mo stretchy="false" form="prefix">|</mo><mi>D</mi><mo>=</mo><mn>0</mn></mrow></msub><mi>.</mi></mrow><annotation encoding="application/x-tex">C_{\Delta Y_t(0),\, Y_{t-1}(0)|D=1} = C_{\Delta Y_t(0),\, Y_{t-1}(0)|D=0}.</annotation></semantics></math></p>
 <p><strong>Intuition:</strong> For the untreated group, <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="normal">Δ</mi><msub><mi>Y</mi><mi>t</mi></msub><mo stretchy="false" form="prefix">(</mo><mn>0</mn><mo stretchy="false" form="postfix">)</mo><mo>=</mo><mi mathvariant="normal">Δ</mi><msub><mi>Y</mi><mi>t</mi></msub></mrow><annotation encoding="application/x-tex">\Delta Y_t(0) = \Delta Y_t</annotation></semantics></math> is observed, so the right-hand copula can be estimated directly. The assumption transfers it to the treated group. Combined with the identified marginals, this pins down the joint distribution of <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false" form="prefix">(</mo><mi mathvariant="normal">Δ</mi><msub><mi>Y</mi><mi>t</mi></msub><mo stretchy="false" form="prefix">(</mo><mn>0</mn><mo stretchy="false" form="postfix">)</mo><mo>,</mo><msub><mi>Y</mi><mrow><mi>t</mi><mo>−</mo><mn>1</mn></mrow></msub><mo stretchy="false" form="prefix">(</mo><mn>0</mn><mo stretchy="false" form="postfix">)</mo><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">(\Delta Y_t(0), Y_{t-1}(0))</annotation></semantics></math> for treated units and identifies the QTT — in exactly the same way as <code><a href="../reference/panel_qtt.html">panel_qtt()</a></code>. The key contrast is the source of the copula: <code><a href="../reference/ddid.html">ddid()</a></code> borrows it from the untreated group at the same point in time, while <code><a href="../reference/panel_qtt.html">panel_qtt()</a></code> borrows it from the treated group’s own pre-treatment history.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb6"><pre class="downlit sourceCode r">
+<div class="sourceCode cell-code" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">res_ddid</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/ddid.html">ddid</a></span><span class="op">(</span></span>
 <span>  yname  <span class="op">=</span> <span class="st">"lemp"</span>, gname <span class="op">=</span> <span class="st">"first.treat"</span>, tname <span class="op">=</span> <span class="st">"year"</span>,</span>
 <span>  idname <span class="op">=</span> <span class="st">"countyreal"</span>, data <span class="op">=</span> <span class="va">mpdta</span>,</span>
-<span>  gt_type <span class="op">=</span> <span class="st">"att"</span>, biters <span class="op">=</span> <span class="fl">50</span></span>
+<span>  gt_type <span class="op">=</span> <span class="st">"att"</span>, biters <span class="op">=</span> <span class="fl">100</span></span>
 <span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">res_ddid</span><span class="op">)</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Overall ATT:  </span></span>
-<span><span class="co">#&gt;      ATT    Std. Error     [ 95%  Conf. Int.]  </span></span>
-<span><span class="co">#&gt;  -0.0453        0.0139    -0.0719     -0.0187 *</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; </span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">res_ddid</span><span class="op">)</span></span></code></pre></div>
+</div>
+<div class="cell">
+<pre><code><span><span class="co">#&gt;</span></span>
+<span><span class="co">#&gt; Overall ATT:</span></span>
+<span><span class="co">#&gt;      ATT    Std. Error     [ 95%  Conf. Int.]</span></span>
+<span><span class="co">#&gt;  -0.0453        0.0143    -0.0785      -0.012 *</span></span>
+<span><span class="co">#&gt;</span></span>
+<span><span class="co">#&gt;</span></span>
 <span><span class="co">#&gt; Dynamic Effects:</span></span>
-<span><span class="co">#&gt;  Event Time Estimate Std. Error [95% Simult.  Conf. Band]  </span></span>
-<span><span class="co">#&gt;          -3   0.0134     0.0144       -0.0148      0.0416  </span></span>
-<span><span class="co">#&gt;          -2  -0.0146     0.0113       -0.0367      0.0075  </span></span>
-<span><span class="co">#&gt;          -1  -0.0403     0.0157       -0.0711     -0.0096 *</span></span>
-<span><span class="co">#&gt;           0  -0.0324     0.0128       -0.0575     -0.0072 *</span></span>
-<span><span class="co">#&gt;           1  -0.0637     0.0204       -0.1038     -0.0237 *</span></span>
-<span><span class="co">#&gt;           2  -0.1377     0.0415       -0.2192     -0.0563 *</span></span>
-<span><span class="co">#&gt;           3  -0.1087     0.0393       -0.1856     -0.0317 *</span></span>
+<span><span class="co">#&gt;  Event Time Estimate Std. Error [95% Simult.  Conf. Band]</span></span>
+<span><span class="co">#&gt;          -3   0.0134     0.0159       -0.0178      0.0446</span></span>
+<span><span class="co">#&gt;          -2  -0.0146     0.0151       -0.0442      0.0150</span></span>
+<span><span class="co">#&gt;          -1  -0.0403     0.0154       -0.0704     -0.0102 *</span></span>
+<span><span class="co">#&gt;           0  -0.0324     0.0132       -0.0583     -0.0065 *</span></span>
+<span><span class="co">#&gt;           1  -0.0637     0.0182       -0.0994     -0.0281 *</span></span>
+<span><span class="co">#&gt;           2  -0.1377     0.0352       -0.2068     -0.0686 *</span></span>
+<span><span class="co">#&gt;           3  -0.1087     0.0367       -0.1806     -0.0368 *</span></span>
 <span><span class="co">#&gt; ---</span></span>
-<span><span class="co">#&gt; Signif. codes: `*' confidence band does not cover 0</span></span></code></pre></div>
+<span><span class="co">#&gt; Signif. codes: `*' confidence band does not cover 0</span></span></code></pre>
 </div>
 <hr></section><section class="level2"><h2 id="mean-difference-in-differences-mdid">Mean Difference-in-Differences — <code>mdid()</code>
 <a class="anchor" aria-label="anchor" href="#mean-difference-in-differences-mdid"></a>
@@ -223,30 +232,32 @@
 <p><strong>Identifying assumption:</strong> The counterfactual quantile for the treated group in the post-period is the pre-period quantile shifted by the mean change in outcomes for the untreated group: <math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>Q</mi><mrow><msub><mi>Y</mi><mi>t</mi></msub><mo stretchy="false" form="prefix">(</mo><mn>0</mn><mo stretchy="false" form="postfix">)</mo><mo stretchy="false" form="prefix">|</mo><mi>D</mi><mo>=</mo><mn>1</mn></mrow></msub><mo stretchy="false" form="prefix">(</mo><mi>τ</mi><mo stretchy="false" form="postfix">)</mo><mo>=</mo><msub><mi>Q</mi><mrow><msub><mi>Y</mi><mrow><mi>t</mi><mo>−</mo><mn>1</mn></mrow></msub><mo stretchy="false" form="prefix">|</mo><mi>D</mi><mo>=</mo><mn>1</mn></mrow></msub><mo stretchy="false" form="prefix">(</mo><mi>τ</mi><mo stretchy="false" form="postfix">)</mo><mo>+</mo><mi>E</mi><mo stretchy="false" form="prefix">[</mo><msub><mi>Y</mi><mi>t</mi></msub><mo stretchy="false" form="prefix">|</mo><mi>D</mi><mo>=</mo><mn>0</mn><mo stretchy="false" form="postfix">]</mo><mo>−</mo><mi>E</mi><mo stretchy="false" form="prefix">[</mo><msub><mi>Y</mi><mrow><mi>t</mi><mo>−</mo><mn>1</mn></mrow></msub><mo stretchy="false" form="prefix">|</mo><mi>D</mi><mo>=</mo><mn>0</mn><mo stretchy="false" form="postfix">]</mo><mi>.</mi></mrow><annotation encoding="application/x-tex">Q_{Y_t(0)|D=1}(\tau) = Q_{Y_{t-1}|D=1}(\tau) + E[Y_t|D=0] - E[Y_{t-1}|D=0].</annotation></semantics></math></p>
 <p><strong>Intuition:</strong> The assumption says the shape of the treated group’s outcome distribution is unchanged in the counterfactual — the entire distribution simply shifts by the amount the untreated group’s mean changed. This implies mean parallel trends (so the ATT is identified), but is stronger: it additionally requires that only the location of the distribution shifts, not its shape. Works with panel or repeated cross sections.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb7"><pre class="downlit sourceCode r">
+<div class="sourceCode cell-code" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">res_mdid</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/mdid.html">mdid</a></span><span class="op">(</span></span>
 <span>  yname  <span class="op">=</span> <span class="st">"lemp"</span>, gname <span class="op">=</span> <span class="st">"first.treat"</span>, tname <span class="op">=</span> <span class="st">"year"</span>,</span>
 <span>  idname <span class="op">=</span> <span class="st">"countyreal"</span>, data <span class="op">=</span> <span class="va">mpdta</span>,</span>
-<span>  gt_type <span class="op">=</span> <span class="st">"att"</span>, biters <span class="op">=</span> <span class="fl">50</span></span>
+<span>  gt_type <span class="op">=</span> <span class="st">"att"</span>, biters <span class="op">=</span> <span class="fl">100</span></span>
 <span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">res_mdid</span><span class="op">)</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Overall ATT:  </span></span>
-<span><span class="co">#&gt;      ATT    Std. Error     [ 95%  Conf. Int.]  </span></span>
-<span><span class="co">#&gt;  -0.0305        0.0109    -0.0565     -0.0044 *</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; </span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">res_mdid</span><span class="op">)</span></span></code></pre></div>
+</div>
+<div class="cell">
+<pre><code><span><span class="co">#&gt;</span></span>
+<span><span class="co">#&gt; Overall ATT:</span></span>
+<span><span class="co">#&gt;      ATT    Std. Error     [ 95%  Conf. Int.]</span></span>
+<span><span class="co">#&gt;  -0.0305        0.0114    -0.0496     -0.0113 *</span></span>
+<span><span class="co">#&gt;</span></span>
+<span><span class="co">#&gt;</span></span>
 <span><span class="co">#&gt; Dynamic Effects:</span></span>
-<span><span class="co">#&gt;  Event Time Estimate Std. Error [95% Simult.  Conf. Band]  </span></span>
-<span><span class="co">#&gt;          -3   0.0298     0.0148        0.0007      0.0588 *</span></span>
-<span><span class="co">#&gt;          -2  -0.0024     0.0116       -0.0252      0.0203  </span></span>
-<span><span class="co">#&gt;          -1  -0.0243     0.0150       -0.0537      0.0051  </span></span>
-<span><span class="co">#&gt;           0  -0.0189     0.0100       -0.0386      0.0007  </span></span>
-<span><span class="co">#&gt;           1  -0.0536     0.0159       -0.0847     -0.0225 *</span></span>
-<span><span class="co">#&gt;           2  -0.1363     0.0373       -0.2093     -0.0632 *</span></span>
-<span><span class="co">#&gt;           3  -0.1008     0.0315       -0.1625     -0.0391 *</span></span>
+<span><span class="co">#&gt;  Event Time Estimate Std. Error [95% Simult.  Conf. Band]</span></span>
+<span><span class="co">#&gt;          -3   0.0298     0.0127        0.0048      0.0547 *</span></span>
+<span><span class="co">#&gt;          -2  -0.0024     0.0158       -0.0334      0.0285</span></span>
+<span><span class="co">#&gt;          -1  -0.0243     0.0131       -0.0500      0.0014</span></span>
+<span><span class="co">#&gt;           0  -0.0189     0.0106       -0.0397      0.0018</span></span>
+<span><span class="co">#&gt;           1  -0.0536     0.0173       -0.0875     -0.0197 *</span></span>
+<span><span class="co">#&gt;           2  -0.1363     0.0393       -0.2133     -0.0593 *</span></span>
+<span><span class="co">#&gt;           3  -0.1008     0.0378       -0.1748     -0.0268 *</span></span>
 <span><span class="co">#&gt; ---</span></span>
-<span><span class="co">#&gt; Signif. codes: `*' confidence band does not cover 0</span></span></code></pre></div>
+<span><span class="co">#&gt; Signif. codes: `*' confidence band does not cover 0</span></span></code></pre>
 </div>
 <hr></section><section class="level2"><h2 id="lagged-outcome-unconfoundedness-lou_qtt">Lagged-Outcome Unconfoundedness — <code>lou_qtt()</code>
 <a class="anchor" aria-label="anchor" href="#lagged-outcome-unconfoundedness-lou_qtt"></a>
@@ -254,30 +265,32 @@
 <p><strong>Identification assumption:</strong> Unconfoundedness conditional on the lagged outcome — treatment is as good as randomly assigned after conditioning on the pre-treatment value of the outcome.</p>
 <p><strong>When to use:</strong> When selection into treatment may depend on lagged outcomes but not on unobserved heterogeneity — i.e., once you condition on the pre-treatment outcome, treatment assignment is as good as random. Requires panel data.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb8"><pre class="downlit sourceCode r">
+<div class="sourceCode cell-code" id="cb13"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">res_lou</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/lou_qtt.html">lou_qtt</a></span><span class="op">(</span></span>
 <span>  yname  <span class="op">=</span> <span class="st">"lemp"</span>, gname <span class="op">=</span> <span class="st">"first.treat"</span>, tname <span class="op">=</span> <span class="st">"year"</span>,</span>
 <span>  idname <span class="op">=</span> <span class="st">"countyreal"</span>, data <span class="op">=</span> <span class="va">mpdta</span>,</span>
-<span>  gt_type <span class="op">=</span> <span class="st">"att"</span>, biters <span class="op">=</span> <span class="fl">50</span></span>
+<span>  gt_type <span class="op">=</span> <span class="st">"att"</span>, biters <span class="op">=</span> <span class="fl">100</span></span>
 <span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">res_lou</span><span class="op">)</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Overall ATT:  </span></span>
-<span><span class="co">#&gt;      ATT    Std. Error     [ 95%  Conf. Int.] </span></span>
-<span><span class="co">#&gt;  -0.0384        0.0221    -0.0831      0.0063 </span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; </span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">res_lou</span><span class="op">)</span></span></code></pre></div>
+</div>
+<div class="cell">
+<pre><code><span><span class="co">#&gt;</span></span>
+<span><span class="co">#&gt; Overall ATT:</span></span>
+<span><span class="co">#&gt;      ATT    Std. Error     [ 95%  Conf. Int.]</span></span>
+<span><span class="co">#&gt;  -0.0384        0.0166    -0.0725     -0.0043 *</span></span>
+<span><span class="co">#&gt;</span></span>
+<span><span class="co">#&gt;</span></span>
 <span><span class="co">#&gt; Dynamic Effects:</span></span>
-<span><span class="co">#&gt;  Event Time Estimate Std. Error [95% Simult.  Conf. Band]  </span></span>
-<span><span class="co">#&gt;          -3   0.0294     0.0135        0.0031      0.0558 *</span></span>
-<span><span class="co">#&gt;          -2  -0.0124     0.0149       -0.0417      0.0168  </span></span>
-<span><span class="co">#&gt;          -1  -0.0310     0.0189       -0.0680      0.0060  </span></span>
-<span><span class="co">#&gt;           0  -0.0243     0.0206       -0.0646      0.0160  </span></span>
-<span><span class="co">#&gt;           1  -0.0869     0.0356       -0.1568     -0.0171 *</span></span>
-<span><span class="co">#&gt;           2  -0.1394     0.0328       -0.2036     -0.0752 *</span></span>
-<span><span class="co">#&gt;           3  -0.1093     0.0386       -0.1850     -0.0336 *</span></span>
+<span><span class="co">#&gt;  Event Time Estimate Std. Error [95% Simult.  Conf. Band]</span></span>
+<span><span class="co">#&gt;          -3   0.0294     0.0144        0.0012      0.0577 *</span></span>
+<span><span class="co">#&gt;          -2  -0.0124     0.0161       -0.0441      0.0192</span></span>
+<span><span class="co">#&gt;          -1  -0.0310     0.0199       -0.0701      0.0081</span></span>
+<span><span class="co">#&gt;           0  -0.0243     0.0157       -0.0551      0.0065</span></span>
+<span><span class="co">#&gt;           1  -0.0869     0.0306       -0.1470     -0.0269 *</span></span>
+<span><span class="co">#&gt;           2  -0.1394     0.0356       -0.2092     -0.0696 *</span></span>
+<span><span class="co">#&gt;           3  -0.1093     0.0378       -0.1834     -0.0352 *</span></span>
 <span><span class="co">#&gt; ---</span></span>
-<span><span class="co">#&gt; Signif. codes: `*' confidence band does not cover 0</span></span></code></pre></div>
+<span><span class="co">#&gt; Signif. codes: `*' confidence band does not cover 0</span></span></code></pre>
 </div>
 <hr></section><section class="level2"><h2 id="summary">Summary<a class="anchor" aria-label="anchor" href="#summary"></a>
 </h2>

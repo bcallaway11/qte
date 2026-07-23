@@ -46,6 +46,58 @@ library(qte)
 library(ggplot2)
 set.seed(42)
 data(lalonde)
+xf <- ~ age + I(age^2) + education + black + hispanic + married + nodegree
+```
+
+```{r}
+#| label: compute-results
+#| include: false
+# Results are precomputed and cached so CRAN's vignette rebuild doesn't have
+# to re-run the bootstrap on every check. Delete precomputed/intro-results.rds
+# and re-render to regenerate after a code change (see CLAUDE.md).
+cache_file <- "precomputed/intro-results.rds"
+use_cache <- file.exists(cache_file)
+
+if (use_cache) {
+  cached   <- readRDS(cache_file)
+  res_exp  <- cached$res_exp
+  res_psid <- cached$res_psid
+  res_qtt  <- cached$res_qtt
+} else {
+  res_exp <- unc_qte(
+    yname  = "re78",
+    dname  = "treat",
+    data   = lalonde.exp,
+    target = "qte",
+    probs  = seq(0.1, 0.9, 0.1),
+    biters = 100
+  )
+  res_psid <- unc_qte(
+    yname      = "re78",
+    dname      = "treat",
+    data       = lalonde.psid,
+    xformla    = xf,
+    est_method = "aipw",
+    target     = "qte",
+    probs      = seq(0.1, 0.9, 0.1),
+    biters     = 100
+  )
+  res_qtt <- unc_qte(
+    yname      = "re78",
+    dname      = "treat",
+    data       = lalonde.psid,
+    xformla    = xf,
+    est_method = "aipw",
+    target     = "qtt",
+    probs      = seq(0.1, 0.9, 0.1),
+    biters     = 100
+  )
+  # pscore.reg (fitted glm) carries a full copy of the training data and is
+  # never read by summary()/autoplot(); dropping it keeps the cache small.
+  save_psid <- res_psid; save_psid$pscore.reg <- NULL
+  save_qtt  <- res_qtt;  save_qtt$pscore.reg  <- NULL
+  saveRDS(list(res_exp = res_exp, res_psid = save_psid, res_qtt = save_qtt), cache_file)
+}
 ```
 
 ## Random assignment
@@ -58,15 +110,21 @@ treatment was randomly assigned.
 
 ```{r}
 #| label: random-qte
-#| cache: true
+#| eval: false
 res_exp <- unc_qte(
   yname  = "re78",
   dname  = "treat",
   data   = lalonde.exp,
   target = "qte",
   probs  = seq(0.1, 0.9, 0.1),
-  biters = 50
+  biters = 100
 )
+summary(res_exp)
+```
+
+```{r}
+#| label: random-qte-output
+#| echo: false
 summary(res_exp)
 ```
 
@@ -95,7 +153,7 @@ a comparison group from the PSID.
 
 ```{r}
 #| label: obs-qte
-#| cache: true
+#| eval: false
 xf <- ~ age + I(age^2) + education + black + hispanic + married + nodegree
 
 res_psid <- unc_qte(
@@ -108,6 +166,12 @@ res_psid <- unc_qte(
   probs      = seq(0.1, 0.9, 0.1),
   biters     = 100
 )
+summary(res_psid)
+```
+
+```{r}
+#| label: obs-qte-output
+#| echo: false
 summary(res_psid)
 ```
 
@@ -125,7 +189,7 @@ received treatment.
 
 ```{r}
 #| label: qtt
-#| cache: true
+#| eval: false
 res_qtt <- unc_qte(
   yname      = "re78",
   dname      = "treat",
@@ -136,6 +200,12 @@ res_qtt <- unc_qte(
   probs      = seq(0.1, 0.9, 0.1),
   biters     = 100
 )
+summary(res_qtt)
+```
+
+```{r}
+#| label: qtt-output
+#| echo: false
 summary(res_qtt)
 ```
 

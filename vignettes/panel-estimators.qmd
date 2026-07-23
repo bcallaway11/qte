@@ -31,8 +31,66 @@ call. For a full applied workflow with aggregations and event-study plots, see
 #| label: setup
 #| message: false
 library(qte)
+library(ptetools)
 set.seed(42)
 data(mpdta, package = "did")
+```
+
+```{r}
+#| label: compute-results
+#| include: false
+# Results are precomputed and cached so CRAN's vignette rebuild doesn't have
+# to re-run the bootstrap on every check. Delete
+# precomputed/panel-estimators-results.rds and re-render to regenerate after
+# a code change (see CLAUDE.md).
+cache_file <- "precomputed/panel-estimators-results.rds"
+use_cache <- file.exists(cache_file)
+
+if (use_cache) {
+  cached   <- readRDS(cache_file)
+  res_cic  <- cached$res_cic
+  res_qdid <- cached$res_qdid
+  res_pqtt <- cached$res_pqtt
+  res_ddid <- cached$res_ddid
+  res_mdid <- cached$res_mdid
+  res_lou  <- cached$res_lou
+} else {
+  res_cic <- cic(
+    yname  = "lemp", gname = "first.treat", tname = "year",
+    idname = "countyreal", data = mpdta,
+    gt_type = "att", biters = 100
+  )
+  res_qdid <- qdid(
+    yname  = "lemp", gname = "first.treat", tname = "year",
+    idname = "countyreal", data = mpdta,
+    gt_type = "att", biters = 100
+  )
+  res_pqtt <- panel_qtt(
+    yname  = "lemp", gname = "first.treat", tname = "year",
+    idname = "countyreal", data = mpdta,
+    gt_type = "qtt", probs = seq(0.1, 0.9, 0.1), biters = 100
+  )
+  res_ddid <- ddid(
+    yname  = "lemp", gname = "first.treat", tname = "year",
+    idname = "countyreal", data = mpdta,
+    gt_type = "att", biters = 100
+  )
+  res_mdid <- mdid(
+    yname  = "lemp", gname = "first.treat", tname = "year",
+    idname = "countyreal", data = mpdta,
+    gt_type = "att", biters = 100
+  )
+  res_lou <- lou_qtt(
+    yname  = "lemp", gname = "first.treat", tname = "year",
+    idname = "countyreal", data = mpdta,
+    gt_type = "att", biters = 100
+  )
+  saveRDS(
+    list(res_cic = res_cic, res_qdid = res_qdid, res_pqtt = res_pqtt,
+      res_ddid = res_ddid, res_mdid = res_mdid, res_lou = res_lou),
+    cache_file
+  )
+}
 ```
 
 We use `mpdta` throughout: a balanced panel of 500 US counties observed
@@ -73,12 +131,18 @@ $$Q_{Y_t(0)|D=1}(\tau) = Q_{Y_t|D=0}\!\left(F_{Y_{t-1}|D=0}\!\left(Q_{Y_{t-1}|D=
 
 ```{r}
 #| label: cic-att
-#| cache: true
+#| eval: false
 res_cic <- cic(
   yname  = "lemp", gname = "first.treat", tname = "year",
   idname = "countyreal", data = mpdta,
-  gt_type = "att", biters = 50
+  gt_type = "att", biters = 100
 )
+summary(res_cic)
+```
+
+```{r}
+#| label: cic-att-output
+#| echo: false
 summary(res_cic)
 ```
 
@@ -98,12 +162,18 @@ $$Q_{Y_t(0)|D=1}(\tau) = Q_{Y_{t-1}|D=1}(\tau) + Q_{Y_t|D=0}(\tau) - Q_{Y_{t-1}|
 
 ```{r}
 #| label: qdid-att
-#| cache: true
+#| eval: false
 res_qdid <- qdid(
   yname  = "lemp", gname = "first.treat", tname = "year",
   idname = "countyreal", data = mpdta,
-  gt_type = "att", biters = 50
+  gt_type = "att", biters = 100
 )
+summary(res_qdid)
+```
+
+```{r}
+#| label: qdid-att-output
+#| echo: false
 summary(res_qdid)
 ```
 
@@ -122,12 +192,18 @@ $$C_{\Delta Y_t(0),\, Y_{t-1}(0)|D=1} = C_{\Delta Y_{t-1}(0),\, Y_{t-2}(0)|D=1}.
 
 ```{r}
 #| label: panel-qtt
-#| cache: true
+#| eval: false
 res_pqtt <- panel_qtt(
   yname  = "lemp", gname = "first.treat", tname = "year",
   idname = "countyreal", data = mpdta,
-  gt_type = "qtt", probs = seq(0.1, 0.9, 0.1), biters = 50
+  gt_type = "qtt", probs = seq(0.1, 0.9, 0.1), biters = 100
 )
+summary(res_pqtt)
+```
+
+```{r}
+#| label: panel-qtt-output
+#| echo: false
 summary(res_pqtt)
 ```
 
@@ -144,12 +220,18 @@ $$C_{\Delta Y_t(0),\, Y_{t-1}(0)|D=1} = C_{\Delta Y_t(0),\, Y_{t-1}(0)|D=0}.$$
 
 ```{r}
 #| label: ddid-att
-#| cache: true
+#| eval: false
 res_ddid <- ddid(
   yname  = "lemp", gname = "first.treat", tname = "year",
   idname = "countyreal", data = mpdta,
-  gt_type = "att", biters = 50
+  gt_type = "att", biters = 100
 )
+summary(res_ddid)
+```
+
+```{r}
+#| label: ddid-att-output
+#| echo: false
 summary(res_ddid)
 ```
 
@@ -166,12 +248,18 @@ $$Q_{Y_t(0)|D=1}(\tau) = Q_{Y_{t-1}|D=1}(\tau) + E[Y_t|D=0] - E[Y_{t-1}|D=0].$$
 
 ```{r}
 #| label: mdid-att
-#| cache: true
+#| eval: false
 res_mdid <- mdid(
   yname  = "lemp", gname = "first.treat", tname = "year",
   idname = "countyreal", data = mpdta,
-  gt_type = "att", biters = 50
+  gt_type = "att", biters = 100
 )
+summary(res_mdid)
+```
+
+```{r}
+#| label: mdid-att-output
+#| echo: false
 summary(res_mdid)
 ```
 
@@ -190,12 +278,18 @@ panel data.
 
 ```{r}
 #| label: lou-att
-#| cache: true
+#| eval: false
 res_lou <- lou_qtt(
   yname  = "lemp", gname = "first.treat", tname = "year",
   idname = "countyreal", data = mpdta,
-  gt_type = "att", biters = 50
+  gt_type = "att", biters = 100
 )
+summary(res_lou)
+```
+
+```{r}
+#| label: lou-att-output
+#| echo: false
 summary(res_lou)
 ```
 

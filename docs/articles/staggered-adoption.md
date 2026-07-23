@@ -29,6 +29,7 @@ behind each estimator, see
 ``` r
 library(qte)
 library(ggplot2)
+library(ptetools)
 set.seed(42)
 data(mpdta, package = "did")
 ```
@@ -64,7 +65,7 @@ res_qtt <- cic(
   tname   = "year",
   idname  = "countyreal",
   data    = mpdta,
-  biters  = 200,
+  biters  = 100,
   gt_type = "qtt",
   probs   = seq(0.1, 0.9, by = 0.1)
 )
@@ -80,15 +81,15 @@ summary(res_qtt)
 #> 
 #> Overall QTT Curve:
 #>  Quantile     QTT Std. Error 95% CB Lower 95% CB Upper
-#>       0.1  0.0286     0.1321      -0.4807       0.5378
-#>       0.2 -0.0469     0.0826      -0.3652       0.2714
-#>       0.3 -0.0518     0.0551      -0.2642       0.1605
-#>       0.4  0.0127     0.0505      -0.1817       0.2072
-#>       0.5 -0.0455     0.0504      -0.2395       0.1486
-#>       0.6 -0.0445     0.0452      -0.2186       0.1295
-#>       0.7  0.0046     0.0492      -0.1851       0.1943
-#>       0.8 -0.0187     0.0528      -0.2222       0.1847
-#>       0.9  0.0166     0.0922      -0.3386       0.3718
+#>       0.1  0.0286     0.1407      -0.4491       0.5063
+#>       0.2 -0.0469     0.0725      -0.2929       0.1991
+#>       0.3 -0.0518     0.0647      -0.2717       0.1680
+#>       0.4  0.0127     0.0505      -0.1588       0.1842
+#>       0.5 -0.0455     0.0533      -0.2264       0.1354
+#>       0.6 -0.0445     0.0455      -0.1991       0.1101
+#>       0.7  0.0046     0.0458      -0.1509       0.1601
+#>       0.8 -0.0187     0.0622      -0.2300       0.1926
+#>       0.9  0.0166     0.0758      -0.2407       0.2739
 ```
 
 [`autoplot()`](https://ggplot2.tidyverse.org/reference/autoplot.html)
@@ -144,28 +145,29 @@ res_att <- cic(
   tname   = "year",
   idname  = "countyreal",
   data    = mpdta,
-  biters  = 50,
+  biters  = 100,
   gt_type = "att"
 )
 summary(res_att)
-#> 
-#> Overall ATT:  
-#>      ATT    Std. Error     [ 95%  Conf. Int.] 
-#>  -0.0197        0.0159    -0.0566      0.0173 
-#> 
-#> 
-#> Dynamic Effects:
-#>  Event Time Estimate Std. Error [95% Simult.  Conf. Band]  
-#>          -3   0.0508     0.0225        0.0068      0.0949 *
-#>          -2   0.0158     0.0130       -0.0097      0.0414  
-#>          -1  -0.0128     0.0146       -0.0414      0.0158  
-#>           0  -0.0081     0.0148       -0.0371      0.0210  
-#>           1  -0.0364     0.0222       -0.0800      0.0072  
-#>           2  -0.1226     0.0386       -0.1982     -0.0470 *
-#>           3  -0.0930     0.0426       -0.1765     -0.0094 *
-#> ---
-#> Signif. codes: `*' confidence band does not cover 0
 ```
+
+    #>
+    #> Overall ATT:
+    #>      ATT    Std. Error     [ 95%  Conf. Int.]
+    #>  -0.0197        0.0156    -0.0545      0.0152
+    #>
+    #>
+    #> Dynamic Effects:
+    #>  Event Time Estimate Std. Error [95% Simult.  Conf. Band]
+    #>          -3   0.0508     0.0229        0.0060      0.0957 *
+    #>          -2   0.0158     0.0154       -0.0144      0.0461
+    #>          -1  -0.0128     0.0168       -0.0458      0.0201
+    #>           0  -0.0081     0.0148       -0.0370      0.0209
+    #>           1  -0.0364     0.0203       -0.0761      0.0034
+    #>           2  -0.1226     0.0445       -0.2098     -0.0353 *
+    #>           3  -0.0930     0.0530       -0.1968      0.0109
+    #> ---
+    #> Signif. codes: `*' confidence band does not cover 0
 
 ``` r
 autoplot(res_att, type = "dynamic")
@@ -192,37 +194,37 @@ estimators are listed in the same order as in
 res_cic <- cic(
   yname = "lemp", gname = "first.treat", tname = "year",
   idname = "countyreal", data = mpdta,
-  gt_type = "qtt", probs = 0.5, biters = 50
+  gt_type = "qtt", probs = 0.5, biters = 100
 )
 
 res_qdid <- qdid(
   yname = "lemp", gname = "first.treat", tname = "year",
   idname = "countyreal", data = mpdta,
-  gt_type = "qtt", probs = 0.5, biters = 50
+  gt_type = "qtt", probs = 0.5, biters = 100
 )
 
 res_pqtt <- panel_qtt(
   yname = "lemp", gname = "first.treat", tname = "year",
   idname = "countyreal", data = mpdta,
-  gt_type = "qtt", probs = 0.5, biters = 50
+  gt_type = "qtt", probs = 0.5, biters = 100
 )
 
 res_ddid <- ddid(
   yname = "lemp", gname = "first.treat", tname = "year",
   idname = "countyreal", data = mpdta,
-  gt_type = "qtt", probs = 0.5, biters = 50
+  gt_type = "qtt", probs = 0.5, biters = 100
 )
 
 res_mdid <- mdid(
   yname = "lemp", gname = "first.treat", tname = "year",
   idname = "countyreal", data = mpdta,
-  gt_type = "qtt", probs = 0.5, biters = 50
+  gt_type = "qtt", probs = 0.5, biters = 100
 )
 
 res_lou <- lou_qtt(
   yname = "lemp", gname = "first.treat", tname = "year",
   idname = "countyreal", data = mpdta,
-  gt_type = "qtt", probs = 0.5, biters = 50
+  gt_type = "qtt", probs = 0.5, biters = 100
 )
 ```
 
@@ -241,12 +243,12 @@ do.call(rbind, list(
   median_qtt(res_lou,  "lou_qtt()")
 ))
 #>     estimator     qtt     se
-#> 1       cic() -0.0455 0.0439
-#> 2      qdid() -0.0614 0.0512
-#> 3 panel_qtt() -0.0965 0.0578
-#> 4      ddid() -0.0614 0.0528
-#> 5      mdid() -0.0384 0.0427
-#> 6   lou_qtt() -0.0102 0.1159
+#> 1       cic() -0.0455 0.0505
+#> 2      qdid() -0.0561 0.0507
+#> 3 panel_qtt() -0.0965 0.0515
+#> 4      ddid() -0.0614 0.0478
+#> 5      mdid() -0.0384 0.0469
+#> 6   lou_qtt() -0.0102 0.1214
 ```
 
 Estimates will generally differ because each estimator relies on a
@@ -277,7 +279,7 @@ res_rcs <- cic(
   tname  = "year",
   data   = mpdta,   # no idname
   panel  = FALSE,
-  biters = 50
+  biters = 100
 )
 ```
 

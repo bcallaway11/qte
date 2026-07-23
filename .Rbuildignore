@@ -20,6 +20,10 @@
 ^README_cache$
 ^pkgdown$
 ^vignettes/\.quarto$
+^vignettes/.*_cache$
+^vignettes/.*_files$
+^vignettes/.*\.html$
+^vignettes/.*\.rmarkdown$
 ^\.revdeplite$
 ^CITATION\.cff$
 ^\.github$

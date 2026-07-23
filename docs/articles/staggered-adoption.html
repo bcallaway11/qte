@@ -57,7 +57,7 @@
       <img src="../logo.png" class="logo" alt=""><h1>Staggered Treatment Adoption with the qte Package</h1>
 
       <p class="author">Brantly Callaway</p>
-      <p class="date">2026-07-21</p>
+      <p class="date">2026-07-22</p>
 
       <small class="dont-index">Source: <a href="https://github.com/bcallaway11/qte/blob/HEAD/vignettes/staggered-adoption.qmd" class="external-link"><code>vignettes/staggered-adoption.qmd</code></a></small>
       <div class="d-none name"><code></code></div>
@@ -78,6 +78,7 @@
 <div class="sourceCode cell-code" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://bcallaway11.github.io/qte/">qte</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://ggplot2.tidyverse.org" class="external-link">ggplot2</a></span><span class="op">)</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/bcallaway11/ptetools" class="external-link">ptetools</a></span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">42</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="va">mpdta</span>, package <span class="op">=</span> <span class="st">"did"</span><span class="op">)</span></span></code></pre></div>
 </div>
@@ -100,7 +101,7 @@
 <span>  tname   <span class="op">=</span> <span class="st">"year"</span>,</span>
 <span>  idname  <span class="op">=</span> <span class="st">"countyreal"</span>,</span>
 <span>  data    <span class="op">=</span> <span class="va">mpdta</span>,</span>
-<span>  biters  <span class="op">=</span> <span class="fl">200</span>,</span>
+<span>  biters  <span class="op">=</span> <span class="fl">100</span>,</span>
 <span>  gt_type <span class="op">=</span> <span class="st">"qtt"</span>,</span>
 <span>  probs   <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="fl">0.1</span>, <span class="fl">0.9</span>, by <span class="op">=</span> <span class="fl">0.1</span><span class="op">)</span></span>
 <span><span class="op">)</span></span></code></pre></div>
@@ -114,15 +115,15 @@
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Overall QTT Curve:</span></span>
 <span><span class="co">#&gt;  Quantile     QTT Std. Error 95% CB Lower 95% CB Upper</span></span>
-<span><span class="co">#&gt;       0.1  0.0286     0.1321      -0.4807       0.5378</span></span>
-<span><span class="co">#&gt;       0.2 -0.0469     0.0826      -0.3652       0.2714</span></span>
-<span><span class="co">#&gt;       0.3 -0.0518     0.0551      -0.2642       0.1605</span></span>
-<span><span class="co">#&gt;       0.4  0.0127     0.0505      -0.1817       0.2072</span></span>
-<span><span class="co">#&gt;       0.5 -0.0455     0.0504      -0.2395       0.1486</span></span>
-<span><span class="co">#&gt;       0.6 -0.0445     0.0452      -0.2186       0.1295</span></span>
-<span><span class="co">#&gt;       0.7  0.0046     0.0492      -0.1851       0.1943</span></span>
-<span><span class="co">#&gt;       0.8 -0.0187     0.0528      -0.2222       0.1847</span></span>
-<span><span class="co">#&gt;       0.9  0.0166     0.0922      -0.3386       0.3718</span></span></code></pre></div>
+<span><span class="co">#&gt;       0.1  0.0286     0.1407      -0.4491       0.5063</span></span>
+<span><span class="co">#&gt;       0.2 -0.0469     0.0725      -0.2929       0.1991</span></span>
+<span><span class="co">#&gt;       0.3 -0.0518     0.0647      -0.2717       0.1680</span></span>
+<span><span class="co">#&gt;       0.4  0.0127     0.0505      -0.1588       0.1842</span></span>
+<span><span class="co">#&gt;       0.5 -0.0455     0.0533      -0.2264       0.1354</span></span>
+<span><span class="co">#&gt;       0.6 -0.0445     0.0455      -0.1991       0.1101</span></span>
+<span><span class="co">#&gt;       0.7  0.0046     0.0458      -0.1509       0.1601</span></span>
+<span><span class="co">#&gt;       0.8 -0.0187     0.0622      -0.2300       0.1926</span></span>
+<span><span class="co">#&gt;       0.9  0.0166     0.0758      -0.2407       0.2739</span></span></code></pre></div>
 </div>
 <p><code><a href="https://ggplot2.tidyverse.org/reference/autoplot.html" class="external-link">autoplot()</a></code> plots the overall curve with uniform confidence bands:</p>
 <div class="cell">
@@ -171,30 +172,32 @@
 <span>  tname   <span class="op">=</span> <span class="st">"year"</span>,</span>
 <span>  idname  <span class="op">=</span> <span class="st">"countyreal"</span>,</span>
 <span>  data    <span class="op">=</span> <span class="va">mpdta</span>,</span>
-<span>  biters  <span class="op">=</span> <span class="fl">50</span>,</span>
+<span>  biters  <span class="op">=</span> <span class="fl">100</span>,</span>
 <span>  gt_type <span class="op">=</span> <span class="st">"att"</span></span>
 <span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">res_att</span><span class="op">)</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Overall ATT:  </span></span>
-<span><span class="co">#&gt;      ATT    Std. Error     [ 95%  Conf. Int.] </span></span>
-<span><span class="co">#&gt;  -0.0197        0.0159    -0.0566      0.0173 </span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Dynamic Effects:</span></span>
-<span><span class="co">#&gt;  Event Time Estimate Std. Error [95% Simult.  Conf. Band]  </span></span>
-<span><span class="co">#&gt;          -3   0.0508     0.0225        0.0068      0.0949 *</span></span>
-<span><span class="co">#&gt;          -2   0.0158     0.0130       -0.0097      0.0414  </span></span>
-<span><span class="co">#&gt;          -1  -0.0128     0.0146       -0.0414      0.0158  </span></span>
-<span><span class="co">#&gt;           0  -0.0081     0.0148       -0.0371      0.0210  </span></span>
-<span><span class="co">#&gt;           1  -0.0364     0.0222       -0.0800      0.0072  </span></span>
-<span><span class="co">#&gt;           2  -0.1226     0.0386       -0.1982     -0.0470 *</span></span>
-<span><span class="co">#&gt;           3  -0.0930     0.0426       -0.1765     -0.0094 *</span></span>
-<span><span class="co">#&gt; ---</span></span>
-<span><span class="co">#&gt; Signif. codes: `*' confidence band does not cover 0</span></span></code></pre></div>
+<span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">res_att</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb9"><pre class="downlit sourceCode r">
+<pre><code><span><span class="co">#&gt;</span></span>
+<span><span class="co">#&gt; Overall ATT:</span></span>
+<span><span class="co">#&gt;      ATT    Std. Error     [ 95%  Conf. Int.]</span></span>
+<span><span class="co">#&gt;  -0.0197        0.0156    -0.0545      0.0152</span></span>
+<span><span class="co">#&gt;</span></span>
+<span><span class="co">#&gt;</span></span>
+<span><span class="co">#&gt; Dynamic Effects:</span></span>
+<span><span class="co">#&gt;  Event Time Estimate Std. Error [95% Simult.  Conf. Band]</span></span>
+<span><span class="co">#&gt;          -3   0.0508     0.0229        0.0060      0.0957 *</span></span>
+<span><span class="co">#&gt;          -2   0.0158     0.0154       -0.0144      0.0461</span></span>
+<span><span class="co">#&gt;          -1  -0.0128     0.0168       -0.0458      0.0201</span></span>
+<span><span class="co">#&gt;           0  -0.0081     0.0148       -0.0370      0.0209</span></span>
+<span><span class="co">#&gt;           1  -0.0364     0.0203       -0.0761      0.0034</span></span>
+<span><span class="co">#&gt;           2  -0.1226     0.0445       -0.2098     -0.0353 *</span></span>
+<span><span class="co">#&gt;           3  -0.0930     0.0530       -0.1968      0.0109</span></span>
+<span><span class="co">#&gt; ---</span></span>
+<span><span class="co">#&gt; Signif. codes: `*' confidence band does not cover 0</span></span></code></pre>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/autoplot.html" class="external-link">autoplot</a></span><span class="op">(</span><span class="va">res_att</span>, type <span class="op">=</span> <span class="st">"dynamic"</span><span class="op">)</span></span></code></pre></div>
 <div class="cell-output-display">
 <div>
@@ -208,45 +211,45 @@
 </h2>
 <p>All six estimators share the same interface. Here we run each with <code>gt_type = "qtt"</code> and <code>probs = 0.5</code> to compare median QTT estimates. The estimators are listed in the same order as in <code><a href="../articles/panel-estimators.html">vignette("panel-estimators")</a></code>.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb10"><pre class="downlit sourceCode r">
+<div class="sourceCode cell-code" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">res_cic</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/cic.html">cic</a></span><span class="op">(</span></span>
 <span>  yname <span class="op">=</span> <span class="st">"lemp"</span>, gname <span class="op">=</span> <span class="st">"first.treat"</span>, tname <span class="op">=</span> <span class="st">"year"</span>,</span>
 <span>  idname <span class="op">=</span> <span class="st">"countyreal"</span>, data <span class="op">=</span> <span class="va">mpdta</span>,</span>
-<span>  gt_type <span class="op">=</span> <span class="st">"qtt"</span>, probs <span class="op">=</span> <span class="fl">0.5</span>, biters <span class="op">=</span> <span class="fl">50</span></span>
+<span>  gt_type <span class="op">=</span> <span class="st">"qtt"</span>, probs <span class="op">=</span> <span class="fl">0.5</span>, biters <span class="op">=</span> <span class="fl">100</span></span>
 <span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">res_qdid</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/qdid.html">qdid</a></span><span class="op">(</span></span>
 <span>  yname <span class="op">=</span> <span class="st">"lemp"</span>, gname <span class="op">=</span> <span class="st">"first.treat"</span>, tname <span class="op">=</span> <span class="st">"year"</span>,</span>
 <span>  idname <span class="op">=</span> <span class="st">"countyreal"</span>, data <span class="op">=</span> <span class="va">mpdta</span>,</span>
-<span>  gt_type <span class="op">=</span> <span class="st">"qtt"</span>, probs <span class="op">=</span> <span class="fl">0.5</span>, biters <span class="op">=</span> <span class="fl">50</span></span>
+<span>  gt_type <span class="op">=</span> <span class="st">"qtt"</span>, probs <span class="op">=</span> <span class="fl">0.5</span>, biters <span class="op">=</span> <span class="fl">100</span></span>
 <span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">res_pqtt</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/panel_qtt.html">panel_qtt</a></span><span class="op">(</span></span>
 <span>  yname <span class="op">=</span> <span class="st">"lemp"</span>, gname <span class="op">=</span> <span class="st">"first.treat"</span>, tname <span class="op">=</span> <span class="st">"year"</span>,</span>
 <span>  idname <span class="op">=</span> <span class="st">"countyreal"</span>, data <span class="op">=</span> <span class="va">mpdta</span>,</span>
-<span>  gt_type <span class="op">=</span> <span class="st">"qtt"</span>, probs <span class="op">=</span> <span class="fl">0.5</span>, biters <span class="op">=</span> <span class="fl">50</span></span>
+<span>  gt_type <span class="op">=</span> <span class="st">"qtt"</span>, probs <span class="op">=</span> <span class="fl">0.5</span>, biters <span class="op">=</span> <span class="fl">100</span></span>
 <span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">res_ddid</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/ddid.html">ddid</a></span><span class="op">(</span></span>
 <span>  yname <span class="op">=</span> <span class="st">"lemp"</span>, gname <span class="op">=</span> <span class="st">"first.treat"</span>, tname <span class="op">=</span> <span class="st">"year"</span>,</span>
 <span>  idname <span class="op">=</span> <span class="st">"countyreal"</span>, data <span class="op">=</span> <span class="va">mpdta</span>,</span>
-<span>  gt_type <span class="op">=</span> <span class="st">"qtt"</span>, probs <span class="op">=</span> <span class="fl">0.5</span>, biters <span class="op">=</span> <span class="fl">50</span></span>
+<span>  gt_type <span class="op">=</span> <span class="st">"qtt"</span>, probs <span class="op">=</span> <span class="fl">0.5</span>, biters <span class="op">=</span> <span class="fl">100</span></span>
 <span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">res_mdid</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/mdid.html">mdid</a></span><span class="op">(</span></span>
 <span>  yname <span class="op">=</span> <span class="st">"lemp"</span>, gname <span class="op">=</span> <span class="st">"first.treat"</span>, tname <span class="op">=</span> <span class="st">"year"</span>,</span>
 <span>  idname <span class="op">=</span> <span class="st">"countyreal"</span>, data <span class="op">=</span> <span class="va">mpdta</span>,</span>
-<span>  gt_type <span class="op">=</span> <span class="st">"qtt"</span>, probs <span class="op">=</span> <span class="fl">0.5</span>, biters <span class="op">=</span> <span class="fl">50</span></span>
+<span>  gt_type <span class="op">=</span> <span class="st">"qtt"</span>, probs <span class="op">=</span> <span class="fl">0.5</span>, biters <span class="op">=</span> <span class="fl">100</span></span>
 <span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">res_lou</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/lou_qtt.html">lou_qtt</a></span><span class="op">(</span></span>
 <span>  yname <span class="op">=</span> <span class="st">"lemp"</span>, gname <span class="op">=</span> <span class="st">"first.treat"</span>, tname <span class="op">=</span> <span class="st">"year"</span>,</span>
 <span>  idname <span class="op">=</span> <span class="st">"countyreal"</span>, data <span class="op">=</span> <span class="va">mpdta</span>,</span>
-<span>  gt_type <span class="op">=</span> <span class="st">"qtt"</span>, probs <span class="op">=</span> <span class="fl">0.5</span>, biters <span class="op">=</span> <span class="fl">50</span></span>
+<span>  gt_type <span class="op">=</span> <span class="st">"qtt"</span>, probs <span class="op">=</span> <span class="fl">0.5</span>, biters <span class="op">=</span> <span class="fl">100</span></span>
 <span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb11"><pre class="downlit sourceCode r">
+<div class="sourceCode cell-code" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">median_qtt</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">res</span>, <span class="va">label</span><span class="op">)</span> <span class="op">{</span></span>
 <span>  <span class="va">row</span> <span class="op">&lt;-</span> <span class="va">res</span><span class="op">$</span><span class="va">overall</span><span class="op">[</span><span class="va">res</span><span class="op">$</span><span class="va">overall</span><span class="op">$</span><span class="va">probs</span> <span class="op">==</span> <span class="fl">0.5</span>, <span class="op">]</span></span>
 <span>  <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>estimator <span class="op">=</span> <span class="va">label</span>, qtt <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="va">row</span><span class="op">$</span><span class="va">qtt</span>, <span class="fl">4</span><span class="op">)</span>, se <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="va">row</span><span class="op">$</span><span class="va">se</span>, <span class="fl">4</span><span class="op">)</span><span class="op">)</span></span>
@@ -261,26 +264,26 @@
 <span>  <span class="fu">median_qtt</span><span class="op">(</span><span class="va">res_lou</span>,  <span class="st">"lou_qtt()"</span><span class="op">)</span></span>
 <span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="co">#&gt;     estimator     qtt     se</span></span>
-<span><span class="co">#&gt; 1       cic() -0.0455 0.0439</span></span>
-<span><span class="co">#&gt; 2      qdid() -0.0614 0.0512</span></span>
-<span><span class="co">#&gt; 3 panel_qtt() -0.0965 0.0578</span></span>
-<span><span class="co">#&gt; 4      ddid() -0.0614 0.0528</span></span>
-<span><span class="co">#&gt; 5      mdid() -0.0384 0.0427</span></span>
-<span><span class="co">#&gt; 6   lou_qtt() -0.0102 0.1159</span></span></code></pre></div>
+<span><span class="co">#&gt; 1       cic() -0.0455 0.0505</span></span>
+<span><span class="co">#&gt; 2      qdid() -0.0561 0.0507</span></span>
+<span><span class="co">#&gt; 3 panel_qtt() -0.0965 0.0515</span></span>
+<span><span class="co">#&gt; 4      ddid() -0.0614 0.0478</span></span>
+<span><span class="co">#&gt; 5      mdid() -0.0384 0.0469</span></span>
+<span><span class="co">#&gt; 6   lou_qtt() -0.0102 0.1214</span></span></code></pre></div>
 </div>
 <p>Estimates will generally differ because each estimator relies on a different identifying assumption. Similarity across methods strengthens confidence in the findings; divergence warrants investigation of which assumption is more plausible for the application.</p>
 <hr></section><section class="level2"><h2 id="repeated-cross-sections">Repeated cross sections<a class="anchor" aria-label="anchor" href="#repeated-cross-sections"></a>
 </h2>
 <p>If the data are repeated cross sections rather than a panel, set <code>panel = FALSE</code> and omit <code>idname</code>. <code><a href="../reference/cic.html">cic()</a></code>, <code><a href="../reference/qdid.html">qdid()</a></code>, and <code><a href="../reference/mdid.html">mdid()</a></code> support repeated cross sections; <code><a href="../reference/ddid.html">ddid()</a></code>, <code><a href="../reference/panel_qtt.html">panel_qtt()</a></code>, and <code><a href="../reference/lou_qtt.html">lou_qtt()</a></code> require panel data.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb12"><pre class="downlit sourceCode r">
+<div class="sourceCode cell-code" id="cb13"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">res_rcs</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/cic.html">cic</a></span><span class="op">(</span></span>
 <span>  yname  <span class="op">=</span> <span class="st">"lemp"</span>,</span>
 <span>  gname  <span class="op">=</span> <span class="st">"first.treat"</span>,</span>
 <span>  tname  <span class="op">=</span> <span class="st">"year"</span>,</span>
 <span>  data   <span class="op">=</span> <span class="va">mpdta</span>,   <span class="co"># no idname</span></span>
 <span>  panel  <span class="op">=</span> <span class="cn">FALSE</span>,</span>
-<span>  biters <span class="op">=</span> <span class="fl">50</span></span>
+<span>  biters <span class="op">=</span> <span class="fl">100</span></span>
 <span><span class="op">)</span></span></code></pre></div>
 </div>
 <hr></section><section class="level2"><h2 id="inference-notes">Inference notes<a class="anchor" aria-label="anchor" href="#inference-notes"></a>

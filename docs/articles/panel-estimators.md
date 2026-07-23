@@ -15,6 +15,7 @@ event-study plots, see
 
 ``` r
 library(qte)
+library(ptetools)
 set.seed(42)
 data(mpdta, package = "did")
 ```
@@ -70,27 +71,28 @@ $$Q_{Y_{t}(0)|D = 1}(\tau) = Q_{Y_{t}|D = 0}\!\left( F_{Y_{t - 1}|D = 0}\!\left(
 res_cic <- cic(
   yname  = "lemp", gname = "first.treat", tname = "year",
   idname = "countyreal", data = mpdta,
-  gt_type = "att", biters = 50
+  gt_type = "att", biters = 100
 )
 summary(res_cic)
-#> 
-#> Overall ATT:  
-#>      ATT    Std. Error     [ 95%  Conf. Int.] 
-#>  -0.0197        0.0185    -0.0532      0.0139 
-#> 
-#> 
-#> Dynamic Effects:
-#>  Event Time Estimate Std. Error [95% Simult.  Conf. Band]  
-#>          -3   0.0508     0.0176        0.0164      0.0853 *
-#>          -2   0.0158     0.0159       -0.0154      0.0471  
-#>          -1  -0.0128     0.0156       -0.0434      0.0178  
-#>           0  -0.0081     0.0185       -0.0442      0.0281  
-#>           1  -0.0364     0.0196       -0.0748      0.0020  
-#>           2  -0.1226     0.0348       -0.1907     -0.0544 *
-#>           3  -0.0930     0.0369       -0.1653     -0.0206 *
-#> ---
-#> Signif. codes: `*' confidence band does not cover 0
 ```
+
+    #>
+    #> Overall ATT:
+    #>      ATT    Std. Error     [ 95%  Conf. Int.]
+    #>  -0.0197        0.0157    -0.0541      0.0147
+    #>
+    #>
+    #> Dynamic Effects:
+    #>  Event Time Estimate Std. Error [95% Simult.  Conf. Band]
+    #>          -3   0.0508     0.0214        0.0090      0.0927 *
+    #>          -2   0.0158     0.0169       -0.0174      0.0491
+    #>          -1  -0.0128     0.0179       -0.0478      0.0222
+    #>           0  -0.0081     0.0154       -0.0383      0.0221
+    #>           1  -0.0364     0.0233       -0.0820      0.0092
+    #>           2  -0.1226     0.0500       -0.2206     -0.0245 *
+    #>           3  -0.0930     0.0502       -0.1914      0.0055
+    #> ---
+    #> Signif. codes: `*' confidence band does not cover 0
 
 ------------------------------------------------------------------------
 
@@ -114,27 +116,28 @@ $$Q_{Y_{t}(0)|D = 1}(\tau) = Q_{Y_{t - 1}|D = 1}(\tau) + Q_{Y_{t}|D = 0}(\tau) -
 res_qdid <- qdid(
   yname  = "lemp", gname = "first.treat", tname = "year",
   idname = "countyreal", data = mpdta,
-  gt_type = "att", biters = 50
+  gt_type = "att", biters = 100
 )
 summary(res_qdid)
-#> 
-#> Overall ATT:  
-#>      ATT    Std. Error     [ 95%  Conf. Int.] 
-#>  -0.0271        0.0136    -0.0567      0.0026 
-#> 
-#> 
-#> Dynamic Effects:
-#>  Event Time Estimate Std. Error [95% Simult.  Conf. Band]  
-#>          -3   0.0266     0.0145       -0.0018      0.0550  
-#>          -2  -0.0027     0.0143       -0.0308      0.0254  
-#>          -1  -0.0257     0.0143       -0.0538      0.0023  
-#>           0  -0.0148     0.0129       -0.0401      0.0105  
-#>           1  -0.0588     0.0196       -0.0972     -0.0203 *
-#>           2  -0.1366     0.0374       -0.2099     -0.0632 *
-#>           3  -0.1111     0.0400       -0.1895     -0.0328 *
-#> ---
-#> Signif. codes: `*' confidence band does not cover 0
 ```
+
+    #>
+    #> Overall ATT:
+    #>      ATT    Std. Error     [ 95%  Conf. Int.]
+    #>  -0.0282        0.0125    -0.0506     -0.0058 *
+    #>
+    #>
+    #> Dynamic Effects:
+    #>  Event Time Estimate Std. Error [95% Simult.  Conf. Band]
+    #>          -3   0.0266     0.0172       -0.0070      0.0602
+    #>          -2  -0.0040     0.0133       -0.0301      0.0221
+    #>          -1  -0.0247     0.0126       -0.0493     -0.0001 *
+    #>           0  -0.0164     0.0128       -0.0415      0.0086
+    #>           1  -0.0584     0.0189       -0.0953     -0.0214 *
+    #>           2  -0.1470     0.0408       -0.2269     -0.0671 *
+    #>           3  -0.1111     0.0404       -0.1904     -0.0319 *
+    #> ---
+    #> Signif. codes: `*' confidence band does not cover 0
 
 ------------------------------------------------------------------------
 
@@ -168,22 +171,23 @@ pre-treatment periods per cohort.
 res_pqtt <- panel_qtt(
   yname  = "lemp", gname = "first.treat", tname = "year",
   idname = "countyreal", data = mpdta,
-  gt_type = "qtt", probs = seq(0.1, 0.9, 0.1), biters = 50
+  gt_type = "qtt", probs = seq(0.1, 0.9, 0.1), biters = 100
 )
 summary(res_pqtt)
-#> 
-#> Overall QTT Curve:
-#>  Quantile     QTT Std. Error 95% CB Lower 95% CB Upper
-#>       0.1 -0.0270     0.1296      -0.5674       0.5133
-#>       0.2 -0.0852     0.0711      -0.3818       0.2115
-#>       0.3 -0.0250     0.0601      -0.2756       0.2257
-#>       0.4 -0.0680     0.0553      -0.2984       0.1625
-#>       0.5 -0.0965     0.0530      -0.3176       0.1246
-#>       0.6  0.0070     0.0385      -0.1536       0.1675
-#>       0.7  0.0409     0.0622      -0.2187       0.3004
-#>       0.8 -0.0201     0.0836      -0.3686       0.3284
-#>       0.9 -0.0832     0.0603      -0.3344       0.1680
 ```
+
+    #>
+    #> Overall QTT Curve:
+    #>  Quantile     QTT Std. Error 95% CB Lower 95% CB Upper
+    #>       0.1 -0.0270     0.1625      -0.6175       0.5634
+    #>       0.2 -0.0852     0.0833      -0.3879       0.2176
+    #>       0.3 -0.0250     0.0523      -0.2149       0.1650
+    #>       0.4 -0.0680     0.0612      -0.2905       0.1546
+    #>       0.5 -0.0965     0.0545      -0.2944       0.1014
+    #>       0.6  0.0070     0.0375      -0.1294       0.1433
+    #>       0.7  0.0409     0.0567      -0.1652       0.2470
+    #>       0.8 -0.0201     0.0581      -0.2312       0.1910
+    #>       0.9 -0.0832     0.0632      -0.3130       0.1466
 
 ------------------------------------------------------------------------
 
@@ -217,27 +221,28 @@ borrows it from the treated group’s own pre-treatment history.
 res_ddid <- ddid(
   yname  = "lemp", gname = "first.treat", tname = "year",
   idname = "countyreal", data = mpdta,
-  gt_type = "att", biters = 50
+  gt_type = "att", biters = 100
 )
 summary(res_ddid)
-#> 
-#> Overall ATT:  
-#>      ATT    Std. Error     [ 95%  Conf. Int.]  
-#>  -0.0453        0.0139    -0.0719     -0.0187 *
-#> 
-#> 
-#> Dynamic Effects:
-#>  Event Time Estimate Std. Error [95% Simult.  Conf. Band]  
-#>          -3   0.0134     0.0144       -0.0148      0.0416  
-#>          -2  -0.0146     0.0113       -0.0367      0.0075  
-#>          -1  -0.0403     0.0157       -0.0711     -0.0096 *
-#>           0  -0.0324     0.0128       -0.0575     -0.0072 *
-#>           1  -0.0637     0.0204       -0.1038     -0.0237 *
-#>           2  -0.1377     0.0415       -0.2192     -0.0563 *
-#>           3  -0.1087     0.0393       -0.1856     -0.0317 *
-#> ---
-#> Signif. codes: `*' confidence band does not cover 0
 ```
+
+    #>
+    #> Overall ATT:
+    #>      ATT    Std. Error     [ 95%  Conf. Int.]
+    #>  -0.0453        0.0143    -0.0785      -0.012 *
+    #>
+    #>
+    #> Dynamic Effects:
+    #>  Event Time Estimate Std. Error [95% Simult.  Conf. Band]
+    #>          -3   0.0134     0.0159       -0.0178      0.0446
+    #>          -2  -0.0146     0.0151       -0.0442      0.0150
+    #>          -1  -0.0403     0.0154       -0.0704     -0.0102 *
+    #>           0  -0.0324     0.0132       -0.0583     -0.0065 *
+    #>           1  -0.0637     0.0182       -0.0994     -0.0281 *
+    #>           2  -0.1377     0.0352       -0.2068     -0.0686 *
+    #>           3  -0.1087     0.0367       -0.1806     -0.0368 *
+    #> ---
+    #> Signif. codes: `*' confidence band does not cover 0
 
 ------------------------------------------------------------------------
 
@@ -262,27 +267,28 @@ sections.
 res_mdid <- mdid(
   yname  = "lemp", gname = "first.treat", tname = "year",
   idname = "countyreal", data = mpdta,
-  gt_type = "att", biters = 50
+  gt_type = "att", biters = 100
 )
 summary(res_mdid)
-#> 
-#> Overall ATT:  
-#>      ATT    Std. Error     [ 95%  Conf. Int.]  
-#>  -0.0305        0.0109    -0.0565     -0.0044 *
-#> 
-#> 
-#> Dynamic Effects:
-#>  Event Time Estimate Std. Error [95% Simult.  Conf. Band]  
-#>          -3   0.0298     0.0148        0.0007      0.0588 *
-#>          -2  -0.0024     0.0116       -0.0252      0.0203  
-#>          -1  -0.0243     0.0150       -0.0537      0.0051  
-#>           0  -0.0189     0.0100       -0.0386      0.0007  
-#>           1  -0.0536     0.0159       -0.0847     -0.0225 *
-#>           2  -0.1363     0.0373       -0.2093     -0.0632 *
-#>           3  -0.1008     0.0315       -0.1625     -0.0391 *
-#> ---
-#> Signif. codes: `*' confidence band does not cover 0
 ```
+
+    #>
+    #> Overall ATT:
+    #>      ATT    Std. Error     [ 95%  Conf. Int.]
+    #>  -0.0305        0.0114    -0.0496     -0.0113 *
+    #>
+    #>
+    #> Dynamic Effects:
+    #>  Event Time Estimate Std. Error [95% Simult.  Conf. Band]
+    #>          -3   0.0298     0.0127        0.0048      0.0547 *
+    #>          -2  -0.0024     0.0158       -0.0334      0.0285
+    #>          -1  -0.0243     0.0131       -0.0500      0.0014
+    #>           0  -0.0189     0.0106       -0.0397      0.0018
+    #>           1  -0.0536     0.0173       -0.0875     -0.0197 *
+    #>           2  -0.1363     0.0393       -0.2133     -0.0593 *
+    #>           3  -0.1008     0.0378       -0.1748     -0.0268 *
+    #> ---
+    #> Signif. codes: `*' confidence band does not cover 0
 
 ------------------------------------------------------------------------
 
@@ -301,27 +307,28 @@ Requires panel data.
 res_lou <- lou_qtt(
   yname  = "lemp", gname = "first.treat", tname = "year",
   idname = "countyreal", data = mpdta,
-  gt_type = "att", biters = 50
+  gt_type = "att", biters = 100
 )
 summary(res_lou)
-#> 
-#> Overall ATT:  
-#>      ATT    Std. Error     [ 95%  Conf. Int.] 
-#>  -0.0384        0.0221    -0.0831      0.0063 
-#> 
-#> 
-#> Dynamic Effects:
-#>  Event Time Estimate Std. Error [95% Simult.  Conf. Band]  
-#>          -3   0.0294     0.0135        0.0031      0.0558 *
-#>          -2  -0.0124     0.0149       -0.0417      0.0168  
-#>          -1  -0.0310     0.0189       -0.0680      0.0060  
-#>           0  -0.0243     0.0206       -0.0646      0.0160  
-#>           1  -0.0869     0.0356       -0.1568     -0.0171 *
-#>           2  -0.1394     0.0328       -0.2036     -0.0752 *
-#>           3  -0.1093     0.0386       -0.1850     -0.0336 *
-#> ---
-#> Signif. codes: `*' confidence band does not cover 0
 ```
+
+    #>
+    #> Overall ATT:
+    #>      ATT    Std. Error     [ 95%  Conf. Int.]
+    #>  -0.0384        0.0166    -0.0725     -0.0043 *
+    #>
+    #>
+    #> Dynamic Effects:
+    #>  Event Time Estimate Std. Error [95% Simult.  Conf. Band]
+    #>          -3   0.0294     0.0144        0.0012      0.0577 *
+    #>          -2  -0.0124     0.0161       -0.0441      0.0192
+    #>          -1  -0.0310     0.0199       -0.0701      0.0081
+    #>           0  -0.0243     0.0157       -0.0551      0.0065
+    #>           1  -0.0869     0.0306       -0.1470     -0.0269 *
+    #>           2  -0.1394     0.0356       -0.2092     -0.0696 *
+    #>           3  -0.1093     0.0378       -0.1834     -0.0352 *
+    #> ---
+    #> Signif. codes: `*' confidence band does not cover 0
 
 ------------------------------------------------------------------------
 
