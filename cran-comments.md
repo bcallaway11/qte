@@ -21,6 +21,18 @@ This is also a major update (1.4.0 -> 2.0.0):
 
 See NEWS.md for the full list of changes.
 
+## Response to previous submission feedback
+
+CRAN flagged two issues on the prior submission of this version:
+
+* **Tarball size (10.8MB).** Caused by quarto/knitr rendering caches under
+  `vignettes/` not being excluded via `.Rbuildignore`. Now excluded;
+  tarball is 1.5MB.
+* **Vignette build time (>10 min on r-devel-windows-x86_64).** All three
+  vignettes now precompute and cache their estimator results (shipped in
+  `vignettes/precomputed/*.rds`) instead of re-running the bootstrap on
+  every check, which results in much faster build times.
+
 ## Test environments
 
 * Local Ubuntu, R 4.x — all checks passed without issues.
