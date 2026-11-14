@@ -17,6 +17,21 @@
   conditional CiC holds exactly, the bias of the ATT falls from 0.15 to 0.02.
   Estimates without covariates are unchanged.
 
+* `cic()`, `qdid()`, `ddid()`, `mdid()`, `panel_qtt()` and `lou_qtt()` are
+  faster, with the same results:
+  * Weighted ranks and quantiles in the `*_gt()` functions use one sort
+    instead of a pass over the data for each unit, so they are no longer
+    quadratic in the group size.
+  * The covariate versions of `cic()` and `qdid()` fit the post-period
+    quantile regression for the comparison group once per period, not once
+    per cohort, because it is the same for every cohort already treated by
+    that period.
+  * Only the columns the estimators use are passed to `ptetools::pte()`.
+
+  Combined with the faster empirical bootstrap in ptetools 1.0.2,
+  unconditional CiC on a 3,000-unit, 30-period panel runs more than 20 times
+  faster.
+
 # qte 2.0.0
 
 This is a major update that extends all estimators to support staggered

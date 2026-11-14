@@ -70,20 +70,16 @@ cic_gt <- function(gt_data, xformula = ~1, ...) {
   # distributions to obtain counterfactual outcomes (A-I 2006, eq. 16).
   # Weighted CDFs are used; reduces to ecdf()/quantile(type=1) for uniform weights.
 
-  # Weighted ECDF of ctrl pre-period: F(y) = sum(w_i * 1(Y_i <= y)).
-  # Vectorised dot product handles ties and out-of-range values correctly.
-  u <- vapply(Y_pre_trt,
-              function(y) sum(w_pre_ctrl * (Y_pre_ctrl <= y)),
-              numeric(1))
+  # Weighted ECDF of ctrl pre-period: F(y) = sum(w_i * 1(Y_i <= y)),
+  # evaluated at each treated pre-period outcome (handles ties and
+  # out-of-range values; see wcdf_at()).
+  u <- wcdf_at(Y_pre_ctrl, w_pre_ctrl, Y_pre_trt)
 
   # Weighted type-1 quantile of ctrl post-period: smallest y with CDF >= p.
   ord_post_c <- order(Y_post_ctrl)
   y_post_c_s <- Y_post_ctrl[ord_post_c]
   cdf_post_c <- cumsum(w_post_ctrl[ord_post_c])
-  kcic <- y_post_c_s[vapply(u, function(p) {
-    idx <- which(cdf_post_c >= p)
-    if (length(idx) == 0L) length(y_post_c_s) else idx[1L]
-  }, integer(1))]
+  kcic <- y_post_c_s[first_geq(cdf_post_c, u)]
 
   att <- weighted.mean(Y_post_trt, w_post_trt) - weighted.mean(kcic, w_pre_trt)
   F0  <- BMisc::weighted_ecdf(kcic,       weights = w_pre_trt)  # nolint: object_name_linter
@@ -102,13 +98,8 @@ cic_gt <- function(gt_data, xformula = ~1, ...) {
     post_s <- gt_data[gt_data$name == "post" & gt_data$D == 1, ]
     pre_s  <- pre_s[order(pre_s$id), ]
     post_s <- post_s[order(post_s$id), ]
-    u_s    <- vapply(pre_s$Y,
-                     function(y) sum(w_pre_ctrl * (Y_pre_ctrl <= y)),
-                     numeric(1))
-    kcic_s <- y_post_c_s[vapply(u_s, function(p) {
-      idx <- which(cdf_post_c >= p)
-      if (length(idx) == 0L) length(y_post_c_s) else idx[1L]
-    }, integer(1))]
+    u_s    <- wcdf_at(Y_pre_ctrl, w_pre_ctrl, pre_s$Y)
+    kcic_s <- y_post_c_s[first_geq(cdf_post_c, u_s)]
     w_post_trt_s <- post_s$.w / sum(post_s$.w)
     Fte    <- BMisc::weighted_ecdf(post_s$Y - kcic_s, weights = w_post_trt_s) # nolint: object_name_linter
   }
@@ -131,7 +122,9 @@ cic_gt <- function(gt_data, xformula = ~1, ...) {
     }
 
     yformla  <- BMisc::toformula("Y", BMisc::rhs_vars(xformula))
-    QR0t     <- suppressWarnings(rq(yformla, data = post_ctrl, tau = u_seq, weights = .w)) # nolint: object_name_linter
+    # post-period control fit: the same for all cohorts treated by this
+    # period, so reused across those cells (see cached_rq())
+    QR0t     <- cached_rq(yformla, post_ctrl, u_seq) # nolint: object_name_linter
     QR0tmin1 <- suppressWarnings(rq(yformla, data = pre_ctrl,  tau = u_seq, weights = .w)) # nolint: object_name_linter
 
     # conditional ranks from rearranged (monotone) predicted quantiles; see
@@ -274,7 +267,8 @@ cic <- function(yname,
     gname           = gname,
     tname           = tname,
     idname          = idname,
-    data            = data,
+    data            = keep_used_columns(data, yname, gname, tname, idname,
+                                        weightsname, xformula),
     panel           = panel,
     setup_pte_fun   = ptetools::setup_pte,
     subset_fun      = subset_fun,

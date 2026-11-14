@@ -2,11 +2,24 @@
 # Title: Helper functions for qte package
 # Description: Utility functions for plotting QTE objects. Provides
 #   autoplot.QTE and plot.QTE for ggplot2-based plotting of QTE results,
-#   and retains ggqte() as a deprecated wrapper.
+#   and retains ggqte() as a deprecated wrapper. Also keep_used_columns(),
+#   used by the staggered estimators before calling ptetools::pte().
 # Author: Brant Callaway
-# Last update: 2026-07-20
+# Last update: 2026-11-14
 # Date created: 2026-05-18
 # =============================================================================
+
+# --- keep_used_columns -------------------------------------------------------
+# Drop the columns of `data` that the estimators never read. ptetools copies
+# the data for every (g,t) cell and every bootstrap draw, so unused columns
+# only cost time. The *_gt functions use the outcome, group, time, id,
+# weights and the covariates in xformula, plus columns ptetools adds itself.
+keep_used_columns <- function(data, yname, gname, tname, idname = NULL,
+                              weightsname = NULL, xformula = ~1) {
+  data <- as.data.frame(data)
+  used <- unique(c(yname, gname, tname, idname, weightsname, all.vars(xformula)))
+  data[, intersect(used, names(data)), drop = FALSE]
+}
 
 
 # --- autoplot.QTE ------------------------------------------------------------

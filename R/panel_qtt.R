@@ -185,10 +185,7 @@ panel_qtt_gt <- function(gt_data, xformula = ~1, ...) {
     ord <- order(y_vec)
     y_s <- y_vec[ord]
     cdf <- cumsum(w_vec[ord])
-    y_s[vapply(probs, function(p) {
-      idx <- which(cdf >= p)
-      if (length(idx) == 0L) length(y_s) else idx[1L]
-    }, integer(1L))]
+    y_s[first_geq(cdf, probs)]
   }
 
   # No-covariate path:
@@ -196,17 +193,13 @@ panel_qtt_gt <- function(gt_data, xformula = ~1, ...) {
   # Step 1 (Rosenblatt): transfer each treated unit's pre2 rank into a pre1 level.
   #   u_i = F_{Y^pre2|D=1}(Y^pre2_i)  — rank in the pre2 treated marginal
   #   L_i = Q_{Y^pre1|D=1}(u_i)       — pre1 level at rank u_i
-  u <- vapply(Y_pre2_trt,
-              function(y) sum(w_pre2_trt * (Y_pre2_trt <= y)),
-              numeric(1L))
+  u <- wcdf_at(Y_pre2_trt, w_pre2_trt, Y_pre2_trt)
   L <- wquant(Y_pre1_trt, w_pre1_trt, u) # nolint: object_name_linter
 
   # Step 2 (copula stability + distributional PT on changes):
   #   v_i = F_{dY^pre|D=1}(dY^pre_i)  — rank of pre-treatment change
   #   C_i = Q_{dY^ctrl}(v_i)          — ctrl change at rank v_i
-  v <- vapply(dY_trt,
-              function(dy) sum(w_pre2_trt * (dY_trt <= dy)),
-              numeric(1L))
+  v <- wcdf_at(dY_trt, w_pre2_trt, dY_trt)
   C <- wquant(dY_ctrl, w_pre1_ctrl, v) # nolint: object_name_linter
 
   kcf <- L + C
@@ -555,7 +548,8 @@ panel_qtt <- function(yname,
     gname            = gname,
     tname            = tname,
     idname           = idname,
-    data             = data,
+    data             = keep_used_columns(data, yname, gname, tname, idname,
+                                         weightsname, xformula),
     panel            = TRUE,
     setup_pte_fun    = ptetools::setup_pte,
     subset_fun       = three_period_subset,

@@ -73,9 +73,7 @@ qdid_gt <- function(gt_data, xformula = ~1, ...) {
   # Weighted CDFs/quantiles are used throughout.
 
   # weighted rank in the treated pre-period distribution
-  u <- vapply(Y_pre_trt,
-              function(y) sum(w_pre_trt * (Y_pre_trt <= y)),
-              numeric(1))
+  u <- wcdf_at(Y_pre_trt, w_pre_trt, Y_pre_trt)
 
   Q_pre_ctrl  <- wquant(Y_pre_ctrl,  w_pre_ctrl,  u) # nolint: object_name_linter
   Q_post_ctrl <- wquant(Y_post_ctrl, w_post_ctrl, u) # nolint: object_name_linter
@@ -98,9 +96,7 @@ qdid_gt <- function(gt_data, xformula = ~1, ...) {
     post_s <- gt_data[gt_data$name == "post" & gt_data$D == 1, ]
     pre_s  <- pre_s[order(pre_s$id), ]
     post_s <- post_s[order(post_s$id), ]
-    u_s       <- vapply(pre_s$Y,
-                        function(y) sum(w_pre_trt * (Y_pre_trt <= y)),
-                        numeric(1))
+    u_s       <- wcdf_at(Y_pre_trt, w_pre_trt, pre_s$Y)
     kcf_s     <- pre_s$Y + wquant(Y_post_ctrl, w_post_ctrl, u_s) -
                             wquant(Y_pre_ctrl,  w_pre_ctrl,  u_s)
     w_post_s  <- post_s$.w / sum(post_s$.w)
@@ -127,7 +123,9 @@ qdid_gt <- function(gt_data, xformula = ~1, ...) {
 
     # conditional rank in the treated pre-period distribution
     QR1tmin1  <- suppressWarnings(rq(yformla, data = pre_trt,   tau = u_seq, weights = .w)) # nolint: object_name_linter
-    QR0t      <- suppressWarnings(rq(yformla, data = post_ctrl, tau = u_seq, weights = .w)) # nolint: object_name_linter
+    # post-period control fit: the same for all cohorts treated by this
+    # period, so reused across those cells (see cached_rq())
+    QR0t      <- cached_rq(yformla, post_ctrl, u_seq) # nolint: object_name_linter
     QR0tmin1  <- suppressWarnings(rq(yformla, data = pre_ctrl,  tau = u_seq, weights = .w)) # nolint: object_name_linter
 
     # rearranged (monotone) conditional quantiles; see qr_sorted_quantiles()
@@ -264,7 +262,8 @@ qdid <- function(yname,
     gname           = gname,
     tname           = tname,
     idname          = idname,
-    data            = data,
+    data            = keep_used_columns(data, yname, gname, tname, idname,
+                                        weightsname, xformula),
     panel           = panel,
     setup_pte_fun   = ptetools::setup_pte,
     subset_fun      = subset_fun,

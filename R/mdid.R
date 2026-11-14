@@ -7,7 +7,7 @@
 #   MDiD is a deprecated alias retained for backwards compatibility.
 #   compute.MDiD is an unexported helper kept only to support the deprecated MDiD.
 # Author: Brant Callaway
-# Last update: 2026-05-22
+# Last update: 2026-11-14
 # Date created: 2026-05-18
 # =============================================================================
 
@@ -284,7 +284,8 @@ mdid <- function(yname,
     gname           = gname,
     tname           = tname,
     idname          = idname,
-    data            = data,
+    data            = keep_used_columns(data, yname, gname, tname, idname,
+                                        weightsname, xformula),
     panel           = panel,
     setup_pte_fun   = ptetools::setup_pte,
     subset_fun      = subset_fun,

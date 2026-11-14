@@ -1,9 +1,11 @@
 # =============================================================================
 # Title: Quantile helpers
 # Description: Shared, unexported quantile helpers: a weighted type-1
-#   quantile (used by ddid_gt() and qdid_gt()), and conditional CDF/quantile
-#   evaluation from quantile regressions with rearrangement (used by the
-#   covariate-adjusted CiC, DDID and panel QTT estimators).
+#   quantile (used by ddid_gt() and qdid_gt()), fast weighted ranks and
+#   quantiles, reuse of identical quantile regressions across (g,t) cells,
+#   and conditional CDF/quantile evaluation from quantile regressions with
+#   rearrangement (used by the covariate-adjusted CiC, DDID and panel QTT
+#   estimators).
 # Author: Brant Callaway
 # Last update: 2026-11-14
 # Date created: 2026-07-21
@@ -29,10 +31,78 @@ wquant <- function(y_vec, w_vec, probs) {
   y_s <- y_vec[ord]
   cdf <- cumsum(w_vec[ord])
   tol <- sqrt(.Machine$double.eps)
-  y_s[vapply(probs, function(p) {
-    idx <- which(cdf >= p - tol)
-    if (length(idx) == 0L) length(y_s) else idx[1L]
-  }, integer(1))]
+  y_s[first_geq(cdf, probs - tol)]
+}
+
+# --- Fast weighted ranks and quantiles ----------------------------------------
+# These replace loops of the form vapply(x, function(v) <scan all of y>),
+# which cost O(length(x) * length(y)), with one sort plus findInterval().
+# They make the same comparisons, so they return the same values. The one
+# exception is wcdf_at() with unequal weights, where the summation order
+# differs and a value can differ in the last bit. Missing values fall back
+# to the original loops, which define the NA behavior.
+
+# Index of the first element of the non-decreasing vector `cdf` that is
+# >= p, for each p; length(cdf) if there is none (or p is NA). Same as
+# vapply(p, function(pp) { idx <- which(cdf >= pp); if (!length(idx))
+# length(cdf) else idx[1] }, integer(1)).
+first_geq <- function(cdf, p) {
+  n <- length(cdf)
+  if (anyNA(cdf)) {
+    return(vapply(p, function(pp) {
+      idx <- which(cdf >= pp)
+      if (length(idx) == 0L) n else idx[1L]
+    }, integer(1)))
+  }
+  # number of elements < p, plus one
+  idx <- findInterval(p, cdf, left.open = TRUE) + 1L
+  idx[is.na(idx) | idx > n] <- n
+  idx
+}
+
+# Weighted CDF of `y` evaluated at each value of `x`:
+# sum(w * (y <= x[i])) for each i.
+wcdf_at <- function(y, w, x) {
+  if (anyNA(y) || anyNA(w) || anyNA(x)) {
+    return(vapply(x, function(v) sum(w * (y <= v)), numeric(1)))
+  }
+  o <- order(y)
+  cw <- c(0, cumsum(w[o]))
+  cw[findInterval(x, y[o]) + 1L]
+}
+
+# --- Reusing a quantile regression across (g,t) cells -------------------------
+# For post-treatment cells, the comparison group in period t (G == 0 or
+# G > t) does not depend on the treated cohort g, so the quantile regression
+# of control outcomes in period t is identical for every cohort already
+# treated by t. ptetools loops over t and then g, so those cells come one
+# after another. cached_rq() keeps the most recent fit and returns it when
+# the formula, quantiles and data (variables used and weights, in the same
+# row order) are identical; otherwise it fits and stores the new model. A
+# reused fit is identical to refitting. options(qte.disable_qr_cache = TRUE)
+# turns this off.
+.qr_cache <- new.env(parent = emptyenv())
+
+cached_rq <- function(formula, data, tau) {
+  key_data <- data[, c(all.vars(formula), ".w"), drop = FALSE]
+  rownames(key_data) <- NULL
+  key_formula <- paste(deparse(formula), collapse = " ")
+  use_cache <- !isTRUE(getOption("qte.disable_qr_cache"))
+  same_inputs <- !is.null(.qr_cache$fit) &&
+    identical(.qr_cache$formula, key_formula) &&
+    identical(.qr_cache$tau, tau) &&
+    identical(.qr_cache$data, key_data)
+  if (use_cache && same_inputs) {
+    return(.qr_cache$fit)
+  }
+  fit <- suppressWarnings(quantreg::rq(formula, data = data, tau = tau, weights = .w))
+  if (use_cache) {
+    .qr_cache$formula <- key_formula
+    .qr_cache$tau <- tau
+    .qr_cache$data <- key_data
+    .qr_cache$fit <- fit
+  }
+  fit
 }
 
 # --- Conditional quantiles from quantile regression ---------------------------

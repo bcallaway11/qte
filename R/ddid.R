@@ -107,9 +107,7 @@ ddid_gt <- function(gt_data, xformula = ~1, ...) {
   # kcf_j = delta_ctrl_j + Q_{1,pre}^w(u_j)
   # NOTE: kcf is indexed over CONTROL units; F0 and ATT counterfactual
   # term are weighted by w_pre_ctrl, not w_pre_trt.
-  u <- vapply(Y_pre_ctrl,
-              function(y) sum(w_pre_ctrl * (Y_pre_ctrl <= y)),
-              numeric(1))
+  u <- wcdf_at(Y_pre_ctrl, w_pre_ctrl, Y_pre_ctrl)
 
   kcf <- delta_ctrl + wquant(Y_pre_trt, w_pre_trt, u)
 
@@ -250,7 +248,8 @@ ddid <- function(yname,
     gname           = gname,
     tname           = tname,
     idname          = idname,
-    data            = data,
+    data            = keep_used_columns(data, yname, gname, tname, idname,
+                                        weightsname, xformula),
     panel           = TRUE,
     setup_pte_fun   = ptetools::setup_pte,
     subset_fun      = ptetools::two_by_two_subset,
