@@ -7,7 +7,7 @@
 #   CiC is a deprecated alias retained for backwards compatibility.
 #   compute.CiC is an unexported helper kept only to support the deprecated CiC.
 # Author: Brant Callaway
-# Last update: 2026-05-22
+# Last update: 2026-11-14
 # Date created: 2026-05-18
 # =============================================================================
 
@@ -133,10 +133,10 @@ cic_gt <- function(gt_data, xformula = ~1, ...) {
     yformla  <- BMisc::toformula("Y", BMisc::rhs_vars(xformula))
     QR0t     <- suppressWarnings(rq(yformla, data = post_ctrl, tau = u_seq, weights = .w)) # nolint: object_name_linter
     QR0tmin1 <- suppressWarnings(rq(yformla, data = pre_ctrl,  tau = u_seq, weights = .w)) # nolint: object_name_linter
-    n1       <- nrow(pre_trt)
 
-    QR0tmin1F <- predict(QR0tmin1, newdata = pre_trt, type = "Fhat", stepfun = TRUE) # nolint: object_name_linter
-    F0tmin1   <- sapply(seq_len(n1), function(i) QR0tmin1F[[i]](pre_trt$Y[i]))       # nolint: object_name_linter
+    # conditional ranks from rearranged (monotone) predicted quantiles; see
+    # qr_sorted_quantiles() for why predict(..., stepfun = TRUE) isn't used
+    F0tmin1 <- qr_cdf(qr_sorted_quantiles(QR0tmin1, pre_trt), u_seq, pre_trt$Y) # nolint: object_name_linter
 
     if (mean(F0tmin1 >= 0.99) + mean(F0tmin1 <= 0.01) > 0.1) {
       warning(paste0(
@@ -145,8 +145,7 @@ cic_gt <- function(gt_data, xformula = ~1, ...) {
       ))
     }
 
-    QR0tQ <- predict(QR0t, newdata = pre_trt, type = "Qhat", stepfun = TRUE) # nolint: object_name_linter
-    y0t   <- sapply(seq_len(n1), function(i) QR0tQ[[i]](F0tmin1[i]))
+    y0t <- qr_quantile(qr_sorted_quantiles(QR0t, pre_trt), u_seq, F0tmin1)
 
     att <- weighted.mean(Y_post_trt, w_post_trt) - weighted.mean(y0t, w_pre_trt)
     w_pre_trt_n  <- pre_trt$.w / sum(pre_trt$.w)

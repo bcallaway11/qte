@@ -6,7 +6,7 @@
 #   ddid2 is a deprecated alias retained for backwards compatibility.
 #   compute.ddid2 is an unexported helper kept only to support ddid2.
 # Author: Brant Callaway
-# Last update: 2026-07-21
+# Last update: 2026-11-14
 # Date created: 2026-05-18
 # =============================================================================
 
@@ -123,19 +123,19 @@ ddid_gt <- function(gt_data, xformula = ~1, ...) {
   # Sampling weights are passed to rq().
   if (length(BMisc::rhs_vars(xformula)) > 0) {
     u_seq    <- seq(0.01, 0.99, 0.01)
-    n0       <- nrow(ctrl_pre)
     yformla  <- BMisc::toformula("Y", BMisc::rhs_vars(xformula)) # nolint: object_name_linter
 
     QR0tmin1 <- suppressWarnings(rq(yformla, data = ctrl_pre, tau = u_seq, weights = .w)) # nolint: object_name_linter
     QR1tmin1 <- suppressWarnings(rq(yformla, data = trt_pre,  tau = u_seq, weights = .w)) # nolint: object_name_linter
 
-    # conditional rank of each control unit in the control pre-period distribution
-    QR0tmin1F  <- predict(QR0tmin1, type = "Fhat", stepfun = TRUE)                # nolint: object_name_linter
-    rank0tmin1 <- sapply(seq_len(n0), function(i) QR0tmin1F[[i]](ctrl_pre$Y[i]))
+    # conditional rank of each control unit in the control pre-period
+    # distribution, from rearranged (monotone) predicted quantiles; see
+    # qr_sorted_quantiles() for why predict(..., stepfun = TRUE) isn't used
+    rank0tmin1 <- qr_cdf(qr_sorted_quantiles(QR0tmin1), u_seq, ctrl_pre$Y)
 
     # conditional treated pre-period quantile at each control unit's rank and X
-    ytmin1 <- predict(QR1tmin1, newdata = ctrl_pre, type = "Qhat", stepfun = TRUE) # nolint: object_name_linter
-    ytmin1 <- sapply(seq_len(n0), function(i) ytmin1[[i]](rank0tmin1[i]))
+    ytmin1 <- qr_quantile(qr_sorted_quantiles(QR1tmin1, ctrl_pre), u_seq,
+                          rank0tmin1)
 
     kcf <- delta_ctrl + ytmin1
 
@@ -294,14 +294,13 @@ compute.ddid2 <- function(qp) { # nolint: object_name_linter
   qr0.reg <- NULL
   u <- seq(.01, .99, .01)
   if (!(is.null(x))) {
-    n0 <- nrow(untreated.t)
     yformla <- toformula("y", BMisc::rhs_vars(xformla))
     QR1tmin1 <- rq(yformla, data = treated.tmin1, tau = u)
     QR0tmin1 <- rq(yformla, data = untreated.tmin1, tau = u)
-    rank0tmin1 <- predict(QR0tmin1, type = "Fhat", stepfun = TRUE)
-    rank0tmin1 <- sapply(1:n0, function(i) rank0tmin1[[i]](untreated.tmin1$y[i]))
-    ytmin1 <- predict(QR1tmin1, newdata = untreated.tmin1, type = "Qhat", stepfun = TRUE)
-    ytmin1 <- sapply(1:n0, function(i) ytmin1[[i]](rank0tmin1[i]))
+    # rearranged conditional quantiles; see qr_sorted_quantiles()
+    rank0tmin1 <- qr_cdf(qr_sorted_quantiles(QR0tmin1), u, untreated.tmin1$y)
+    ytmin1 <- qr_quantile(qr_sorted_quantiles(QR1tmin1, untreated.tmin1), u,
+                          rank0tmin1)
     quantys2 <- ytmin1
 
     att <- mean(treated.t$y) -

@@ -7,7 +7,7 @@
 #   QDiD is a deprecated alias retained for backwards compatibility.
 #   compute.QDiD is an unexported helper kept only to support the deprecated QDiD.
 # Author: Brant Callaway
-# Last update: 2026-07-21
+# Last update: 2026-11-14
 # Date created: 2026-05-18
 # =============================================================================
 
@@ -123,7 +123,6 @@ qdid_gt <- function(gt_data, xformula = ~1, ...) {
       post_trt <- post_trt[order(post_trt$id), ]
     }
 
-    n1      <- nrow(pre_trt)
     yformla <- BMisc::toformula("Y", BMisc::rhs_vars(xformula)) # nolint: object_name_linter
 
     # conditional rank in the treated pre-period distribution
@@ -131,13 +130,11 @@ qdid_gt <- function(gt_data, xformula = ~1, ...) {
     QR0t      <- suppressWarnings(rq(yformla, data = post_ctrl, tau = u_seq, weights = .w)) # nolint: object_name_linter
     QR0tmin1  <- suppressWarnings(rq(yformla, data = pre_ctrl,  tau = u_seq, weights = .w)) # nolint: object_name_linter
 
-    QR1tmin1F  <- predict(QR1tmin1, newdata = pre_trt, type = "Fhat", stepfun = TRUE)  # nolint: object_name_linter
-    rank1tmin1 <- sapply(seq_len(n1), function(i) QR1tmin1F[[i]](pre_trt$Y[i]))
-
-    QR0tQ     <- predict(QR0t,     newdata = pre_trt, type = "Qhat", stepfun = TRUE) # nolint: object_name_linter
-    QR0tQ     <- sapply(seq_len(n1), function(i) QR0tQ[[i]](rank1tmin1[i]))           # nolint: object_name_linter
-    QR0tmin1Q <- predict(QR0tmin1, newdata = pre_trt, type = "Qhat", stepfun = TRUE) # nolint: object_name_linter
-    QR0tmin1Q <- sapply(seq_len(n1), function(i) QR0tmin1Q[[i]](rank1tmin1[i]))      # nolint: object_name_linter
+    # rearranged (monotone) conditional quantiles; see qr_sorted_quantiles()
+    # for why predict(..., stepfun = TRUE) isn't used
+    rank1tmin1 <- qr_cdf(qr_sorted_quantiles(QR1tmin1, pre_trt), u_seq, pre_trt$Y)
+    QR0tQ     <- qr_quantile(qr_sorted_quantiles(QR0t, pre_trt), u_seq, rank1tmin1)     # nolint: object_name_linter
+    QR0tmin1Q <- qr_quantile(qr_sorted_quantiles(QR0tmin1, pre_trt), u_seq, rank1tmin1) # nolint: object_name_linter
 
     y0t <- pre_trt$Y + QR0tQ - QR0tmin1Q
 
@@ -321,19 +318,16 @@ compute.QDiD <- function(qp) { # nolint: object_name_linter
 
   if (!is.null(xformla)) { # nolint: object_usage_linter
     u        <- seq(.01, .99, .01)
-    n1tmin1  <- nrow(treated.tmin1) # nolint: object_usage_linter
     yformla  <- toformula("y", BMisc::rhs_vars(xformla)) # nolint: object_usage_linter
     QR0t     <- rq(yformla, data = untreated.t,    tau = u) # nolint: object_name_linter, object_usage_linter
     QR0tmin1 <- rq(yformla, data = untreated.tmin1, tau = u) # nolint: object_name_linter, object_usage_linter
     QR1tmin1 <- rq(yformla, data = treated.tmin1,  tau = u) # nolint: object_name_linter, object_usage_linter
 
-    QR1tmin1F  <- predict(QR1tmin1, newdata = treated.tmin1, type = "Fhat", stepfun = TRUE) # nolint: object_name_linter
-    rank1tmin1 <- sapply(seq_len(n1tmin1), function(i) QR1tmin1F[[i]](treated.tmin1$y[i]))  # nolint: object_usage_linter
-
-    QR0tQ     <- predict(QR0t,     newdata = treated.tmin1, type = "Qhat", stepfun = TRUE) # nolint: object_name_linter, object_usage_linter
-    QR0tQ     <- sapply(seq_len(n1tmin1), function(i) QR0tQ[[i]](rank1tmin1[i]))            # nolint: object_name_linter
-    QR0tmin1Q <- predict(QR0tmin1, newdata = treated.tmin1, type = "Qhat", stepfun = TRUE) # nolint: object_name_linter, object_usage_linter
-    QR0tmin1Q <- sapply(seq_len(n1tmin1), function(i) QR0tmin1Q[[i]](rank1tmin1[i]))       # nolint: object_name_linter
+    # rearranged conditional quantiles; see qr_sorted_quantiles()
+    rank1tmin1 <- qr_cdf(qr_sorted_quantiles(QR1tmin1, treated.tmin1), u, # nolint: object_usage_linter
+                         treated.tmin1$y) # nolint: object_usage_linter
+    QR0tQ     <- qr_quantile(qr_sorted_quantiles(QR0t, treated.tmin1), u, rank1tmin1)     # nolint: object_name_linter, object_usage_linter
+    QR0tmin1Q <- qr_quantile(qr_sorted_quantiles(QR0tmin1, treated.tmin1), u, rank1tmin1) # nolint: object_name_linter, object_usage_linter
 
     y0t <- treated.tmin1[, yname] + QR0tQ - QR0tmin1Q # nolint: object_usage_linter
 

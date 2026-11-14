@@ -1,3 +1,18 @@
+# qte 2.0.1
+
+* Fixed covariate-adjusted `cic()`, `qdid()`, `ddid()` and `panel_qtt()`
+  (and their `*_gt()` workhorses) (#9):
+  * They no longer fail when a group has a single treated unit.
+  * Conditional quantiles are now rearranged (sorted) before use, so the
+    conditional CDFs are monotone when quantile regressions cross.
+  * Conditional ranks are no longer one quantile-grid step (0.01) too low.
+    This came from quantreg's `predict(..., type = "Fhat", stepfun = TRUE)`
+    and biased the counterfactual distribution downward.
+
+  Covariate-adjusted estimates change as a result. In a simulation where
+  conditional CiC holds, the bias of the ATT falls from 0.15 to 0.07.
+  Estimates without covariates are unchanged.
+
 # qte 2.0.0
 
 This is a major update that extends all estimators to support staggered

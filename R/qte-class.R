@@ -4,7 +4,7 @@
 #   methods. Also contains the panel.qtet estimator (Callaway-Li 2019) and its
 #   internal compute function. Dataset documentation is in data.R.
 # Author: Brant Callaway
-# Last update: 2026-07-20
+# Last update: 2026-11-14
 # Date created: 2026-05-18
 # =============================================================================
 
@@ -153,18 +153,14 @@ compute.panel.qtet <- function(qp) {
     QRtmin2 <- quantreg::rq(yformla, data = treated.tmin2, tau = u)
 
     ## use csa-type result; exploit that we average over X_i
-    n1 <- nrow(treated.t)
     n0 <- nrow(untreated.t)
-    QRtmin2F <- predict(QRtmin2, type = "Fhat", stepfun = TRUE)
-    Ftmin2 <- sapply(1:n1, function(i) QRtmin2F[[i]](treated.tmin2$y[i]))
-    QRtmin1Q <- predict(QRtmin1, type = "Qhat", stepfun = TRUE)
-    Qtmin1 <- sapply(1:n1, function(i) QRtmin1Q[[i]](Ftmin2[i]))
+    ## rearranged conditional quantiles; see qr_sorted_quantiles()
+    Ftmin2 <- qr_cdf(qr_sorted_quantiles(QRtmin2), u, treated.tmin2$y)
+    Qtmin1 <- qr_quantile(qr_sorted_quantiles(QRtmin1), u, Ftmin2)
 
-    dQRtmin1F <- predict(dQRtmin1, type = "Fhat", stepfun = TRUE)
-    dFtmin1 <- sapply(1:n1, function(i) dQRtmin1F[[i]](treated.tmin1$dy[i]))
-    dQRtQ <- predict(dQRt, newdata = treated.t, type = "Qhat", stepfun = TRUE) ## predict for the treated guys even though estimate with the untreated groups
-
-    dQt <- sapply(1:n1, function(i) dQRtQ[[i]](dFtmin1[i]))
+    dFtmin1 <- qr_cdf(qr_sorted_quantiles(dQRtmin1), u, treated.tmin1$dy)
+    ## predict for the treated guys even though estimate with the untreated groups
+    dQt <- qr_quantile(qr_sorted_quantiles(dQRt, treated.t), u, dFtmin1)
 
     yvals <- unique(rbind.data.frame(treated.t, untreated.t)$y)
     yvals <- sort(yvals)

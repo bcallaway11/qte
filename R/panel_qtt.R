@@ -10,7 +10,7 @@
 #   All three attgt_fun/subset_fun functions follow the ptetools patterns used
 #   by cic_gt, qdid_gt, mdid_gt, and ddid_gt.
 # Author: Brant Callaway
-# Last update: 2026-05-21
+# Last update: 2026-11-14
 # Date created: 2026-05-20
 # =============================================================================
 
@@ -221,7 +221,6 @@ panel_qtt_gt <- function(gt_data, xformula = ~1, ...) {
   # Sampling weights are passed to rq() throughout.
   if (length(BMisc::rhs_vars(xformula)) > 0) {
     u_seq   <- seq(0.01, 0.99, 0.01)
-    n1      <- nrow(pre2_trt)
     yformla <- BMisc::toformula("Y", BMisc::rhs_vars(xformula)) # nolint: object_name_linter
 
     # --- Rosenblatt step (conditioned on pre2 covariates throughout) ---
@@ -232,11 +231,10 @@ panel_qtt_gt <- function(gt_data, xformula = ~1, ...) {
     QR_Y_pre2_trt <- suppressWarnings(rq(yformla, data = pre2_trt, tau = u_seq, weights = .w)) # nolint: object_name_linter
     QR_Y_pre1_trt <- suppressWarnings(rq(yformla, data = pre1_trt, tau = u_seq, weights = .w)) # nolint: object_name_linter
 
-    QR_Y_pre2F <- predict(QR_Y_pre2_trt, newdata = pre2_trt, type = "Fhat", stepfun = TRUE) # nolint: object_name_linter
-    u <- sapply(seq_len(n1), function(i) QR_Y_pre2F[[i]](pre2_trt$Y[i]))
-
-    QR_Y_pre1Q <- predict(QR_Y_pre1_trt, newdata = pre2_trt, type = "Qhat", stepfun = TRUE) # nolint: object_name_linter
-    L <- sapply(seq_len(n1), function(i) QR_Y_pre1Q[[i]](u[i])) # nolint: object_name_linter
+    # rearranged (monotone) conditional quantiles throughout; see
+    # qr_sorted_quantiles() for why predict(..., stepfun = TRUE) isn't used
+    u <- qr_cdf(qr_sorted_quantiles(QR_Y_pre2_trt, pre2_trt), u_seq, pre2_trt$Y)
+    L <- qr_quantile(qr_sorted_quantiles(QR_Y_pre1_trt, pre2_trt), u_seq, u) # nolint: object_name_linter
 
     # --- Copula-stability step ---
     # QR_dY_trt: fit on treated units with pre2 covariates and dY_trt outcome
@@ -251,12 +249,10 @@ panel_qtt_gt <- function(gt_data, xformula = ~1, ...) {
     QR_dY_trt  <- suppressWarnings(rq(yformla, data = dY_trt_data,  tau = u_seq, weights = .w)) # nolint: object_name_linter
     QR_dY_ctrl <- suppressWarnings(rq(yformla, data = dY_ctrl_data, tau = u_seq, weights = .w)) # nolint: object_name_linter
 
-    QR_dY_trtF <- predict(QR_dY_trt, newdata = dY_trt_data, type = "Fhat", stepfun = TRUE) # nolint: object_name_linter
-    v <- sapply(seq_len(n1), function(i) QR_dY_trtF[[i]](dY_trt[i]))
+    v <- qr_cdf(qr_sorted_quantiles(QR_dY_trt, dY_trt_data), u_seq, dY_trt)
 
     # QR_dY_ctrl evaluated at treated pre1 covariates (matching ctrl model's X)
-    QR_dY_ctrlQ <- predict(QR_dY_ctrl, newdata = pre1_trt, type = "Qhat", stepfun = TRUE) # nolint: object_name_linter
-    C <- sapply(seq_len(n1), function(i) QR_dY_ctrlQ[[i]](v[i])) # nolint: object_name_linter
+    C <- qr_quantile(qr_sorted_quantiles(QR_dY_ctrl, pre1_trt), u_seq, v) # nolint: object_name_linter
 
     kcf <- L + C
 
