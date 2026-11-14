@@ -70,12 +70,19 @@ qr_sorted_quantiles <- function(fit, newdata) {
 
 #' @title Conditional CDF and quantile function from sorted QR predictions
 #'
-#' @description Step-function evaluation matching quantreg's
-#'   \code{predict(..., stepfun = TRUE)} conventions:
-#'   \code{qr_cdf} returns the largest \code{tau_k} whose predicted quantile
-#'   is \code{<= y} (\code{tau_1} below the first quantile), and
-#'   \code{qr_quantile} returns the predicted quantile at the largest
-#'   \code{tau_k <= p} (the first quantile below \code{tau_1}).
+#' @description Evaluate the conditional CDF (\code{qr_cdf}) or quantile
+#'   function (\code{qr_quantile}) for each row of \code{q_sorted} by linear
+#'   interpolation between the estimated quantiles \code{(tau_k, Q(tau_k))}.
+#'   Interpolating, rather than using a step function, avoids rounding ranks
+#'   down to the quantile grid, which biases CiC-type counterfactuals.
+#'
+#'   Beyond the grid the functions are flat: \code{qr_cdf} returns
+#'   \code{tau_1} below the first quantile and \code{tau_K} above the last,
+#'   and \code{qr_quantile} returns the first (last) quantile for \code{p}
+#'   below \code{tau_1} (above \code{tau_K}). In simulations, extrapolating
+#'   with exponential tails reduced bias only slightly under normal errors
+#'   and badly hurt heavy-tailed (t3) designs, and estimating extra extreme
+#'   quantiles added more variance than it removed bias.
 #'
 #' @param q_sorted matrix from \code{qr_sorted_quantiles()}.
 #' @param taus quantile levels, \code{fit$tau}.
@@ -86,7 +93,12 @@ qr_sorted_quantiles <- function(fit, newdata) {
 #' @keywords internal
 qr_cdf <- function(q_sorted, taus, y) {
   vapply(seq_along(y), function(i) {
-    taus[max(1L, findInterval(y[i], q_sorted[i, ]))]
+    q <- q_sorted[i, ]
+    # degenerate row (all quantiles equal): approx() needs two distinct x's
+    if (q[1] == q[length(q)]) return(if (y[i] < q[1]) taus[1] else taus[length(taus)])
+    # ties (equal adjacent quantiles after rearrangement) get the mean tau
+    stats::approx(q, taus, xout = y[i], rule = 2,
+                  ties = list("ordered", mean))$y
   }, numeric(1))
 }
 
@@ -94,6 +106,6 @@ qr_cdf <- function(q_sorted, taus, y) {
 #' @keywords internal
 qr_quantile <- function(q_sorted, taus, p) {
   vapply(seq_along(p), function(i) {
-    q_sorted[i, max(1L, findInterval(p[i], taus))]
+    stats::approx(taus, q_sorted[i, ], xout = p[i], rule = 2)$y
   }, numeric(1))
 }

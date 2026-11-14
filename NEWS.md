@@ -8,9 +8,13 @@
   * Conditional ranks are no longer one quantile-grid step (0.01) too low.
     This came from quantreg's `predict(..., type = "Fhat", stepfun = TRUE)`
     and biased the counterfactual distribution downward.
+  * Conditional CDFs and quantile functions are now linearly interpolated
+    between the estimated quantiles, not step functions, so ranks are no
+    longer rounded down to the quantile grid. Beyond the first and last
+    estimated quantiles they stay flat (no tail extrapolation).
 
   Covariate-adjusted estimates change as a result. In a simulation where
-  conditional CiC holds, the bias of the ATT falls from 0.15 to 0.07.
+  conditional CiC holds exactly, the bias of the ATT falls from 0.15 to 0.02.
   Estimates without covariates are unchanged.
 
 # qte 2.0.0
