@@ -10,7 +10,7 @@
 #   All three attgt_fun/subset_fun functions follow the ptetools patterns used
 #   by cic_gt, qdid_gt, mdid_gt, and ddid_gt.
 # Author: Brant Callaway
-# Last update: 2026-11-14
+# Last update: 2026-11-15
 # Date created: 2026-05-20
 # =============================================================================
 
@@ -125,6 +125,10 @@ three_period_subset <- function(data,
 #'   (\code{"pre2"}, \code{"pre1"}, \code{"post"}), \code{D}, \code{Y},
 #'   \code{id}, \code{.w}, and any covariate columns.
 #' @param xformula One-sided formula for covariates. Default \code{~1}.
+#' @param cond_dist How the conditional distributions are estimated when
+#'   \code{xformula} has covariates: \code{"qr"} (default) for quantile
+#'   regression or \code{"dr"} for distribution regression. See
+#'   \code{\link{cic_gt}}. Ignored without covariates.
 #' @param ... Additional arguments passed through by \code{ptetools}.
 #'
 #' @return A \code{ptetools::attgt_noif} object with \code{att} and, in
@@ -139,7 +143,8 @@ three_period_subset <- function(data,
 #' @importFrom quantreg rq
 #'
 #' @export
-panel_qtt_gt <- function(gt_data, xformula = ~1, ...) {
+panel_qtt_gt <- function(gt_data, xformula = ~1, cond_dist = c("qr", "dr"), ...) {
+  cond_dist <- match.arg(cond_dist)
   gt_data <- droplevels(gt_data)
 
   # extract the five cells; pre2_ctrl is not needed for identification
@@ -210,8 +215,9 @@ panel_qtt_gt <- function(gt_data, xformula = ~1, ...) {
   # Fte identified because kcf is unit-indexed (treated group)
   Fte <- BMisc::weighted_ecdf(Y_post_trt - kcf, weights = w_post_trt) # nolint: object_name_linter
 
-  # Covariate adjustment: four QR models replace the unconditional rank transforms.
-  # Sampling weights are passed to rq() throughout.
+  # Covariate adjustment: four conditional distribution models (quantile or
+  # distribution regression, cond_dist) replace the unconditional rank
+  # transforms. Sampling weights enter all four fits.
   if (length(BMisc::rhs_vars(xformula)) > 0) {
     u_seq   <- seq(0.01, 0.99, 0.01)
     yformla <- BMisc::toformula("Y", BMisc::rhs_vars(xformula)) # nolint: object_name_linter
@@ -221,13 +227,13 @@ panel_qtt_gt <- function(gt_data, xformula = ~1, ...) {
     # L_i = Q(Y^pre1 | u_i, X_pre2_i, D=1) via QR on pre1 treated,
     #        predicted at pre2 covariates (copula transfers conditional rank
     #        across pre2 → pre1 marginals holding X fixed)
-    QR_Y_pre2_trt <- suppressWarnings(rq(yformla, data = pre2_trt, tau = u_seq, weights = .w)) # nolint: object_name_linter
-    QR_Y_pre1_trt <- suppressWarnings(rq(yformla, data = pre1_trt, tau = u_seq, weights = .w)) # nolint: object_name_linter
+    fit_pre2_trt <- cond_fit(yformla, pre2_trt, cond_dist, u_seq)
+    fit_pre1_trt <- cond_fit(yformla, pre1_trt, cond_dist, u_seq)
 
-    # rearranged (monotone) conditional quantiles throughout; see
-    # qr_sorted_quantiles() for why predict(..., stepfun = TRUE) isn't used
-    u <- qr_cdf(qr_sorted_quantiles(QR_Y_pre2_trt, pre2_trt), u_seq, pre2_trt$Y)
-    L <- qr_quantile(qr_sorted_quantiles(QR_Y_pre1_trt, pre2_trt), u_seq, u) # nolint: object_name_linter
+    # rearranged (monotone) conditional distributions throughout; see
+    # qr_sorted_quantiles() and dr_cdf_matrix()
+    u <- cond_cdf(fit_pre2_trt, pre2_trt, pre2_trt$Y)
+    L <- cond_quantile(fit_pre1_trt, pre2_trt, u) # nolint: object_name_linter
 
     # --- Copula-stability step ---
     # QR_dY_trt: fit on treated units with pre2 covariates and dY_trt outcome
@@ -239,13 +245,13 @@ panel_qtt_gt <- function(gt_data, xformula = ~1, ...) {
     dY_ctrl_data   <- pre1_ctrl  # nolint: object_name_linter
     dY_ctrl_data$Y <- dY_ctrl
 
-    QR_dY_trt  <- suppressWarnings(rq(yformla, data = dY_trt_data,  tau = u_seq, weights = .w)) # nolint: object_name_linter
-    QR_dY_ctrl <- suppressWarnings(rq(yformla, data = dY_ctrl_data, tau = u_seq, weights = .w)) # nolint: object_name_linter
+    fit_dy_trt  <- cond_fit(yformla, dY_trt_data,  cond_dist, u_seq)
+    fit_dy_ctrl <- cond_fit(yformla, dY_ctrl_data, cond_dist, u_seq)
 
-    v <- qr_cdf(qr_sorted_quantiles(QR_dY_trt, dY_trt_data), u_seq, dY_trt)
+    v <- cond_cdf(fit_dy_trt, dY_trt_data, dY_trt)
 
-    # QR_dY_ctrl evaluated at treated pre1 covariates (matching ctrl model's X)
-    C <- qr_quantile(qr_sorted_quantiles(QR_dY_ctrl, pre1_trt), u_seq, v) # nolint: object_name_linter
+    # control change model evaluated at treated pre1 covariates
+    C <- cond_quantile(fit_dy_ctrl, pre1_trt, v) # nolint: object_name_linter
 
     kcf <- L + C
 
@@ -470,6 +476,10 @@ panel_qtt_long_agg <- function(attgt.list, ptep, extra_gt_returns) {
 #' @param idname Name of the unit id variable (required).
 #' @param data A data frame.
 #' @param xformula One-sided formula for covariates. Default \code{~1}.
+#' @param cond_dist How conditional distributions are estimated when
+#'   \code{xformula} has covariates: \code{"qr"} (default) for quantile
+#'   regression or \code{"dr"} for distribution regression. See
+#'   \code{\link{cic_gt}}. Ignored without covariates.
 #' @param weightsname Name of the sampling weights column. Default \code{NULL}.
 #' @param control_group \code{"notyettreated"} (default) or
 #'   \code{"nevertreated"}.
@@ -512,6 +522,7 @@ panel_qtt <- function(yname,
                       idname,
                       data,
                       xformula      = ~1,
+                      cond_dist     = c("qr", "dr"),
                       weightsname   = NULL,
                       control_group = "notyettreated",
                       anticipation  = 0,
@@ -524,6 +535,7 @@ panel_qtt <- function(yname,
                       pre_copula    = "long") {
 
   pre_copula <- match.arg(pre_copula, c("long", "short"))
+  cond_dist  <- match.arg(cond_dist)
 
   # Select aggte_fun based on gt_type and pre_copula.
   # For ATT mode, attgt_pte_aggregations already drops NA cells (complete.cases)
@@ -556,6 +568,7 @@ panel_qtt <- function(yname,
     attgt_fun        = panel_qtt_gt,
     aggte_fun        = aggte_fun,
     xformula         = xformula,
+    cond_dist        = cond_dist,
     weightsname      = weightsname,
     control_group    = control_group,
     anticipation     = anticipation,

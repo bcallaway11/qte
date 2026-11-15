@@ -32,6 +32,7 @@ compute.unc_qte <- function(qp) {
   setupData(qp)
   bootstrapiter <- qp$bootstrapiter
   est_method    <- if (is.null(qp$est_method)) "ipw" else qp$est_method
+  cond_dist     <- if (is.null(qp$cond_dist))  "qr"  else qp$cond_dist
   target        <- if (is.null(qp$target))     "qte" else qp$target
 
   D    <- data[, treat]
@@ -84,36 +85,29 @@ compute.unc_qte <- function(qp) {
     }
 
   # ---------------------------------------------------------------------------
-  # OR branch: invert quantile regression to approximate marginal distribution
+  # OR branch: average conditional distributions over X (via predicted
+  # conditional quantiles) to approximate the marginal distribution
   # ---------------------------------------------------------------------------
   } else if (est_method == "or") {
-    # Fit conditional quantile model on untreated (counterfactual arm).
-    # Suppress "Solution may be nonunique" from quantreg LP solver — benign.
-    M0 <- suppressWarnings(
-      quantreg::rq(or_formla, tau = tau_grid, data = untreated)
-    )
+    # Conditional outcome model on untreated (counterfactual arm): quantile or
+    # distribution regression (cond_dist); see cond_fit().
+    M0 <- cond_fit(or_formla, untreated, cond_dist, tau_grid, weighted = FALSE)
 
     if (target == "qte") {
       # Predict at all n units; integrate out X to get marginal distribution
-      pred0 <- as.matrix(predict(M0, newdata = data))
-      # Rearrange each unit's conditional quantile function to be monotone
-      pred0 <- t(apply(pred0, 1, sort))
+      pred0 <- cond_quantile_matrix(M0, data, tau_grid)
       w_rep <- rep(w, each = K)
       q0    <- weighted_quantile(probs, c(t(pred0)), w_rep, norm = TRUE)
 
-      M1    <- suppressWarnings(
-        quantreg::rq(or_formla, tau = tau_grid, data = treated)
-      )
-      pred1 <- as.matrix(predict(M1, newdata = data))
-      pred1 <- t(apply(pred1, 1, sort))
+      M1    <- cond_fit(or_formla, treated, cond_dist, tau_grid, weighted = FALSE)
+      pred1 <- cond_quantile_matrix(M1, data, tau_grid)
       q1    <- weighted_quantile(probs, c(t(pred1)), w_rep, norm = TRUE)
 
       ate <- weighted_mean(c(t(pred1)), w_rep) -
              weighted_mean(c(t(pred0)), w_rep)
     } else {
       # QTT: counterfactual predicted at treated units only
-      pred0  <- as.matrix(predict(M0, newdata = treated))
-      pred0  <- t(apply(pred0, 1, sort))
+      pred0  <- cond_quantile_matrix(M0, treated, tau_grid)
       wt_rep <- rep(treated[, wname], each = K)
       q0     <- weighted_quantile(probs, c(t(pred0)), wt_rep, norm = TRUE)
 
@@ -130,13 +124,10 @@ compute.unc_qte <- function(qp) {
     pscore.reg <- glm(ps_formla, data = data, family = binomial(link = method))
     pscore     <- pmax(1e-6, pmin(1 - 1e-6, fitted(pscore.reg)))
 
-    # Outcome model for counterfactual arm.
-    # Suppress "Solution may be nonunique" from quantreg LP solver — benign.
-    M0        <- suppressWarnings(
-      quantreg::rq(or_formla, tau = tau_grid, data = untreated)
-    )
-    pred0_all <- as.matrix(predict(M0, newdata = data))
-    pred0_all <- t(apply(pred0_all, 1, sort))
+    # Outcome model for counterfactual arm (quantile or distribution
+    # regression, cond_dist; see cond_fit()).
+    M0        <- cond_fit(or_formla, untreated, cond_dist, tau_grid, weighted = FALSE)
+    pred0_all <- cond_quantile_matrix(M0, data, tau_grid)
 
     # Evaluate CDFs at each observed Y value; approx() inverts
     y_grid <- sort(unique(y))
@@ -151,11 +142,8 @@ compute.unc_qte <- function(qp) {
       q0 <- approx(F0[!duplicated(F0)], y_grid[!duplicated(F0)], xout = probs, rule = 2)$y
 
       # AIPW CDF for Y(1)
-      M1        <- suppressWarnings(
-        quantreg::rq(or_formla, tau = tau_grid, data = treated)
-      )
-      pred1_all <- as.matrix(predict(M1, newdata = data))
-      pred1_all <- t(apply(pred1_all, 1, sort))
+      M1        <- cond_fit(or_formla, treated, cond_dist, tau_grid, weighted = FALSE)
+      pred1_all <- cond_quantile_matrix(M1, data, tau_grid)
       F1 <- vapply(y_grid, function(yy) {
         F_cond <- rowMeans(pred1_all <= yy)
         mean(F_cond + D / pscore * (as.numeric(y <= yy) - F_cond))
@@ -272,6 +260,11 @@ compute.unc_qte <- function(qp) {
 #'     \item \code{"or"} — outcome regression via quantile regression inversion
 #'     \item \code{"aipw"} — doubly-robust augmented IPW
 #'   }
+#' @param cond_dist For \code{est_method = "or"} or \code{"aipw"}, how the
+#'   conditional outcome distributions are estimated: \code{"qr"} (default)
+#'   for quantile regression or \code{"dr"} for distribution regression (a
+#'   logit of \eqn{1\{Y \le y\}} on the covariates at a grid of thresholds;
+#'   Chernozhukov, Fernandez-Val and Melly 2013). Ignored for \code{"ipw"}.
 #' @param target target parameter; one of:
 #'   \itemize{
 #'     \item \code{"qte"} (default) — population QTE:
@@ -349,10 +342,12 @@ unc_qte <- function(yname, dname, data,
                     method = c("logit", "probit"),
                     est_method = c("ipw", "or", "aipw"),
                     target = c("qte", "qtt"),
+                    cond_dist = c("qr", "dr"),
                     cl = 1) {
   method     <- match.arg(method)
   est_method <- match.arg(est_method)
   target     <- match.arg(target)
+  cond_dist  <- match.arg(cond_dist)
   boot_type  <- match.arg(boot_type)
 
   formla <- as.formula(paste(yname, "~", dname))
@@ -366,6 +361,7 @@ unc_qte <- function(yname, dname, data,
                   se = TRUE, retEachIter = FALSE, bootstrapiter = FALSE,
                   pl = pl, cores = cores,
                   est_method = est_method, target = target)
+  qp$cond_dist <- cond_dist
 
   firpo.qte <- compute.unc_qte(qp)
 

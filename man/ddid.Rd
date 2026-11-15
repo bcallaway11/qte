@@ -11,6 +11,7 @@ ddid(
   idname,
   data,
   xformula = ~1,
+  cond_dist = c("qr", "dr"),
   weightsname = NULL,
   control_group = "notyettreated",
   anticipation = 0,
@@ -36,6 +37,11 @@ ddid(
 
 \item{xformula}{One-sided formula for covariates. Default \code{~1} uses no
 covariates.}
+
+\item{cond_dist}{How conditional distributions are estimated when
+\code{xformula} has covariates: \code{"qr"} (default) for quantile
+regression or \code{"dr"} for distribution regression. See
+\code{\link{cic_gt}}. Ignored without covariates.}
 
 \item{weightsname}{Name of the column in \code{data} containing sampling
 weights. Default \code{NULL} uses equal weights.}

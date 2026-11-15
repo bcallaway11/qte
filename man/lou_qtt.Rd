@@ -13,6 +13,7 @@ lou_qtt(
   xformula = ~1,
   lagged_outcome_cov = TRUE,
   est_method = c("ipw", "or", "aipw"),
+  cond_dist = c("qr", "dr"),
   panel = TRUE,
   weightsname = NULL,
   control_group = "notyettreated",
@@ -49,6 +50,12 @@ score and outcome models. Requires \code{panel = TRUE}.}
 
 \item{est_method}{Estimation method: \code{"ipw"} (default),
 \code{"or"}, or \code{"aipw"}. See Details.}
+
+\item{cond_dist}{For \code{est_method = "or"} or \code{"aipw"}, how the
+conditional distribution of the untreated outcome is estimated:
+\code{"qr"} (default) for quantile regression or \code{"dr"} for
+distribution regression. See \code{\link{cic_gt}}. Ignored for
+\code{"ipw"}.}
 
 \item{panel}{Logical; \code{TRUE} (default) for panel data,
 \code{FALSE} for repeated cross sections. \code{lagged_outcome_cov = TRUE}

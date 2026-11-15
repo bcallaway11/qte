@@ -50,6 +50,10 @@
 #'   pre-period (\code{QR0tmin1}), and the treated pre-period quantile is
 #'   replaced by a conditional quantile (\code{QR1tmin1}) evaluated at that
 #'   rank and the control unit's own covariate values.
+#' @param cond_dist How the conditional distributions are estimated when
+#'   \code{xformula} has covariates: \code{"qr"} (default) for quantile
+#'   regression or \code{"dr"} for distribution regression. See
+#'   \code{\link{cic_gt}}. Ignored without covariates.
 #' @param ... Additional arguments passed through by \code{ptetools}; not used
 #'   directly.
 #'
@@ -67,7 +71,8 @@
 #' @importFrom quantreg rq
 #'
 #' @export
-ddid_gt <- function(gt_data, xformula = ~1, ...) {
+ddid_gt <- function(gt_data, xformula = ~1, cond_dist = c("qr", "dr"), ...) {
+  cond_dist <- match.arg(cond_dist)
   gt_data <- droplevels(gt_data)
 
   # extract and sort all four cells by id (panel structure enforced by ddid())
@@ -115,24 +120,23 @@ ddid_gt <- function(gt_data, xformula = ~1, ...) {
   F1  <- BMisc::weighted_ecdf(Y_post_trt, weights = w_post_trt) # nolint: object_name_linter
 
   # covariate adjustment: replace unconditional rank u_j with a conditional
-  # rank from QR0tmin1 and unconditional Q_{1,pre}(u_j) with a conditional
-  # quantile from QR1tmin1, both evaluated at the control unit's covariates.
-  # Sampling weights are passed to rq().
+  # rank in the control pre-period distribution and unconditional
+  # Q_{1,pre}(u_j) with a conditional quantile of the treated pre-period
+  # distribution, both evaluated at the control unit's covariates. Estimated
+  # by quantile or distribution regression (cond_dist), with sampling weights.
   if (length(BMisc::rhs_vars(xformula)) > 0) {
     u_seq    <- seq(0.01, 0.99, 0.01)
     yformla  <- BMisc::toformula("Y", BMisc::rhs_vars(xformula)) # nolint: object_name_linter
 
-    QR0tmin1 <- suppressWarnings(rq(yformla, data = ctrl_pre, tau = u_seq, weights = .w)) # nolint: object_name_linter
-    QR1tmin1 <- suppressWarnings(rq(yformla, data = trt_pre,  tau = u_seq, weights = .w)) # nolint: object_name_linter
+    fit0tmin1 <- cond_fit(yformla, ctrl_pre, cond_dist, u_seq)
+    fit1tmin1 <- cond_fit(yformla, trt_pre,  cond_dist, u_seq)
 
     # conditional rank of each control unit in the control pre-period
-    # distribution, from rearranged (monotone) predicted quantiles; see
-    # qr_sorted_quantiles() for why predict(..., stepfun = TRUE) isn't used
-    rank0tmin1 <- qr_cdf(qr_sorted_quantiles(QR0tmin1), u_seq, ctrl_pre$Y)
+    # distribution (rearranged; see qr_sorted_quantiles(), dr_cdf_matrix())
+    rank0tmin1 <- cond_cdf(fit0tmin1, ctrl_pre, ctrl_pre$Y)
 
     # conditional treated pre-period quantile at each control unit's rank and X
-    ytmin1 <- qr_quantile(qr_sorted_quantiles(QR1tmin1, ctrl_pre), u_seq,
-                          rank0tmin1)
+    ytmin1 <- cond_quantile(fit1tmin1, ctrl_pre, rank0tmin1)
 
     kcf <- delta_ctrl + ytmin1
 
@@ -178,6 +182,10 @@ ddid_gt <- function(gt_data, xformula = ~1, ...) {
 #' @param data A data frame.
 #' @param xformula One-sided formula for covariates. Default \code{~1} uses no
 #'   covariates.
+#' @param cond_dist How conditional distributions are estimated when
+#'   \code{xformula} has covariates: \code{"qr"} (default) for quantile
+#'   regression or \code{"dr"} for distribution regression. See
+#'   \code{\link{cic_gt}}. Ignored without covariates.
 #' @param weightsname Name of the column in \code{data} containing sampling
 #'   weights. Default \code{NULL} uses equal weights.
 #' @param control_group Which units to use as the comparison group:
@@ -226,6 +234,7 @@ ddid <- function(yname,
                  idname,
                  data,
                  xformula      = ~1,
+                 cond_dist     = c("qr", "dr"),
                  weightsname   = NULL,
                  control_group = "notyettreated",
                  anticipation  = 0,
@@ -235,6 +244,7 @@ ddid <- function(yname,
                  cl            = 1,
                  gt_type       = "att",
                  probs         = NULL) {
+  cond_dist <- match.arg(cond_dist)
 
   aggte_fun <- if (gt_type == "qtt") {
     ptetools::qtt_pte_aggregations
@@ -255,6 +265,7 @@ ddid <- function(yname,
     attgt_fun       = ddid_gt,
     aggte_fun       = aggte_fun,
     xformula        = xformula,
+    cond_dist       = cond_dist,
     weightsname     = weightsname,
     control_group   = control_group,
     anticipation    = anticipation,

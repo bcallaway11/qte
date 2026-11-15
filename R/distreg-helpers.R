@@ -82,17 +82,19 @@ dr_logit <- function(xs, z, w, b, lambda, maxit = 50L, tol = 1e-10) {
 # --- Fit ----------------------------------------------------------------------
 
 # Fit DR for `formula` (response Y, covariates on the right) on `data`, with
-# sampling weights from the `.w` column (as the QR fits use). One penalized
-# logit per threshold, warm-started from the previous threshold.
+# sampling weights from the `.w` column when `weighted` (as the QR fits use).
+# One penalized logit per threshold, warm-started from the previous one.
 #
-# Returns an object of class "qte_dr": coef (n_thr x p, original covariate scale),
-# grid, support, discrete flag, and the terms needed to predict.
-dr_fit <- function(formula, data, lambda = getOption("qte.dr_lambda", 1e-4)) {
+# Returns an object of class "qte_dr": coef (n_thr x p, original covariate
+# scale), grid, support, discrete flag, sample range, and the terms needed to
+# predict.
+dr_fit <- function(formula, data, weighted = TRUE,
+                   lambda = getOption("qte.dr_lambda", 1e-4)) {
   mf <- stats::model.frame(formula, data)
   y <- stats::model.response(mf)
   tt <- stats::delete.response(stats::terms(mf))
   xmat <- stats::model.matrix(tt, mf)
-  w <- if (is.null(data$.w)) rep(1, nrow(xmat)) else data$.w
+  w <- if (!weighted || is.null(data$.w)) rep(1, nrow(xmat)) else data$.w
   w <- w / sum(w)
   g <- dr_grid(y, w)
 
@@ -184,8 +186,9 @@ dr_anchor <- function(fit, cdf_mat) {
 }
 
 # Conditional CDF of unit i at y[i]. Continuous outcomes: linear
-# interpolation between thresholds, flat beyond the grid (as qr_cdf).
-# Discrete outcomes: the step-function CDF at the support points.
+# interpolation between the anchored thresholds (see dr_anchor()); 0 below
+# the sample minimum, 1 above the maximum. Discrete outcomes: the
+# step-function CDF at the support points.
 dr_cdf <- function(fit, newdata, y) {
   cdf_mat <- dr_cdf_matrix(fit, newdata)
   n <- nrow(cdf_mat)
@@ -221,14 +224,12 @@ dr_cdf <- function(fit, newdata, y) {
   out
 }
 
-# Conditional quantile of unit i at p[i]: the inverse of dr_cdf. Continuous:
-# linear interpolation, flat beyond the grid (as qr_quantile). Discrete: the
-# smallest support point whose CDF is at least p.
-dr_quantile <- function(fit, newdata, p) {
-  cdf_mat <- dr_cdf_matrix(fit, newdata)
+# Invert sorted conditional CDFs: for each row i of `cdf_mat` (from
+# dr_cdf_matrix()), the quantile at p[i]. Continuous: linear interpolation
+# between the anchored thresholds (see dr_anchor()). Discrete: the smallest
+# support point whose CDF is at least p.
+dr_invert <- function(fit, cdf_mat, p) {
   n <- nrow(cdf_mat)
-  n_thr <- ncol(cdf_mat)
-  g <- fit$grid
   if (fit$discrete) {
     k <- rowSums(cdf_mat < p)  # thresholds with CDF below p
     return(fit$support[k + 1L])
@@ -252,4 +253,72 @@ dr_quantile <- function(fit, newdata, p) {
     out[mid] <- g[kk] + (p[mid] - f0) / (f1 - f0) * (g[kk + 1L] - g[kk])
   }
   out
+}
+
+# Conditional quantile of unit i at p[i]: the inverse of dr_cdf().
+dr_quantile <- function(fit, newdata, p) {
+  dr_invert(fit, dr_cdf_matrix(fit, newdata), p)
+}
+
+# n x K matrix of conditional quantiles at the probabilities `taus` (one row
+# per row of `newdata`), the DR counterpart of predicting a quantile
+# regression at a vector of tau. The CDF matrix is computed once.
+dr_quantile_matrix <- function(fit, newdata, taus) {
+  cdf_mat <- dr_cdf_matrix(fit, newdata)
+  n <- nrow(cdf_mat)
+  vapply(taus, function(tau) dr_invert(fit, cdf_mat, rep(tau, n)), numeric(n))
+}
+
+# =============================================================================
+# Dispatch: one interface for cond_dist = "qr" and "dr"
+# =============================================================================
+
+# The covariate-adjusted estimators call these instead of quantreg/DR
+# directly, so each estimator branches on cond_dist in one place. The "qr"
+# paths reproduce the previous code exactly (same rq() calls, rearrangement
+# and interpolation).
+
+# Fit a conditional distribution model of `formula` on `data`.
+#   cond_dist "qr" (quantile regression at `taus`) or "dr".
+#   cache     reuse the last identical fit (cached_rq() / cached_dr()); for
+#             the post-period control fit shared across cohorts.
+#   weighted  use the `.w` column as sampling weights.
+cond_fit <- function(formula, data, cond_dist = c("qr", "dr"),
+                     taus = seq(0.01, 0.99, 0.01), cache = FALSE,
+                     weighted = TRUE) {
+  cond_dist <- match.arg(cond_dist)
+  if (cond_dist == "dr") {
+    if (cache && weighted) return(cached_dr(formula, data))
+    return(dr_fit(formula, data, weighted = weighted))
+  }
+  fit <- if (cache && weighted) {
+    cached_rq(formula, data, taus)
+  } else if (weighted) {
+    suppressWarnings(quantreg::rq(formula, data = data, tau = taus,
+                                  weights = .w))
+  } else {
+    suppressWarnings(quantreg::rq(formula, tau = taus, data = data))
+  }
+  structure(list(fit = fit, taus = taus), class = "qte_qr")
+}
+
+# Conditional CDF of unit i (row i of `newdata`) at y[i].
+cond_cdf <- function(model, newdata, y) {
+  if (inherits(model, "qte_dr")) return(dr_cdf(model, newdata, y))
+  qr_cdf(qr_sorted_quantiles(model$fit, newdata), model$taus, y)
+}
+
+# Conditional quantile of unit i (row i of `newdata`) at p[i].
+cond_quantile <- function(model, newdata, p) {
+  if (inherits(model, "qte_dr")) return(dr_quantile(model, newdata, p))
+  qr_quantile(qr_sorted_quantiles(model$fit, newdata), model$taus, p)
+}
+
+# n x K matrix of conditional quantiles at `taus` (rows sorted), for the
+# estimators that pool predicted quantiles to integrate out the covariates.
+cond_quantile_matrix <- function(model, newdata, taus = model$taus) {
+  if (inherits(model, "qte_dr")) {
+    return(dr_quantile_matrix(model, newdata, taus))
+  }
+  t(apply(as.matrix(stats::predict(model$fit, newdata = newdata)), 1, sort))
 }

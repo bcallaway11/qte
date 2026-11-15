@@ -4,7 +4,7 @@
 \alias{panel_qtt_gt}
 \title{Panel QTT: group-time estimator (Callaway-Li 2019)}
 \usage{
-panel_qtt_gt(gt_data, xformula = ~1, ...)
+panel_qtt_gt(gt_data, xformula = ~1, cond_dist = c("qr", "dr"), ...)
 }
 \arguments{
 \item{gt_data}{A \code{gt_data_frame} with columns \code{name}
@@ -12,6 +12,11 @@ panel_qtt_gt(gt_data, xformula = ~1, ...)
 \code{id}, \code{.w}, and any covariate columns.}
 
 \item{xformula}{One-sided formula for covariates. Default \code{~1}.}
+
+\item{cond_dist}{How the conditional distributions are estimated when
+\code{xformula} has covariates: \code{"qr"} (default) for quantile
+regression or \code{"dr"} for distribution regression. See
+\code{\link{cic_gt}}. Ignored without covariates.}
 
 \item{...}{Additional arguments passed through by \code{ptetools}.}
 }

@@ -134,23 +134,14 @@ cic_gt <- function(gt_data, xformula = ~1, cond_dist = c("qr", "dr"), ...) {
     }
 
     yformla  <- BMisc::toformula("Y", BMisc::rhs_vars(xformula))
-    if (cond_dist == "qr") {
-      # post-period control fit: the same for all cohorts treated by this
-      # period, so reused across those cells (see cached_rq())
-      QR0t     <- cached_rq(yformla, post_ctrl, u_seq) # nolint: object_name_linter
-      QR0tmin1 <- suppressWarnings(rq(yformla, data = pre_ctrl,  tau = u_seq, weights = .w)) # nolint: object_name_linter
+    # post-period control fit: the same for all cohorts treated by this
+    # period, so reused across those cells (cache = TRUE)
+    fit0t    <- cond_fit(yformla, post_ctrl, cond_dist, u_seq, cache = TRUE)
+    fit0tmin1 <- cond_fit(yformla, pre_ctrl, cond_dist, u_seq)
 
-      # conditional ranks from rearranged (monotone) predicted quantiles; see
-      # qr_sorted_quantiles() for why predict(..., stepfun = TRUE) isn't used
-      F0tmin1 <- qr_cdf(qr_sorted_quantiles(QR0tmin1, pre_trt), u_seq, pre_trt$Y) # nolint: object_name_linter
-    } else {
-      # distribution regression: conditional CDFs directly, rearranged across
-      # thresholds (see dr_fit(), dr_cdf()); the post-period fit is cached
-      # across cohorts as with QR
-      DR0t     <- cached_dr(yformla, post_ctrl) # nolint: object_name_linter
-      DR0tmin1 <- dr_fit(yformla, pre_ctrl) # nolint: object_name_linter
-      F0tmin1  <- dr_cdf(DR0tmin1, pre_trt, pre_trt$Y) # nolint: object_name_linter
-    }
+    # conditional ranks from rearranged (monotone) conditional distributions;
+    # see qr_sorted_quantiles() and dr_cdf_matrix()
+    F0tmin1 <- cond_cdf(fit0tmin1, pre_trt, pre_trt$Y) # nolint: object_name_linter
 
     if (mean(F0tmin1 >= 0.99) + mean(F0tmin1 <= 0.01) > 0.1) {
       warning(paste0(
@@ -159,11 +150,7 @@ cic_gt <- function(gt_data, xformula = ~1, cond_dist = c("qr", "dr"), ...) {
       ))
     }
 
-    y0t <- if (cond_dist == "qr") {
-      qr_quantile(qr_sorted_quantiles(QR0t, pre_trt), u_seq, F0tmin1)
-    } else {
-      dr_quantile(DR0t, pre_trt, F0tmin1)
-    }
+    y0t <- cond_quantile(fit0t, pre_trt, F0tmin1)
 
     att <- weighted.mean(Y_post_trt, w_post_trt) - weighted.mean(y0t, w_pre_trt)
     w_pre_trt_n  <- pre_trt$.w / sum(pre_trt$.w)

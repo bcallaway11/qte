@@ -4,7 +4,7 @@
 \alias{ddid_gt}
 \title{Distributional DiD: group-time estimator}
 \usage{
-ddid_gt(gt_data, xformula = ~1, ...)
+ddid_gt(gt_data, xformula = ~1, cond_dist = c("qr", "dr"), ...)
 }
 \arguments{
 \item{gt_data}{A data frame (typically a \code{gt_data_frame} from
@@ -20,6 +20,11 @@ by a conditional rank estimated via quantile regression on the control
 pre-period (\code{QR0tmin1}), and the treated pre-period quantile is
 replaced by a conditional quantile (\code{QR1tmin1}) evaluated at that
 rank and the control unit's own covariate values.}
+
+\item{cond_dist}{How the conditional distributions are estimated when
+\code{xformula} has covariates: \code{"qr"} (default) for quantile
+regression or \code{"dr"} for distribution regression. See
+\code{\link{cic_gt}}. Ignored without covariates.}
 
 \item{...}{Additional arguments passed through by \code{ptetools}; not used
 directly.}

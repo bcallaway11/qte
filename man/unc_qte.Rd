@@ -18,6 +18,7 @@ unc_qte(
   method = c("logit", "probit"),
   est_method = c("ipw", "or", "aipw"),
   target = c("qte", "qtt"),
+  cond_dist = c("qr", "dr"),
   cl = 1
 )
 }
@@ -68,6 +69,12 @@ supported.}
 \item \code{"qtt"} — QTT (effect on the treated):
 \eqn{Q_{Y(1)|D=1}(\tau) - Q_{Y(0)|D=1}(\tau)}
 }}
+
+\item{cond_dist}{For \code{est_method = "or"} or \code{"aipw"}, how the
+conditional outcome distributions are estimated: \code{"qr"} (default)
+for quantile regression or \code{"dr"} for distribution regression (a
+logit of \eqn{1\{Y \le y\}} on the covariates at a grid of thresholds;
+Chernozhukov, Fernandez-Val and Melly 2013). Ignored for \code{"ipw"}.}
 
 \item{cl}{number of cores for parallel bootstrap. Default 1 (sequential).}
 }

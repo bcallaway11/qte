@@ -4,7 +4,7 @@
 \alias{qdid_gt}
 \title{Quantile Difference-in-Differences: group-time estimator}
 \usage{
-qdid_gt(gt_data, xformula = ~1, ...)
+qdid_gt(gt_data, xformula = ~1, cond_dist = c("qr", "dr"), ...)
 }
 \arguments{
 \item{gt_data}{A data frame (typically a \code{gt_data_frame} from
@@ -16,6 +16,11 @@ referenced by \code{xformula}.}
 \item{xformula}{One-sided formula for covariates. Default \code{~1} uses no
 covariates. With covariates, conditional quantile regressions are used
 following Athey and Imbens (2006).}
+
+\item{cond_dist}{How the conditional distributions are estimated when
+\code{xformula} has covariates: \code{"qr"} (default) for quantile
+regression or \code{"dr"} for distribution regression. See
+\code{\link{cic_gt}}. Ignored without covariates.}
 
 \item{...}{Additional arguments passed through by \code{ptetools}; not used
 directly.}

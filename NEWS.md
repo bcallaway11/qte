@@ -13,13 +13,15 @@
 
 ## New features
 
-* `cic()` and `cic_gt()` gain `cond_dist = c("qr", "dr")`. With covariates,
-  `"dr"` estimates the control group's conditional outcome distributions by
+* The covariate-adjusted estimators gain `cond_dist = c("qr", "dr")`:
+  `cic()`, `qdid()`, `ddid()`, `panel_qtt()` (and their `*_gt()` workhorses),
+  and the outcome-regression and AIPW branches of `lou_qtt()` and `unc_qte()`.
+  With covariates, `"dr"` estimates conditional outcome distributions by
   distribution regression (a logit of 1{Y <= y} on the covariates at a grid of
   thresholds) instead of quantile regression. It handles outcomes with mass
   points (e.g. many zeros) naturally and avoids truncating each unit's
   conditional distribution at its 1st and 99th percentiles. The default stays
-  `"qr"`, so existing results are unchanged.
+  `"qr"`, and the `"qr"` results are unchanged.
 
 # qte 2.0.1
 

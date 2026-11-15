@@ -9,6 +9,7 @@ lou_gt(
   xformula = ~1,
   lagged_outcome_cov = TRUE,
   est_method = "ipw",
+  cond_dist = c("qr", "dr"),
   ...
 )
 }
@@ -25,6 +26,12 @@ panel data (unit ids present in both periods).}
 
 \item{est_method}{One of \code{"ipw"}, \code{"or"}, or \code{"aipw"}.
 Default \code{"ipw"}.}
+
+\item{cond_dist}{For \code{est_method = "or"} or \code{"aipw"}, how the
+conditional distribution of the untreated outcome is estimated:
+\code{"qr"} (default) for quantile regression or \code{"dr"} for
+distribution regression. See \code{\link{cic_gt}}. Ignored for
+\code{"ipw"}.}
 
 \item{...}{Additional arguments (ignored).}
 }

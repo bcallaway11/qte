@@ -28,6 +28,10 @@
 #' @param xformula One-sided formula for covariates. Default \code{~1} uses no
 #'   covariates. With covariates, conditional quantile regressions are used
 #'   following Athey and Imbens (2006).
+#' @param cond_dist How the conditional distributions are estimated when
+#'   \code{xformula} has covariates: \code{"qr"} (default) for quantile
+#'   regression or \code{"dr"} for distribution regression. See
+#'   \code{\link{cic_gt}}. Ignored without covariates.
 #' @param ... Additional arguments passed through by \code{ptetools}; not used
 #'   directly.
 #'
@@ -45,7 +49,8 @@
 #' @importFrom quantreg rq
 #'
 #' @export
-qdid_gt <- function(gt_data, xformula = ~1, ...) {
+qdid_gt <- function(gt_data, xformula = ~1, cond_dist = c("qr", "dr"), ...) {
+  cond_dist <- match.arg(cond_dist)
   gt_data <- droplevels(gt_data)
 
   # extract the four (period x treatment-status) cells
@@ -102,9 +107,10 @@ qdid_gt <- function(gt_data, xformula = ~1, ...) {
     Fte <- BMisc::weighted_ecdf(post_s$Y - kcf_s, weights = w_post_s) # nolint: object_name_linter
   }
 
-  # covariate adjustment via conditional quantile regression (Athey-Imbens 2006).
-  # Conditional rank is estimated from the treated pre-period QR (QR1tmin1).
-  # Sampling weights are passed to rq() for consistency with the weighted ATT.
+  # covariate adjustment via conditional distributions (Athey-Imbens 2006),
+  # estimated by quantile or distribution regression (cond_dist). The
+  # conditional rank comes from the treated pre-period distribution. Sampling
+  # weights enter the fits, consistent with the weighted ATT.
   if (length(BMisc::rhs_vars(xformula)) > 0) {
     u_seq <- seq(0.01, 0.99, 0.01)
 
@@ -121,19 +127,19 @@ qdid_gt <- function(gt_data, xformula = ~1, ...) {
     yformla <- BMisc::toformula("Y", BMisc::rhs_vars(xformula)) # nolint: object_name_linter
 
     # conditional rank in the treated pre-period distribution
-    QR1tmin1  <- suppressWarnings(rq(yformla, data = pre_trt,   tau = u_seq, weights = .w)) # nolint: object_name_linter
+    fit1tmin1 <- cond_fit(yformla, pre_trt, cond_dist, u_seq)
     # post-period control fit: the same for all cohorts treated by this
-    # period, so reused across those cells (see cached_rq())
-    QR0t      <- cached_rq(yformla, post_ctrl, u_seq) # nolint: object_name_linter
-    QR0tmin1  <- suppressWarnings(rq(yformla, data = pre_ctrl,  tau = u_seq, weights = .w)) # nolint: object_name_linter
+    # period, so reused across those cells (cache = TRUE)
+    fit0t     <- cond_fit(yformla, post_ctrl, cond_dist, u_seq, cache = TRUE)
+    fit0tmin1 <- cond_fit(yformla, pre_ctrl, cond_dist, u_seq)
 
-    # rearranged (monotone) conditional quantiles; see qr_sorted_quantiles()
-    # for why predict(..., stepfun = TRUE) isn't used
-    rank1tmin1 <- qr_cdf(qr_sorted_quantiles(QR1tmin1, pre_trt), u_seq, pre_trt$Y)
-    QR0tQ     <- qr_quantile(qr_sorted_quantiles(QR0t, pre_trt), u_seq, rank1tmin1)     # nolint: object_name_linter
-    QR0tmin1Q <- qr_quantile(qr_sorted_quantiles(QR0tmin1, pre_trt), u_seq, rank1tmin1) # nolint: object_name_linter
+    # rearranged (monotone) conditional distributions; see
+    # qr_sorted_quantiles() and dr_cdf_matrix()
+    rank1tmin1 <- cond_cdf(fit1tmin1, pre_trt, pre_trt$Y)
+    q0t        <- cond_quantile(fit0t, pre_trt, rank1tmin1)
+    q0tmin1    <- cond_quantile(fit0tmin1, pre_trt, rank1tmin1)
 
-    y0t <- pre_trt$Y + QR0tQ - QR0tmin1Q
+    y0t <- pre_trt$Y + q0t - q0tmin1
 
     att          <- weighted.mean(Y_post_trt, w_post_trt) - weighted.mean(y0t, w_pre_trt)
     w_pre_trt_n  <- pre_trt$.w / sum(pre_trt$.w)
@@ -170,6 +176,10 @@ qdid_gt <- function(gt_data, xformula = ~1, ...) {
 #'   \code{FALSE} for repeated cross sections.
 #' @param xformula One-sided formula for covariates used in the covariate
 #'   adjustment. Default \code{~1} uses no covariates.
+#' @param cond_dist How conditional distributions are estimated when
+#'   \code{xformula} has covariates: \code{"qr"} (default) for quantile
+#'   regression or \code{"dr"} for distribution regression. See
+#'   \code{\link{cic_gt}}. Ignored without covariates.
 #' @param weightsname Name of the column in \code{data} containing sampling
 #'   weights. Default \code{NULL} uses equal weights.
 #' @param control_group Which units to use as the comparison group:
@@ -222,6 +232,7 @@ qdid <- function(yname,
                  data,
                  panel         = TRUE,
                  xformula      = ~1,
+                 cond_dist     = c("qr", "dr"),
                  weightsname   = NULL,
                  control_group = "notyettreated",
                  anticipation  = 0,
@@ -232,6 +243,7 @@ qdid <- function(yname,
                  ret_quantile  = NULL,
                  gt_type       = "att",
                  probs         = NULL) {
+  cond_dist <- match.arg(cond_dist)
 
   if (gt_type == "qott" && !isTRUE(panel)) {
     stop(paste0(
@@ -269,6 +281,7 @@ qdid <- function(yname,
     attgt_fun       = qdid_gt,
     aggte_fun       = aggte_fun,
     xformula        = xformula,
+    cond_dist       = cond_dist,
     weightsname     = weightsname,
     control_group   = control_group,
     anticipation    = anticipation,

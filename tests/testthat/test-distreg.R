@@ -85,3 +85,53 @@ test_that("cic_gt with cond_dist = 'dr' recovers a known ATT", {
   expect_equal(att_dr, 1, tolerance = 0.05)
   expect_error(cic_gt(gt, ~x, cond_dist = "nope"))
 })
+
+test_that("the cond_fit/cond_cdf/cond_quantile dispatch reproduces the QR helpers", {
+  d <- sim_cdf_data()
+  taus <- seq(0.01, 0.99, 0.01)
+  m <- cond_fit(Y ~ x, d, "qr", taus)
+  direct <- suppressWarnings(quantreg::rq(Y ~ x, data = d, tau = taus, weights = .w))
+  q <- qr_sorted_quantiles(direct, d)
+  expect_identical(cond_cdf(m, d, d$Y), qr_cdf(q, taus, d$Y))
+  p <- runif(nrow(d))
+  expect_identical(cond_quantile(m, d, p), qr_quantile(q, taus, p))
+})
+
+test_that("qdid_gt with cond_dist = 'dr' recovers a known ATT", {
+  # time trend depends on x (unconditional PT fails); effect = +1
+  set.seed(4)
+  n <- 2000
+  x <- rnorm(n)
+  D <- rbinom(n, 1, plogis(0.5 * x))
+  u <- rnorm(n, 0.4 * D + 0.6 * x)
+  gt <- rbind(
+    data.frame(id = 1:n, D = D, name = "pre",  Y = x + u, x = x, .w = 1),
+    data.frame(id = 1:n, D = D, name = "post", Y = 0.5 + 1.2 * x + u + D, x = x, .w = 1)
+  )
+  op <- options(qte.disable_qr_cache = TRUE)
+  expect_equal(suppressWarnings(qdid_gt(gt, ~x, cond_dist = "dr"))$attgt, 1,
+               tolerance = 0.02)
+  options(op)
+})
+
+test_that("cond_dist = 'dr' runs end to end in every covariate estimator", {
+  data(mpdta, package = "did")
+  small <- mpdta[mpdta$countyreal %in% unique(mpdta$countyreal)[1:200], ]
+  args <- list(yname = "lemp", gname = "first.treat", tname = "year",
+               idname = "countyreal", data = small, xformula = ~lpop,
+               cond_dist = "dr", biters = 2, cl = 1, cband = FALSE)
+  att_of <- function(r) r$overall_results$att
+  set.seed(1)
+  for (f in list(cic, qdid, ddid, panel_qtt)) {
+    expect_true(is.finite(att_of(suppressWarnings(do.call(f, args)))))
+  }
+  expect_true(is.finite(att_of(suppressWarnings(
+    do.call(lou_qtt, c(args, est_method = "or"))))))
+  data(lalonde, package = "qte")
+  u <- suppressWarnings(unc_qte(yname = "re78", dname = "treat",
+                                data = lalonde.psid, xformla = ~ age + re75,
+                                est_method = "or", target = "qtt",
+                                cond_dist = "dr", biters = 2,
+                                probs = c(0.25, 0.5, 0.75)))
+  expect_true(all(is.finite(u$qte)))
+})

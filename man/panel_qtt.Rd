@@ -11,6 +11,7 @@ panel_qtt(
   idname,
   data,
   xformula = ~1,
+  cond_dist = c("qr", "dr"),
   weightsname = NULL,
   control_group = "notyettreated",
   anticipation = 0,
@@ -36,6 +37,11 @@ panel_qtt(
 \item{data}{A data frame.}
 
 \item{xformula}{One-sided formula for covariates. Default \code{~1}.}
+
+\item{cond_dist}{How conditional distributions are estimated when
+\code{xformula} has covariates: \code{"qr"} (default) for quantile
+regression or \code{"dr"} for distribution regression. See
+\code{\link{cic_gt}}. Ignored without covariates.}
 
 \item{weightsname}{Name of the sampling weights column. Default \code{NULL}.}
 

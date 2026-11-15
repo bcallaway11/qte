@@ -12,7 +12,7 @@
 #   Callaway, Brantly. "Policy Evaluation during a Pandemic."
 #   Journal of Econometrics 236(2), 2023.
 # Author: Brant Callaway
-# Last update: 2026-11-14
+# Last update: 2026-11-15
 # Date created: 2026-05-22
 # =============================================================================
 
@@ -34,6 +34,11 @@
 #'   panel data (unit ids present in both periods).
 #' @param est_method One of \code{"ipw"}, \code{"or"}, or \code{"aipw"}.
 #'   Default \code{"ipw"}.
+#' @param cond_dist For \code{est_method = "or"} or \code{"aipw"}, how the
+#'   conditional distribution of the untreated outcome is estimated:
+#'   \code{"qr"} (default) for quantile regression or \code{"dr"} for
+#'   distribution regression. See \code{\link{cic_gt}}. Ignored for
+#'   \code{"ipw"}.
 #' @param ... Additional arguments (ignored).
 #'
 #' @keywords internal
@@ -42,7 +47,8 @@
 #'   \code{extra_gt_returns} containing \code{F0} and \code{F1} (weighted ECDFs
 #'   of counterfactual and observed treated outcomes).
 lou_gt <- function(gt_data, xformula = ~1, lagged_outcome_cov = TRUE,
-                   est_method = "ipw", ...) {
+                   est_method = "ipw", cond_dist = c("qr", "dr"), ...) {
+  cond_dist <- match.arg(cond_dist)
   gt_data <- droplevels(gt_data)
 
   pre_data  <- gt_data[gt_data$name == "pre",  ]
@@ -114,14 +120,11 @@ lou_gt <- function(gt_data, xformula = ~1, lagged_outcome_cov = TRUE,
   # --- OR --------------------------------------------------------------------
   } else if (est_method == "or") {
     yformla <- BMisc::toformula("Y", BMisc::rhs_vars(xformula_use))
-    # Use .w by column name so rq() finds it inside the data frame;
-    # avoids parent.frame() lookup failure when called inside suppressWarnings
-    # Suppress "Solution may be nonunique" from quantreg LP solver — benign
-    M0 <- suppressWarnings(
-      quantreg::rq(yformla, data = post_ctrl, tau = tau_grid, weights = .w)
-    )
-    # Predict counterfactual conditional quantiles at treated units; monotonize
-    pred0  <- t(apply(as.matrix(predict(M0, newdata = post_trt)), 1, sort))
+    # conditional distribution of the control post-period outcome (quantile
+    # or distribution regression, weighted by .w; see cond_fit())
+    M0 <- cond_fit(yformla, post_ctrl, cond_dist, tau_grid)
+    # counterfactual conditional quantiles at treated units, rows monotone
+    pred0  <- cond_quantile_matrix(M0, post_trt, tau_grid)
     wt_rep <- rep(post_trt$.w, each = K)
     wt_rep <- wt_rep / sum(wt_rep)
 
@@ -137,11 +140,9 @@ lou_gt <- function(gt_data, xformula = ~1, lagged_outcome_cov = TRUE,
     pscore     <- pmax(1e-6, pmin(1 - 1e-6, fitted(pscore_reg)))
 
     yformla <- BMisc::toformula("Y", BMisc::rhs_vars(xformula_use))
-    M0 <- suppressWarnings(
-      quantreg::rq(yformla, data = post_ctrl, tau = tau_grid, weights = .w)
-    )
+    M0 <- cond_fit(yformla, post_ctrl, cond_dist, tau_grid)
     # Predict at all post-period units for the augmentation term
-    pred0_all <- t(apply(as.matrix(predict(M0, newdata = post_data)), 1, sort))
+    pred0_all <- cond_quantile_matrix(M0, post_data, tau_grid)
 
     D      <- post_data$D
     y      <- post_data$Y
@@ -237,6 +238,11 @@ lou_gt <- function(gt_data, xformula = ~1, lagged_outcome_cov = TRUE,
 #'   score and outcome models. Requires \code{panel = TRUE}.
 #' @param est_method Estimation method: \code{"ipw"} (default),
 #'   \code{"or"}, or \code{"aipw"}. See Details.
+#' @param cond_dist For \code{est_method = "or"} or \code{"aipw"}, how the
+#'   conditional distribution of the untreated outcome is estimated:
+#'   \code{"qr"} (default) for quantile regression or \code{"dr"} for
+#'   distribution regression. See \code{\link{cic_gt}}. Ignored for
+#'   \code{"ipw"}.
 #' @param panel Logical; \code{TRUE} (default) for panel data,
 #'   \code{FALSE} for repeated cross sections. \code{lagged_outcome_cov = TRUE}
 #'   requires \code{panel = TRUE}.
@@ -305,6 +311,7 @@ lou_qtt <- function(yname, gname, tname, idname = NULL, data,
                     xformula          = ~1,
                     lagged_outcome_cov = TRUE,
                     est_method        = c("ipw", "or", "aipw"),
+                    cond_dist         = c("qr", "dr"),
                     panel             = TRUE,
                     weightsname       = NULL,
                     control_group     = "notyettreated",
@@ -316,6 +323,7 @@ lou_qtt <- function(yname, gname, tname, idname = NULL, data,
                     gt_type           = c("att", "qtt"),
                     probs             = NULL) {
   est_method <- match.arg(est_method)
+  cond_dist  <- match.arg(cond_dist)
   gt_type    <- match.arg(gt_type)
 
   if (isTRUE(lagged_outcome_cov) && !isTRUE(panel)) {
@@ -353,6 +361,7 @@ lou_qtt <- function(yname, gname, tname, idname = NULL, data,
     xformula           = xformula,
     lagged_outcome_cov = lagged_outcome_cov,
     est_method         = est_method,
+    cond_dist          = cond_dist,
     weightsname        = weightsname,
     control_group      = control_group,
     anticipation       = anticipation,
