@@ -124,6 +124,13 @@ ddid_gt <- function(gt_data, xformula = ~1, cond_dist = c("qr", "dr"), ...) {
   # Q_{1,pre}(u_j) with a conditional quantile of the treated pre-period
   # distribution, both evaluated at the control unit's covariates. Estimated
   # by quantile or distribution regression (cond_dist), with sampling weights.
+  #
+  # kcf_j is a draw from the counterfactual distribution *given X_j*, so the
+  # treated group's counterfactual integrates it over the treated covariate
+  # distribution: control units are reweighted by the odds p(X)/(1 - p(X)),
+  # p(x) = P(D = 1 | X = x) (issue #10; previously the control weights were
+  # used, which integrates over the controls' X and is biased whenever
+  # treatment depends on X).
   if (length(BMisc::rhs_vars(xformula)) > 0) {
     u_seq    <- seq(0.01, 0.99, 0.01)
     yformla  <- BMisc::toformula("Y", BMisc::rhs_vars(xformula)) # nolint: object_name_linter
@@ -140,8 +147,19 @@ ddid_gt <- function(gt_data, xformula = ~1, cond_dist = c("qr", "dr"), ...) {
 
     kcf <- delta_ctrl + ytmin1
 
-    att <- weighted.mean(Y_post_trt, w_post_trt) - weighted.mean(kcf, w_pre_ctrl)
-    F0  <- BMisc::weighted_ecdf(kcf, weights = w_pre_ctrl) # nolint: object_name_linter
+    # propensity score from the pre-period covariates (weighted logit;
+    # quasibinomial gives the binomial MLE without non-integer-weight warnings)
+    pre_both   <- rbind(ctrl_pre, trt_pre)
+    ps_formla  <- BMisc::toformula("D", BMisc::rhs_vars(xformula))
+    ps_fit     <- stats::glm(ps_formla, data = pre_both,
+                             family = stats::quasibinomial(), weights = .w)
+    ps_ctrl    <- stats::predict(ps_fit, newdata = ctrl_pre, type = "response")
+    ps_ctrl    <- pmin(pmax(ps_ctrl, 1e-6), 1 - 1e-6)
+    w_ctrl_trt <- ctrl_pre$.w * ps_ctrl / (1 - ps_ctrl)
+    w_ctrl_trt <- w_ctrl_trt / sum(w_ctrl_trt)
+
+    att <- weighted.mean(Y_post_trt, w_post_trt) - weighted.mean(kcf, w_ctrl_trt)
+    F0  <- BMisc::weighted_ecdf(kcf, weights = w_ctrl_trt) # nolint: object_name_linter
   }
 
   # Fte (individual TE distribution) is not identified: kcf is indexed over

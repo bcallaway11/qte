@@ -168,12 +168,14 @@ lou_gt <- function(gt_data, xformula = ~1, lagged_outcome_cov = TRUE,
     F1 <- BMisc::weighted_ecdf(Y_post_trt,  # nolint: object_name_linter
                                weights = w_post_trt)
 
-    # ATT via IPW augmentation (consistent under correct pscore)
-    ps_ctrl <- pscore[D == 0]
-    u_wts   <- post_ctrl$.w * ps_ctrl / (1 - ps_ctrl)
-    u_wts   <- u_wts / sum(u_wts)
-    att     <- weighted.mean(Y_post_trt, w_post_trt) -
-               weighted.mean(Y_post_ctrl, u_wts)
+    # Doubly-robust ATT: the mean of the AIPW counterfactual above,
+    #   E[Y(0)|D=1] = E[D*m0(X) + (1-D)*(p/(1-p))*(Y - m0(X))] / E[D],
+    # with m0(x) the outcome model's conditional mean (row mean of its
+    # predicted quantiles). Previously this was the IPW ATT (issue #11).
+    m0      <- rowMeans(pred0_all)
+    att0    <- weighted.mean(D * m0 + (1 - D) * pscore / (1 - pscore) * (y - m0),
+                             post_data$.w) / pbar
+    att     <- weighted.mean(Y_post_trt, w_post_trt) - att0
   }
 
   ptetools::attgt_noif(attgt = att,

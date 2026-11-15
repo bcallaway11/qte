@@ -23,6 +23,20 @@
   conditional distribution at its 1st and 99th percentiles. The default stays
   `"qr"`, and the `"qr"` results are unchanged.
 
+## Bug fixes (these change results)
+
+* `ddid()` / `ddid_gt()` with covariates now integrate the counterfactual
+  over the *treated* group's covariate distribution, by reweighting control
+  units with the propensity-score odds p(X)/(1 - p(X)) (#10). Previously the
+  controls' covariate distribution was used, which biased the ATT and QTT
+  whenever treatment depends on the covariates (bias 0.84 in a simple
+  simulated design; now about 0). Results without covariates are unchanged.
+* `est_method = "aipw"` in `unc_qte()` and `lou_qtt()` now reports a
+  doubly-robust ATT/ATE: the mean of the AIPW counterfactual distribution,
+  using the outcome model's conditional mean (#11). Previously the reported
+  ATT/ATE was the IPW estimate, so it ignored the outcome model and wasn't
+  doubly robust. The AIPW quantile curves are unchanged.
+
 # qte 2.0.1
 
 * Fixed covariate-adjusted `cic()`, `qdid()`, `ddid()` and `panel_qtt()`

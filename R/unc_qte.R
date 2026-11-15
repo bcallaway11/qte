@@ -151,9 +151,13 @@ compute.unc_qte <- function(qp) {
       F1 <- cummax(pmax(0, pmin(1, F1)))
       q1 <- approx(F1[!duplicated(F1)], y_grid[!duplicated(F1)], xout = probs, rule = 2)$y
 
-      t_wts <- w * D       / pscore
-      u_wts <- w * (1 - D) / (1 - pscore)
-      ate   <- weighted_mean(y, t_wts) - weighted_mean(y, u_wts)
+      # Doubly-robust ATE: AIPW means with the outcome models' conditional
+      # means m_d(x) (row means of predicted quantiles), consistent with the
+      # AIPW CDFs above. Previously this was the IPW ATE (issue #11).
+      m0  <- rowMeans(pred0_all)
+      m1  <- rowMeans(pred1_all)
+      ate <- weighted_mean(m1 + D / pscore * (y - m1), w) -
+             weighted_mean(m0 + (1 - D) / (1 - pscore) * (y - m0), w)
 
     } else {
       # AIPW CDF for Y(0)|D=1: weighted by p(x)/pbar to target treated distribution
@@ -169,9 +173,11 @@ compute.unc_qte <- function(qp) {
 
       q1   <- weighted_quantile(probs, treated[, yname], treated[, wname])
       att1 <- weighted_mean(treated[, yname], treated[, wname])
-      ps_u <- pscore[D == 0]
-      w_u  <- w[D == 0]
-      att0 <- weighted_mean(untreated[, yname], w_u * ps_u / (1 - ps_u))
+      # Doubly-robust ATT: E[Y(0)|D=1] = E[D*m0 + (1-D)*(p/(1-p))*(Y - m0)]/E[D]
+      # (the mean of the AIPW counterfactual CDF above). Previously IPW (#11).
+      m0   <- rowMeans(pred0_all)
+      att0 <- sum(w * (D * m0 + (1 - D) * pscore / (1 - pscore) * (y - m0))) /
+              sum(w * D)
       ate  <- att1 - att0
     }
   }

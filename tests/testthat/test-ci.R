@@ -4,9 +4,9 @@
 #   Uses a low biters count to keep the test fast. Reference ATE from first
 #   verified run. The large negative value reflects the PSID observational
 #   comparison group — a regression check that estimates stay stable, not a
-#   causal claim.
+#   causal claim. Also checks that the AIPW ATT is doubly robust (issue #11).
 # Author: Brant Callaway
-# Last update: 2026-05-22
+# Last update: 2026-11-15
 # Date created: 2026-05-18
 # =============================================================================
 
@@ -41,4 +41,21 @@ test_that("unc_qte with xformla returns valid IPW estimates", {
   expect_false(anyNA(cq2$qte))
   expect_true(!is.null(cq2$pscore.reg))
   expect_equal(cq2$ate, -13115.59, tolerance = 1e-2)
+})
+
+test_that("the AIPW ATT is doubly robust: right with a wrong propensity model (#11)", {
+  # selection through sin(2z) (the logit on z, z^2 is wrong); outcome linear
+  # in (z, z^2) (right). IPW is badly biased here; AIPW should not be.
+  set.seed(12)
+  n <- 3000
+  z <- rnorm(n)
+  D <- rbinom(n, 1, plogis(-0.3 + 1.5 * sin(2 * z) + z))
+  d <- data.frame(z = z, z2 = z^2, D = D, Y = 1 + z + 0.8 * z^2 + rnorm(n) + D)
+  att <- function(em) {
+    suppressWarnings(unc_qte(yname = "Y", dname = "D", data = d,
+                             xformla = ~ z + z2, est_method = em,
+                             target = "qtt", biters = 2, probs = 0.5))$ate
+  }
+  expect_gt(abs(att("ipw") - 1), 0.5)
+  expect_equal(att("aipw"), 1, tolerance = 0.15)
 })
