@@ -73,7 +73,6 @@ reference:
       - print.summary.QTE
       - plot.QTE
       - autoplot.QTE
-      - ggqte
 
   - title: "Data"
     desc: >

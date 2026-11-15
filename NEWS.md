@@ -1,3 +1,26 @@
+# qte 2.1.0 (development version)
+
+## Breaking changes
+
+* Removed the deprecated two-period functions, as announced in 2.0.0:
+  `CiC()`, `QDiD()`, `MDiD()`, `ddid2()`, `panel.qtet()`, `ci.qte()`,
+  `ci.qtet()` and `ggqte()`. Use `cic()`, `qdid()`, `mdid()`, `ddid()`,
+  `panel_qtt()`, `unc_qte()` (with `target = "qtt"` for the QTT; `lou_qtt()`
+  for staggered adoption) and `autoplot()` instead.
+* Removed the exported helper `panelize.data()`, which only served those
+  functions.
+* `formula.tools` is no longer a dependency.
+
+## New features
+
+* `cic()` and `cic_gt()` gain `cond_dist = c("qr", "dr")`. With covariates,
+  `"dr"` estimates the control group's conditional outcome distributions by
+  distribution regression (a logit of 1{Y <= y} on the covariates at a grid of
+  thresholds) instead of quantile regression. It handles outcomes with mass
+  points (e.g. many zeros) naturally and avoids truncating each unit's
+  conditional distribution at its 1st and 99th percentiles. The default stays
+  `"qr"`, so existing results are unchanged.
+
 # qte 2.0.1
 
 * Fixed covariate-adjusted `cic()`, `qdid()`, `ddid()` and `panel_qtt()`

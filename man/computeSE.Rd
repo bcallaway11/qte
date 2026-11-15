@@ -9,8 +9,9 @@ computeSE(bootIters, qteobj, alp = 0.05)
 \arguments{
 \item{bootIters}{List of bootstrap iterations}
 
-\item{alp}{The significance level used for constructing bootstrap
-confidence intervals}
+\item{qteobj}{the \code{QTE} object holding the full-sample estimates}
+
+\item{alp}{significance level for confidence intervals}
 }
 \value{
 SEObj

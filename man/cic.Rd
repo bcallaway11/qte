@@ -12,6 +12,7 @@ cic(
   data,
   panel = TRUE,
   xformula = ~1,
+  cond_dist = c("qr", "dr"),
   weightsname = NULL,
   control_group = "notyettreated",
   anticipation = 0,
@@ -42,6 +43,14 @@ cic(
 
 \item{xformula}{One-sided formula for covariates used in the covariate
 adjustment. Default \code{~1} uses no covariates.}
+
+\item{cond_dist}{How the conditional distributions are estimated when
+\code{xformula} has covariates: \code{"qr"} (default) for quantile
+regression at the percentiles 0.01, ..., 0.99, or \code{"dr"} for
+distribution regression (a logit of \eqn{1\{Y \le y\}} on the covariates
+at a grid of thresholds; Chernozhukov, Fernandez-Val and Melly 2013).
+Distribution regression handles outcomes with mass points (e.g. many
+zeros) naturally. Ignored without covariates.}
 
 \item{weightsname}{Name of the column in \code{data} containing sampling
 weights. Default \code{NULL} uses equal weights.}

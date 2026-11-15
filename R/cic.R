@@ -4,10 +4,9 @@
 #   cic_gt is the 2x2 workhorse used directly as a ptetools attgt_fun.
 #   cic is the unified user-facing function covering two-period and staggered
 #   treatment adoption for both panel and repeated cross sections data.
-#   CiC is a deprecated alias retained for backwards compatibility.
-#   compute.CiC is an unexported helper kept only to support the deprecated CiC.
+#   (The deprecated two-period CiC() was removed in v2.1.0.)
 # Author: Brant Callaway
-# Last update: 2026-11-14
+# Last update: 2026-11-15
 # Date created: 2026-05-18
 # =============================================================================
 
@@ -27,8 +26,16 @@
 #'   (unit identifier), and any covariate columns referenced by
 #'   \code{xformula}.
 #' @param xformula One-sided formula for covariates. Default \code{~1} uses no
-#'   covariates. With covariates, covariate-conditioned quantile regressions
-#'   are used following Athey and Imbens (2006).
+#'   covariates. With covariates, the control group's conditional outcome
+#'   distributions are estimated by the method in \code{cond_dist}, following
+#'   Athey and Imbens (2006).
+#' @param cond_dist How the conditional distributions are estimated when
+#'   \code{xformula} has covariates: \code{"qr"} (default) for quantile
+#'   regression at the percentiles 0.01, ..., 0.99, or \code{"dr"} for
+#'   distribution regression (a logit of \eqn{1\{Y \le y\}} on the covariates
+#'   at a grid of thresholds; Chernozhukov, Fernandez-Val and Melly 2013).
+#'   Distribution regression handles outcomes with mass points (e.g. many
+#'   zeros) naturally. Ignored without covariates.
 #' @param ... Additional arguments passed through by \code{ptetools}; not used
 #'   directly.
 #'
@@ -43,8 +50,12 @@
 #'   Athey, Susan and Guido Imbens. ``Identification and Inference in Nonlinear
 #'   Difference-in-Differences Models.'' Econometrica 74(2), pp. 431-497, 2006.
 #'
+#'   Chernozhukov, Victor, Ivan Fernandez-Val and Blaise Melly. ``Inference on
+#'   Counterfactual Distributions.'' Econometrica 81(6), pp. 2205-2268, 2013.
+#'
 #' @export
-cic_gt <- function(gt_data, xformula = ~1, ...) {
+cic_gt <- function(gt_data, xformula = ~1, cond_dist = c("qr", "dr"), ...) {
+  cond_dist <- match.arg(cond_dist)
   gt_data <- droplevels(gt_data)
 
   # extract the four (period x treatment-status) groups
@@ -104,9 +115,10 @@ cic_gt <- function(gt_data, xformula = ~1, ...) {
     Fte    <- BMisc::weighted_ecdf(post_s$Y - kcic_s, weights = w_post_trt_s) # nolint: object_name_linter
   }
 
-  # covariate adjustment via conditional quantile regression (Athey-Imbens 2006).
-  # Sampling weights are passed to rq() so the quantile regressions respect
-  # the same weights used for the ATT and CDF calculations.
+  # covariate adjustment via conditional distributions (Athey-Imbens 2006),
+  # estimated by quantile regression (cond_dist = "qr") or distribution
+  # regression ("dr"). Sampling weights enter both, so they match the weights
+  # used for the ATT and CDF calculations.
   if (length(BMisc::rhs_vars(xformula)) > 0) {
     u_seq <- seq(0.01, 0.99, 0.01)
 
@@ -122,14 +134,23 @@ cic_gt <- function(gt_data, xformula = ~1, ...) {
     }
 
     yformla  <- BMisc::toformula("Y", BMisc::rhs_vars(xformula))
-    # post-period control fit: the same for all cohorts treated by this
-    # period, so reused across those cells (see cached_rq())
-    QR0t     <- cached_rq(yformla, post_ctrl, u_seq) # nolint: object_name_linter
-    QR0tmin1 <- suppressWarnings(rq(yformla, data = pre_ctrl,  tau = u_seq, weights = .w)) # nolint: object_name_linter
+    if (cond_dist == "qr") {
+      # post-period control fit: the same for all cohorts treated by this
+      # period, so reused across those cells (see cached_rq())
+      QR0t     <- cached_rq(yformla, post_ctrl, u_seq) # nolint: object_name_linter
+      QR0tmin1 <- suppressWarnings(rq(yformla, data = pre_ctrl,  tau = u_seq, weights = .w)) # nolint: object_name_linter
 
-    # conditional ranks from rearranged (monotone) predicted quantiles; see
-    # qr_sorted_quantiles() for why predict(..., stepfun = TRUE) isn't used
-    F0tmin1 <- qr_cdf(qr_sorted_quantiles(QR0tmin1, pre_trt), u_seq, pre_trt$Y) # nolint: object_name_linter
+      # conditional ranks from rearranged (monotone) predicted quantiles; see
+      # qr_sorted_quantiles() for why predict(..., stepfun = TRUE) isn't used
+      F0tmin1 <- qr_cdf(qr_sorted_quantiles(QR0tmin1, pre_trt), u_seq, pre_trt$Y) # nolint: object_name_linter
+    } else {
+      # distribution regression: conditional CDFs directly, rearranged across
+      # thresholds (see dr_fit(), dr_cdf()); the post-period fit is cached
+      # across cohorts as with QR
+      DR0t     <- cached_dr(yformla, post_ctrl) # nolint: object_name_linter
+      DR0tmin1 <- dr_fit(yformla, pre_ctrl) # nolint: object_name_linter
+      F0tmin1  <- dr_cdf(DR0tmin1, pre_trt, pre_trt$Y) # nolint: object_name_linter
+    }
 
     if (mean(F0tmin1 >= 0.99) + mean(F0tmin1 <= 0.01) > 0.1) {
       warning(paste0(
@@ -138,7 +159,11 @@ cic_gt <- function(gt_data, xformula = ~1, ...) {
       ))
     }
 
-    y0t <- qr_quantile(qr_sorted_quantiles(QR0t, pre_trt), u_seq, F0tmin1)
+    y0t <- if (cond_dist == "qr") {
+      qr_quantile(qr_sorted_quantiles(QR0t, pre_trt), u_seq, F0tmin1)
+    } else {
+      dr_quantile(DR0t, pre_trt, F0tmin1)
+    }
 
     att <- weighted.mean(Y_post_trt, w_post_trt) - weighted.mean(y0t, w_pre_trt)
     w_pre_trt_n  <- pre_trt$.w / sum(pre_trt$.w)
@@ -176,6 +201,7 @@ cic_gt <- function(gt_data, xformula = ~1, ...) {
 #'   \code{FALSE} for repeated cross sections.
 #' @param xformula One-sided formula for covariates used in the covariate
 #'   adjustment. Default \code{~1} uses no covariates.
+#' @inheritParams cic_gt
 #' @param weightsname Name of the column in \code{data} containing sampling
 #'   weights. Default \code{NULL} uses equal weights.
 #' @param control_group Which units to use as the comparison group:
@@ -228,6 +254,7 @@ cic <- function(yname,
                 data,
                 panel         = TRUE,
                 xformula      = ~1,
+                cond_dist     = c("qr", "dr"),
                 weightsname   = NULL,
                 control_group = "notyettreated",
                 anticipation  = 0,
@@ -238,6 +265,7 @@ cic <- function(yname,
                 ret_quantile  = NULL,
                 gt_type       = "att",
                 probs         = NULL) {
+  cond_dist <- match.arg(cond_dist)
 
   if (gt_type == "qott" && !isTRUE(panel)) {
     stop(paste0(
@@ -275,6 +303,7 @@ cic <- function(yname,
     attgt_fun       = cic_gt,
     aggte_fun       = aggte_fun,
     xformula        = xformula,
+    cond_dist       = cond_dist,
     weightsname     = weightsname,
     control_group   = control_group,
     anticipation    = anticipation,
@@ -288,159 +317,3 @@ cic <- function(yname,
     probs           = probs
   )
 }
-
-
-# --- Deprecated two-period workhorse (supports CiC only) --------------------
-
-# Kept only to support the deprecated CiC() wrapper below. Do not use in new
-# code; use cic_gt() instead.
-# nolint start: object_name_linter
-compute.CiC <- function(qp) {
-  setupData(qp)
-  data <- droplevels(data) # nolint: object_usage_linter
-
-  F.treatedcf.t <- ecdf(quantile(untreated.t[, yname],
-    probs = F.untreated.tmin1(treated.tmin1[, yname]), type = 1
-  ))
-  att <- mean(treated.t[, yname]) -
-    mean(quantile(untreated.t[, yname],
-      probs = F.untreated.tmin1(treated.tmin1[, yname]), type = 1
-    ))
-
-  QR0tQ <- NULL
-  QR1t  <- NULL
-  if (!is.null(xformla)) { # nolint: object_usage_linter
-    u        <- seq(.01, .99, .01)
-    yformla  <- toformula("y", rhs_vars(xformla))
-    QR0t     <- rq(yformla, data = untreated.t,     tau = u)
-    QR0tmin1 <- rq(yformla, data = untreated.tmin1, tau = u)
-    QR1t     <- rq(yformla, data = treated.t,       tau = u)
-
-    n1tmin1   <- nrow(treated.tmin1)
-    QR0tmin1F <- predict(QR0tmin1, newdata = treated.tmin1, type = "Fhat", stepfun = TRUE)
-    F0tmin1   <- sapply(seq_len(n1tmin1), function(i) QR0tmin1F[[i]](treated.tmin1$y[i]))
-    QR0tQ     <- predict(QR0t, newdata = treated.tmin1, type = "Qhat", stepfun = TRUE)
-    y0t       <- sapply(seq_len(n1tmin1), function(i) QR0tQ[[i]](F0tmin1[i]))
-
-    F.treatedcf.t <- ecdf(y0t)
-    att <- mean(treated.t[, yname]) - mean(y0t)
-  }
-
-  q1  <- quantile(treated.t[, yname], probs = probs, type = 1) # nolint: object_usage_linter
-  q0  <- quantile(F.treatedcf.t, probs = probs, type = 1)
-  out <- QTE(
-    F.treated.t       = F.treated.t,
-    F.treated.t.cf    = F.treatedcf.t,
-    F.treated.tmin1   = F.treated.tmin1,
-    F.untreated.t     = F.untreated.t,
-    F.untreated.tmin1 = F.untreated.tmin1,
-    condQ.treated.t.cf = QR0tQ,
-    condQ.treated.t    = QR1t,
-    ate = att, qte = (q1 - q0), probs = probs
-  )
-  class(out) <- "QTE"
-  out
-}
-# nolint end: object_name_linter
-
-
-# --- Deprecated two-period wrapper -------------------------------------------
-
-#' @title CiC
-#'
-#' @description \strong{Deprecated.} Use \code{\link{cic}} instead.
-#'
-#'   \code{CiC} is a legacy two-period wrapper for the Change in Changes
-#'   estimator. It accepts a formula and explicit \code{t}/\code{tmin1} time
-#'   period arguments. The modern replacement \code{\link{cic}} uses a
-#'   \code{yname}/\code{gname}/\code{tname} interface and supports staggered
-#'   treatment adoption natively via \code{ptetools}.
-#'
-#' @param formla formula of the form \code{y ~ treat}.
-#' @param xformla optional one-sided covariate formula.
-#' @param t post-treatment period.
-#' @param tmin1 pre-treatment period.
-#' @param tname name of the time column.
-#' @param data data.frame.
-#' @param panel logical; whether data are panel.
-#' @param se logical; whether to compute bootstrap SEs.
-#' @param idname name of the unit id column (required when \code{panel = TRUE}).
-#' @param alp significance level.
-#' @param probs quantile grid.
-#' @param iters bootstrap iterations.
-#' @param pl logical; parallel bootstrap.
-#' @param cores number of cores.
-#' @param retEachIter logical; return per-iteration results.
-#'
-#' @return \code{QTE} object.
-#'
-#' @seealso \code{\link{cic}}
-#'
-#' @name CiC-deprecated
-#' @aliases CiC
-#' @keywords internal
-#' @export
-# nolint start: object_name_linter
-CiC <- function(formla, xformla = NULL, t, tmin1, tname, data,
-                panel = FALSE,
-                se = TRUE, idname = NULL,
-                alp = 0.05, probs = seq(0.05, 0.95, 0.05), iters = 100,
-                pl = FALSE, cores = 2,
-                retEachIter = FALSE) {
-  .Deprecated(msg = paste0(
-    "CiC() is deprecated. The replacement cic() uses a different data model: ",
-    "specify outcome, group, and time variables by name (yname, gname, tname) ",
-    "and provide gname as a column holding each unit's first treatment period ",
-    "(0 = never-treated), rather than a formula and explicit t/tmin1 values. ",
-    "See ?cic and vignette('staggered-adoption', package = 'qte')."
-  ))
-
-  if (panel) {
-    data <- panelize.data(data, idname, tname, t, tmin1)
-  } else {
-    data <- subset(data, (data[, tname] == tmin1 | data[, tname] == t))
-  }
-
-  qp <- QTEparams(
-    formla = formla, xformla = xformla, t = t, tmin1 = tmin1,
-    tname = tname, data = data, panel = panel,
-    idname = idname, probs = probs,
-    iters = iters, bootstrapiter = FALSE, alp = alp,
-    se = se, retEachIter = retEachIter,
-    pl = pl, cores = cores
-  )
-
-  if (panel) {
-    panel.checks(qp)
-  }
-
-  cic_result <- compute.CiC(qp)
-
-  if (se) {
-    qp$bootstrapiter <- TRUE
-    SEobj <- bootstrap(qp, cic_result, compute.CiC) # nolint: object_name_linter
-    QTE( # nolint: object_name_linter
-      qte               = cic_result$qte,
-      qte.upper         = SEobj$qte.upper,
-      F.treated.t       = cic_result$F.treated.t,
-      F.untreated.t     = cic_result$F.untreated.t,
-      F.treated.t.cf    = cic_result$F.treated.t.cf,
-      F.treated.tmin1   = cic_result$F.treated.tmin1,
-      F.untreated.tmin1 = cic_result$F.untreated.tmin1,
-      condQ.treated.t    = cic_result$condQ.treated.t,
-      condQ.treated.t.cf = cic_result$condQ.treated.t.cf,
-      qte.lower    = SEobj$qte.lower,
-      ate          = cic_result$ate,
-      ate.upper    = SEobj$ate.upper,
-      ate.lower    = SEobj$ate.lower,
-      qte.se       = SEobj$qte.se,
-      ate.se       = SEobj$ate.se,
-      c            = SEobj$c,
-      eachIterList = eachIter,
-      probs        = probs
-    )
-  } else {
-    cic_result
-  }
-}
-# nolint end: object_name_linter
