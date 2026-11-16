@@ -59,3 +59,29 @@ test_that("the AIPW ATT is doubly robust: right with a wrong propensity model (#
   expect_gt(abs(att("ipw") - 1), 0.5)
   expect_equal(att("aipw"), 1, tolerance = 0.15)
 })
+
+test_that("sampling weights act like replicated rows in every unc_qte branch", {
+  # integer weights must give the same estimates as the unweighted fit on
+  # row-replicated data (distribution regression: unique solutions, so exact)
+  set.seed(5)
+  n <- 600
+  z <- rnorm(n)
+  D <- rbinom(n, 1, plogis(0.3 + 0.8 * z))
+  wi <- sample(1:3, n, replace = TRUE)
+  d <- data.frame(z = z, D = D, Y = 1 + z + 0.5 * z^2 + rnorm(n) + D,
+                  wt = wi / mean(wi))
+  big <- d[rep(seq_len(n), wi), ]
+  for (em in c("ipw", "or", "aipw")) {
+    for (tg in c("qte", "qtt")) {
+      est <- function(dat, wn) {
+        r <- suppressWarnings(unc_qte(yname = "Y", dname = "D", data = dat,
+                                      xformla = ~z, weightsname = wn,
+                                      est_method = em, target = tg,
+                                      cond_dist = "dr", biters = 2,
+                                      probs = c(0.25, 0.5, 0.75)))
+        c(r$qte, r$ate)
+      }
+      expect_equal(est(d, "wt"), est(big, NULL), tolerance = 1e-8)
+    }
+  }
+})

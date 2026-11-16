@@ -38,6 +38,10 @@ compute.unc_qte <- function(qp) {
   D    <- data[, treat]
   y    <- data[, yname]
   w    <- data[, wname]
+  # sampling weights under the column name the conditional-distribution fits
+  # read (cond_fit() uses .w), so the outcome models are weighted too
+  treated$.w   <- treated[, wname]
+  untreated$.w <- untreated[, wname]
 
   pscore.reg <- NULL
 
@@ -61,7 +65,8 @@ compute.unc_qte <- function(qp) {
       ate <- weighted_mean(treated[, yname], treated[, wname]) -
              weighted_mean(untreated[, yname], untreated[, wname])
     } else {
-      pscore.reg <- glm(ps_formla, data = data, family = binomial(link = method))
+      pscore.reg <- glm(ps_formla, data = data, family = quasibinomial(link = method),
+                      weights = w)
       pscore     <- pmax(1e-6, pmin(1 - 1e-6, fitted(pscore.reg)))
 
       if (target == "qte") {
@@ -91,7 +96,7 @@ compute.unc_qte <- function(qp) {
   } else if (est_method == "or") {
     # Conditional outcome model on untreated (counterfactual arm): quantile or
     # distribution regression (cond_dist); see cond_fit().
-    M0 <- cond_fit(or_formla, untreated, cond_dist, tau_grid, weighted = FALSE)
+    M0 <- cond_fit(or_formla, untreated, cond_dist, tau_grid)
 
     if (target == "qte") {
       # Predict at all n units; integrate out X to get marginal distribution
@@ -99,7 +104,7 @@ compute.unc_qte <- function(qp) {
       w_rep <- rep(w, each = K)
       q0    <- weighted_quantile(probs, c(t(pred0)), w_rep, norm = TRUE)
 
-      M1    <- cond_fit(or_formla, treated, cond_dist, tau_grid, weighted = FALSE)
+      M1    <- cond_fit(or_formla, treated, cond_dist, tau_grid)
       pred1 <- cond_quantile_matrix(M1, data, tau_grid)
       q1    <- weighted_quantile(probs, c(t(pred1)), w_rep, norm = TRUE)
 
@@ -121,12 +126,13 @@ compute.unc_qte <- function(qp) {
   # AIPW branch: doubly-robust CDF estimator, then invert
   # ---------------------------------------------------------------------------
   } else if (est_method == "aipw") {
-    pscore.reg <- glm(ps_formla, data = data, family = binomial(link = method))
+    pscore.reg <- glm(ps_formla, data = data, family = quasibinomial(link = method),
+                      weights = w)
     pscore     <- pmax(1e-6, pmin(1 - 1e-6, fitted(pscore.reg)))
 
     # Outcome model for counterfactual arm (quantile or distribution
     # regression, cond_dist; see cond_fit()).
-    M0        <- cond_fit(or_formla, untreated, cond_dist, tau_grid, weighted = FALSE)
+    M0        <- cond_fit(or_formla, untreated, cond_dist, tau_grid)
     pred0_all <- cond_quantile_matrix(M0, data, tau_grid)
 
     # Evaluate CDFs at each observed Y value; approx() inverts
@@ -136,17 +142,17 @@ compute.unc_qte <- function(qp) {
       # AIPW CDF for Y(0): F_c(y) from OR + IPW augmentation for bias correction
       F0 <- vapply(y_grid, function(yy) {
         F_cond <- rowMeans(pred0_all <= yy)
-        mean(F_cond + (1 - D) / (1 - pscore) * (as.numeric(y <= yy) - F_cond))
+        weighted.mean(F_cond + (1 - D) / (1 - pscore) * (as.numeric(y <= yy) - F_cond), w)
       }, numeric(1))
       F0 <- cummax(pmax(0, pmin(1, F0)))
       q0 <- approx(F0[!duplicated(F0)], y_grid[!duplicated(F0)], xout = probs, rule = 2)$y
 
       # AIPW CDF for Y(1)
-      M1        <- cond_fit(or_formla, treated, cond_dist, tau_grid, weighted = FALSE)
+      M1        <- cond_fit(or_formla, treated, cond_dist, tau_grid)
       pred1_all <- cond_quantile_matrix(M1, data, tau_grid)
       F1 <- vapply(y_grid, function(yy) {
         F_cond <- rowMeans(pred1_all <= yy)
-        mean(F_cond + D / pscore * (as.numeric(y <= yy) - F_cond))
+        weighted.mean(F_cond + D / pscore * (as.numeric(y <= yy) - F_cond), w)
       }, numeric(1))
       F1 <- cummax(pmax(0, pmin(1, F1)))
       q1 <- approx(F1[!duplicated(F1)], y_grid[!duplicated(F1)], xout = probs, rule = 2)$y
@@ -161,12 +167,12 @@ compute.unc_qte <- function(qp) {
 
     } else {
       # AIPW CDF for Y(0)|D=1: weighted by p(x)/pbar to target treated distribution
-      pbar   <- mean(D)
+      pbar   <- weighted.mean(D, w)
       F_qtt  <- vapply(y_grid, function(yy) {
         F_cond    <- rowMeans(pred0_all <= yy)
         aipw_term <- D * F_cond +
                      (1 - D) * pscore / (1 - pscore) * (as.numeric(y <= yy) - F_cond)
-        mean(aipw_term) / pbar
+        weighted.mean(aipw_term, w) / pbar
       }, numeric(1))
       F_qtt <- cummax(pmax(0, pmin(1, F_qtt)))
       q0    <- approx(F_qtt[!duplicated(F_qtt)], y_grid[!duplicated(F_qtt)], xout = probs, rule = 2)$y

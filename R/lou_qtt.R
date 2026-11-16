@@ -104,7 +104,8 @@ lou_gt <- function(gt_data, xformula = ~1, lagged_outcome_cov = TRUE,
   # --- IPW -------------------------------------------------------------------
   if (est_method == "ipw") {
     ps_formla  <- BMisc::toformula("D", BMisc::rhs_vars(xformula_use))
-    pscore_reg <- glm(ps_formla, data = post_data, family = binomial("logit"))
+    pscore_reg <- glm(ps_formla, data = post_data, family = quasibinomial("logit"),
+                      weights = .w)
     pscore     <- pmax(1e-6, pmin(1 - 1e-6, fitted(pscore_reg)))
 
     # QTT: reweight controls by p(x)/(1-p(x)) to match treated covariate dist
@@ -136,7 +137,8 @@ lou_gt <- function(gt_data, xformula = ~1, lagged_outcome_cov = TRUE,
   # --- AIPW ------------------------------------------------------------------
   } else if (est_method == "aipw") {
     ps_formla  <- BMisc::toformula("D", BMisc::rhs_vars(xformula_use))
-    pscore_reg <- glm(ps_formla, data = post_data, family = binomial("logit"))
+    pscore_reg <- glm(ps_formla, data = post_data, family = quasibinomial("logit"),
+                      weights = .w)
     pscore     <- pmax(1e-6, pmin(1 - 1e-6, fitted(pscore_reg)))
 
     yformla <- BMisc::toformula("Y", BMisc::rhs_vars(xformula_use))

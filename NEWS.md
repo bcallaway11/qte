@@ -36,6 +36,12 @@
   using the outcome model's conditional mean (#11). Previously the reported
   ATT/ATE was the IPW estimate, so it ignored the outcome model and wasn't
   doubly robust. The AIPW quantile curves are unchanged.
+* `unc_qte()` now uses `weightsname` throughout: in the propensity-score
+  model, in the outcome-regression fits, and in the AIPW distribution
+  functions (previously only in the final averaging). `lou_qtt()`'s
+  propensity-score model is now weighted too. With integer weights, the
+  estimates now equal those from the unweighted fit on row-replicated data.
+  Results without weights are unchanged.
 
 # qte 2.0.1
 
