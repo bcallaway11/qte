@@ -7,7 +7,7 @@
 #   combination of IPW and OR. Standard errors via empirical bootstrap.
 #   (The deprecated wrappers ci.qte() and ci.qtet() were removed in v2.1.0.)
 # Author: Brant Callaway
-# Last update: 2026-11-15
+# Last update: 2026-11-17
 # Date created: 2026-05-18
 # =============================================================================
 
@@ -361,6 +361,22 @@ unc_qte <- function(yname, dname, data,
   target     <- match.arg(target)
   cond_dist  <- match.arg(cond_dist)
   boot_type  <- match.arg(boot_type)
+
+  # The treatment must be a 0/1 indicator: it is the response of the
+  # propensity-score glm and is used to split treated/untreated units. Other
+  # codings (e.g. 1/2) otherwise fail deep inside glm() with an opaque
+  # "y values must be 0 <= y <= 1" error (GitHub issue #1).
+  if (!dname %in% names(data)) {
+    stop("`dname` (\"", dname, "\") is not a column of `data`.")
+  }
+  d_vals <- unique(data[[dname]])
+  d_vals <- d_vals[!is.na(d_vals)]
+  if (!is.numeric(d_vals) && !is.logical(d_vals) ||
+        !all(d_vals %in% c(0, 1)) || length(d_vals) != 2) {
+    stop("`dname` (\"", dname, "\") must be a binary treatment indicator ",
+         "coded 0 (untreated) / 1 (treated); found values: ",
+         paste(utils::head(sort(d_vals), 5), collapse = ", "), ".")
+  }
 
   formla <- as.formula(paste(yname, "~", dname))
   w      <- if (!is.null(weightsname)) data[[weightsname]] else NULL

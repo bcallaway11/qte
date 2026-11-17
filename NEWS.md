@@ -43,6 +43,13 @@
   estimates now equal those from the unweighted fit on row-replicated data.
   Results without weights are unchanged.
 
+## Minor improvements
+
+* `unc_qte()` now checks up front that `dname` is a column of `data` coded
+  0/1, with an informative error. A treatment coded e.g. 1/2 previously
+  failed inside the propensity-score fit with
+  "y values must be 0 <= y <= 1" (#1).
+
 # qte 2.0.1
 
 * Fixed covariate-adjusted `cic()`, `qdid()`, `ddid()` and `panel_qtt()`

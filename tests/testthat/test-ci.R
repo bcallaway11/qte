@@ -4,9 +4,10 @@
 #   Uses a low biters count to keep the test fast. Reference ATE from first
 #   verified run. The large negative value reflects the PSID observational
 #   comparison group — a regression check that estimates stay stable, not a
-#   causal claim. Also checks that the AIPW ATT is doubly robust (issue #11).
+#   causal claim. Also checks that the AIPW ATT is doubly robust (issue #11)
+#   and that a non-0/1 treatment errors clearly (issue #1).
 # Author: Brant Callaway
-# Last update: 2026-11-15
+# Last update: 2026-11-17
 # Date created: 2026-05-18
 # =============================================================================
 
@@ -84,4 +85,17 @@ test_that("sampling weights act like replicated rows in every unc_qte branch", {
       expect_equal(est(d, "wt"), est(big, NULL), tolerance = 1e-8)
     }
   }
+})
+
+test_that("unc_qte errors informatively when dname is not coded 0/1 (#1)", {
+  set.seed(42)
+  df <- data.frame(y = rnorm(50), d = rep(1:2, each = 25))
+  expect_error(unc_qte(yname = "y", dname = "d", data = df, biters = 2),
+               "coded 0 \\(untreated\\) / 1 \\(treated\\); found values: 1, 2")
+  expect_error(unc_qte(yname = "y", dname = "nope", data = df, biters = 2),
+               "is not a column of `data`")
+  df$d <- df$d == 2
+  expect_no_error(suppressWarnings(
+    unc_qte(yname = "y", dname = "d", data = df, biters = 2)
+  ))
 })
