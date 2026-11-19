@@ -5,8 +5,8 @@
 #   verified run. The large negative value reflects the PSID observational
 #   comparison group — a regression check that estimates stay stable, not a
 #   causal claim. Also checks that the AIPW ATT is doubly robust (issue #11)
-#   that a non-0/1 treatment errors clearly (issue #1), and that rows with
-#   missing values are dropped.
+#   that a non-0/1 treatment errors clearly (issue #1), the uniform vs
+#   pointwise bands (cband), and that rows with missing values are dropped.
 # Author: Brant Callaway
 # Last update: 2026-11-19
 # Date created: 2026-05-18
@@ -99,6 +99,34 @@ test_that("unc_qte errors informatively when dname is not coded 0/1 (#1)", {
   expect_no_error(suppressWarnings(
     unc_qte(yname = "y", dname = "d", data = df, biters = 2)
   ))
+})
+
+test_that("unc_qte cband = TRUE gives a uniform band qte +/- c * se", {
+  probs <- c(0.25, 0.5, 0.75)
+  fit <- function(cband) {
+    set.seed(7)
+    suppressWarnings(unc_qte(yname = "re78", dname = "treat",
+                             data = lalonde.psid, probs = probs,
+                             biters = 20, cband = cband))
+  }
+  ub <- fit(TRUE)
+  pw <- fit(FALSE)
+  z <- qnorm(0.975)
+
+  # same bootstrap draws, so the same estimates, SEs and critical value
+  expect_equal(ub$qte.se, pw$qte.se)
+  expect_equal(ub$c, pw$c)
+  expect_true(isTRUE(ub$cband))
+  expect_false(isTRUE(pw$cband))
+
+  # uniform band uses c, pointwise uses z
+  expect_equal(ub$qte.upper, ub$qte + ub$c * ub$qte.se)
+  expect_equal(ub$qte.lower, ub$qte - ub$c * ub$qte.se)
+  expect_equal(pw$qte.upper, pw$qte + z * pw$qte.se)
+
+  # summary labels the band correctly
+  expect_output(print(summary(ub)), "Simult.")
+  expect_output(print(summary(pw)), "Pointwise")
 })
 
 test_that("unc_qte drops rows with missing values, with a warning", {

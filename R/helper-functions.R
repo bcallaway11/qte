@@ -5,7 +5,7 @@
 #   ggqte() was removed in v2.1.0). Also keep_used_columns(),
 #   used by the staggered estimators before calling ptetools::pte().
 # Author: Brant Callaway
-# Last update: 2026-11-15
+# Last update: 2026-11-19
 # Date created: 2026-05-18
 # =============================================================================
 
@@ -31,8 +31,9 @@ keep_used_columns <- function(data, yname, gname, tname, idname = NULL,
 #'
 #' @param object a \code{QTE} object, as returned by \code{\link{unc_qte}}.
 #' @param cband logical; if \code{TRUE} (default), show the uniform confidence
-#'   band stored in \code{object$qte.upper} / \code{object$qte.lower}.
-#'   If \code{FALSE}, show pointwise intervals computed from \code{object$qte.se}.
+#'   band, \code{qte} \eqn{\pm} \code{c} \eqn{\times} \code{qte.se} (as
+#'   stored by \code{\link{unc_qte}} with \code{cband = TRUE}). If
+#'   \code{FALSE}, show pointwise intervals computed from \code{object$qte.se}.
 #' @param ylab label for the y-axis. Default \code{"QTE"}.
 #' @param ... unused.
 #'
@@ -48,10 +49,18 @@ autoplot.QTE <- function(object, cband = TRUE, ylab = "QTE", ...) {
 
   has_se   <- !is.null(object$qte.se) && !anyNA(object$qte.se)
   has_band <- !is.null(object$qte.upper) && !anyNA(object$qte.upper)
+  has_cval <- !is.null(object$c) && !anyNA(object$c)
 
-  if (has_band && cband) {
+  if (cband && isTRUE(object$cband) && has_band) {
+    # stored bounds are already the uniform band (qte +/- c * se)
     df$lower <- object$qte.lower
     df$upper <- object$qte.upper
+  } else if (cband && has_se && has_cval) {
+    # objects from qte < 2.1.0 stored pointwise bounds but kept the uniform
+    # critical value c, so the band can be rebuilt the same way
+    cval     <- as.numeric(object$c)
+    df$lower <- qte - cval * object$qte.se
+    df$upper <- qte + cval * object$qte.se
   } else if (has_se) {
     cval     <- qnorm(1 - alp / 2)
     df$lower <- qte - cval * object$qte.se

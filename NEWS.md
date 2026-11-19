@@ -38,6 +38,14 @@
   using the outcome model's conditional mean (#11). Previously the reported
   ATT/ATE was the IPW estimate, so it ignored the outcome model and wasn't
   doubly robust. The AIPW quantile curves are unchanged.
+* `unc_qte()`'s `cband = TRUE` (the default) now reports a uniform
+  confidence band, `qte` +/- `c` * `qte.se`, built the same way as the panel
+  estimators' uniform bands. Previously `cband` was ignored: `qte.lower` /
+  `qte.upper` were always pointwise intervals, though `summary()` labelled
+  them "Simult.". The bootstrap critical value `c` was already computed and
+  stored. Bands are typically wider under the default; use `cband = FALSE` for
+  pointwise intervals. `summary()` and `autoplot()` label and draw the band
+  correctly, including for `QTE` objects saved by earlier versions.
 * `unc_qte()` with `weightsname`: each bootstrap draw now resamples units
   together with their weights. Previously the weights stayed in their
   original row order while the rows were resampled, so standard errors and

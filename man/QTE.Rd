@@ -32,7 +32,8 @@ QTE(
   condQ.treated.t.cf = NULL,
   eachIterList = NULL,
   inffunct = NULL,
-  inffuncu = NULL
+  inffuncu = NULL,
+  cband = NULL
 )
 }
 \arguments{
@@ -119,6 +120,11 @@ periods and in the case with panel data.  It is needed for computing covariance
 terms in the variance-covariance matrix.}
 
 \item{inffuncu}{The influence function for the untreated group}
+
+\item{cband}{Whether \code{qte.lower}/\code{qte.upper} are a uniform
+confidence band (\code{TRUE}) or pointwise intervals (\code{FALSE}).
+Default \code{NULL} (unknown, e.g. objects from qte < 2.1.0), treated as
+pointwise.}
 }
 \description{
 Main class of objects.  A \code{QTE} object is returned by

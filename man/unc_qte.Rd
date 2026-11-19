@@ -45,9 +45,13 @@ QTE or QTT. Default \code{seq(0.05, 0.95, 0.05)}.}
 \item{biters}{number of bootstrap iterations for standard errors and
 confidence bands. Default 100.}
 
-\item{cband}{logical; if \code{TRUE} (default), report a uniform confidence
-band (simultaneous over all quantiles in \code{probs}) in addition to
-pointwise intervals.}
+\item{cband}{logical; if \code{TRUE} (default), \code{qte.lower} and
+\code{qte.upper} form a uniform confidence band, simultaneous over all
+quantiles in \code{probs}: \code{qte} \eqn{\pm} \code{c} \eqn{\times}
+\code{qte.se}, with the bootstrap critical value \code{c} (the same
+construction as the panel estimators' uniform bands). If \code{FALSE},
+they are pointwise intervals, \code{qte} \eqn{\pm z_{1-\alpha/2}}
+\code{qte.se}.}
 
 \item{boot_type}{bootstrap variant. Currently only \code{"empirical"} is
 supported.}
@@ -85,8 +89,11 @@ An object of class \code{QTE} containing:
 element of \code{probs}.}
 \item{\code{ate}}{estimated ATE (or ATT when \code{target = "qtt"}).}
 \item{\code{qte.se}}{bootstrap standard errors for \code{qte}.}
-\item{\code{qte.lower}, \code{qte.upper}}{confidence interval bounds
-for \code{qte}; uniform when \code{cband = TRUE}, pointwise otherwise.}
+\item{\code{qte.lower}, \code{qte.upper}}{confidence bounds for
+\code{qte}: a uniform band if \code{cband = TRUE}, pointwise
+intervals otherwise (see \code{cband}).}
+\item{\code{cband}}{whether \code{qte.lower}/\code{qte.upper} are a
+uniform band.}
 \item{\code{ate.se}, \code{ate.lower}, \code{ate.upper}}{SE and CI
 for \code{ate}.}
 \item{\code{c}}{bootstrap critical value for a uniform band over

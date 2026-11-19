@@ -249,11 +249,13 @@ unc_qte_est <- function(dat, xformla, probs, method, est_method, target,
 #   est            full-sample list from unc_qte_est() (qte, ate)
 #   biters         number of bootstrap draws
 #   alp            significance level
+#   cband          if TRUE, qte.lower/qte.upper are a uniform band over probs
+#                  (qte +/- c * se); if FALSE, pointwise (qte +/- z * se)
 #   cl             passed to pbapply::pblapply() (parallel workers)
 #
 # Returns a list with qte.se, qte.lower, qte.upper, ate.se, ate.lower,
 # ate.upper and c (critical value for a uniform band over probs).
-unc_qte_boot <- function(dat, est_args, est, biters, alp, cl) {
+unc_qte_boot <- function(dat, est_args, est, biters, alp, cband, cl) {
   n <- nrow(dat)
   draws <- pbapply::pblapply(seq_len(biters), function(b) {
     idx <- sample(seq_len(n), n, replace = TRUE)
@@ -283,10 +285,15 @@ unc_qte_boot <- function(dat, est_args, est, biters, alp, cl) {
   cb <- apply(qte_mat, 1, function(q) max(abs((q - est$qte) / sigmahalf)))
   c_val <- as.numeric(stats::quantile(cb, 1 - alp, type = 1))
 
+  # Uniform band qte +/- c * se, exactly as ptetools builds lower_ub/upper_ub
+  # for the panel estimators (same c, scaled by the bootstrap SE); pointwise
+  # band qte +/- z * se otherwise
+  band_cval <- if (cband) c_val else z
+
   list(
     qte.se = qte.se,
-    qte.lower = est$qte - z * qte.se,
-    qte.upper = est$qte + z * qte.se,
+    qte.lower = est$qte - band_cval * qte.se,
+    qte.upper = est$qte + band_cval * qte.se,
     ate.se = ate.se,
     ate.lower = est$ate - z * ate.se, ate.upper = est$ate + z * ate.se,
     c = c_val
@@ -355,9 +362,13 @@ unc_qte_boot <- function(dat, est_args, est, biters, alp, cl) {
 #' @param alp significance level for confidence intervals. Default 0.05.
 #' @param biters number of bootstrap iterations for standard errors and
 #'   confidence bands. Default 100.
-#' @param cband logical; if \code{TRUE} (default), report a uniform confidence
-#'   band (simultaneous over all quantiles in \code{probs}) in addition to
-#'   pointwise intervals.
+#' @param cband logical; if \code{TRUE} (default), \code{qte.lower} and
+#'   \code{qte.upper} form a uniform confidence band, simultaneous over all
+#'   quantiles in \code{probs}: \code{qte} \eqn{\pm} \code{c} \eqn{\times}
+#'   \code{qte.se}, with the bootstrap critical value \code{c} (the same
+#'   construction as the panel estimators' uniform bands). If \code{FALSE},
+#'   they are pointwise intervals, \code{qte} \eqn{\pm z_{1-\alpha/2}}
+#'   \code{qte.se}.
 #' @param boot_type bootstrap variant. Currently only \code{"empirical"} is
 #'   supported.
 #' @param method propensity score link function: \code{"logit"} (default) or
@@ -399,8 +410,11 @@ unc_qte_boot <- function(dat, est_args, est, biters, alp, cl) {
 #'       element of \code{probs}.}
 #'     \item{\code{ate}}{estimated ATE (or ATT when \code{target = "qtt"}).}
 #'     \item{\code{qte.se}}{bootstrap standard errors for \code{qte}.}
-#'     \item{\code{qte.lower}, \code{qte.upper}}{confidence interval bounds
-#'       for \code{qte}; uniform when \code{cband = TRUE}, pointwise otherwise.}
+#'     \item{\code{qte.lower}, \code{qte.upper}}{confidence bounds for
+#'       \code{qte}: a uniform band if \code{cband = TRUE}, pointwise
+#'       intervals otherwise (see \code{cband}).}
+#'     \item{\code{cband}}{whether \code{qte.lower}/\code{qte.upper} are a
+#'       uniform band.}
 #'     \item{\code{ate.se}, \code{ate.lower}, \code{ate.upper}}{SE and CI
 #'       for \code{ate}.}
 #'     \item{\code{c}}{bootstrap critical value for a uniform band over
@@ -485,14 +499,14 @@ unc_qte <- function(yname, dname, data,
                    cond_dist = cond_dist)
   est  <- do.call(unc_qte_est, c(list(dat = dat, full = TRUE), est_args))
   boot <- unc_qte_boot(dat, est_args, est, biters = biters, alp = alp,
-                       cl = cl)
+                       cband = cband, cl = cl)
 
   QTE(qte       = est$qte,
       qte.upper = boot$qte.upper, qte.lower = boot$qte.lower,
       ate       = est$ate,
       ate.upper = boot$ate.upper, ate.lower = boot$ate.lower,
       qte.se    = boot$qte.se,    ate.se    = boot$ate.se,
-      c = boot$c, alp = alp,
+      c = boot$c, alp = alp, cband = cband,
       pscore.reg     = est$pscore.reg,
       F.treated.t    = est$F.treated.t,
       F.treated.t.cf = est$F.treated.t.cf,

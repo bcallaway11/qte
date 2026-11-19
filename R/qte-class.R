@@ -76,7 +76,9 @@ summary.QTE <- function(object, ...) {
     alp         = alp,
     on_treated  = on_treated,
     has_se      = !is.null(object$qte.se),
-    has_cband   = !is.null(object$qte.upper)
+    # label the band "Simult." only when the object says it is one; objects
+    # from qte < 2.1.0 have no `cband` field and stored pointwise intervals
+    has_cband   = isTRUE(object$cband)
   )
   class(out) <- "summary.QTE"
   out
@@ -198,6 +200,10 @@ plot.QTE <- function(x, cband = TRUE, ylab = "QTE", ...) {
 #' @param c The critical value from a KS-type statistic used for creating
 #'  uniform confidence bands
 #' @param alp The significance level
+#' @param cband Whether \code{qte.lower}/\code{qte.upper} are a uniform
+#'  confidence band (\code{TRUE}) or pointwise intervals (\code{FALSE}).
+#'  Default \code{NULL} (unknown, e.g. objects from qte < 2.1.0), treated as
+#'  pointwise.
 #' @param pscore.reg The results of propensity score regression, if specified
 #' @param probs The values for which the qte is computed
 #' @param type Takes the values "On the Treated" or "Population" to indicate
@@ -249,11 +255,12 @@ QTE <- function(qte, ate = NULL, qte.se = NULL, qte.lower = NULL,
                 F.untreated.tmin2 = NULL,
                 condQ.treated.t = NULL,
                 condQ.treated.t.cf = NULL,
-                eachIterList = NULL, inffunct = NULL, inffuncu = NULL) {
+                eachIterList = NULL, inffunct = NULL, inffuncu = NULL,
+                cband = NULL) {
   out <- list(
     qte = qte, ate = ate, qte.se = qte.se, qte.lower = qte.lower,
     qte.upper = qte.upper, ate.se = ate.se, ate.lower = ate.lower,
-    ate.upper = ate.upper, c = c, alp = alp,
+    ate.upper = ate.upper, c = c, alp = alp, cband = cband,
     pscore.reg = pscore.reg, probs = probs,
     type = type, F.treated.t = F.treated.t, F.untreated.t = F.untreated.t,
     F.treated.t.cf = F.treated.t.cf,

@@ -10,8 +10,9 @@
 \item{object}{a \code{QTE} object, as returned by \code{\link{unc_qte}}.}
 
 \item{cband}{logical; if \code{TRUE} (default), show the uniform confidence
-band stored in \code{object$qte.upper} / \code{object$qte.lower}.
-If \code{FALSE}, show pointwise intervals computed from \code{object$qte.se}.}
+band, \code{qte} \eqn{\pm} \code{c} \eqn{\times} \code{qte.se} (as
+stored by \code{\link{unc_qte}} with \code{cband = TRUE}). If
+\code{FALSE}, show pointwise intervals computed from \code{object$qte.se}.}
 
 \item{ylab}{label for the y-axis. Default \code{"QTE"}.}
 
