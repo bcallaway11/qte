@@ -31,8 +31,8 @@ All estimators use `did`/`ptetools`-style named args (`yname`, `tname`,
   `panel_qtt`, `ddid`, `mdid`, `lou_qtt` (lagged-outcome unconfoundedness;
   the others are DiD-type), with `gname`, `gt_type`, staggered adoption.
 
-Argument-name wrinkle: `unc_qte` takes `xformla`, the panel estimators take
-`xformula` (open item in `dev/TODO.md`).
+All estimators take `xformula` (`unc_qte`'s old `xformla` is a deprecated
+alias since 2.1.0) and `clustervars`.
 
 ## Key Architecture
 
@@ -69,19 +69,22 @@ Design notes and open questions: `dev/distreg_report.md`.
 ### `unc_qte` — standalone cross-sectional estimator
 ```
 unc_qte() → unc_qte_data() → unc_qte_est() (full sample)
-          → unc_qte_boot() (resample rows, unc_qte_est() per draw) → QTE
+          → unc_qte_boot() (resample rows or clusters, unc_qte_est() per draw) → QTE
 ```
 - Deliberately independent of ptetools: it has no group/time structure, and
   its `target = "qte"` (population) parameter doesn't fit ptetools'
   effect-on-the-treated aggregation/output classes. Decision 2026-11-19.
-- `unc_qte_data()` builds the working data (`.y`, `.d`, `.w` + covariates,
-  complete cases); `unc_qte_est()` does IPW / OR / AIPW for QTE or QTT;
-  `unc_qte_boot()` is a plain empirical bootstrap via `pbapply::pblapply()`.
+- `unc_qte_data()` builds the working data (`.y`, `.d`, `.w`, `.cluster` with
+  `clustervars`, + covariates; complete cases); `unc_qte_est()` does IPW /
+  OR / AIPW for QTE or QTT; `unc_qte_boot()` is a plain empirical bootstrap
+  via `pbapply::pblapply()` that resamples rows, or whole clusters with
+  `clustervars` (one row per cluster reproduces the row bootstrap exactly).
 - **`QTE`** (qte-class.R) — S3 class for `unc_qte` output, with
   `summary`/`print`/`plot`/`autoplot` methods.
 - The legacy `QTEparams`/`setupData`/`bootstrap`/`computeSE`/`SE` machinery
-  was deleted in v2.1.0 when `unc_qte` was rewritten (identical estimates; it also fixed the bootstrap,
-  which had kept weights in their original row order while resampling rows).
+  was deleted in v2.1.0 when `unc_qte` was rewritten (identical estimates;
+  it also fixed the bootstrap, which had kept weights in their original row
+  order while resampling rows).
 
 ### Key S3 classes
 - `QTE` — `unc_qte` output (constructor still exported).
@@ -114,9 +117,19 @@ The working list for the next release is `dev/TODO.md`; design history and
 rationale are in `dev/NOTES.md`. Highlights:
 
 - `QTE()` (the constructor) is exported though users shouldn't need it.
-- `unc_qte` (`xformla`) vs panel estimators (`xformula`) argument naming.
-- Parallel bootstrap: a numeric `cl` runs serially on Windows — root cause is
-  in ptetools (bcallaway11/ptetools#11).
+- **qte `master` needs unreleased ptetools** (GitHub, post-1.0.2:
+  `pte_calendar_time()`, `clustervars`, #13 internal columns, #22). The
+  installed library and `DESCRIPTION` (`>= 1.0.2`) lag; until ptetools is
+  bumped (1.0.3) and reinstalled, test against the GitHub version and expect
+  `rcmdcheck()` (installed ptetools) to fail the `panel_qtt` tests.
+- **Sampling weights** (audit 2026-11-19, `dev/weights_audit.md`,
+  ptetools#21): within-cell weighting is correct, but cohorts are combined
+  by unweighted counts in ptetools' empirical-bootstrap aggregation
+  (ptetools#23) and in `panel_qtt_long_agg()` (#13, follow ptetools#23).
+  No weights validation (ptetools#24); panel weights tests to add (#15,
+  start in `tests/testthat/test-weights.R`).
+- Parallel bootstrap: a numeric `cl` ran serially on Windows; fixed on
+  ptetools GitHub (#11), shipping with the next ptetools release.
 
 ## Development Workflow
 
