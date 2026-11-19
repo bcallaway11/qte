@@ -333,15 +333,24 @@ panel_qtt_long_agg <- function(attgt.list, ptep, extra_gt_returns) {
     cell_tp <- sapply(cell_tp, BMisc::t2orig, original_tp)
   }
 
+  # event time in calendar units, for reporting (matches ptetools' convention)
   effective_g <- cell_g - anticipation
   cell_e      <- cell_tp - effective_g
-  is_post     <- cell_e >= 0L
 
   # --- validity mask ---
-  # post-treatment: valid iff pre2 = 2*effective_g - tp - 2 is in original_tp
-  # pre-test: always valid (sliding base, guaranteed by required_pre_periods = 2)
-  pre2_long <- 2L * effective_g - cell_tp - 2L
-  is_valid  <- ifelse(is_post, pre2_long %in% original_tp, TRUE)
+  # three_period_subset() picks pre2/pre1/post in ptetools' period-index units
+  # (1..T, the position in original_tp), so post-treatment status and the
+  # existence of pre2 must be checked in those same units. Doing this
+  # arithmetic in calendar units disagrees with the subset function whenever
+  # periods are unequally spaced: e.g. lalonde.psid.panel (1974, 1975, 1978)
+  # with g = t = 1978 gave pre2 = 1976, wrongly marking the only cell invalid.
+  #   post-treatment: valid iff pre2 = 2*effective_g - tp - 2 >= 1 (index units)
+  #   pre-test: always valid (sliding base; required_pre_periods = 2)
+  g_idx      <- match(cell_g, original_tp) - anticipation
+  tp_idx      <- match(cell_tp, original_tp)
+  is_post     <- tp_idx >= g_idx
+  pre2_long   <- 2L * g_idx - tp_idx - 2L
+  is_valid    <- ifelse(is_post, pre2_long >= 1L, TRUE)
 
   # --- error on valid cells with unexpected NA att ---
   if (any(is_valid & is.na(cell_att))) {

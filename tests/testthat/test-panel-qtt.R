@@ -4,9 +4,10 @@
 #   modes. Uses a synthetic 4-period staggered panel (1 group treated at t=3)
 #   so that pre2 = period 1 and pre1 = period 2 are always available.
 #   biters kept low (20) so the suite runs quickly. Reference values computed
-#   from the first verified run.
+#   from the first verified run. Also checks pre_copula = "long" with
+#   unequally spaced calendar years (lalonde.psid.panel: 1974, 1975, 1978).
 # Author: Brant Callaway
-# Last update: 2026-05-20
+# Last update: 2026-11-19
 # Date created: 2026-05-20
 # =============================================================================
 
@@ -53,4 +54,29 @@ test_that("panel_qtt panel QTT returns valid pte_qtt with correct structure", {
   expect_false(anyNA(res$overall$qtt))
   expect_true(all(res$overall$lower_pw < res$overall$upper_pw))
   expect_equal(res$overall$qtt[res$overall$probs == 0.5], 0.9732522, tolerance = 1e-4)
+})
+
+# pre_copula = "long" with unequally spaced calendar years. With periods
+# 1974/1975/1978 and g = 1978, the only cell is e = 0, where the long and
+# short copulas coincide (pre2 = 1974, pre1 = 1975). panel_qtt_long_agg()
+# used to check pre2 in calendar units (2 * 1978 - 1978 - 2 = 1976, not in the
+# data) and errored with "no valid post-treatment cells". Point estimates must
+# not depend on whether time is coded in calendar years or as 1..T.
+test_that("panel_qtt long-copula QTT works with unequally spaced years", {
+  d <- lalonde.psid.panel
+  d$g <- ifelse(d$treat == 1, 1978, 0)
+  d$year_idx <- match(d$year, c(1974, 1975, 1978))
+  d$g_idx <- ifelse(d$treat == 1, 3, 0)
+  fit <- function(gname, tname, pre_copula) {
+    set.seed(1)
+    suppressWarnings(panel_qtt(yname = "re", gname = gname, tname = tname,
+                               idname = "id", data = d, biters = 2,
+                               gt_type = "qtt", pre_copula = pre_copula,
+                               probs = c(0.5, 0.7, 0.9)))
+  }
+  long_years <- fit("g", "year", "long")
+  expect_s3_class(long_years, "pte_qtt")
+  expect_false(anyNA(long_years$overall$qtt))
+  expect_equal(long_years$overall$qtt, fit("g_idx", "year_idx", "long")$overall$qtt)
+  expect_equal(long_years$overall$qtt, fit("g", "year", "short")$overall$qtt)
 })

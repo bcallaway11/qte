@@ -50,6 +50,13 @@
   columns. Requires `ptetools (>= 1.0.2)`. Results for other column names
   are unchanged.
 
+* `panel_qtt(gt_type = "qtt")` with the default `pre_copula = "long"` no
+  longer fails ("no valid post-treatment cells") or drops valid cells when
+  time periods are unequally spaced, e.g. `lalonde.psid.panel` (1974, 1975,
+  1978). The aggregation step checked whether the earlier base period exists
+  in calendar years, while the estimator chooses base periods by position in
+  the panel. Results with equally spaced periods are unchanged.
+
 ## Minor improvements
 
 * `unc_qte()` now checks up front that `dname` is a column of `data` coded
