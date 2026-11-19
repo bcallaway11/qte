@@ -24,7 +24,8 @@ three_period_subset(
 \item{control_group}{\code{"notyettreated"} (default) or
 \code{"nevertreated"}.}
 
-\item{anticipation}{Number of periods of anticipation. Default \code{0}.}
+\item{anticipation}{Anticipation, in units of the time variable. Default
+\code{0}.}
 
 \item{pre_copula}{\code{"long"} (default) or \code{"short"}. See above.}
 
@@ -35,19 +36,23 @@ A list with elements \code{gt_data}, \code{n1}, \code{disidx}.
 }
 \description{
 Custom \code{subset_fun} for \code{ptetools::pte} that pulls
-three time periods for each (g,t) cell: pre2, pre1 = g - anticipation - 1,
-and post = tp. How pre2 is chosen depends on \code{pre_copula}:
+three time periods for each (g,t) cell: pre2, pre1 (the last period at
+least \code{anticipation} before g, in units of the time variable, as in
+\code{did::att_gt()}), and post = tp. Periods below are counted as
+positions in the list of time periods. How pre2 is chosen depends on
+\code{pre_copula}:
 
 \describe{
-\item{\code{"long"} (default)}{pre2 = 2*(g - anticipation) - tp - 2, so
-the copula-transfer window matches the event horizon e = tp - (g -
-anticipation). Cells where this pre2 does not exist in the data return
-empty data and \code{panel_qtt_gt} returns \code{NA}.}
-\item{\code{"short"}}{pre2 = g - anticipation - 2 (fixed at treatment
-onset regardless of e).}
+\item{\code{"long"} (default)}{pre2 = 2*pre1 - tp, so the
+copula-transfer window is as many periods before pre1 as tp is after
+it. Cells where this pre2 does not exist in the data return empty
+data and \code{panel_qtt_gt} returns \code{NA}.}
+\item{\code{"short"}}{pre2 = pre1 - 1 (fixed at treatment onset
+regardless of e).}
 }
 
-For pre-treatment placebo cells (\code{tp < g - anticipation}), the base
+For pre-treatment placebo cells (\code{tp < g - anticipation}, in
+calendar time), the base
 always slides backwards regardless of \code{pre_copula}:
 pre2 = tp - 2, pre1 = tp - 1.  \code{panel_qtt()} sets
 \code{required_pre_periods = 2} so that the minimum tp in \code{tlist}

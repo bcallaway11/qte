@@ -50,6 +50,14 @@
   columns. Requires `ptetools (>= 1.0.2)`. Results for other column names
   are unchanged.
 
+* `panel_qtt()` now treats `anticipation` in units of the time variable, as
+  `did::att_gt()` and ptetools do: a cell is post-treatment from
+  `g - anticipation` on, pre1 is the last period at least `anticipation`
+  before `g`, and not-yet-treated comparison units must not be treated or
+  anticipating treatment by the cell's latest period. It previously counted
+  anticipation in periods and ignored it for the comparison group. Results
+  without anticipation are unchanged.
+
 * `panel_qtt(gt_type = "qtt")` with the default `pre_copula = "long"` no
   longer fails ("no valid post-treatment cells") or drops valid cells when
   time periods are unequally spaced, e.g. `lalonde.psid.panel` (1974, 1975,

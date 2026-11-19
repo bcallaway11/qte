@@ -80,3 +80,39 @@ test_that("panel_qtt long-copula QTT works with unequally spaced years", {
   expect_equal(long_years$overall$qtt, fit("g_idx", "year_idx", "long")$overall$qtt)
   expect_equal(long_years$overall$qtt, fit("g", "year", "short")$overall$qtt)
 })
+
+# Anticipation is in units of the time variable, as in did::att_gt() and
+# ptetools: with unequally spaced years and anticipation = 2, the base period
+# (pre1) is the last year at least 2 years before treatment, cells are
+# post-treatment from g - 2 on, and not-yet-treated controls must not be
+# treated or anticipating treatment by the cell's latest period.
+test_that("three_period_subset() uses anticipation in calendar time", {
+  set.seed(1)
+  n <- 300
+  yrs <- c(2001, 2002, 2004, 2007, 2011)
+  grp <- sample(c(0, 2007, 2011), n, replace = TRUE)
+  d <- data.frame(id = rep(seq_len(n), each = 5), year = rep(yrs, n),
+                  grp = rep(grp, each = 5))
+  d$y <- rnorm(nrow(d))
+  ptep <- suppressWarnings(ptetools::setup_pte(
+    yname = "y", gname = "grp", tname = "year", idname = "id", data = d,
+    anticipation = 2, required_pre_periods = 2
+  ))
+  idx <- function(year) match(year, yrs)
+  cell <- function(g, tp, pre_copula) {
+    gt <- three_period_subset(ptep$data, idx(g), idx(tp), anticipation = 2,
+                              pre_copula = pre_copula)$gt_data
+    list(periods = yrs[sort(unique(gt$.period))],
+         controls = sort(unique(gt$grp[gt$D == 0])))
+  }
+  # 2007 cohort: base period 2004; 2007 and 2011 are post-treatment
+  expect_equal(cell(2007, 2007, "long")$periods, c(2002, 2004, 2007))
+  expect_equal(cell(2007, 2011, "long")$periods, c(2001, 2004, 2011))
+  expect_equal(cell(2007, 2011, "short")$periods, c(2002, 2004, 2011))
+  # the 2011 cohort is a valid control only through 2007 + 2 < 2011
+  expect_equal(cell(2007, 2007, "long")$controls, c(0, 2011))
+  expect_equal(cell(2007, 2011, "long")$controls, 0)
+  # 2011 cohort: 2007 is still pre-treatment (2007 < 2011 - 2)
+  expect_equal(cell(2011, 2007, "long")$periods, c(2002, 2004, 2007))
+  expect_equal(cell(2011, 2011, "long")$periods, c(2004, 2007, 2011))
+})

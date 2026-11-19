@@ -19,19 +19,23 @@
 #' @title Three-Period Subset for Panel QTT
 #'
 #' @description Custom \code{subset_fun} for \code{ptetools::pte} that pulls
-#'   three time periods for each (g,t) cell: pre2, pre1 = g - anticipation - 1,
-#'   and post = tp. How pre2 is chosen depends on \code{pre_copula}:
+#'   three time periods for each (g,t) cell: pre2, pre1 (the last period at
+#'   least \code{anticipation} before g, in units of the time variable, as in
+#'   \code{did::att_gt()}), and post = tp. Periods below are counted as
+#'   positions in the list of time periods. How pre2 is chosen depends on
+#'   \code{pre_copula}:
 #'
 #'   \describe{
-#'     \item{\code{"long"} (default)}{pre2 = 2*(g - anticipation) - tp - 2, so
-#'       the copula-transfer window matches the event horizon e = tp - (g -
-#'       anticipation). Cells where this pre2 does not exist in the data return
-#'       empty data and \code{panel_qtt_gt} returns \code{NA}.}
-#'     \item{\code{"short"}}{pre2 = g - anticipation - 2 (fixed at treatment
-#'       onset regardless of e).}
+#'     \item{\code{"long"} (default)}{pre2 = 2*pre1 - tp, so the
+#'       copula-transfer window is as many periods before pre1 as tp is after
+#'       it. Cells where this pre2 does not exist in the data return empty
+#'       data and \code{panel_qtt_gt} returns \code{NA}.}
+#'     \item{\code{"short"}}{pre2 = pre1 - 1 (fixed at treatment onset
+#'       regardless of e).}
 #'   }
 #'
-#'   For pre-treatment placebo cells (\code{tp < g - anticipation}), the base
+#'   For pre-treatment placebo cells (\code{tp < g - anticipation}, in
+#'   calendar time), the base
 #'   always slides backwards regardless of \code{pre_copula}:
 #'   pre2 = tp - 2, pre1 = tp - 1.  \code{panel_qtt()} sets
 #'   \code{required_pre_periods = 2} so that the minimum tp in \code{tlist}
@@ -42,7 +46,8 @@
 #' @param tp The current time period.
 #' @param control_group \code{"notyettreated"} (default) or
 #'   \code{"nevertreated"}.
-#' @param anticipation Number of periods of anticipation. Default \code{0}.
+#' @param anticipation Anticipation, in units of the time variable. Default
+#'   \code{0}.
 #' @param pre_copula \code{"long"} (default) or \code{"short"}. See above.
 #' @param ... Additional arguments; silently ignored.
 #'
@@ -56,17 +61,23 @@ three_period_subset <- function(data,
                                 anticipation  = 0,
                                 pre_copula    = "long",
                                 ...) {
-  effective_g <- g - anticipation
+  # anticipation is in units of the time variable, as in did::att_gt() and
+  # ptetools: a cell is post-treatment if tp >= g - anticipation in calendar
+  # time, and pre1 is the last period at least `anticipation` before g
+  post <- ptetools::pte_calendar_time(data, tp) >=
+    ptetools::pte_calendar_time(data, g) - anticipation
 
-  if (tp >= effective_g) {
+  if (post) {
     # post-treatment cell: pre1 fixed at treatment onset; pre2 depends on pre_copula
-    pre1 <- effective_g - 1L
+    pre1 <- ptetools::pte_base_period(data, g, tp, anticipation,
+                                      base_period = "universal")
     pre2 <- if (pre_copula == "long") {
-      # extend copula window to match event horizon e = tp - effective_g
-      2L * effective_g - tp - 2L
+      # extend copula window to match the event horizon: as many periods
+      # before pre1 as tp is after it
+      2L * pre1 - tp
     } else {
       # anchor both base periods at treatment onset
-      effective_g - 2L
+      pre1 - 1L
     }
   } else {
     # pre-test placebo cell: slide base backwards regardless of pre_copula
@@ -76,9 +87,13 @@ three_period_subset <- function(data,
 
   # select rows using ptetools' internal (dot-prefixed) columns, never the
   # user's own columns (ptetools #13)
+  # not-yet-treated controls: not treated or anticipating treatment by tp
+  # (the latest period of the cell), as in did::att_gt()
   grp <- data$.G
   in_group <- if (control_group == "notyettreated") {
-    grp == g | grp > tp | grp == 0
+    grp == g | grp == 0 |
+      ptetools::pte_calendar_time(data, grp) >
+        ptetools::pte_calendar_time(data, tp) + anticipation
   } else {
     grp == g | grp == 0
   }
@@ -344,13 +359,17 @@ panel_qtt_long_agg <- function(attgt.list, ptep, extra_gt_returns) {
   # arithmetic in calendar units disagrees with the subset function whenever
   # periods are unequally spaced: e.g. lalonde.psid.panel (1974, 1975, 1978)
   # with g = t = 1978 gave pre2 = 1976, wrongly marking the only cell invalid.
-  #   post-treatment: valid iff pre2 = 2*effective_g - tp - 2 >= 1 (index units)
+  # Post-treatment status uses anticipation in calendar time, and pre1 is the
+  # last period at least `anticipation` before g, as in three_period_subset().
+  #   post-treatment: valid iff pre2 = 2 * pre1 - tp >= 1 (index units)
   #   pre-test: always valid (sliding base; required_pre_periods = 2)
-  g_idx      <- match(cell_g, original_tp) - anticipation
-  tp_idx      <- match(cell_tp, original_tp)
-  is_post     <- tp_idx >= g_idx
-  pre2_long   <- 2L * g_idx - tp_idx - 2L
-  is_valid    <- ifelse(is_post, pre2_long >= 1L, TRUE)
+  tp_idx    <- match(cell_tp, original_tp)
+  pre1_idx  <- vapply(cell_g, function(gg) {
+    max(c(0L, which(original_tp + anticipation < gg)))
+  }, numeric(1L))
+  is_post   <- cell_tp >= cell_g - anticipation
+  pre2_long <- 2L * pre1_idx - tp_idx
+  is_valid  <- ifelse(is_post, pre2_long >= 1L, TRUE)
 
   # --- error on valid cells with unexpected NA att ---
   if (any(is_valid & is.na(cell_att))) {
@@ -472,12 +491,14 @@ panel_qtt_long_agg <- function(attgt.list, ptep, extra_gt_returns) {
 #'   \strong{pre_copula.} Controls which pre-treatment periods are used as the
 #'   copula-transfer base for post-treatment cells (g, g+e):
 #'   \describe{
-#'     \item{\code{"long"} (default)}{pre2 = 2*(g - anticipation) - (g+e) - 2,
-#'       matching the copula window to the event horizon e. Cells where pre2
-#'       does not exist in the data are excluded from aggregation with two-step
-#'       weight renormalization.}
-#'     \item{\code{"short"}}{pre2 = g - anticipation - 2, always anchored at
-#'       treatment onset.}
+#'     \item{\code{"long"} (default)}{pre2 is as many periods before pre1 as
+#'       the post period is after it, matching the copula window to the event
+#'       horizon. pre1 is the last period at least \code{anticipation} before
+#'       g (in units of the time variable). Cells where pre2 does not exist in
+#'       the data are excluded from aggregation with two-step weight
+#'       renormalization.}
+#'     \item{\code{"short"}}{pre2 is the period just before pre1, always
+#'       anchored at treatment onset.}
 #'   }
 #'   Pre-test placebo cells always use the sliding base regardless of
 #'   \code{pre_copula}.
@@ -496,7 +517,8 @@ panel_qtt_long_agg <- function(attgt.list, ptep, extra_gt_returns) {
 #' @param weightsname Name of the sampling weights column. Default \code{NULL}.
 #' @param control_group \code{"notyettreated"} (default) or
 #'   \code{"nevertreated"}.
-#' @param anticipation Number of periods of anticipation. Default \code{0}.
+#' @param anticipation Anticipation, in units of the time variable. Default
+#'   \code{0}.
 #' @param alp Significance level. Default \code{0.05}.
 #' @param cband Logical; uniform confidence band if \code{TRUE} (default).
 #' @param biters Number of bootstrap iterations. Default \code{100}.

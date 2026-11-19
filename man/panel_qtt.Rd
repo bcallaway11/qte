@@ -48,7 +48,8 @@ regression or \code{"dr"} for distribution regression. See
 \item{control_group}{\code{"notyettreated"} (default) or
 \code{"nevertreated"}.}
 
-\item{anticipation}{Number of periods of anticipation. Default \code{0}.}
+\item{anticipation}{Anticipation, in units of the time variable. Default
+\code{0}.}
 
 \item{alp}{Significance level. Default \code{0.05}.}
 
@@ -84,12 +85,14 @@ data without requiring rank invariance.
 \strong{pre_copula.} Controls which pre-treatment periods are used as the
 copula-transfer base for post-treatment cells (g, g+e):
 \describe{
-\item{\code{"long"} (default)}{pre2 = 2*(g - anticipation) - (g+e) - 2,
-matching the copula window to the event horizon e. Cells where pre2
-does not exist in the data are excluded from aggregation with two-step
-weight renormalization.}
-\item{\code{"short"}}{pre2 = g - anticipation - 2, always anchored at
-treatment onset.}
+\item{\code{"long"} (default)}{pre2 is as many periods before pre1 as
+the post period is after it, matching the copula window to the event
+horizon. pre1 is the last period at least \code{anticipation} before
+g (in units of the time variable). Cells where pre2 does not exist in
+the data are excluded from aggregation with two-step weight
+renormalization.}
+\item{\code{"short"}}{pre2 is the period just before pre1, always
+anchored at treatment onset.}
 }
 Pre-test placebo cells always use the sliding base regardless of
 \code{pre_copula}.
