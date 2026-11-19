@@ -8,8 +8,9 @@ unc_qte(
   yname,
   dname,
   data,
-  xformla = ~1,
+  xformula = ~1,
   weightsname = NULL,
+  clustervars = NULL,
   probs = seq(0.05, 0.95, 0.05),
   alp = 0.05,
   biters = 100,
@@ -19,7 +20,8 @@ unc_qte(
   est_method = c("ipw", "or", "aipw"),
   target = c("qte", "qtt"),
   cond_dist = c("qr", "dr"),
-  cl = 1
+  cl = 1,
+  xformla = NULL
 )
 }
 \arguments{
@@ -30,12 +32,17 @@ unc_qte(
 
 \item{data}{data.frame containing the analysis data.}
 
-\item{xformla}{one-sided formula for covariates used in the propensity
+\item{xformula}{one-sided formula for covariates used in the propensity
 score and/or outcome model, e.g. \code{~ age + I(age^2) + education}.
 Default \code{~1} uses no covariates (simple quantile differences).}
 
 \item{weightsname}{character; name of a column in \code{data} containing
 sampling weights. Default \code{NULL} applies equal weights.}
+
+\item{clustervars}{character; name of a column in \code{data} to cluster
+standard errors on (one variable). The bootstrap then resamples whole
+clusters instead of rows. Default \code{NULL} treats rows as
+independent.}
 
 \item{probs}{numeric vector of quantile levels at which to evaluate the
 QTE or QTT. Default \code{seq(0.05, 0.95, 0.05)}.}
@@ -81,6 +88,9 @@ logit of \eqn{1\{Y \le y\}} on the covariates at a grid of thresholds;
 Chernozhukov, Fernandez-Val and Melly 2013). Ignored for \code{"ipw"}.}
 
 \item{cl}{number of cores for parallel bootstrap. Default 1 (sequential).}
+
+\item{xformla}{Deprecated; use \code{xformula}. Still accepted, with a
+warning.}
 }
 \value{
 An object of class \code{QTE} containing:
@@ -140,16 +150,17 @@ outcome model is correctly specified (semiparametric efficiency when
 both are correct).}
 }
 
-When \code{xformla = ~1} (the default), all three methods reduce to
+When \code{xformula = ~1} (the default), all three methods reduce to
 simple quantile differences between the treated and untreated groups, which
 is consistent under unconditional unconfoundedness. Covariates are required
 for covariate-adjusted estimation.
 
 Rows with a missing value in the outcome, treatment, weights or any
-covariate in \code{xformla} are dropped, with a warning.
+covariate in \code{xformula} are dropped, with a warning.
 
 Standard errors and confidence intervals are computed via the empirical
-bootstrap (resampling rows of \code{data}).
+bootstrap, resampling rows of \code{data}, or whole clusters when
+\code{clustervars} is given.
 }
 \examples{
 data(lalonde)
@@ -166,7 +177,7 @@ plot(q1)
 \donttest{
 xf <- ~ age + I(age^2) + education + black + hispanic + married + nodegree
 q2 <- unc_qte(yname = "re78", dname = "treat", data = lalonde.psid,
-              xformla = xf, est_method = "or",
+              xformula = xf, est_method = "or",
               biters = 20, probs = seq(0.05, 0.95, 0.05))
 summary(q2)
 }
@@ -174,7 +185,7 @@ summary(q2)
 ## AIPW with covariates, QTT
 \donttest{
 q3 <- unc_qte(yname = "re78", dname = "treat", data = lalonde.psid,
-              xformla = xf, est_method = "aipw", target = "qtt",
+              xformula = xf, est_method = "aipw", target = "qtt",
               biters = 20, probs = seq(0.05, 0.95, 0.05))
 summary(q3)
 }

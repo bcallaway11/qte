@@ -65,7 +65,7 @@ res_cs <- unc_qte(
   yname      = "re78",
   dname      = "treat",
   data       = lalonde.psid,
-  xformla    = xf,
+  xformula   = xf,
   est_method = "aipw",
   target     = "qtt",
   probs      = seq(0.1, 0.9, 0.1),

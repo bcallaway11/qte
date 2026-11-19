@@ -12,6 +12,10 @@
 * Removed the exported internal `QTEparams()` parameter container. `unc_qte()`
   now has self-contained estimation and bootstrap code and no longer uses it.
 * `formula.tools`, `data.table` and `parallel` are no longer dependencies.
+* `unc_qte()`'s covariate argument `xformla` is renamed `xformula`, matching
+  the other estimators. `xformla` still works for now, with a deprecation
+  warning. The new `clustervars` argument comes right after `weightsname`,
+  so calls passing `probs` or later arguments by position need updating.
 
 ## New features
 
@@ -19,6 +23,8 @@
   `clustervars` argument, as in `did::att_gt()`, to cluster standard errors
   at a level above the unit (ptetools #6). With the empirical bootstrap,
   whole clusters are resampled.
+* `unc_qte()` also gains `clustervars`: its bootstrap then resamples whole
+  clusters instead of rows.
 
 * The covariate-adjusted estimators gain `cond_dist = c("qr", "dr")`:
   `cic()`, `qdid()`, `ddid()`, `panel_qtt()` (and their `*_gt()` workhorses),
@@ -93,6 +99,11 @@
 * `unc_qte()` drops rows with missing values in the outcome, treatment,
   weights or covariates (with a warning) instead of failing. Its internals
   were rewritten as standalone code; results without weights are unchanged.
+* `cic()` and `qdid()` with covariates and `weightsname` (panel data): the
+  ATT paired the counterfactual outcomes, sorted by unit id, with weights in
+  data row order (#14). ptetools sorts panel data by id, so results were not
+  affected in practice; the ATT now uses the same id-ordered weights as the
+  counterfactual distribution.
 
 # qte 2.0.1
 

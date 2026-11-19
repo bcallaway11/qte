@@ -18,29 +18,36 @@
 # unc_qte_data
 # Builds the working data frame used by the estimator and every bootstrap
 # draw: the outcome, treatment and sampling weights under fixed internal
-# column names (.y, .d, .w), plus the covariates named in xformla under their
-# own names. Rows with a missing value in any of these are dropped (with a
-# warning), so the outcome, treatment, weights and covariates stay aligned.
+# column names (.y, .d, .w, and .cluster with clustervars), plus the
+# covariates named in xformula under their own names. Rows with a missing
+# value in any of these are dropped (with a warning), so the outcome,
+# treatment, weights, clusters and covariates stay aligned.
 #
 # Arguments: as in unc_qte(). Returns a data.frame.
-unc_qte_data <- function(data, yname, dname, xformla, weightsname) {
+unc_qte_data <- function(data, yname, dname, xformula, weightsname,
+                         clustervars = NULL) {
   data <- as.data.frame(data)
-  needed <- c(yname, dname, weightsname, all.vars(xformla))
+  if (!is.null(clustervars) &&
+        (!is.character(clustervars) || length(clustervars) != 1L)) {
+    stop("`clustervars` must be the name of one column of `data`.")
+  }
+  needed <- c(yname, dname, weightsname, clustervars, all.vars(xformula))
   missing_cols <- setdiff(needed, names(data))
   if (length(missing_cols) > 0) {
     stop("column(s) not found in `data`: ",
          paste(missing_cols, collapse = ", "), ".")
   }
 
-  dat <- data[, unique(all.vars(xformla)), drop = FALSE]
+  dat <- data[, unique(all.vars(xformula)), drop = FALSE]
   dat$.y <- data[[yname]]
   dat$.d <- as.numeric(data[[dname]])
   dat$.w <- if (is.null(weightsname)) 1 else data[[weightsname]]
+  if (!is.null(clustervars)) dat$.cluster <- data[[clustervars]]
 
   keep <- stats::complete.cases(dat)
   if (!all(keep)) {
     warning("dropping ", sum(!keep), " row(s) with missing values in the ",
-            "outcome, treatment, weights or covariates.")
+            "outcome, treatment, weights, clusters or covariates.")
     dat <- dat[keep, , drop = FALSE]
   }
   rownames(dat) <- NULL
@@ -55,7 +62,7 @@ unc_qte_data <- function(data, yname, dname, xformla, weightsname) {
 #
 # Arguments:
 #   dat         data.frame from unc_qte_data() (columns .y, .d, .w + covariates)
-#   xformla     one-sided covariate formula
+#   xformula     one-sided covariate formula
 #   probs       quantile levels
 #   method      propensity-score link ("logit" or "probit")
 #   est_method  "ipw", "or" or "aipw"
@@ -67,7 +74,7 @@ unc_qte_data <- function(data, yname, dname, xformla, weightsname) {
 #
 # Returns a list with qte, ate and, if full, pscore.reg, F.treated.t,
 # F.treated.t.cf.
-unc_qte_est <- function(dat, xformla, probs, method, est_method, target,
+unc_qte_est <- function(dat, xformula, probs, method, est_method, target,
                         cond_dist, full = TRUE) {
   D <- dat$.d
   y <- dat$.y
@@ -77,10 +84,10 @@ unc_qte_est <- function(dat, xformla, probs, method, est_method, target,
 
   pscore.reg <- NULL
 
-  # Formulas from the RHS of xformla (deparse of xformla[[2]]; "1" for ~1).
+  # Formulas from the RHS of xformula (deparse of xformula[[2]]; "1" for ~1).
   # Note that ~1 still goes through the model-based branches below (with an
   # intercept-only model), which is what earlier versions did too.
-  xrhs      <- paste(deparse(xformla[[2]]), collapse = " ")
+  xrhs      <- paste(deparse(xformula[[2]]), collapse = " ")
   ps_formla <- stats::as.formula(paste(".d ~", xrhs))
   or_formla <- stats::as.formula(paste(".y ~", xrhs))
 
@@ -240,8 +247,9 @@ unc_qte_est <- function(dat, xformla, probs, method, est_method, target,
 # --- Internal: bootstrap inference -------------------------------------------
 
 # unc_qte_boot
-# Empirical (nonparametric) bootstrap: resample rows of dat with replacement,
-# re-estimate, and summarize the draws into standard errors and intervals.
+# Empirical (nonparametric) bootstrap: resample rows of dat with replacement
+# (or whole clusters, when dat has a .cluster column), re-estimate, and
+# summarize the draws into standard errors and intervals.
 #
 # Arguments:
 #   dat, est_args  working data and the remaining unc_qte_est() arguments
@@ -257,8 +265,23 @@ unc_qte_est <- function(dat, xformla, probs, method, est_method, target,
 # ate.upper and c (critical value for a uniform band over probs).
 unc_qte_boot <- function(dat, est_args, est, biters, alp, cband, cl) {
   n <- nrow(dat)
+  if (is.null(dat$.cluster)) {
+    draw_rows <- function() sample(seq_len(n), n, replace = TRUE)
+  } else {
+    # cluster bootstrap: draw clusters with replacement and keep all rows of
+    # each drawn cluster, so within-cluster dependence is preserved (as the
+    # ptetools empirical bootstrap does with clustervars). With one row per
+    # cluster, in row order, this gives exactly the same draws as resampling
+    # rows, since sample(x, n, TRUE) is x[sample.int(length(x), n, TRUE)].
+    clusters <- unique(dat$.cluster)
+    rows <- split(seq_len(n), factor(dat$.cluster, levels = clusters))
+    draw_rows <- function() {
+      pos <- sample.int(length(clusters), length(clusters), replace = TRUE)
+      unlist(rows[pos], use.names = FALSE)
+    }
+  }
   draws <- pbapply::pblapply(seq_len(biters), function(b) {
-    idx <- sample(seq_len(n), n, replace = TRUE)
+    idx <- draw_rows()
     do.call(unc_qte_est, c(list(dat = dat[idx, , drop = FALSE], full = FALSE),
                            est_args))
   }, cl = cl)
@@ -337,26 +360,31 @@ unc_qte_boot <- function(dat, est_args, est, biters, alp, cband, cl) {
 #'       both are correct).}
 #'   }
 #'
-#'   When \code{xformla = ~1} (the default), all three methods reduce to
+#'   When \code{xformula = ~1} (the default), all three methods reduce to
 #'   simple quantile differences between the treated and untreated groups, which
 #'   is consistent under unconditional unconfoundedness. Covariates are required
 #'   for covariate-adjusted estimation.
 #'
 #'   Rows with a missing value in the outcome, treatment, weights or any
-#'   covariate in \code{xformla} are dropped, with a warning.
+#'   covariate in \code{xformula} are dropped, with a warning.
 #'
 #'   Standard errors and confidence intervals are computed via the empirical
-#'   bootstrap (resampling rows of \code{data}).
+#'   bootstrap, resampling rows of \code{data}, or whole clusters when
+#'   \code{clustervars} is given.
 #'
 #' @param yname character; name of the outcome variable in \code{data}.
 #' @param dname character; name of the binary treatment indicator in
 #'   \code{data} (1 = treated, 0 = untreated).
 #' @param data data.frame containing the analysis data.
-#' @param xformla one-sided formula for covariates used in the propensity
+#' @param xformula one-sided formula for covariates used in the propensity
 #'   score and/or outcome model, e.g. \code{~ age + I(age^2) + education}.
 #'   Default \code{~1} uses no covariates (simple quantile differences).
 #' @param weightsname character; name of a column in \code{data} containing
 #'   sampling weights. Default \code{NULL} applies equal weights.
+#' @param clustervars character; name of a column in \code{data} to cluster
+#'   standard errors on (one variable). The bootstrap then resamples whole
+#'   clusters instead of rows. Default \code{NULL} treats rows as
+#'   independent.
 #' @param probs numeric vector of quantile levels at which to evaluate the
 #'   QTE or QTT. Default \code{seq(0.05, 0.95, 0.05)}.
 #' @param alp significance level for confidence intervals. Default 0.05.
@@ -392,6 +420,8 @@ unc_qte_boot <- function(dat, est_args, est, biters, alp, cband, cl) {
 #'       \eqn{Q_{Y(1)|D=1}(\tau) - Q_{Y(0)|D=1}(\tau)}
 #'   }
 #' @param cl number of cores for parallel bootstrap. Default 1 (sequential).
+#' @param xformla Deprecated; use \code{xformula}. Still accepted, with a
+#'   warning.
 #'
 #' @references
 #' Firpo, Sergio. ``Efficient Semiparametric Estimation of Quantile Treatment
@@ -443,7 +473,7 @@ unc_qte_boot <- function(dat, est_args, est, biters, alp, cband, cl) {
 #' \donttest{
 #' xf <- ~ age + I(age^2) + education + black + hispanic + married + nodegree
 #' q2 <- unc_qte(yname = "re78", dname = "treat", data = lalonde.psid,
-#'               xformla = xf, est_method = "or",
+#'               xformula = xf, est_method = "or",
 #'               biters = 20, probs = seq(0.05, 0.95, 0.05))
 #' summary(q2)
 #' }
@@ -451,15 +481,16 @@ unc_qte_boot <- function(dat, est_args, est, biters, alp, cband, cl) {
 #' ## AIPW with covariates, QTT
 #' \donttest{
 #' q3 <- unc_qte(yname = "re78", dname = "treat", data = lalonde.psid,
-#'               xformla = xf, est_method = "aipw", target = "qtt",
+#'               xformula = xf, est_method = "aipw", target = "qtt",
 #'               biters = 20, probs = seq(0.05, 0.95, 0.05))
 #' summary(q3)
 #' }
 #'
 #' @export
 unc_qte <- function(yname, dname, data,
-                    xformla = ~1,
+                    xformula = ~1,
                     weightsname = NULL,
+                    clustervars = NULL,
                     probs = seq(0.05, 0.95, 0.05),
                     alp = 0.05,
                     biters = 100,
@@ -469,7 +500,16 @@ unc_qte <- function(yname, dname, data,
                     est_method = c("ipw", "or", "aipw"),
                     target = c("qte", "qtt"),
                     cond_dist = c("qr", "dr"),
-                    cl = 1) {
+                    cl = 1,
+                    xformla = NULL) {
+  # xformla was renamed xformula in 2.1.0, matching the panel estimators
+  if (!is.null(xformla)) {
+    if (!missing(xformula)) {
+      stop("Use `xformula` only; `xformla` is its deprecated old name.")
+    }
+    warning("`xformla` is deprecated; use `xformula` instead.", call. = FALSE)
+    xformula <- xformla
+  }
   method     <- match.arg(method)
   est_method <- match.arg(est_method)
   target     <- match.arg(target)
@@ -492,9 +532,9 @@ unc_qte <- function(yname, dname, data,
          paste(utils::head(sort(d_vals), 5), collapse = ", "), ".")
   }
 
-  dat <- unc_qte_data(data, yname, dname, xformla, weightsname)
+  dat <- unc_qte_data(data, yname, dname, xformula, weightsname, clustervars)
 
-  est_args <- list(xformla = xformla, probs = probs, method = method,
+  est_args <- list(xformula = xformula, probs = probs, method = method,
                    est_method = est_method, target = target,
                    cond_dist = cond_dist)
   est  <- do.call(unc_qte_est, c(list(dat = dat, full = TRUE), est_args))

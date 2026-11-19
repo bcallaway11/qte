@@ -6,7 +6,8 @@
 #   comparison group — a regression check that estimates stay stable, not a
 #   causal claim. Also checks that the AIPW ATT is doubly robust (issue #11)
 #   that a non-0/1 treatment errors clearly (issue #1), the uniform vs
-#   pointwise bands (cband), and that rows with missing values are dropped.
+#   pointwise bands (cband), that rows with missing values are dropped,
+#   clustervars, and the deprecated xformla alias.
 # Author: Brant Callaway
 # Last update: 2026-11-19
 # Date created: 2026-05-18
@@ -29,12 +30,12 @@ test_that("unc_qte returns correct structure and stable ATE", {
 })
 
 # Smoke test: with covariates (propensity score reweighting); checks pscore fitted
-test_that("unc_qte with xformla returns valid IPW estimates", {
+test_that("unc_qte with xformula returns valid IPW estimates", {
   set.seed(42)
   cq2 <- unc_qte(
     yname   = "re78", dname = "treat",
     data    = lalonde.psid,
-    xformla = ~ age + education + black + hispanic + married + nodegree,
+    xformula = ~ age + education + black + hispanic + married + nodegree,
     probs   = seq(0.25, 0.75, 0.25),
     biters  = 20
   )
@@ -55,7 +56,7 @@ test_that("the AIPW ATT is doubly robust: right with a wrong propensity model (#
   d <- data.frame(z = z, z2 = z^2, D = D, Y = 1 + z + 0.8 * z^2 + rnorm(n) + D)
   att <- function(em) {
     suppressWarnings(unc_qte(yname = "Y", dname = "D", data = d,
-                             xformla = ~ z + z2, est_method = em,
+                             xformula = ~ z + z2, est_method = em,
                              target = "qtt", biters = 2, probs = 0.5))$ate
   }
   expect_gt(abs(att("ipw") - 1), 0.5)
@@ -77,7 +78,7 @@ test_that("sampling weights act like replicated rows in every unc_qte branch", {
     for (tg in c("qte", "qtt")) {
       est <- function(dat, wn) {
         r <- suppressWarnings(unc_qte(yname = "Y", dname = "D", data = dat,
-                                      xformla = ~z, weightsname = wn,
+                                      xformula = ~z, weightsname = wn,
                                       est_method = em, target = tg,
                                       cond_dist = "dr", biters = 2,
                                       probs = c(0.25, 0.5, 0.75)))
@@ -143,4 +144,52 @@ test_that("unc_qte drops rows with missing values, with a warning", {
                   probs = 0.5, biters = 2)
   expect_equal(r_na$qte, r_cc$qte)
   expect_equal(r_na$qte.se, r_cc$qte.se)
+})
+
+test_that("unc_qte clustervars: row-level clusters match, cluster shocks raise SEs", {
+  probs <- c(0.25, 0.5, 0.75)
+  fit <- function(data, ...) {
+    set.seed(5)
+    suppressWarnings(unc_qte(yname = "y", dname = "d", data = data,
+                             probs = probs, biters = 40, ...))
+  }
+
+  # 40 clusters with a common outcome shock and treatment assigned by
+  # cluster (with treatment varying within clusters, the shocks would mostly
+  # cancel between treated and untreated and clustering would matter little)
+  set.seed(1)
+  n_cl <- 40
+  m <- 25
+  cl_id <- rep(seq_len(n_cl), each = m)
+  d <- data.frame(cl = cl_id, row = seq_len(n_cl * m),
+                  d = rep(rep(0:1, n_cl / 2), each = m))
+  d$y <- 2 * rnorm(n_cl)[cl_id] + rnorm(nrow(d)) + d$d
+
+  # one cluster per row, in row order: exactly the unclustered bootstrap
+  unclustered <- fit(d)
+  by_row <- fit(d, clustervars = "row")
+  expect_equal(by_row$qte.se, unclustered$qte.se)
+  expect_equal(by_row$ate.se, unclustered$ate.se)
+
+  # resampling whole clusters picks up the common shocks
+  clustered <- fit(d, clustervars = "cl")
+  expect_equal(clustered$qte, unclustered$qte)
+  expect_gt(mean(clustered$qte.se), 1.5 * mean(unclustered$qte.se))
+
+  expect_error(fit(d, clustervars = c("cl", "row")), "one column")
+  expect_error(fit(d, clustervars = "nope"), "not found")
+})
+
+test_that("unc_qte's deprecated xformla still works, with a warning", {
+  args <- list(yname = "re78", dname = "treat", data = lalonde.psid,
+               probs = c(0.25, 0.5, 0.75), biters = 4)
+  set.seed(3)
+  new <- suppressWarnings(do.call(unc_qte, c(args, xformula = ~ age)))
+  set.seed(3)
+  expect_warning(old <- do.call(unc_qte, c(args, xformla = ~ age)),
+                 "deprecated")
+  expect_equal(old$qte, new$qte)
+  expect_equal(old$qte.se, new$qte.se)
+  expect_error(do.call(unc_qte, c(args, xformula = ~ age, xformla = ~ age)),
+               "only")
 })
