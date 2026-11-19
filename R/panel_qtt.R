@@ -381,11 +381,17 @@ panel_qtt_long_agg <- function(attgt.list, ptep, extra_gt_returns) {
     ))
   }
 
-  # --- group sizes (count treated units at first time period) ---
-  n_group <- sapply(groups, function(gg) {
-    nrow(subset(data, data[, ptep$gname] == gg &
-                      data[, ptep$tname] == original_tp[1L]))
-  })
+  # --- group sizes (weighted number of units at the first time period) ---
+  # Weighted by the sampling weights (.w, all 1 without weightsname), as the
+  # ptetools aggregations do (ptetools #23); counting rows combined cohorts
+  # by sample counts rather than weighted population shares (#13).
+  first_rows <- which(data[, ptep$tname] == original_tp[1L])
+  first_G    <- data[first_rows, ptep$gname]
+  first_w    <- if (is.null(data$.w)) rep(1, length(first_rows)) else
+    data$.w[first_rows]
+  n_group <- vapply(groups, function(gg) {
+    sum(first_w[first_G == gg], na.rm = TRUE)
+  }, numeric(1L))
   names(n_group) <- as.character(groups)
 
   # --- F0/F1 for all cells (NULL for invalid/NA cells) ---

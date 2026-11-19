@@ -119,11 +119,14 @@ rationale are in `dev/NOTES.md`. Highlights:
   bumped (1.0.3) and reinstalled, test against the GitHub version and expect
   `rcmdcheck()` (installed ptetools) to fail the `panel_qtt` tests.
 - **Sampling weights** (audit 2026-11-19, `dev/weights_audit.md`,
-  ptetools#21): within-cell weighting is correct, but cohorts are combined
-  by unweighted counts in ptetools' empirical-bootstrap aggregation
-  (ptetools#23) and in `panel_qtt_long_agg()` (#13, follow ptetools#23).
-  No weights validation (ptetools#24); panel weights tests to add (#15,
-  start in `tests/testthat/test-weights.R`).
+  ptetools#21): cohort shares are now weighted (ptetools#23, qte#13) and
+  weights validated (ptetools#24), both needing ptetools GitHub.
+  `tests/testthat/test-weights.R` checks row replication for every panel
+  estimator (#15). Exact replication needs `cond_dist = "dr"` with
+  covariates (weighted QR's LP solution isn't unique) and outcomes on the
+  QTT grid: ptetools evaluates QTTs on a 1000-point grid of unweighted
+  pooled-outcome quantiles, so off-grid counterfactuals (e.g. `mdid`) move
+  with the grid.
 - Parallel bootstrap: a numeric `cl` ran serially on Windows; fixed on
   ptetools GitHub (#11), shipping with the next ptetools release.
 

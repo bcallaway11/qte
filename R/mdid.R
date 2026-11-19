@@ -110,8 +110,11 @@ mdid_gt <- function(gt_data, xformula = ~1, ...) {
     pre_trt   <- gt_data[gt_data$name == "pre"  & gt_data$D == 1, ]
 
     yformla      <- BMisc::toformula("Y", BMisc::rhs_vars(xformula)) # nolint: object_name_linter
-    lm_pre_ctrl  <- lm(yformla, data = pre_ctrl,  weights = pre_ctrl$.w)  # nolint: object_name_linter
-    lm_post_ctrl <- lm(yformla, data = post_ctrl, weights = post_ctrl$.w) # nolint: object_name_linter
+    # weights = .w is looked up in `data`; pre_ctrl$.w failed because lm()
+    # evaluates weights in the formula's environment, where pre_ctrl isn't
+    # visible, so mdid() with covariates always errored before 2.1.0
+    lm_pre_ctrl  <- lm(yformla, data = pre_ctrl,  weights = .w) # nolint: object_name_linter
+    lm_post_ctrl <- lm(yformla, data = post_ctrl, weights = .w) # nolint: object_name_linter
 
     delta <- predict(lm_post_ctrl, newdata = pre_trt) - # nolint: object_name_linter
                predict(lm_pre_ctrl,  newdata = pre_trt)

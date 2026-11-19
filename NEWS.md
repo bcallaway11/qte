@@ -90,6 +90,18 @@
   in calendar years, while the estimator chooses base periods by position in
   the panel. Results with equally spaced periods are unchanged.
 
+* With `weightsname`, the panel estimators' overall and event-study results
+  (ATT and QTT) now combine cohorts by their weighted shares, as `did` does.
+  They used unweighted counts of units, so results were wrong whenever the
+  average weight differed across cohorts (ptetools #23; for
+  `panel_qtt(pre_copula = "long")`, which aggregates in qte, #13). Integer
+  weights now give the same estimates as duplicating units. Results without
+  weights are unchanged.
+
+* `mdid()` with covariates no longer fails with "object 'pre_ctrl' not
+  found". The outcome regressions looked up their weights where `lm()` could
+  not see them, so `mdid()` errored for any non-empty `xformula`.
+
 ## Minor improvements
 
 * `unc_qte()` now checks up front that `dname` is a column of `data` coded
@@ -104,6 +116,11 @@
   data row order (#14). ptetools sorts panel data by id, so results were not
   affected in practice; the ATT now uses the same id-ordered weights as the
   counterfactual distribution.
+* Invalid sampling weights in the panel estimators (missing, negative, or
+  varying over time within a unit) now give a clear error, from ptetools
+  (#24), instead of `NaN` or silently inconsistent estimates.
+* New tests check that integer weights match row replication for every
+  panel estimator, and that rescaling the weights changes nothing (#15).
 
 # qte 2.0.1
 
