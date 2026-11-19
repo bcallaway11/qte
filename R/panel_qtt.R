@@ -515,6 +515,11 @@ panel_qtt_long_agg <- function(attgt.list, ptep, extra_gt_returns) {
 #'   regression or \code{"dr"} for distribution regression. See
 #'   \code{\link{cic_gt}}. Ignored without covariates.
 #' @param weightsname Name of the sampling weights column. Default \code{NULL}.
+#' @param clustervars Name of a column in \code{data} to cluster standard
+#'   errors on, in addition to \code{idname} (as in \code{did::att_gt()}):
+#'   one variable, constant over time within each unit. Default \code{NULL}
+#'   clusters at the unit level. With the empirical bootstrap, whole clusters
+#'   are resampled.
 #' @param control_group \code{"notyettreated"} (default) or
 #'   \code{"nevertreated"}.
 #' @param anticipation Anticipation, in units of the time variable. Default
@@ -559,6 +564,7 @@ panel_qtt <- function(yname,
                       xformula      = ~1,
                       cond_dist     = c("qr", "dr"),
                       weightsname   = NULL,
+                      clustervars   = NULL,
                       control_group = "notyettreated",
                       anticipation  = 0,
                       alp           = 0.05,
@@ -596,7 +602,8 @@ panel_qtt <- function(yname,
     tname            = tname,
     idname           = idname,
     data             = keep_used_columns(data, yname, gname, tname, idname,
-                                         weightsname, xformula),
+                                         weightsname, xformula,
+                                         clustervars = clustervars),
     panel            = TRUE,
     setup_pte_fun    = ptetools::setup_pte,
     subset_fun       = three_period_subset,
@@ -605,6 +612,7 @@ panel_qtt <- function(yname,
     xformula         = xformula,
     cond_dist        = cond_dist,
     weightsname      = weightsname,
+    clustervars      = clustervars,
     control_group    = control_group,
     anticipation     = anticipation,
     cband            = cband,

@@ -16,6 +16,7 @@ lou_qtt(
   cond_dist = c("qr", "dr"),
   panel = TRUE,
   weightsname = NULL,
+  clustervars = NULL,
   control_group = "notyettreated",
   anticipation = 0,
   alp = 0.05,
@@ -63,6 +64,12 @@ requires \code{panel = TRUE}.}
 
 \item{weightsname}{Name of the column in \code{data} containing sampling
 weights. Default \code{NULL} uses equal weights.}
+
+\item{clustervars}{Name of a column in \code{data} to cluster standard
+errors on, in addition to \code{idname} (as in \code{did::att_gt()}):
+one variable, constant over time within each unit. Default \code{NULL}
+clusters at the unit level. With the empirical bootstrap, whole clusters
+are resampled.}
 
 \item{control_group}{Which units to use as the comparison group:
 \code{"notyettreated"} (default) or \code{"nevertreated"}.}

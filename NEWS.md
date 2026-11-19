@@ -15,6 +15,11 @@
 
 ## New features
 
+* `cic()`, `ddid()`, `qdid()`, `mdid()`, `lou_qtt()` and `panel_qtt()` gain a
+  `clustervars` argument, as in `did::att_gt()`, to cluster standard errors
+  at a level above the unit (ptetools #6). With the empirical bootstrap,
+  whole clusters are resampled.
+
 * The covariate-adjusted estimators gain `cond_dist = c("qr", "dr")`:
   `cic()`, `qdid()`, `ddid()`, `panel_qtt()` (and their `*_gt()` workhorses),
   and the outcome-regression and AIPW branches of `lou_qtt()` and `unc_qte()`.

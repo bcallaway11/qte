@@ -13,6 +13,7 @@ panel_qtt(
   xformula = ~1,
   cond_dist = c("qr", "dr"),
   weightsname = NULL,
+  clustervars = NULL,
   control_group = "notyettreated",
   anticipation = 0,
   alp = 0.05,
@@ -44,6 +45,12 @@ regression or \code{"dr"} for distribution regression. See
 \code{\link{cic_gt}}. Ignored without covariates.}
 
 \item{weightsname}{Name of the sampling weights column. Default \code{NULL}.}
+
+\item{clustervars}{Name of a column in \code{data} to cluster standard
+errors on, in addition to \code{idname} (as in \code{did::att_gt()}):
+one variable, constant over time within each unit. Default \code{NULL}
+clusters at the unit level. With the empirical bootstrap, whole clusters
+are resampled.}
 
 \item{control_group}{\code{"notyettreated"} (default) or
 \code{"nevertreated"}.}

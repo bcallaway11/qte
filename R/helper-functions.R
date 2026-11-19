@@ -13,11 +13,14 @@
 # Drop the columns of `data` that the estimators never read. ptetools copies
 # the data for every (g,t) cell and every bootstrap draw, so unused columns
 # only cost time. The *_gt functions use the outcome, group, time, id,
-# weights and the covariates in xformula, plus columns ptetools adds itself.
+# weights, the cluster variable and the covariates in xformula, plus columns
+# ptetools adds itself.
 keep_used_columns <- function(data, yname, gname, tname, idname = NULL,
-                              weightsname = NULL, xformula = ~1) {
+                              weightsname = NULL, xformula = ~1,
+                              clustervars = NULL) {
   data <- as.data.frame(data)
-  used <- unique(c(yname, gname, tname, idname, weightsname, all.vars(xformula)))
+  used <- unique(c(yname, gname, tname, idname, weightsname, clustervars,
+                   all.vars(xformula)))
   data[, intersect(used, names(data)), drop = FALSE]
 }
 

@@ -6,7 +6,7 @@
 #   treatment adoption for both panel and repeated cross sections data.
 #   (The deprecated two-period CiC() was removed in v2.1.0.)
 # Author: Brant Callaway
-# Last update: 2026-11-15
+# Last update: 2026-11-19
 # Date created: 2026-05-18
 # =============================================================================
 
@@ -191,6 +191,11 @@ cic_gt <- function(gt_data, xformula = ~1, cond_dist = c("qr", "dr"), ...) {
 #' @inheritParams cic_gt
 #' @param weightsname Name of the column in \code{data} containing sampling
 #'   weights. Default \code{NULL} uses equal weights.
+#' @param clustervars Name of a column in \code{data} to cluster standard
+#'   errors on, in addition to \code{idname} (as in \code{did::att_gt()}):
+#'   one variable, constant over time within each unit. Default \code{NULL}
+#'   clusters at the unit level. With the empirical bootstrap, whole clusters
+#'   are resampled.
 #' @param control_group Which units to use as the comparison group:
 #'   \code{"notyettreated"} (default) or \code{"nevertreated"}.
 #' @param anticipation Number of periods of anticipation. Default \code{0}.
@@ -243,6 +248,7 @@ cic <- function(yname,
                 xformula      = ~1,
                 cond_dist     = c("qr", "dr"),
                 weightsname   = NULL,
+                clustervars   = NULL,
                 control_group = "notyettreated",
                 anticipation  = 0,
                 alp           = 0.05,
@@ -283,7 +289,8 @@ cic <- function(yname,
     tname           = tname,
     idname          = idname,
     data            = keep_used_columns(data, yname, gname, tname, idname,
-                                        weightsname, xformula),
+                                        weightsname, xformula,
+                                        clustervars = clustervars),
     panel           = panel,
     setup_pte_fun   = ptetools::setup_pte,
     subset_fun      = subset_fun,
@@ -292,6 +299,7 @@ cic <- function(yname,
     xformula        = xformula,
     cond_dist       = cond_dist,
     weightsname     = weightsname,
+    clustervars     = clustervars,
     control_group   = control_group,
     anticipation    = anticipation,
     cband           = cband,
