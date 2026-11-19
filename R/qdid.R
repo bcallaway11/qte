@@ -141,8 +141,11 @@ qdid_gt <- function(gt_data, xformula = ~1, cond_dist = c("qr", "dr"), ...) {
 
     y0t <- pre_trt$Y + q0t - q0tmin1
 
-    att          <- weighted.mean(Y_post_trt, w_post_trt) - weighted.mean(y0t, w_pre_trt)
+    # weights from pre_trt itself, so they follow its id order (as y0t does);
+    # w_pre_trt above is in gt_data row order (#14)
     w_pre_trt_n  <- pre_trt$.w / sum(pre_trt$.w)
+    att <- weighted.mean(Y_post_trt, w_post_trt) -
+      weighted.mean(y0t, w_pre_trt_n)
     F0           <- BMisc::weighted_ecdf(y0t, weights = w_pre_trt_n) # nolint: object_name_linter
 
     if (panel) {
