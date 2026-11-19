@@ -161,6 +161,12 @@
 * Invalid sampling weights in the panel estimators (missing, negative, or
   varying over time within a unit) now give a clear error, from ptetools
   (#24), instead of `NaN` or silently inconsistent estimates.
+* Repeated cross sections (#18): the help pages and README now say which
+  estimators accept `panel = FALSE` (`cic()`, `qdid()`, `mdid()`,
+  `cdf_did()`, and `lou_qtt()` with `lagged_outcome_cov = FALSE`) and why
+  `ddid()` and `panel_qtt()` need panel data. New tests check that, on panel
+  data, `panel = FALSE` gives the panel estimates, and that the estimators
+  work on genuine repeated cross sections.
 * New tests check that integer weights match row replication for every
   panel estimator, and that rescaling the weights changes nothing (#15).
 * `unc_qte()`'s `pscore.reg` no longer carries copies of the data. The fit

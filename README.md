@@ -36,6 +36,8 @@ adoption supported for all):
 - `ddid()` — Distributional Difference-in-Differences (Callaway and Li
   2019)
 - `mdid()` — Mean Difference-in-Differences (Thuysbaert 2007)
+- `cdf_did()` — Difference-in-Differences in distribution functions
+  (Roth and Sant’Anna 2023)
 - `lou_qtt()` — Lagged-outcome unconfoundedness QTT
 
 ## Installation
@@ -178,13 +180,19 @@ data-fig-alt="Overall QTT curve from cic()" />
 | `unc_qte()`   | Unconfoundedness (IPW / OR / AIPW) | QTE or QTT | No             |
 | `cic()`       | Change in Changes                  | ATT or QTT | Optional       |
 | `qdid()`      | Quantile DiD                       | ATT or QTT | Optional       |
-| `panel_qtt()` | Panel QTT (copula stability)       | QTT        | Yes            |
+| `panel_qtt()` | Panel QTT (copula stability)       | ATT or QTT | Yes            |
 | `ddid()`      | Distributional DiD                 | ATT or QTT | Yes            |
 | `mdid()`      | Mean DiD                           | ATT or QTT | Optional       |
-| `lou_qtt()`   | Lagged-outcome unconfoundedness    | ATT or QTT | Yes            |
+| `cdf_did()`   | DiD in distribution functions      | ATT or QTT | Optional       |
+| `lou_qtt()`   | Lagged-outcome unconfoundedness    | ATT or QTT | Optional\*     |
 
 All panel estimators support staggered treatment adoption and return
-group-specific, event-study, and overall aggregations.
+group-specific, event-study, and overall aggregations. “Optional” means
+the estimator also works with repeated cross sections (`panel = FALSE`).
+`ddid()` and `panel_qtt()` need the same units over time (a comparison
+unit’s change, or the copula between periods). \*`lou_qtt()` needs panel
+data for its default lagged-outcome covariate; with
+`lagged_outcome_cov = FALSE` it works with repeated cross sections.
 
 ## Documentation and vignettes
 
@@ -194,6 +202,6 @@ site](https://bcallaway11.github.io/qte/):
 - **Quantile Treatment Effects in R** — `unc_qte()` under random
   assignment and selection on observables
 - **Panel Data Estimators for Quantile Treatment Effects** —
-  identification assumptions and usage for all six panel estimators
+  identification assumptions and usage for the panel estimators
 - **Staggered Treatment Adoption** — applied workflow with `mpdta`: QTT
   curves, event-study plots, and cross-estimator comparison

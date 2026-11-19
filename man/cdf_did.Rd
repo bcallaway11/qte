@@ -39,7 +39,8 @@ cdf_did(
 \item{data}{A data frame.}
 
 \item{panel}{Logical. \code{TRUE} (default) for panel data; \code{FALSE}
-for repeated cross sections.}
+for repeated cross sections (see the section on repeated cross
+sections).}
 
 \item{xformula}{One-sided formula of covariates. Default \code{~1}.}
 
@@ -109,6 +110,21 @@ well, unlike for rank- or quantile-based estimators such as
 bootstrap inference can be unreliable, so \code{gt_type = "qtt"} warns
 (once per call) when the outcome looks discrete; see
 \code{\link{cic}}.
+}
+
+\section{Repeated cross sections}{
+
+\code{cic()}, \code{qdid()}, \code{mdid()}, \code{cdf_did()} and
+\code{lou_qtt(lagged_outcome_cov = FALSE)} also work with repeated cross
+sections (\code{panel = FALSE}; \code{idname} not needed). Without
+covariates they use only each period's outcome distributions, so on
+panel data the estimates are the same either way; the standard errors
+differ, because the bootstrap then resamples observations rather than
+units. Some things need the same units in several periods and so
+require panel data: \code{ddid()} (each comparison unit's change over
+time), \code{panel_qtt()} (the copula between periods), the lagged
+outcome in \code{lou_qtt()}, and \code{gt_type = "qott"} (the
+distribution of individual treatment effects).
 }
 
 \examples{

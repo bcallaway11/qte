@@ -320,6 +320,7 @@ lou_gt <- function(gt_data, xformula = ~1, lagged_outcome_cov = TRUE,
 #' }
 #'
 #' @inheritSection cic Discrete outcomes
+#' @inheritSection cic Repeated cross sections
 #' @export
 lou_qtt <- function(yname, gname, tname, idname = NULL, data,
                     xformula          = ~1,

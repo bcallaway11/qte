@@ -176,7 +176,8 @@ qdid_gt <- function(gt_data, xformula = ~1, cond_dist = c("qr", "dr"), ...) {
 #'   \code{panel = TRUE}.
 #' @param data A data frame.
 #' @param panel Logical; \code{TRUE} (default) for panel data,
-#'   \code{FALSE} for repeated cross sections.
+#'   \code{FALSE} for repeated cross sections (see the section on repeated
+#'   cross sections).
 #' @param xformula One-sided formula for covariates used in the covariate
 #'   adjustment. Default \code{~1} uses no covariates.
 #' @param cond_dist How conditional distributions are estimated when
@@ -233,6 +234,7 @@ qdid_gt <- function(gt_data, xformula = ~1, cond_dist = c("qr", "dr"), ...) {
 #' }
 #'
 #' @inheritSection cic Discrete outcomes
+#' @inheritSection cic Repeated cross sections
 #' @export
 qdid <- function(yname,
                  gname,

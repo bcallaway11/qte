@@ -189,7 +189,8 @@ mdid_gt <- function(gt_data, xformula = ~1, ...) {
 #'   \code{panel = TRUE}.
 #' @param data A data frame.
 #' @param panel Logical; \code{TRUE} (default) for panel data,
-#'   \code{FALSE} for repeated cross sections.
+#'   \code{FALSE} for repeated cross sections (see the section on repeated
+#'   cross sections).
 #' @param xformula One-sided formula for covariates. Default \code{~1} uses no
 #'   covariates.
 #' @param weightsname Name of the column in \code{data} containing sampling
@@ -245,6 +246,7 @@ mdid_gt <- function(gt_data, xformula = ~1, ...) {
 #' }
 #'
 #' @inheritSection cic Discrete outcomes
+#' @inheritSection cic Repeated cross sections
 #' @export
 mdid <- function(yname,
                  gname,

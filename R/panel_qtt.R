@@ -562,6 +562,7 @@ panel_qtt_long_agg <- function(attgt.list, ptep, extra_gt_returns) {
 #' }
 #'
 #' @inheritSection cic Discrete outcomes
+#' @inheritSection cic Repeated cross sections
 #' @export
 panel_qtt <- function(yname,
                       gname,

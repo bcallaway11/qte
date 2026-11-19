@@ -234,7 +234,8 @@ cdf_did_gt <- function(gt_data, xformula = ~1,
 #'   \code{panel = TRUE}.
 #' @param data A data frame.
 #' @param panel Logical. \code{TRUE} (default) for panel data; \code{FALSE}
-#'   for repeated cross sections.
+#'   for repeated cross sections (see the section on repeated cross
+#'   sections).
 #' @param xformula One-sided formula of covariates. Default \code{~1}.
 #' @param est_method With covariates: \code{"aipw"} (default; doubly
 #'   robust), \code{"ipw"} or \code{"reg"} (outcome regression, as in
@@ -286,6 +287,7 @@ cdf_did_gt <- function(gt_data, xformula = ~1,
 #' summary(res)
 #' }
 #'
+#' @inheritSection cic Repeated cross sections
 #' @export
 cdf_did <- function(yname,
                     gname,

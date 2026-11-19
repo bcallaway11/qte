@@ -251,6 +251,7 @@ ddid_gt <- function(gt_data, xformula = ~1, cond_dist = c("qr", "dr"), ...) {
 #' }
 #'
 #' @inheritSection cic Discrete outcomes
+#' @inheritSection cic Repeated cross sections
 #' @export
 ddid <- function(yname,
                  gname,

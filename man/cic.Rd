@@ -40,7 +40,8 @@ cic(
 \item{data}{A data frame.}
 
 \item{panel}{Logical; \code{TRUE} (default) for panel data,
-\code{FALSE} for repeated cross sections.}
+\code{FALSE} for repeated cross sections (see the section on repeated
+cross sections).}
 
 \item{xformula}{One-sided formula for covariates used in the covariate
 adjustment. Default \code{~1} uses no covariates.}
@@ -115,6 +116,21 @@ values, across all groups and periods; the thresholds are the options
 \code{qte.mass_point_tol} and \code{qte.discrete_n_unique}. The
 diagnostics are returned as \code{outcome_discreteness}.
 \code{\link{cdf_did}} is identified for discrete outcomes.
+}
+
+\section{Repeated cross sections}{
+
+\code{cic()}, \code{qdid()}, \code{mdid()}, \code{cdf_did()} and
+\code{lou_qtt(lagged_outcome_cov = FALSE)} also work with repeated cross
+sections (\code{panel = FALSE}; \code{idname} not needed). Without
+covariates they use only each period's outcome distributions, so on
+panel data the estimates are the same either way; the standard errors
+differ, because the bootstrap then resamples observations rather than
+units. Some things need the same units in several periods and so
+require panel data: \code{ddid()} (each comparison unit's change over
+time), \code{panel_qtt()} (the copula between periods), the lagged
+outcome in \code{lou_qtt()}, and \code{gt_type = "qott"} (the
+distribution of individual treatment effects).
 }
 
 \examples{
