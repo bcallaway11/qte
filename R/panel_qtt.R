@@ -323,7 +323,6 @@ panel_qtt_long_agg <- function(attgt.list, ptep, extra_gt_returns) {
   probs        <- if (is.null(ptep$probs)) seq(0.05, 0.95, 0.05) else ptep$probs
   anticipation <- if (!is.null(ptep$anticipation)) ptep$anticipation else 0L
   data         <- ptep$data
-  yname        <- ptep$yname
 
   # --- resolve to original time periods (mirrors attgt_pte_aggregations) ---
   time.periods <- ptep$tlist
@@ -398,7 +397,11 @@ panel_qtt_long_agg <- function(attgt.list, ptep, extra_gt_returns) {
   F0_gt <- lapply(extra_gt_returns, function(egr) egr$extra_gt_returns$F0) # nolint: object_name_linter
   F1_gt <- lapply(extra_gt_returns, function(egr) egr$extra_gt_returns$F1) # nolint: object_name_linter
 
-  y.seq <- quantile(data[, yname], probs = seq(0, 1, length.out = 1000))
+  # Cells are mixed exactly, from every support point of their step-function
+  # CDFs: BMisc::combine_ecdfs() without y.seq (BMisc >= 1.4.11) returns the
+  # exact mixture, and quantile() of it is exact. This used to evaluate the
+  # cells on a 1,000-point grid of the pooled outcome, which rounded each
+  # quantile to the grid (#19; ptetools #25 made the same change).
 
   # --- overall QTT (two-step weights over valid post-treatment cells) ---
   valid_post <- is_valid & is_post
@@ -425,8 +428,8 @@ panel_qtt_long_agg <- function(attgt.list, ptep, extra_gt_returns) {
   }
 
   nonzero    <- which(overall_w > 0)
-  F0_overall <- BMisc::combine_ecdfs(y.seq, ecdflist = F0_gt[nonzero], weights = overall_w[nonzero]) # nolint: object_name_linter
-  F1_overall <- BMisc::combine_ecdfs(y.seq, ecdflist = F1_gt[nonzero], weights = overall_w[nonzero]) # nolint: object_name_linter
+  F0_overall <- BMisc::combine_ecdfs(ecdflist = F0_gt[nonzero], weights = overall_w[nonzero]) # nolint: object_name_linter
+  F1_overall <- BMisc::combine_ecdfs(ecdflist = F1_gt[nonzero], weights = overall_w[nonzero]) # nolint: object_name_linter
   overall_qtt <- quantile(F1_overall, probs = probs, type = 1) -
                  quantile(F0_overall, probs = probs, type = 1)
   overall_results <- data.frame(probs = probs, qtt = overall_qtt)
@@ -439,8 +442,8 @@ panel_qtt_long_agg <- function(attgt.list, ptep, extra_gt_returns) {
     g_at_e <- cell_g[e_idx]
     pg_e   <- n_group[as.character(g_at_e)]
     pg_e   <- pg_e / sum(pg_e)
-    F0_e <- BMisc::combine_ecdfs(y.seq, ecdflist = F0_gt[e_idx], weights = pg_e) # nolint: object_name_linter
-    F1_e <- BMisc::combine_ecdfs(y.seq, ecdflist = F1_gt[e_idx], weights = pg_e) # nolint: object_name_linter
+    F0_e <- BMisc::combine_ecdfs(ecdflist = F0_gt[e_idx], weights = pg_e) # nolint: object_name_linter
+    F1_e <- BMisc::combine_ecdfs(ecdflist = F1_gt[e_idx], weights = pg_e) # nolint: object_name_linter
     qtt_e <- quantile(F1_e, probs = probs, type = 1) -
               quantile(F0_e, probs = probs, type = 1)
     data.frame(e = this_e, probs = probs, qtt = qtt_e)
@@ -452,8 +455,8 @@ panel_qtt_long_agg <- function(attgt.list, ptep, extra_gt_returns) {
     g_idx <- which(valid_post & cell_g == g)
     if (length(g_idx) == 0L) return(NULL)
     w_g <- rep(1 / length(g_idx), length(g_idx))
-    F0_g <- BMisc::combine_ecdfs(y.seq, ecdflist = F0_gt[g_idx], weights = w_g) # nolint: object_name_linter
-    F1_g <- BMisc::combine_ecdfs(y.seq, ecdflist = F1_gt[g_idx], weights = w_g) # nolint: object_name_linter
+    F0_g <- BMisc::combine_ecdfs(ecdflist = F0_gt[g_idx], weights = w_g) # nolint: object_name_linter
+    F1_g <- BMisc::combine_ecdfs(ecdflist = F1_gt[g_idx], weights = w_g) # nolint: object_name_linter
     qtt_g <- quantile(F1_g, probs = probs, type = 1) -
               quantile(F0_g, probs = probs, type = 1)
     data.frame(group = g, probs = probs, qtt = qtt_g)
@@ -591,7 +594,7 @@ panel_qtt <- function(yname,
   # and applies group-size weights over surviving groups — correct two-step
   # behaviour for both pre_copula variants.
   # For QTT mode with "long", custom two-step aggregation is required because
-  # qtt_pte_aggregations does not filter invalid cells before combine_ecdfs.
+  # qtt_pte_aggregations does not filter invalid cells before mixing them.
   aggte_fun <- if (gt_type == "qtt" && pre_copula == "long") {
     panel_qtt_long_agg
   } else if (gt_type == "qtt") {

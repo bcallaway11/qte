@@ -18,11 +18,11 @@ Description: Provides several methods for computing the Quantile Treatment
     as well as a new lagged-outcome unconfoundedness estimator ('lou_qtt').
 Depends: R (>= 3.5)
 Imports: quantreg,
-    BMisc,
+    BMisc (>= 1.4.11),
     ggplot2,
     rlang,
     pbapply,
-    ptetools (>= 1.0.2)
+    ptetools (>= 1.1.0)
 URL: https://bcallaway11.github.io/qte/, https://github.com/bcallaway11/qte
 BugReports: https://github.com/bcallaway11/qte/issues
 License: GPL-3

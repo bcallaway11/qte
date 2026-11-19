@@ -6,7 +6,7 @@
 #   first verified run. Also checks the covariate adjustment when treatment
 #   depends on X (issue #10).
 # Author: Brant Callaway
-# Last update: 2026-11-15
+# Last update: 2026-11-19
 # Date created: 2026-05-18
 # =============================================================================
 
@@ -52,7 +52,8 @@ test_that("ddid panel QTT returns valid pte_qtt with correct structure", {
   expect_equal(nrow(res$overall), 3L)
   expect_false(anyNA(res$overall$qtt))
   expect_true(all(res$overall$lower_pw < res$overall$upper_pw))
-  expect_equal(res$overall$qtt[res$overall$probs == 0.5], 0.9470309, tolerance = 1e-4)
+  # exact CDF mixture (#19); 0.9470309 on the old 1,000-point grid
+  expect_equal(res$overall$qtt[res$overall$probs == 0.5], 0.9502656, tolerance = 1e-4)
 })
 
 test_that("ddid_gt with covariates is unbiased when treatment depends on X (#10)", {

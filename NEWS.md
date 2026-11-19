@@ -12,6 +12,7 @@
 * Removed the exported internal `QTEparams()` parameter container. `unc_qte()`
   now has self-contained estimation and bootstrap code and no longer uses it.
 * `formula.tools`, `data.table` and `parallel` are no longer dependencies.
+* Requires `ptetools (>= 1.1.0)` and `BMisc (>= 1.4.11)`.
 * `unc_qte()`'s covariate argument `xformla` is renamed `xformula`, matching
   the other estimators. `xformla` still works for now, with a deprecation
   warning. The new `clustervars` argument comes right after `weightsname`,
@@ -114,7 +115,7 @@
   column `G` or the time column `period` gave `NaN` estimates (ptetools
   #13). Fixed in ptetools, which now keeps its internal columns separate
   from the user's; `panel_qtt()`'s subset function uses those internal
-  columns. Requires `ptetools (>= 1.0.2)`. Results for other column names
+  columns. Requires `ptetools (>= 1.1.0)`. Results for other column names
   are unchanged.
 
 * `panel_qtt()` now treats `anticipation` in units of the time variable, as
@@ -146,6 +147,14 @@
 
 ## Minor improvements
 
+* Aggregated QTTs are now computed exactly: the group-time cells' CDFs are
+  mixed from every support point and the mixture inverted exactly, instead of
+  on a 1,000-point grid of the pooled outcome (#19; ptetools #25 for the
+  estimators that use ptetools' aggregation, and `panel_qtt()`'s
+  long-copula aggregation in qte). QTT estimates change slightly (by a few
+  thousandths on the package's tests and `mpdta`), and weighted data now
+  gives the same QTTs as the equivalent row-replicated data. Requires
+  `BMisc (>= 1.4.11)`.
 * `unc_qte()` now checks up front that `dname` is a column of `data` coded
   0/1, with an informative error. A treatment coded e.g. 1/2 previously
   failed inside the propensity-score fit with
@@ -189,7 +198,7 @@
     that period.
   * Only the columns the estimators use are passed to `ptetools::pte()`.
 
-  Combined with the faster empirical bootstrap in ptetools 1.0.2,
+  Combined with the faster empirical bootstrap in ptetools 1.1.0,
   unconditional CiC on a 3,000-unit, 30-period panel runs more than 20 times
   faster.
 

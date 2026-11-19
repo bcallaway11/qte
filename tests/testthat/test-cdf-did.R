@@ -26,16 +26,11 @@ make_cell <- function(trt_pre, trt_post, ctrl_pre, ctrl_post, x = NULL) {
   cell
 }
 
-# quantiles by inverting the CDF directly: stats::quantile() on objects from
-# BMisc::weighted_ecdf() rebuilds the data from nobs = number of distinct
-# values, which is wrong with ties or unequal weights
-inv_cdf <- function(cdf, probs) {
-  k <- knots(cdf)
-  vapply(probs, function(p) k[which(cdf(k) >= p - 1e-12)[1]], numeric(1))
-}
+# quantile() of BMisc distribution functions is exact as of BMisc 1.4.11
+# (BMisc #10; before, it was wrong with ties or unequal weights)
 qtt_from <- function(res, probs) {
   egr <- res$extra_gt_returns
-  inv_cdf(egr$F1, probs) - inv_cdf(egr$F0, probs)
+  quantile(egr$F1, probs, type = 1) - quantile(egr$F0, probs, type = 1)
 }
 
 test_that("without covariates the ATT is the DiD ATT (panel and RCS)", {
