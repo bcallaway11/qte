@@ -7,7 +7,7 @@
 #   causal claim. Also checks that the AIPW ATT is doubly robust (issue #11)
 #   that a non-0/1 treatment errors clearly (issue #1), the uniform vs
 #   pointwise bands (cband), that rows with missing values are dropped,
-#   clustervars, and the deprecated xformla alias.
+#   clustervars, the deprecated xformla alias, and the slim pscore.reg.
 # Author: Brant Callaway
 # Last update: 2026-11-19
 # Date created: 2026-05-18
@@ -192,4 +192,27 @@ test_that("unc_qte's deprecated xformla still works, with a warning", {
   expect_equal(old$qte.se, new$qte.se)
   expect_error(do.call(unc_qte, c(args, xformula = ~ age, xformla = ~ age)),
                "only")
+})
+
+test_that("unc_qte's pscore.reg is slim but still a usable glm", {
+  set.seed(2)
+  xf <- ~ age + education + black + nodegree
+  res <- suppressWarnings(unc_qte(yname = "re78", dname = "treat",
+                                  data = lalonde.psid, xformula = xf,
+                                  probs = c(0.25, 0.5, 0.75), biters = 2))
+  ps <- res$pscore.reg
+  full <- glm(treat ~ age + education + black + nodegree, data = lalonde.psid,
+              family = quasibinomial())
+
+  expect_s3_class(ps, "glm")
+  expect_equal(coef(ps), coef(full))
+  expect_equal(summary(ps)$coefficients, summary(full)$coefficients)
+  expect_equal(unname(fitted(ps)), unname(fitted(full)))
+  expect_equal(predict(ps, newdata = lalonde.psid[1:5, ], type = "response"),
+               predict(full, newdata = lalonde.psid[1:5, ], type = "response"))
+  # no copies of the data, and the formula no longer carries the
+  # estimator's working frame
+  expect_null(ps$data)
+  expect_null(ps$model)
+  expect_lt(length(serialize(res, NULL)), 1e6)
 })

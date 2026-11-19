@@ -38,6 +38,23 @@
 
 ## Bug fixes (these change results)
 
+* Fixed covariate-adjusted `cic()`, `qdid()`, `ddid()` and `panel_qtt()`
+  (and their `*_gt()` workhorses) (#9):
+  * They no longer fail when a group has a single treated unit.
+  * Conditional quantiles are now rearranged (sorted) before use, so the
+    conditional CDFs are monotone when quantile regressions cross.
+  * Conditional ranks are no longer one quantile-grid step (0.01) too low.
+    This came from quantreg's `predict(..., type = "Fhat", stepfun = TRUE)`
+    and biased the counterfactual distribution downward.
+  * Conditional CDFs and quantile functions are now linearly interpolated
+    between the estimated quantiles, not step functions, so ranks are no
+    longer rounded down to the quantile grid. Beyond the first and last
+    estimated quantiles they stay flat (no tail extrapolation).
+
+  Covariate-adjusted estimates change as a result. In a simulation where
+  conditional CiC holds exactly, the bias of the ATT falls from 0.15 to 0.02.
+  Estimates without covariates are unchanged.
+
 * `ddid()` / `ddid_gt()` with covariates now integrate the counterfactual
   over the *treated* group's covariate distribution, by reweighting control
   units with the propensity-score odds p(X)/(1 - p(X)) (#10). Previously the
@@ -121,25 +138,14 @@
   (#24), instead of `NaN` or silently inconsistent estimates.
 * New tests check that integer weights match row replication for every
   panel estimator, and that rescaling the weights changes nothing (#15).
+* `unc_qte()`'s `pscore.reg` no longer carries copies of the data. The fit
+  kept the estimator's working data twice over, through `$data`/`$model` and
+  through its formula's environment, so a saved `QTE` object for
+  `lalonde.psid` shrinks from about 3.6 MB to 0.4 MB. `coef()`, `vcov()`,
+  `summary()`, `fitted()` and `predict(newdata = )` are unchanged;
+  `anova()` and `update()`, which refit the model, no longer work on it.
 
-# qte 2.0.1
-
-* Fixed covariate-adjusted `cic()`, `qdid()`, `ddid()` and `panel_qtt()`
-  (and their `*_gt()` workhorses) (#9):
-  * They no longer fail when a group has a single treated unit.
-  * Conditional quantiles are now rearranged (sorted) before use, so the
-    conditional CDFs are monotone when quantile regressions cross.
-  * Conditional ranks are no longer one quantile-grid step (0.01) too low.
-    This came from quantreg's `predict(..., type = "Fhat", stepfun = TRUE)`
-    and biased the counterfactual distribution downward.
-  * Conditional CDFs and quantile functions are now linearly interpolated
-    between the estimated quantiles, not step functions, so ranks are no
-    longer rounded down to the quantile grid. Beyond the first and last
-    estimated quantiles they stay flat (no tail extrapolation).
-
-  Covariate-adjusted estimates change as a result. In a simulation where
-  conditional CiC holds exactly, the bias of the ATT falls from 0.15 to 0.02.
-  Estimates without covariates are unchanged.
+## Performance
 
 * `cic()`, `qdid()`, `ddid()`, `mdid()`, `panel_qtt()` and `lou_qtt()` are
   faster, with the same results:

@@ -15,7 +15,7 @@ abstract: Provides several methods for computing the Quantile Treatment Effect (
   is based on a Difference in Differences assumption, with support for several varieties.
   Version 2.0 adds a unified staggered treatment adoption API (built on 'ptetools')
   for all DiD-based estimators, as well as a new lagged-outcome unconfoundedness
-  estimator ('lou_qte').
+  estimator ('lou_qtt').
 authors:
 - family-names: Callaway
   given-names: Brantly

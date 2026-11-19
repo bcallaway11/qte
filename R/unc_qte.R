@@ -237,11 +237,32 @@ unc_qte_est <- function(dat, xformula, probs, method, est_method, target,
 
   out <- list(qte = q1 - q0, ate = ate)
   if (full) {
-    out$pscore.reg     <- pscore.reg
+    out$pscore.reg     <- trim_glm(pscore.reg)
     out$F.treated.t    <- stats::ecdf(q1)
     out$F.treated.t.cf <- stats::ecdf(q0)
   }
   out
+}
+
+# --- Internal: slimmer glm for the returned object ----------------------------
+
+# trim_glm
+# Drops the parts of a fitted glm that only duplicate the training data
+# ($data, $model, $y, $effects) and points its formula and terms at baseenv().
+# The formula was built inside unc_qte_est(), so its environment held that
+# function's whole frame (working data, treated/untreated subsets, ...), which
+# saveRDS() wrote out with the fit: about 3.6MB of a 3.6MB QTE object for
+# lalonde.psid, 0.4MB after trimming. coef(), vcov(), summary(), fitted(),
+# residuals(), nobs() and predict(newdata = ) give identical results;
+# anova() and update(), which refit on the data, no longer work.
+#
+# Args: fit a glm, or NULL. Returns the trimmed glm (or NULL).
+trim_glm <- function(fit) {
+  if (is.null(fit)) return(NULL)
+  fit[c("data", "model", "y", "effects")] <- NULL
+  environment(fit$formula) <- baseenv()
+  attr(fit$terms, ".Environment") <- baseenv()
+  fit
 }
 
 # --- Internal: bootstrap inference -------------------------------------------
@@ -450,7 +471,10 @@ unc_qte_boot <- function(dat, est_args, est, biters, alp, cband, cl) {
 #'     \item{\code{c}}{bootstrap critical value for a uniform band over
 #'       \code{probs}.}
 #'     \item{\code{probs}}{the \code{probs} vector passed by the user.}
-#'     \item{\code{pscore.reg}}{fitted propensity score \code{glm} object, or
+#'     \item{\code{pscore.reg}}{fitted propensity score \code{glm} object
+#'       (without copies of the data: \code{coef()}, \code{vcov()},
+#'       \code{summary()}, \code{fitted()} and \code{predict(newdata = )}
+#'       work; \code{anova()} and \code{update()} do not), or
 #'       \code{NULL} when \code{est_method = "or"}.}
 #'     \item{\code{F.treated.t}, \code{F.treated.t.cf}}{ECDFs of the
 #'       estimated quantiles of \eqn{Y(1)} and \eqn{Y(0)} at \code{probs}.}
