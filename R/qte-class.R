@@ -1,79 +1,13 @@
 # =============================================================================
 # Title: QTE class and its methods
-# Description: Defines the QTE and SE S3 classes and their print/summary/plot
-#   methods, and computeSE() for the legacy empirical bootstrap used by
-#   unc_qte(). (The deprecated panel.qtet() was removed in v2.1.0; use
-#   panel_qtt().) Dataset documentation is in data.R.
+# Description: Defines the QTE S3 class (returned by unc_qte()) and its
+#   print/summary/plot methods. The legacy computeSE()/SE() bootstrap
+#   helpers were removed in v2.1.0 (unc_qte() has its own bootstrap), as was
+#   the deprecated panel.qtet(). Dataset documentation is in data.R.
 # Author: Brant Callaway
-# Last update: 2026-11-15
+# Last update: 2026-11-19
 # Date created: 2026-05-18
 # =============================================================================
-
-#' @title computeSE
-#'
-#' @description Computes standard errors from bootstrap results.  This function
-#'  is called by several functions in the qte package
-#'
-#' @param bootIters List of bootstrap iterations
-#' @param qteobj the \code{QTE} object holding the full-sample estimates
-#' @param alp significance level for confidence intervals
-#'
-#' @keywords internal
-#'
-#' @return SEObj
-computeSE <- function(bootIters, qteobj, alp = 0.05) {
-  ## For now, just plot the qte and att with standard errors
-  ## helper function to get the first element out of a list
-  qte <- qteobj$qte
-  ate <- qteobj$ate
-  iters <- length(bootIters)
-
-  getElement <- function(Lst, elemNum) {
-    return(as.numeric(unlist((Lst[elemNum])))) # as.numeric is a trick to
-    ## get numerical value of qte
-  }
-  all.ate <- unlist(sapply(bootIters, FUN = getElement, elemNum = 2))
-  ## get se
-  ate.se <- sd(all.ate)
-  ate.upper <- ate + qnorm(1 - alp / 2) * ate.se
-  ate.lower <- ate - qnorm(1 - alp / 2) * ate.se
-  ## reorder asc
-  ## all.ate = all.ate[order(all.ate)]
-  ## ate.upper = all.ate[min(iters,round((1-alp/2)*iters))]
-  ## ate.lower = all.ate[max(1,round((alp/2)*iters))]
-
-  ## now get CI for qte:
-  all.qte <- lapply(bootIters, FUN = getElement, elemNum = 1)
-  qte.mat <- do.call(rbind, lapply(all.qte, FUN = as.numeric, ncol = length(all.qte[[1]]), byrow = TRUE))
-  ## standard error
-  qte.se <- apply(qte.mat, FUN = sd, MARGIN = 2)
-
-  sigmahalf <- (apply(qte.mat, 2, function(b) quantile(b, .75, type = 1)) -
-    apply(qte.mat, 2, function(b) quantile(b, .25, type = 1))) / (qnorm(.75) - qnorm(.25))
-
-  ## this seems to work a bit better in practice when some QTEs are 0
-  if (any(sigmahalf == 0)) {
-    sigmahalf <- apply(qte.mat, 2, sd)
-    sigmahalf <- sapply(seq_along(qte), function(i) max(sigmahalf[i], .000000001))
-  }
-  cb <- apply(qte.mat, 1, function(q) max(abs((q - qte) / sigmahalf)))
-  c <- quantile(cb, (1 - alp), type = 1)
-  ## qte se by quantiles
-  ## sorted.qtemat = apply(qte.mat, 2, sort)
-  ## qte.upper = sorted.qtemat[round((1-alp/2)*iters),]
-  ## qte.lower = sorted.qtemat[max(1,round((alp/2)*iters)),]
-  ## qte se by sd
-  qte.upper <- qte + qnorm(1 - alp / 2) * qte.se
-  qte.lower <- qte - qnorm(1 - alp / 2) * qte.se
-
-  out <- SE(
-    ate.se = ate.se, ate.upper = ate.upper, ate.lower = ate.lower,
-    qte.se = qte.se, qte.upper = qte.upper, qte.lower = qte.lower,
-    c = c
-  )
-  return(out)
-}
-
 
 ## summary function for QTE objects
 #' @title Summary
@@ -337,31 +271,5 @@ QTE <- function(qte, ate = NULL, qte.se = NULL, qte.lower = NULL,
     inffuncu = inffuncu
   )
   class(out) <- "QTE"
-  return(out)
-}
-
-#' @title SE
-#'
-#' @description Class for Standard Error Objects
-#'
-#' @param qte.se The QTE Standard Error
-#' @param ate.se The ATE Standard Error
-#' @param qte.upper The QTE upper CI
-#' @param qte.lower The QTE lower CI
-#' @param ate.upper The ATE upper CI
-#' @param ate.lower The ATE lower CI
-#' @param c The critical value from a KS-type statistic used for creating
-#'  uniform confidence bands
-#' @param probs The values at which the QTE is computed
-#'
-#' @keywords internal
-SE <- function(qte.se = NULL, ate.se = NULL, qte.upper = NULL, qte.lower = NULL,
-               ate.upper = NULL, ate.lower = NULL, c = NULL, probs = NULL) {
-  out <- list(
-    qte.se = qte.se, qte.upper = qte.upper, qte.lower = qte.lower,
-    ate.se = ate.se, ate.upper = ate.upper, ate.lower = ate.lower,
-    c = c, probs = probs
-  )
-  class(out) <- "SE"
   return(out)
 }

@@ -5,9 +5,10 @@
 #   verified run. The large negative value reflects the PSID observational
 #   comparison group — a regression check that estimates stay stable, not a
 #   causal claim. Also checks that the AIPW ATT is doubly robust (issue #11)
-#   and that a non-0/1 treatment errors clearly (issue #1).
+#   that a non-0/1 treatment errors clearly (issue #1), and that rows with
+#   missing values are dropped.
 # Author: Brant Callaway
-# Last update: 2026-11-17
+# Last update: 2026-11-19
 # Date created: 2026-05-18
 # =============================================================================
 
@@ -98,4 +99,20 @@ test_that("unc_qte errors informatively when dname is not coded 0/1 (#1)", {
   expect_no_error(suppressWarnings(
     unc_qte(yname = "y", dname = "d", data = df, biters = 2)
   ))
+})
+
+test_that("unc_qte drops rows with missing values, with a warning", {
+  d <- lalonde.psid
+  d$re78[1:3] <- NA
+  set.seed(1)
+  expect_warning(
+    r_na <- unc_qte(yname = "re78", dname = "treat", data = d,
+                    probs = 0.5, biters = 2),
+    "dropping 3 row"
+  )
+  set.seed(1)
+  r_cc <- unc_qte(yname = "re78", dname = "treat", data = d[-(1:3), ],
+                  probs = 0.5, biters = 2)
+  expect_equal(r_na$qte, r_cc$qte)
+  expect_equal(r_na$qte.se, r_cc$qte.se)
 })

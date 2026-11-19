@@ -5,107 +5,141 @@
 #   methods: IPW propensity-score reweighting (Firpo 2007), outcome regression
 #   via quantile regression inversion (OR), and a doubly-robust AIPW
 #   combination of IPW and OR. Standard errors via empirical bootstrap.
-#   (The deprecated wrappers ci.qte() and ci.qtet() were removed in v2.1.0.)
+#   Self-contained: unc_qte() is the cross-sectional estimator and does not go
+#   through ptetools (the staggered analogue is lou_qtt()). As of v2.1.0 it no
+#   longer uses the legacy QTEparams/setupData/bootstrap machinery.
 # Author: Brant Callaway
-# Last update: 2026-11-17
+# Last update: 2026-11-19
 # Date created: 2026-05-18
 # =============================================================================
 
-utils::globalVariables(c("yname", "treat", "treated", "x", "xformla", "data",
-                         "wname", "probs", "method", "untreated", "eachIter"))
+# --- Internal: data preparation ----------------------------------------------
 
-# --- Internal compute function -----------------------------------------------
+# unc_qte_data
+# Builds the working data frame used by the estimator and every bootstrap
+# draw: the outcome, treatment and sampling weights under fixed internal
+# column names (.y, .d, .w), plus the covariates named in xformla under their
+# own names. Rows with a missing value in any of these are dropped (with a
+# warning), so the outcome, treatment, weights and covariates stay aligned.
+#
+# Arguments: as in unc_qte(). Returns a data.frame.
+unc_qte_data <- function(data, yname, dname, xformla, weightsname) {
+  data <- as.data.frame(data)
+  needed <- c(yname, dname, weightsname, all.vars(xformla))
+  missing_cols <- setdiff(needed, names(data))
+  if (length(missing_cols) > 0) {
+    stop("column(s) not found in `data`: ",
+         paste(missing_cols, collapse = ", "), ".")
+  }
 
-#' @title compute.unc_qte
-#'
-#' @description Computes the QTE or QTT under unconfoundedness. Dispatches to
-#'   IPW, OR (outcome regression), or AIPW based on \code{qp$est_method} and
-#'   \code{qp$target}. Called internally by \code{unc_qte} and during each
-#'   bootstrap iteration.
-#'
-#' @param qp QTEparams object
-#'
-#' @keywords internal
-#'
-#' @return QTE object
-compute.unc_qte <- function(qp) {
-  setupData(qp)
-  bootstrapiter <- qp$bootstrapiter
-  est_method    <- if (is.null(qp$est_method)) "ipw" else qp$est_method
-  cond_dist     <- if (is.null(qp$cond_dist))  "qr"  else qp$cond_dist
-  target        <- if (is.null(qp$target))     "qte" else qp$target
+  dat <- data[, unique(all.vars(xformla)), drop = FALSE]
+  dat$.y <- data[[yname]]
+  dat$.d <- as.numeric(data[[dname]])
+  dat$.w <- if (is.null(weightsname)) 1 else data[[weightsname]]
 
-  D    <- data[, treat]
-  y    <- data[, yname]
-  w    <- data[, wname]
-  # sampling weights under the column name the conditional-distribution fits
-  # read (cond_fit() uses .w), so the outcome models are weighted too
-  treated$.w   <- treated[, wname]
-  untreated$.w <- untreated[, wname]
+  keep <- stats::complete.cases(dat)
+  if (!all(keep)) {
+    warning("dropping ", sum(!keep), " row(s) with missing values in the ",
+            "outcome, treatment, weights or covariates.")
+    dat <- dat[keep, , drop = FALSE]
+  }
+  rownames(dat) <- NULL
+  dat
+}
+
+# --- Internal: point estimates -----------------------------------------------
+
+# unc_qte_est
+# Computes the QTE or QTT (and the ATE or ATT) under unconfoundedness for one
+# data set; called once on the full sample and once per bootstrap draw.
+#
+# Arguments:
+#   dat         data.frame from unc_qte_data() (columns .y, .d, .w + covariates)
+#   xformla     one-sided covariate formula
+#   probs       quantile levels
+#   method      propensity-score link ("logit" or "probit")
+#   est_method  "ipw", "or" or "aipw"
+#   target      "qte" (population) or "qtt" (on the treated)
+#   cond_dist   "qr" or "dr": how conditional outcome distributions are
+#               estimated in the OR/AIPW branches (see cond_fit())
+#   full        if TRUE also return pscore.reg and the ECDFs of the estimated
+#               quantiles; bootstrap draws only need qte and ate
+#
+# Returns a list with qte, ate and, if full, pscore.reg, F.treated.t,
+# F.treated.t.cf.
+unc_qte_est <- function(dat, xformla, probs, method, est_method, target,
+                        cond_dist, full = TRUE) {
+  D <- dat$.d
+  y <- dat$.y
+  w <- dat$.w
+  treated   <- dat[D == 1, , drop = FALSE]
+  untreated <- dat[D == 0, , drop = FALSE]
 
   pscore.reg <- NULL
 
-  # Formulas built from the injected xformla (RHS extracted via [[2]])
-  xrhs      <- deparse(xformla[[2]])
-  ps_formla <- as.formula(paste(treat, "~", xrhs))
-  or_formla <- as.formula(paste(yname, "~", xrhs))
+  # Formulas from the RHS of xformla (deparse of xformla[[2]]; "1" for ~1).
+  # Note that ~1 still goes through the model-based branches below (with an
+  # intercept-only model), which is what earlier versions did too.
+  xrhs      <- paste(deparse(xformla[[2]]), collapse = " ")
+  ps_formla <- stats::as.formula(paste(".d ~", xrhs))
+  or_formla <- stats::as.formula(paste(".y ~", xrhs))
 
   # Dense tau grid for the OR / AIPW outcome models
   tau_grid <- seq(0.01, 0.99, 0.01)
   K        <- length(tau_grid)
 
+  # Propensity score p(x) = P(D = 1 | X = x), fit by weighted (quasi)binomial
+  # glm so sampling weights enter the score; trimmed away from 0 and 1.
+  # weights = .w is evaluated in dat (the weights column), so a user
+  # covariate that happens to be called `w` can't be picked up instead.
+  fit_pscore <- function() {
+    stats::glm(ps_formla, data = dat,
+               family = stats::quasibinomial(link = method), weights = .w)
+  }
+
   # ---------------------------------------------------------------------------
-  # IPW branch
+  # IPW branch (Firpo 2007)
   # ---------------------------------------------------------------------------
   if (est_method == "ipw") {
-    if (is.null(x)) {
-      # No covariates: naive weighted quantile differences
-      q1  <- weighted_quantile(probs, treated[, yname], treated[, wname])
-      q0  <- weighted_quantile(probs, untreated[, yname], untreated[, wname])
-      ate <- weighted_mean(treated[, yname], treated[, wname]) -
-             weighted_mean(untreated[, yname], untreated[, wname])
-    } else {
-      pscore.reg <- glm(ps_formla, data = data, family = quasibinomial(link = method),
-                      weights = w)
-      pscore     <- pmax(1e-6, pmin(1 - 1e-6, fitted(pscore.reg)))
+    pscore.reg <- fit_pscore()
+    pscore     <- pmax(1e-6, pmin(1 - 1e-6, stats::fitted(pscore.reg)))
 
-      if (target == "qte") {
-        t_wts <- w * D       / pscore
-        u_wts <- w * (1 - D) / (1 - pscore)
-        q1  <- weighted_quantile(probs, y, t_wts, norm = TRUE)
-        q0  <- weighted_quantile(probs, y, u_wts, norm = TRUE)
-        ate <- weighted_mean(y, t_wts) - weighted_mean(y, u_wts)
-      } else {
-        # QTT: Q_Y(1)|D=1 from treated data; Q_Y(0)|D=1 by reweighting untreated
-        # by p(x)/(1-p(x)), tilting toward the treated covariate distribution
-        q1     <- weighted_quantile(probs, treated[, yname], treated[, wname])
-        att1   <- weighted_mean(treated[, yname], treated[, wname])
-        ps_u   <- pscore[D == 0]
-        w_u    <- w[D == 0]
-        u_qtt  <- w_u * ps_u / (1 - ps_u)
-        q0     <- weighted_quantile(probs, untreated[, yname], u_qtt, norm = TRUE)
-        att0   <- weighted_mean(untreated[, yname], u_qtt)
-        ate    <- att1 - att0
-      }
+    if (target == "qte") {
+      # reweight each arm to the population covariate distribution
+      t_wts <- w * D       / pscore
+      u_wts <- w * (1 - D) / (1 - pscore)
+      q1  <- weighted_quantile(probs, y, t_wts, norm = TRUE)
+      q0  <- weighted_quantile(probs, y, u_wts, norm = TRUE)
+      ate <- weighted_mean(y, t_wts) - weighted_mean(y, u_wts)
+    } else {
+      # QTT: Q_Y(1)|D=1 from treated data; Q_Y(0)|D=1 by reweighting untreated
+      # by p(x)/(1-p(x)), tilting toward the treated covariate distribution
+      q1    <- weighted_quantile(probs, treated$.y, treated$.w)
+      att1  <- weighted_mean(treated$.y, treated$.w)
+      ps_u  <- pscore[D == 0]
+      u_qtt <- w[D == 0] * ps_u / (1 - ps_u)
+      q0    <- weighted_quantile(probs, untreated$.y, u_qtt, norm = TRUE)
+      att0  <- weighted_mean(untreated$.y, u_qtt)
+      ate   <- att1 - att0
     }
 
   # ---------------------------------------------------------------------------
   # OR branch: average conditional distributions over X (via predicted
-  # conditional quantiles) to approximate the marginal distribution
+  # conditional quantiles) to get the marginal distribution (Melly 2006;
+  # Chernozhukov, Fernandez-Val and Melly 2013)
   # ---------------------------------------------------------------------------
   } else if (est_method == "or") {
-    # Conditional outcome model on untreated (counterfactual arm): quantile or
-    # distribution regression (cond_dist); see cond_fit().
+    # conditional outcome model on the untreated (counterfactual) arm
     M0 <- cond_fit(or_formla, untreated, cond_dist, tau_grid)
 
     if (target == "qte") {
-      # Predict at all n units; integrate out X to get marginal distribution
-      pred0 <- cond_quantile_matrix(M0, data, tau_grid)
+      # predict at all n units; integrating out X gives the marginal
+      pred0 <- cond_quantile_matrix(M0, dat, tau_grid)
       w_rep <- rep(w, each = K)
       q0    <- weighted_quantile(probs, c(t(pred0)), w_rep, norm = TRUE)
 
       M1    <- cond_fit(or_formla, treated, cond_dist, tau_grid)
-      pred1 <- cond_quantile_matrix(M1, data, tau_grid)
+      pred1 <- cond_quantile_matrix(M1, dat, tau_grid)
       q1    <- weighted_quantile(probs, c(t(pred1)), w_rep, norm = TRUE)
 
       ate <- weighted_mean(c(t(pred1)), w_rep) -
@@ -113,11 +147,11 @@ compute.unc_qte <- function(qp) {
     } else {
       # QTT: counterfactual predicted at treated units only
       pred0  <- cond_quantile_matrix(M0, treated, tau_grid)
-      wt_rep <- rep(treated[, wname], each = K)
+      wt_rep <- rep(treated$.w, each = K)
       q0     <- weighted_quantile(probs, c(t(pred0)), wt_rep, norm = TRUE)
 
-      q1   <- weighted_quantile(probs, treated[, yname], treated[, wname])
-      att1 <- weighted_mean(treated[, yname], treated[, wname])
+      q1   <- weighted_quantile(probs, treated$.y, treated$.w)
+      att1 <- weighted_mean(treated$.y, treated$.w)
       att0 <- weighted_mean(c(t(pred0)), wt_rep)
       ate  <- att1 - att0
     }
@@ -126,61 +160,67 @@ compute.unc_qte <- function(qp) {
   # AIPW branch: doubly-robust CDF estimator, then invert
   # ---------------------------------------------------------------------------
   } else if (est_method == "aipw") {
-    pscore.reg <- glm(ps_formla, data = data, family = quasibinomial(link = method),
-                      weights = w)
-    pscore     <- pmax(1e-6, pmin(1 - 1e-6, fitted(pscore.reg)))
+    pscore.reg <- fit_pscore()
+    pscore     <- pmax(1e-6, pmin(1 - 1e-6, stats::fitted(pscore.reg)))
 
-    # Outcome model for counterfactual arm (quantile or distribution
-    # regression, cond_dist; see cond_fit()).
+    # outcome model for the counterfactual arm, predicted at all units
     M0        <- cond_fit(or_formla, untreated, cond_dist, tau_grid)
-    pred0_all <- cond_quantile_matrix(M0, data, tau_grid)
+    pred0_all <- cond_quantile_matrix(M0, dat, tau_grid)
 
-    # Evaluate CDFs at each observed Y value; approx() inverts
+    # evaluate the CDFs at each observed outcome value; approx() inverts
     y_grid <- sort(unique(y))
+
+    # invert a (monotonized) CDF evaluated on y_grid at the levels probs
+    invert_cdf <- function(F_vals) {
+      F_vals <- cummax(pmax(0, pmin(1, F_vals)))
+      keep   <- !duplicated(F_vals)
+      stats::approx(F_vals[keep], y_grid[keep], xout = probs, rule = 2)$y
+    }
 
     if (target == "qte") {
       # AIPW CDF for Y(0): F_c(y) from OR + IPW augmentation for bias correction
       F0 <- vapply(y_grid, function(yy) {
         F_cond <- rowMeans(pred0_all <= yy)
-        weighted.mean(F_cond + (1 - D) / (1 - pscore) * (as.numeric(y <= yy) - F_cond), w)
+        stats::weighted.mean(
+          F_cond + (1 - D) / (1 - pscore) * (as.numeric(y <= yy) - F_cond), w
+        )
       }, numeric(1))
-      F0 <- cummax(pmax(0, pmin(1, F0)))
-      q0 <- approx(F0[!duplicated(F0)], y_grid[!duplicated(F0)], xout = probs, rule = 2)$y
+      q0 <- invert_cdf(F0)
 
       # AIPW CDF for Y(1)
       M1        <- cond_fit(or_formla, treated, cond_dist, tau_grid)
-      pred1_all <- cond_quantile_matrix(M1, data, tau_grid)
+      pred1_all <- cond_quantile_matrix(M1, dat, tau_grid)
       F1 <- vapply(y_grid, function(yy) {
         F_cond <- rowMeans(pred1_all <= yy)
-        weighted.mean(F_cond + D / pscore * (as.numeric(y <= yy) - F_cond), w)
+        stats::weighted.mean(
+          F_cond + D / pscore * (as.numeric(y <= yy) - F_cond), w
+        )
       }, numeric(1))
-      F1 <- cummax(pmax(0, pmin(1, F1)))
-      q1 <- approx(F1[!duplicated(F1)], y_grid[!duplicated(F1)], xout = probs, rule = 2)$y
+      q1 <- invert_cdf(F1)
 
       # Doubly-robust ATE: AIPW means with the outcome models' conditional
       # means m_d(x) (row means of predicted quantiles), consistent with the
-      # AIPW CDFs above. Previously this was the IPW ATE (issue #11).
+      # AIPW CDFs above (issue #11).
       m0  <- rowMeans(pred0_all)
       m1  <- rowMeans(pred1_all)
       ate <- weighted_mean(m1 + D / pscore * (y - m1), w) -
              weighted_mean(m0 + (1 - D) / (1 - pscore) * (y - m0), w)
 
     } else {
-      # AIPW CDF for Y(0)|D=1: weighted by p(x)/pbar to target treated distribution
-      pbar   <- weighted.mean(D, w)
-      F_qtt  <- vapply(y_grid, function(yy) {
+      # AIPW CDF for Y(0)|D=1: weighted by p(x)/pbar to target the treated
+      pbar  <- stats::weighted.mean(D, w)
+      F_qtt <- vapply(y_grid, function(yy) {
         F_cond    <- rowMeans(pred0_all <= yy)
         aipw_term <- D * F_cond +
-                     (1 - D) * pscore / (1 - pscore) * (as.numeric(y <= yy) - F_cond)
-        weighted.mean(aipw_term, w) / pbar
+          (1 - D) * pscore / (1 - pscore) * (as.numeric(y <= yy) - F_cond)
+        stats::weighted.mean(aipw_term, w) / pbar
       }, numeric(1))
-      F_qtt <- cummax(pmax(0, pmin(1, F_qtt)))
-      q0    <- approx(F_qtt[!duplicated(F_qtt)], y_grid[!duplicated(F_qtt)], xout = probs, rule = 2)$y
+      q0 <- invert_cdf(F_qtt)
 
-      q1   <- weighted_quantile(probs, treated[, yname], treated[, wname])
-      att1 <- weighted_mean(treated[, yname], treated[, wname])
+      q1   <- weighted_quantile(probs, treated$.y, treated$.w)
+      att1 <- weighted_mean(treated$.y, treated$.w)
       # Doubly-robust ATT: E[Y(0)|D=1] = E[D*m0 + (1-D)*(p/(1-p))*(Y - m0)]/E[D]
-      # (the mean of the AIPW counterfactual CDF above). Previously IPW (#11).
+      # (the mean of the AIPW counterfactual CDF above; issue #11)
       m0   <- rowMeans(pred0_all)
       att0 <- sum(w * (D * m0 + (1 - D) * pscore / (1 - pscore) * (y - m0))) /
               sum(w * D)
@@ -188,17 +228,69 @@ compute.unc_qte <- function(qp) {
     }
   }
 
-  qte <- q1 - q0
-  F.treated.t    <- ecdf(q1)
-  F.treated.t.cf <- ecdf(q0)
-
-  if (bootstrapiter) {
-    out <- QTE(qte = qte, ate = ate, probs = probs)
-  } else {
-    out <- QTE(F.treated.t = F.treated.t, F.treated.t.cf = F.treated.t.cf,
-               qte = qte, pscore.reg = pscore.reg, ate = ate, probs = probs)
+  out <- list(qte = q1 - q0, ate = ate)
+  if (full) {
+    out$pscore.reg     <- pscore.reg
+    out$F.treated.t    <- stats::ecdf(q1)
+    out$F.treated.t.cf <- stats::ecdf(q0)
   }
-  return(out)
+  out
+}
+
+# --- Internal: bootstrap inference -------------------------------------------
+
+# unc_qte_boot
+# Empirical (nonparametric) bootstrap: resample rows of dat with replacement,
+# re-estimate, and summarize the draws into standard errors and intervals.
+#
+# Arguments:
+#   dat, est_args  working data and the remaining unc_qte_est() arguments
+#                  (as a list)
+#   est            full-sample list from unc_qte_est() (qte, ate)
+#   biters         number of bootstrap draws
+#   alp            significance level
+#   cl             passed to pbapply::pblapply() (parallel workers)
+#
+# Returns a list with qte.se, qte.lower, qte.upper, ate.se, ate.lower,
+# ate.upper and c (critical value for a uniform band over probs).
+unc_qte_boot <- function(dat, est_args, est, biters, alp, cl) {
+  n <- nrow(dat)
+  draws <- pbapply::pblapply(seq_len(biters), function(b) {
+    idx <- sample(seq_len(n), n, replace = TRUE)
+    do.call(unc_qte_est, c(list(dat = dat[idx, , drop = FALSE], full = FALSE),
+                           est_args))
+  }, cl = cl)
+
+  qte_mat <- do.call(rbind, lapply(draws, function(r) as.numeric(r$qte)))
+  ate_b   <- vapply(draws, function(r) as.numeric(r$ate), numeric(1))
+  z       <- stats::qnorm(1 - alp / 2)
+
+  # ATE/ATT: bootstrap SE, normal-approximation interval
+  ate.se <- stats::sd(ate_b)
+
+  # QTE: bootstrap SE per quantile, normal-approximation pointwise interval
+  qte.se <- apply(qte_mat, 2, stats::sd)
+
+  # Critical value for a uniform band: the (1 - alp) quantile of the sup over
+  # probs of |boot - est| / sigma, with sigma a robust (IQR-based) scale; fall
+  # back to the bootstrap SE when the IQR is 0 (e.g. QTEs that are exactly 0)
+  sigmahalf <- (apply(qte_mat, 2, function(b) stats::quantile(b, .75, type = 1)) -
+                  apply(qte_mat, 2, function(b) stats::quantile(b, .25, type = 1))) /
+    (stats::qnorm(.75) - stats::qnorm(.25))
+  if (any(sigmahalf == 0)) {
+    sigmahalf <- pmax(apply(qte_mat, 2, stats::sd), 1e-9)
+  }
+  cb <- apply(qte_mat, 1, function(q) max(abs((q - est$qte) / sigmahalf)))
+  c_val <- as.numeric(stats::quantile(cb, 1 - alp, type = 1))
+
+  list(
+    qte.se = qte.se,
+    qte.lower = est$qte - z * qte.se,
+    qte.upper = est$qte + z * qte.se,
+    ate.se = ate.se,
+    ate.lower = est$ate - z * ate.se, ate.upper = est$ate + z * ate.se,
+    c = c_val
+  )
 }
 
 
@@ -208,9 +300,11 @@ compute.unc_qte <- function(qp) {
 #'
 #' @description Estimates the Quantile Treatment Effect (QTE) or Quantile
 #'   Treatment Effect on the Treated (QTT) under unconfoundedness, also known
-#'   as selection on observables. The key identifying assumption is
-#'   \eqn{(Y(0), Y(1)) \perp D \mid X}, i.e., potential outcomes are
-#'   independent of treatment conditional on covariates \eqn{X}.
+#'   as selection on observables, with cross-sectional data. The key
+#'   identifying assumption is \eqn{(Y(0), Y(1)) \perp D \mid X}, i.e.,
+#'   potential outcomes are independent of treatment conditional on
+#'   covariates \eqn{X}. For staggered treatment adoption with panel or
+#'   repeated cross-section data, see \code{\link{lou_qtt}}.
 #'
 #'   Three estimation methods are available via \code{est_method}:
 #'
@@ -241,9 +335,11 @@ compute.unc_qte <- function(qp) {
 #'   is consistent under unconditional unconfoundedness. Covariates are required
 #'   for covariate-adjusted estimation.
 #'
-#'   Standard errors and uniform confidence bands are computed via the
-#'   empirical bootstrap. Setting \code{biters = 0} is planned for a future
-#'   version to skip inference and return point estimates only.
+#'   Rows with a missing value in the outcome, treatment, weights or any
+#'   covariate in \code{xformla} are dropped, with a warning.
+#'
+#'   Standard errors and confidence intervals are computed via the empirical
+#'   bootstrap (resampling rows of \code{data}).
 #'
 #' @param yname character; name of the outcome variable in \code{data}.
 #' @param dname character; name of the binary treatment indicator in
@@ -307,9 +403,13 @@ compute.unc_qte <- function(qp) {
 #'       for \code{qte}; uniform when \code{cband = TRUE}, pointwise otherwise.}
 #'     \item{\code{ate.se}, \code{ate.lower}, \code{ate.upper}}{SE and CI
 #'       for \code{ate}.}
+#'     \item{\code{c}}{bootstrap critical value for a uniform band over
+#'       \code{probs}.}
 #'     \item{\code{probs}}{the \code{probs} vector passed by the user.}
 #'     \item{\code{pscore.reg}}{fitted propensity score \code{glm} object, or
-#'       \code{NULL} when \code{est_method = "or"} or \code{xformla = ~1}.}
+#'       \code{NULL} when \code{est_method = "or"}.}
+#'     \item{\code{F.treated.t}, \code{F.treated.t.cf}}{ECDFs of the
+#'       estimated quantiles of \eqn{Y(1)} and \eqn{Y(0)} at \code{probs}.}
 #'   }
 #'   Use \code{summary()} to print a formatted table and \code{plot()} to
 #'   display the QTE curve with confidence bands.
@@ -378,34 +478,24 @@ unc_qte <- function(yname, dname, data,
          paste(utils::head(sort(d_vals), 5), collapse = ", "), ".")
   }
 
-  formla <- as.formula(paste(yname, "~", dname))
-  w      <- if (!is.null(weightsname)) data[[weightsname]] else NULL
-  pl     <- cl > 1
-  cores  <- cl
+  dat <- unc_qte_data(data, yname, dname, xformla, weightsname)
 
-  qp <- QTEparams(formla, xformla, t = NULL, tmin1 = NULL, tmin2 = NULL,
-                  tname = NULL, data = data, w = w, idname = NULL,
-                  probs = probs, iters = biters, alp = alp, method = method,
-                  se = TRUE, retEachIter = FALSE, bootstrapiter = FALSE,
-                  pl = pl, cores = cores,
-                  est_method = est_method, target = target)
-  qp$cond_dist <- cond_dist
+  est_args <- list(xformla = xformla, probs = probs, method = method,
+                   est_method = est_method, target = target,
+                   cond_dist = cond_dist)
+  est  <- do.call(unc_qte_est, c(list(dat = dat, full = TRUE), est_args))
+  boot <- unc_qte_boot(dat, est_args, est, biters = biters, alp = alp,
+                       cl = cl)
 
-  firpo.qte <- compute.unc_qte(qp)
-
-  qp$bootstrapiter <- TRUE
-  SEobj <- bootstrap(qp, firpo.qte, compute.unc_qte)
-
-  QTE(qte       = firpo.qte$qte,
-      qte.upper = SEobj$qte.upper,  qte.lower = SEobj$qte.lower,
-      ate       = firpo.qte$ate,
-      ate.upper = SEobj$ate.upper,  ate.lower = SEobj$ate.lower,
-      qte.se    = SEobj$qte.se,     ate.se    = SEobj$ate.se,
-      c = SEobj$c, alp = alp,
-      pscore.reg    = firpo.qte$pscore.reg,
-      F.treated.t   = firpo.qte$F.treated.t,
-      F.treated.t.cf = firpo.qte$F.treated.t.cf,
-      eachIterList  = eachIter,
+  QTE(qte       = est$qte,
+      qte.upper = boot$qte.upper, qte.lower = boot$qte.lower,
+      ate       = est$ate,
+      ate.upper = boot$ate.upper, ate.lower = boot$ate.lower,
+      qte.se    = boot$qte.se,    ate.se    = boot$ate.se,
+      c = boot$c, alp = alp,
+      pscore.reg     = est$pscore.reg,
+      F.treated.t    = est$F.treated.t,
+      F.treated.t.cf = est$F.treated.t.cf,
       probs = probs,
       type = if (target == "qtt") "On the Treated" else "Overall")
 }

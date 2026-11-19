@@ -9,7 +9,9 @@
   for staggered adoption) and `autoplot()` instead.
 * Removed the exported helper `panelize.data()`, which only served those
   functions.
-* `formula.tools` is no longer a dependency.
+* Removed the exported internal `QTEparams()` parameter container. `unc_qte()`
+  now has self-contained estimation and bootstrap code and no longer uses it.
+* `formula.tools`, `data.table` and `parallel` are no longer dependencies.
 
 ## New features
 
@@ -36,6 +38,10 @@
   using the outcome model's conditional mean (#11). Previously the reported
   ATT/ATE was the IPW estimate, so it ignored the outcome model and wasn't
   doubly robust. The AIPW quantile curves are unchanged.
+* `unc_qte()` with `weightsname`: each bootstrap draw now resamples units
+  together with their weights. Previously the weights stayed in their
+  original row order while the rows were resampled, so standard errors and
+  confidence bands with weights were wrong. Point estimates are unchanged.
 * `unc_qte()` now uses `weightsname` throughout: in the propensity-score
   model, in the outcome-regression fits, and in the AIPW distribution
   functions (previously only in the final averaging). `lou_qtt()`'s
@@ -71,6 +77,9 @@
   0/1, with an informative error. A treatment coded e.g. 1/2 previously
   failed inside the propensity-score fit with
   "y values must be 0 <= y <= 1" (#1).
+* `unc_qte()` drops rows with missing values in the outcome, treatment,
+  weights or covariates (with a warning) instead of failing. Its internals
+  were rewritten as standalone code; results without weights are unchanged.
 
 # qte 2.0.1
 

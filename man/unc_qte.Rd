@@ -89,9 +89,13 @@ element of \code{probs}.}
 for \code{qte}; uniform when \code{cband = TRUE}, pointwise otherwise.}
 \item{\code{ate.se}, \code{ate.lower}, \code{ate.upper}}{SE and CI
 for \code{ate}.}
+\item{\code{c}}{bootstrap critical value for a uniform band over
+\code{probs}.}
 \item{\code{probs}}{the \code{probs} vector passed by the user.}
 \item{\code{pscore.reg}}{fitted propensity score \code{glm} object, or
-\code{NULL} when \code{est_method = "or"} or \code{xformla = ~1}.}
+\code{NULL} when \code{est_method = "or"}.}
+\item{\code{F.treated.t}, \code{F.treated.t.cf}}{ECDFs of the
+estimated quantiles of \eqn{Y(1)} and \eqn{Y(0)} at \code{probs}.}
 }
 Use \code{summary()} to print a formatted table and \code{plot()} to
 display the QTE curve with confidence bands.
@@ -99,9 +103,11 @@ display the QTE curve with confidence bands.
 \description{
 Estimates the Quantile Treatment Effect (QTE) or Quantile
 Treatment Effect on the Treated (QTT) under unconfoundedness, also known
-as selection on observables. The key identifying assumption is
-\eqn{(Y(0), Y(1)) \perp D \mid X}, i.e., potential outcomes are
-independent of treatment conditional on covariates \eqn{X}.
+as selection on observables, with cross-sectional data. The key
+identifying assumption is \eqn{(Y(0), Y(1)) \perp D \mid X}, i.e.,
+potential outcomes are independent of treatment conditional on
+covariates \eqn{X}. For staggered treatment adoption with panel or
+repeated cross-section data, see \code{\link{lou_qtt}}.
 
 Three estimation methods are available via \code{est_method}:
 
@@ -132,9 +138,11 @@ simple quantile differences between the treated and untreated groups, which
 is consistent under unconditional unconfoundedness. Covariates are required
 for covariate-adjusted estimation.
 
-Standard errors and uniform confidence bands are computed via the
-empirical bootstrap. Setting \code{biters = 0} is planned for a future
-version to skip inference and return point estimates only.
+Rows with a missing value in the outcome, treatment, weights or any
+covariate in \code{xformla} are dropped, with a warning.
+
+Standard errors and confidence intervals are computed via the empirical
+bootstrap (resampling rows of \code{data}).
 }
 \examples{
 data(lalonde)

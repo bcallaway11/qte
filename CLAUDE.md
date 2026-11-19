@@ -21,7 +21,8 @@ release checklist is `dev/TODO.md`.
 All estimators use `did`/`ptetools`-style named args (`yname`, `tname`,
 `idname`, `biters`, `weightsname`, `cl`, ...):
 - `unc_qte` — cross-sectional QTE/QTT under unconfoundedness (`dname` = 0/1
-  treatment). Still runs on the legacy internal pipeline (below).
+  treatment). Standalone code, no ptetools (below); the staggered analogue
+  is `lou_qtt(lagged_outcome_cov = FALSE)`.
 - Six panel estimators on `ptetools::pte()` (canonical order): `cic`, `qdid`,
   `panel_qtt`, `ddid`, `mdid`, `lou_qtt` (lagged-outcome unconfoundedness;
   the others are DiD-type), with `gname`, `gt_type`, staggered adoption.
@@ -61,23 +62,25 @@ conditional quantiles/CDFs), `"dr"` = distribution regression (logit of
 1{Y <= y} on X over a grid). QR results are unchanged by the dispatch layer.
 Design notes and open questions: `dev/distreg_report.md`.
 
-### `unc_qte` pipeline — legacy internals (only remaining user)
+### `unc_qte` — standalone cross-sectional estimator
 ```
-unc_qte() → QTEparams → compute.unc_qte (→ setupData) → bootstrap → QTE
+unc_qte() → unc_qte_data() → unc_qte_est() (full sample)
+          → unc_qte_boot() (resample rows, unc_qte_est() per draw) → QTE
 ```
-- **`setupData`** (setupData.R) injects treated/untreated subsets and ECDFs
-  into the caller's environment via `assign(…, envir=parent.frame())`.
-  Side-effectful and fragile; the names it injects are why
-  `globalVariables()` in `R/imports.R` still lists `treated`, `untreated`,
-  `eachIter`, etc.
-- **`bootstrap`/`bootiter`** (bootstrap.R) — legacy empirical bootstrap.
-- **`QTE`** (qte-class.R) — S3 class for `unc_qte` output; `SE()` builds its
-  SE sub-object; `summary`/`print`/`plot`/`autoplot` methods.
-- Porting `unc_qte` to ptetools would let all of this be deleted (open item
-  in `dev/TODO.md`). Until then, don't treat these files as dead code.
+- Deliberately independent of ptetools: it has no group/time structure, and
+  its `target = "qte"` (population) parameter doesn't fit ptetools'
+  effect-on-the-treated aggregation/output classes. Decision 2026-11-19.
+- `unc_qte_data()` builds the working data (`.y`, `.d`, `.w` + covariates,
+  complete cases); `unc_qte_est()` does IPW / OR / AIPW for QTE or QTT;
+  `unc_qte_boot()` is a plain empirical bootstrap via `pbapply::pblapply()`.
+- **`QTE`** (qte-class.R) — S3 class for `unc_qte` output, with
+  `summary`/`print`/`plot`/`autoplot` methods.
+- The legacy `QTEparams`/`setupData`/`bootstrap`/`computeSE`/`SE` machinery
+  was deleted in v2.1.0 when `unc_qte` was rewritten (identical estimates; it also fixed the bootstrap,
+  which had kept weights in their original row order while resampling rows).
 
 ### Key S3 classes
-- `QTE`, `QTEparams` — `unc_qte` output/params (both still exported).
+- `QTE` — `unc_qte` output (constructor still exported).
 - `pte_results`, `pte_qtt`, `pte_emp_boot` — defined in `ptetools`; returned
   by the six panel estimators.
 
@@ -85,7 +88,7 @@ unc_qte() → QTEparams → compute.unc_qte (→ setupData) → bootstrap → QT
 
 | File | Content |
 |------|---------|
-| `R/unc_qte.R` | `unc_qte`, `compute.unc_qte` |
+| `R/unc_qte.R` | `unc_qte` and its internals `unc_qte_data`, `unc_qte_est`, `unc_qte_boot` |
 | `R/cic.R` | `cic_gt`, `cic` (panel or repeated cross-sections via `panel`) |
 | `R/qdid.R` | `qdid_gt`, `qdid` |
 | `R/panel_qtt.R` | `panel_qtt_gt`, `panel_qtt`, `panel_qtt_long_agg` (custom `aggte_fun` for `pre_copula = "long"`), `three_period_subset` |
@@ -94,13 +97,10 @@ unc_qte() → QTEparams → compute.unc_qte (→ setupData) → bootstrap → QT
 | `R/lou_qtt.R` | `lou_gt`, `lou_qtt` |
 | `R/distreg-helpers.R` | distribution regression (`dr_*`) and the `cond_*` QR/DR dispatch layer |
 | `R/quantile-helpers.R` | `wquant`, `wcdf_at`, cached/rearranged QR helpers (`cached_rq`, `qr_cdf`, `qr_quantile`, ...) |
-| `R/qte-class.R` | `QTE` class, `SE`, `computeSE`, `summary`/`print`/`plot.QTE` |
-| `R/QTEparams.R` | `QTEparams` constructor (used by `unc_qte`) |
-| `R/setupData.R` | `setupData` — injects vars into caller env (used by `compute.unc_qte`) |
-| `R/bootstrap.R` | `bootstrap`, `bootiter` (bootstrap for `unc_qte`) |
+| `R/qte-class.R` | `QTE` class, `summary`/`print`/`plot.QTE` |
 | `R/helper-functions.R` | `autoplot.QTE`, `keep_used_columns` |
 | `R/data.R` | bundled datasets: `lalonde`, `lalonde.exp`, `lalonde.exp.panel`, `lalonde.psid`, `lalonde.psid.panel` |
-| `R/imports.R` | package-level `@import` tags, `globalVariables()` |
+| `R/imports.R` | package-level `@import` tags, `globalVariables(".w")` |
 
 `two_by_two_rcs_subset` (repeated cross-sections) lives in `ptetools`, not here.
 
@@ -109,9 +109,7 @@ unc_qte() → QTEparams → compute.unc_qte (→ setupData) → bootstrap → QT
 The working list for the next release is `dev/TODO.md`; design history and
 rationale are in `dev/NOTES.md`. Highlights:
 
-- `unc_qte` still depends on the legacy `QTEparams`/`setupData`/`bootstrap`/
-  `QTE` machinery (see above).
-- `QTE` and `QTEparams` are exported though users shouldn't need them.
+- `QTE()` (the constructor) is exported though users shouldn't need it.
 - `unc_qte` (`xformla`) vs panel estimators (`xformula`) argument naming.
 - Parallel bootstrap: a numeric `cl` runs serially on Windows — root cause is
   in ptetools (bcallaway11/ptetools#11).

@@ -17,13 +17,11 @@ Description: Provides several methods for computing the Quantile Treatment
     treatment adoption API (built on 'ptetools') for all DiD-based estimators,
     as well as a new lagged-outcome unconfoundedness estimator ('lou_qtt').
 Depends: R (>= 3.5)
-Imports: parallel,
-    quantreg,
+Imports: quantreg,
     BMisc,
     ggplot2,
     rlang,
     pbapply,
-    data.table,
     ptetools (>= 1.0.2)
 URL: https://bcallaway11.github.io/qte/, https://github.com/bcallaway11/qte
 BugReports: https://github.com/bcallaway11/qte/issues
