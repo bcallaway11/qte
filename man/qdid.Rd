@@ -96,6 +96,23 @@ Difference-in-Differences identification strategy of Athey and Imbens
 (2006). Handles two-period data and staggered treatment adoption
 uniformly. Supports both panel and repeated cross sections data.
 }
+\section{Discrete outcomes}{
+
+Quantile treatment effects usually require a continuous outcome. With
+mass points (e.g. many zeros) or few distinct values, quantiles jump and
+effects at quantiles inside a mass point are 0 by construction;
+identification based on ranks or quantile functions (change-in-changes,
+quantile DiD, the panel and distributional DiD copula arguments) only
+bounds the effects (Athey and Imbens 2006, Section 4); and bootstrap
+inference for quantiles can be unreliable. The estimators warn (once per
+call, class \code{qte_discrete_outcome}) when more than 10\\% of the
+outcome's observations share one value or it takes at most 20 distinct
+values, across all groups and periods; the thresholds are the options
+\code{qte.mass_point_tol} and \code{qte.discrete_n_unique}. The
+diagnostics are returned as \code{outcome_discreteness}.
+\code{\link{cdf_did}} is identified for discrete outcomes.
+}
+
 \examples{
 \donttest{
 data(mpdta, package = "did")

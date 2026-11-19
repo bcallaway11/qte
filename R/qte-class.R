@@ -78,7 +78,8 @@ summary.QTE <- function(object, ...) {
     has_se      = !is.null(object$qte.se),
     # label the band "Simult." only when the object says it is one; objects
     # from qte < 2.1.0 have no `cband` field and stored pointwise intervals
-    has_cband   = isTRUE(object$cband)
+    has_cband   = isTRUE(object$cband),
+    discrete    = object$outcome_discreteness
   )
   class(out) <- "summary.QTE"
   out
@@ -134,7 +135,16 @@ print.summary.QTE <- function(x, ...) {
     }
     print(out2, row.names = FALSE, justify = "centre")
     cat("---\n")
-    cat("Signif. codes: `*' confidence band does not cover 0\n\n")
+    cat("Signif. codes: `*' confidence band does not cover 0\n")
+    # set by unc_qte() since 2.1.0 (#17)
+    d <- x$discrete
+    if (isTRUE(d$discrete)) {
+      cat(sprintf(paste0("Note: the outcome looks discrete (%d distinct ",
+                         "values; %.0f%% at %s); quantile effects may be ",
+                         "unreliable.\n"),
+                  d$n_unique, 100 * d$max_mass, format(d$mass_at, digits = 6)))
+    }
+    cat("\n")
   }
 }
 

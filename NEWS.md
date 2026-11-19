@@ -16,6 +16,9 @@
   the other estimators. `xformla` still works for now, with a deprecation
   warning. The new `clustervars` argument comes right after `weightsname`,
   so calls passing `probs` or later arguments by position need updating.
+* `est_method = "or"` (outcome regression) in `unc_qte()` and `lou_qtt()` is
+  renamed `"reg"`, the name `did` uses, and the name in the new `cdf_did()`.
+  `"or"` still works, with a deprecation warning.
 
 ## New features
 
@@ -25,6 +28,28 @@
   whole clusters are resampled.
 * `unc_qte()` also gains `clustervars`: its bootstrap then resamples whole
   clusters instead of rows.
+
+* New `cdf_did()` (and its workhorse `cdf_did_gt()`): the QTT and ATT under
+  parallel trends in the *distribution functions* of untreated potential
+  outcomes (Roth and Sant'Anna 2023), with staggered adoption, for panel
+  data or repeated cross sections. The counterfactual distribution is
+  computed exactly on the data's support and rearranged into a valid
+  distribution function; the ATT equals the usual DiD ATT. Unlike the
+  rank- and quantile-based estimators, it is identified for discrete
+  outcomes. Covariates enter through `est_method = c("aipw", "ipw", "reg")`:
+  a doubly robust, an inverse-probability-weighted, and an
+  outcome-regression (distribution regression) version of the conditional
+  assumption (Sant'Anna and Zhao 2020).
+
+* The estimators now warn, once per call, when the outcome looks discrete:
+  more than 10% of observations at one value, or at most 20 distinct values
+  (#17). Quantile treatment effects usually require a continuous outcome:
+  quantiles jump at mass points, rank-based identification only gives
+  bounds, and bootstrap inference can be unreliable. The warning has class
+  `qte_discrete_outcome`, the thresholds are the options
+  `qte.mass_point_tol` and `qte.discrete_n_unique`, and the diagnostics are
+  returned as `outcome_discreteness`. `cic_gt()` no longer warns about
+  "extreme ranks" once per group-time cell and bootstrap draw.
 
 * The covariate-adjusted estimators gain `cond_dist = c("qr", "dr")`:
   `cic()`, `qdid()`, `ddid()`, `panel_qtt()` (and their `*_gt()` workhorses),

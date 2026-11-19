@@ -65,7 +65,7 @@ unc_qte_data <- function(data, yname, dname, xformula, weightsname,
 #   xformula     one-sided covariate formula
 #   probs       quantile levels
 #   method      propensity-score link ("logit" or "probit")
-#   est_method  "ipw", "or" or "aipw"
+#   est_method  "ipw", "reg" or "aipw"
 #   target      "qte" (population) or "qtt" (on the treated)
 #   cond_dist   "qr" or "dr": how conditional outcome distributions are
 #               estimated in the OR/AIPW branches (see cond_fit())
@@ -135,7 +135,7 @@ unc_qte_est <- function(dat, xformula, probs, method, est_method, target,
   # conditional quantiles) to get the marginal distribution (Melly 2006;
   # Chernozhukov, Fernandez-Val and Melly 2013)
   # ---------------------------------------------------------------------------
-  } else if (est_method == "or") {
+  } else if (est_method == "reg") {
     # conditional outcome model on the untreated (counterfactual) arm
     M0 <- cond_fit(or_formla, untreated, cond_dist, tau_grid)
 
@@ -242,6 +242,19 @@ unc_qte_est <- function(dat, xformula, probs, method, est_method, target,
     out$F.treated.t.cf <- stats::ecdf(q0)
   }
   out
+}
+
+# --- Internal: est_method "or" -> "reg" -------------------------------------
+
+# "or" was renamed "reg" in 2.1.0 (the name did and DRDID use for outcome
+# regression); "or" still works, with a deprecation warning.
+resolve_est_method_or <- function(est_method) {
+  if (identical(est_method, "or")) {
+    warning('est_method = "or" is deprecated; use "reg" instead.',
+            call. = FALSE)
+    return("reg")
+  }
+  est_method
 }
 
 # --- Internal: slimmer glm for the returned object ----------------------------
@@ -367,7 +380,7 @@ unc_qte_boot <- function(dat, est_args, est, biters, alp, cband, cl) {
 #'       both groups are reweighted toward the population distribution; for the
 #'       QTT, only the untreated group is reweighted toward the treated
 #'       covariate distribution.}
-#'     \item{\code{"or"}}{Outcome regression via quantile regression inversion.
+#'     \item{\code{"reg"}}{Outcome regression via quantile regression inversion.
 #'       \code{\link[quantreg]{rq}} is fit on a dense internal grid of
 #'       \eqn{\tau} values, yielding a conditional quantile function
 #'       \eqn{Q_{Y|X,D=j}(\tau)} for each arm \eqn{j}. The marginal
@@ -425,10 +438,11 @@ unc_qte_boot <- function(dat, est_args, est, biters, alp, cband, cl) {
 #' @param est_method estimation method; one of:
 #'   \itemize{
 #'     \item \code{"ipw"} (default) — inverse propensity weighting
-#'     \item \code{"or"} — outcome regression via quantile regression inversion
+#'     \item \code{"reg"} — outcome regression via quantile regression
+#'       inversion (\code{"or"} is a deprecated alias)
 #'     \item \code{"aipw"} — doubly-robust augmented IPW
 #'   }
-#' @param cond_dist For \code{est_method = "or"} or \code{"aipw"}, how the
+#' @param cond_dist For \code{est_method = "reg"} or \code{"aipw"}, how the
 #'   conditional outcome distributions are estimated: \code{"qr"} (default)
 #'   for quantile regression or \code{"dr"} for distribution regression (a
 #'   logit of \eqn{1\{Y \le y\}} on the covariates at a grid of thresholds;
@@ -475,7 +489,7 @@ unc_qte_boot <- function(dat, est_args, est, biters, alp, cband, cl) {
 #'       (without copies of the data: \code{coef()}, \code{vcov()},
 #'       \code{summary()}, \code{fitted()} and \code{predict(newdata = )}
 #'       work; \code{anova()} and \code{update()} do not), or
-#'       \code{NULL} when \code{est_method = "or"}.}
+#'       \code{NULL} when \code{est_method = "reg"}.}
 #'     \item{\code{F.treated.t}, \code{F.treated.t.cf}}{ECDFs of the
 #'       estimated quantiles of \eqn{Y(1)} and \eqn{Y(0)} at \code{probs}.}
 #'   }
@@ -497,7 +511,7 @@ unc_qte_boot <- function(dat, est_args, est, biters, alp, cband, cl) {
 #' \donttest{
 #' xf <- ~ age + I(age^2) + education + black + hispanic + married + nodegree
 #' q2 <- unc_qte(yname = "re78", dname = "treat", data = lalonde.psid,
-#'               xformula = xf, est_method = "or",
+#'               xformula = xf, est_method = "reg",
 #'               biters = 20, probs = seq(0.05, 0.95, 0.05))
 #' summary(q2)
 #' }
@@ -510,6 +524,7 @@ unc_qte_boot <- function(dat, est_args, est, biters, alp, cband, cl) {
 #' summary(q3)
 #' }
 #'
+#' @inheritSection cic Discrete outcomes
 #' @export
 unc_qte <- function(yname, dname, data,
                     xformula = ~1,
@@ -521,7 +536,7 @@ unc_qte <- function(yname, dname, data,
                     cband = TRUE,
                     boot_type = "empirical",
                     method = c("logit", "probit"),
-                    est_method = c("ipw", "or", "aipw"),
+                    est_method = c("ipw", "reg", "aipw"),
                     target = c("qte", "qtt"),
                     cond_dist = c("qr", "dr"),
                     cl = 1,
@@ -535,7 +550,8 @@ unc_qte <- function(yname, dname, data,
     xformula <- xformla
   }
   method     <- match.arg(method)
-  est_method <- match.arg(est_method)
+  est_method <- match.arg(resolve_est_method_or(est_method),
+                          c("ipw", "reg", "aipw"))
   target     <- match.arg(target)
   cond_dist  <- match.arg(cond_dist)
   boot_type  <- match.arg(boot_type)
@@ -556,6 +572,10 @@ unc_qte <- function(yname, dname, data,
          paste(utils::head(sort(d_vals), 5), collapse = ", "), ".")
   }
 
+  # warn once if the outcome looks discrete (#17): QTEs are quantile
+  # differences, which degenerate at mass points
+  disc <- check_discrete_outcome(as.data.frame(data), yname, weightsname)
+
   dat <- unc_qte_data(data, yname, dname, xformula, weightsname, clustervars)
 
   est_args <- list(xformula = xformula, probs = probs, method = method,
@@ -565,15 +585,17 @@ unc_qte <- function(yname, dname, data,
   boot <- unc_qte_boot(dat, est_args, est, biters = biters, alp = alp,
                        cband = cband, cl = cl)
 
-  QTE(qte       = est$qte,
-      qte.upper = boot$qte.upper, qte.lower = boot$qte.lower,
-      ate       = est$ate,
-      ate.upper = boot$ate.upper, ate.lower = boot$ate.lower,
-      qte.se    = boot$qte.se,    ate.se    = boot$ate.se,
-      c = boot$c, alp = alp, cband = cband,
-      pscore.reg     = est$pscore.reg,
-      F.treated.t    = est$F.treated.t,
-      F.treated.t.cf = est$F.treated.t.cf,
-      probs = probs,
-      type = if (target == "qtt") "On the Treated" else "Overall")
+  res <- QTE(qte       = est$qte,
+             qte.upper = boot$qte.upper, qte.lower = boot$qte.lower,
+             ate       = est$ate,
+             ate.upper = boot$ate.upper, ate.lower = boot$ate.lower,
+             qte.se    = boot$qte.se,    ate.se    = boot$ate.se,
+             c = boot$c, alp = alp, cband = cband,
+             pscore.reg     = est$pscore.reg,
+             F.treated.t    = est$F.treated.t,
+             F.treated.t.cf = est$F.treated.t.cf,
+             probs = probs,
+             type = if (target == "qtt") "On the Treated" else "Overall")
+  res$outcome_discreteness <- disc
+  res
 }

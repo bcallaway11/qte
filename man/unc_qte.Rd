@@ -17,7 +17,7 @@ unc_qte(
   cband = TRUE,
   boot_type = "empirical",
   method = c("logit", "probit"),
-  est_method = c("ipw", "or", "aipw"),
+  est_method = c("ipw", "reg", "aipw"),
   target = c("qte", "qtt"),
   cond_dist = c("qr", "dr"),
   cl = 1,
@@ -69,7 +69,8 @@ supported.}
 \item{est_method}{estimation method; one of:
 \itemize{
 \item \code{"ipw"} (default) — inverse propensity weighting
-\item \code{"or"} — outcome regression via quantile regression inversion
+\item \code{"reg"} — outcome regression via quantile regression
+inversion (\code{"or"} is a deprecated alias)
 \item \code{"aipw"} — doubly-robust augmented IPW
 }}
 
@@ -81,7 +82,7 @@ supported.}
 \eqn{Q_{Y(1)|D=1}(\tau) - Q_{Y(0)|D=1}(\tau)}
 }}
 
-\item{cond_dist}{For \code{est_method = "or"} or \code{"aipw"}, how the
+\item{cond_dist}{For \code{est_method = "reg"} or \code{"aipw"}, how the
 conditional outcome distributions are estimated: \code{"qr"} (default)
 for quantile regression or \code{"dr"} for distribution regression (a
 logit of \eqn{1\{Y \le y\}} on the covariates at a grid of thresholds;
@@ -109,8 +110,11 @@ for \code{ate}.}
 \item{\code{c}}{bootstrap critical value for a uniform band over
 \code{probs}.}
 \item{\code{probs}}{the \code{probs} vector passed by the user.}
-\item{\code{pscore.reg}}{fitted propensity score \code{glm} object, or
-\code{NULL} when \code{est_method = "or"}.}
+\item{\code{pscore.reg}}{fitted propensity score \code{glm} object
+(without copies of the data: \code{coef()}, \code{vcov()},
+\code{summary()}, \code{fitted()} and \code{predict(newdata = )}
+work; \code{anova()} and \code{update()} do not), or
+\code{NULL} when \code{est_method = "reg"}.}
 \item{\code{F.treated.t}, \code{F.treated.t.cf}}{ECDFs of the
 estimated quantiles of \eqn{Y(1)} and \eqn{Y(0)} at \code{probs}.}
 }
@@ -136,7 +140,7 @@ distributions of the treated and untreated groups match. For the QTE,
 both groups are reweighted toward the population distribution; for the
 QTT, only the untreated group is reweighted toward the treated
 covariate distribution.}
-\item{\code{"or"}}{Outcome regression via quantile regression inversion.
+\item{\code{"reg"}}{Outcome regression via quantile regression inversion.
 \code{\link[quantreg]{rq}} is fit on a dense internal grid of
 \eqn{\tau} values, yielding a conditional quantile function
 \eqn{Q_{Y|X,D=j}(\tau)} for each arm \eqn{j}. The marginal
@@ -162,6 +166,23 @@ Standard errors and confidence intervals are computed via the empirical
 bootstrap, resampling rows of \code{data}, or whole clusters when
 \code{clustervars} is given.
 }
+\section{Discrete outcomes}{
+
+Quantile treatment effects usually require a continuous outcome. With
+mass points (e.g. many zeros) or few distinct values, quantiles jump and
+effects at quantiles inside a mass point are 0 by construction;
+identification based on ranks or quantile functions (change-in-changes,
+quantile DiD, the panel and distributional DiD copula arguments) only
+bounds the effects (Athey and Imbens 2006, Section 4); and bootstrap
+inference for quantiles can be unreliable. The estimators warn (once per
+call, class \code{qte_discrete_outcome}) when more than 10\\% of the
+outcome's observations share one value or it takes at most 20 distinct
+values, across all groups and periods; the thresholds are the options
+\code{qte.mass_point_tol} and \code{qte.discrete_n_unique}. The
+diagnostics are returned as \code{outcome_discreteness}.
+\code{\link{cdf_did}} is identified for discrete outcomes.
+}
+
 \examples{
 data(lalonde)
 
@@ -177,7 +198,7 @@ plot(q1)
 \donttest{
 xf <- ~ age + I(age^2) + education + black + hispanic + married + nodegree
 q2 <- unc_qte(yname = "re78", dname = "treat", data = lalonde.psid,
-              xformula = xf, est_method = "or",
+              xformula = xf, est_method = "reg",
               biters = 20, probs = seq(0.05, 0.95, 0.05))
 summary(q2)
 }

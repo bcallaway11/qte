@@ -16,12 +16,12 @@
 # Smoke test: no covariates (simple quantile differences with bootstrap SE)
 test_that("unc_qte returns correct structure and stable ATE", {
   set.seed(42)
-  cq1 <- unc_qte(
+  cq1 <- quiet_discrete(unc_qte(
     yname = "re78", dname = "treat",
     data  = lalonde.psid,
     probs = seq(0.25, 0.75, 0.25),
     biters = 20
-  )
+  ))
   expect_s3_class(cq1, "QTE")
   expect_length(cq1$qte, 3)
   expect_true(is.numeric(cq1$ate))
@@ -32,13 +32,13 @@ test_that("unc_qte returns correct structure and stable ATE", {
 # Smoke test: with covariates (propensity score reweighting); checks pscore fitted
 test_that("unc_qte with xformula returns valid IPW estimates", {
   set.seed(42)
-  cq2 <- unc_qte(
+  cq2 <- quiet_discrete(unc_qte(
     yname   = "re78", dname = "treat",
     data    = lalonde.psid,
     xformula = ~ age + education + black + hispanic + married + nodegree,
     probs   = seq(0.25, 0.75, 0.25),
     biters  = 20
-  )
+  ))
   expect_s3_class(cq2, "QTE")
   expect_length(cq2$qte, 3)
   expect_false(anyNA(cq2$qte))
@@ -74,7 +74,7 @@ test_that("sampling weights act like replicated rows in every unc_qte branch", {
   d <- data.frame(z = z, D = D, Y = 1 + z + 0.5 * z^2 + rnorm(n) + D,
                   wt = wi / mean(wi))
   big <- d[rep(seq_len(n), wi), ]
-  for (em in c("ipw", "or", "aipw")) {
+  for (em in c("ipw", "reg", "aipw")) {
     for (tg in c("qte", "qtt")) {
       est <- function(dat, wn) {
         r <- suppressWarnings(unc_qte(yname = "Y", dname = "D", data = dat,
@@ -135,13 +135,14 @@ test_that("unc_qte drops rows with missing values, with a warning", {
   d$re78[1:3] <- NA
   set.seed(1)
   expect_warning(
-    r_na <- unc_qte(yname = "re78", dname = "treat", data = d,
-                    probs = 0.5, biters = 2),
+    r_na <- quiet_discrete(unc_qte(yname = "re78", dname = "treat",
+                                   data = d, probs = 0.5, biters = 2)),
     "dropping 3 row"
   )
   set.seed(1)
-  r_cc <- unc_qte(yname = "re78", dname = "treat", data = d[-(1:3), ],
-                  probs = 0.5, biters = 2)
+  r_cc <- quiet_discrete(unc_qte(yname = "re78", dname = "treat",
+                                 data = d[-(1:3), ], probs = 0.5,
+                                 biters = 2))
   expect_equal(r_na$qte, r_cc$qte)
   expect_equal(r_na$qte.se, r_cc$qte.se)
 })
@@ -215,4 +216,18 @@ test_that("unc_qte's pscore.reg is slim but still a usable glm", {
   expect_null(ps$data)
   expect_null(ps$model)
   expect_lt(length(serialize(res, NULL)), 1e6)
+})
+
+test_that("unc_qte's deprecated est_method = \"or\" still works, as \"reg\"", {
+  args <- list(yname = "re78", dname = "treat", data = lalonde.psid,
+               xformula = ~ age + education, probs = c(0.25, 0.5, 0.75),
+               biters = 2)
+  set.seed(3)
+  new <- quiet_discrete(do.call(unc_qte, c(args, est_method = "reg")))
+  set.seed(3)
+  expect_warning(
+    old <- quiet_discrete(do.call(unc_qte, c(args, est_method = "or"))),
+    "deprecated"
+  )
+  expect_equal(old$qte, new$qte)
 })

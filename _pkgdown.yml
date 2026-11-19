@@ -57,6 +57,8 @@ reference:
       - ddid_gt
       - mdid
       - mdid_gt
+      - cdf_did
+      - cdf_did_gt
       - lou_qtt
 
   - title: "Package overview"

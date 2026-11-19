@@ -232,6 +232,7 @@ qdid_gt <- function(gt_data, xformula = ~1, cond_dist = c("qr", "dr"), ...) {
 #' summary(res_qtt)
 #' }
 #'
+#' @inheritSection cic Discrete outcomes
 #' @export
 qdid <- function(yname,
                  gname,
@@ -277,7 +278,13 @@ qdid <- function(yname,
     function(al, p, eg) ptetools::attgt_pte_aggregations(al, p)
   }
 
-  ptetools::pte(
+  # warn once if the outcome looks discrete (#17): this estimator's ATT
+  # and QTT both come from a counterfactual distribution built from
+  # ranks or quantiles. Never per (g,t) cell or bootstrap draw.
+  disc <- check_discrete_outcome(data, yname, weightsname,
+                                 warn = TRUE)
+
+  res <- ptetools::pte(
     yname           = yname,
     gname           = gname,
     tname           = tname,
@@ -305,4 +312,6 @@ qdid <- function(yname,
     gt_type         = gt_type,
     probs           = probs
   )
+  res$outcome_discreteness <- disc
+  res
 }

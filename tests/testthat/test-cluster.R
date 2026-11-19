@@ -35,7 +35,7 @@ run_qtt <- function(estimator, ...) {
 }
 
 test_that("clustervars clusters the QTT standard errors", {
-  for (estimator in list(ddid, cic)) {
+  for (estimator in list(ddid, cic, cdf_did)) {
     unclustered <- run_qtt(estimator)
     expect_equal(run_qtt(estimator, clustervars = "id"), unclustered)
     expect_gt(mean(run_qtt(estimator, clustervars = "cl")),

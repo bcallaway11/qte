@@ -561,6 +561,7 @@ panel_qtt_long_agg <- function(attgt.list, ptep, extra_gt_returns) {
 #' summary(res)
 #' }
 #'
+#' @inheritSection cic Discrete outcomes
 #' @export
 panel_qtt <- function(yname,
                       gname,
@@ -599,10 +600,16 @@ panel_qtt <- function(yname,
     function(al, p, eg) ptetools::attgt_pte_aggregations(al, p)
   }
 
+  # warn once if the outcome looks discrete (#17): this estimator's ATT
+  # and QTT both come from a counterfactual distribution built from
+  # ranks or quantiles. Never per (g,t) cell or bootstrap draw.
+  disc <- check_discrete_outcome(data, yname, weightsname,
+                                 warn = TRUE)
+
   # required_pre_periods = 2: drop first two periods from tlist so every tp
   # satisfies tp >= 3, guaranteeing the sliding base (pre2 = tp-2) is valid
   # for pre-test cells.
-  ptetools::pte(
+  res <- ptetools::pte(
     yname            = yname,
     gname            = gname,
     tname            = tname,
@@ -631,4 +638,6 @@ panel_qtt <- function(yname,
     pre_copula       = pre_copula,
     required_pre_periods = 2L
   )
+  res$outcome_discreteness <- disc
+  res
 }

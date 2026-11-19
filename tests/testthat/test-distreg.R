@@ -126,11 +126,11 @@ test_that("cond_dist = 'dr' runs end to end in every covariate estimator", {
     expect_true(is.finite(att_of(suppressWarnings(do.call(f, args)))))
   }
   expect_true(is.finite(att_of(suppressWarnings(
-    do.call(lou_qtt, c(args, est_method = "or"))))))
+    do.call(lou_qtt, c(args, est_method = "reg"))))))
   data(lalonde, package = "qte")
   u <- suppressWarnings(unc_qte(yname = "re78", dname = "treat",
                                 data = lalonde.psid, xformula = ~ age + re75,
-                                est_method = "or", target = "qtt",
+                                est_method = "reg", target = "qtt",
                                 cond_dist = "dr", biters = 2,
                                 probs = c(0.25, 0.5, 0.75)))
   expect_true(all(is.finite(u$qte)))

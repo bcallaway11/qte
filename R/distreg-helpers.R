@@ -8,7 +8,7 @@
 #   at a value (dr_cdf, cf. qr_cdf) and a per-unit conditional quantile at a
 #   probability (dr_quantile, cf. qr_quantile).
 # Author: Brant Callaway
-# Last update: 2026-11-15
+# Last update: 2026-11-19
 # Date created: 2026-11-15
 # =============================================================================
 
@@ -190,7 +190,24 @@ dr_anchor <- function(fit, cdf_mat) {
 # the sample minimum, 1 above the maximum. Discrete outcomes: the
 # step-function CDF at the support points.
 dr_cdf <- function(fit, newdata, y) {
-  cdf_mat <- dr_cdf_matrix(fit, newdata)
+  dr_cdf_rows(fit, dr_cdf_matrix(fit, newdata), y)
+}
+
+# Weighted average over the rows of `newdata` of the conditional CDF,
+# evaluated at each point of y: sum_i w_i F(y | x_i). Averaging the
+# threshold rows first and interpolating once is exact (both are linear) and
+# avoids an n x length(y) matrix. Used by cdf_did_gt().
+#
+# Args: fit (qte_dr), newdata, w (weights summing to 1), y (points).
+dr_avg_cdf <- function(fit, newdata, w, y) {
+  avg <- colSums(dr_cdf_matrix(fit, newdata) * w)
+  dr_cdf_rows(fit, matrix(avg, nrow = length(y), ncol = length(avg),
+                          byrow = TRUE), y)
+}
+
+# dr_cdf() given the threshold matrix: row i of cdf_mat (from
+# dr_cdf_matrix() or an average of its rows) evaluated at y[i].
+dr_cdf_rows <- function(fit, cdf_mat, y) {
   n <- nrow(cdf_mat)
   n_thr <- ncol(cdf_mat)
   g <- fit$grid

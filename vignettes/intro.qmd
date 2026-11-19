@@ -148,7 +148,7 @@ a comparison group from the PSID.
 `unc_qte()` supports three estimation methods:
 
 - `"ipw"` — inverse probability weighting (propensity score re-weighting)
-- `"or"` — outcome regression (conditional quantile regression)
+- `"reg"` — outcome regression (conditional quantile regression)
 - `"aipw"` — augmented IPW (doubly robust; recommended)
 
 ```{r}

@@ -12,7 +12,7 @@ lou_qtt(
   data,
   xformula = ~1,
   lagged_outcome_cov = TRUE,
-  est_method = c("ipw", "or", "aipw"),
+  est_method = c("ipw", "reg", "aipw"),
   cond_dist = c("qr", "dr"),
   panel = TRUE,
   weightsname = NULL,
@@ -50,9 +50,10 @@ pre-treatment outcome is added as a covariate in both the propensity
 score and outcome models. Requires \code{panel = TRUE}.}
 
 \item{est_method}{Estimation method: \code{"ipw"} (default),
-\code{"or"}, or \code{"aipw"}. See Details.}
+\code{"reg"} (\code{"or"} is a deprecated alias), or \code{"aipw"}.
+See Details.}
 
-\item{cond_dist}{For \code{est_method = "or"} or \code{"aipw"}, how the
+\item{cond_dist}{For \code{est_method = "reg"} or \code{"aipw"}, how the
 conditional distribution of the untreated outcome is estimated:
 \code{"qr"} (default) for quantile regression or \code{"dr"} for
 distribution regression. See \code{\link{cic_gt}}. Ignored for
@@ -120,7 +121,7 @@ Three estimation methods are available:
 \item{\code{"ipw"}}{Propensity-score reweighting. Control units are
 reweighted by \eqn{\hat p(X,Y_{\text{pre}})/(1-\hat p(X,Y_{\text{pre}}))}
 to approximate the covariate distribution of the treated group.}
-\item{\code{"or"}}{Outcome regression. A quantile regression model is
+\item{\code{"reg"}}{Outcome regression. A quantile regression model is
 fit on control units' post-period outcomes as a function of
 \eqn{(X, Y_{\text{pre}})}, then predicted at treated units to
 construct the counterfactual distribution (Melly 2006;
@@ -137,6 +138,23 @@ three methods reduce to a simple distribution comparison within each
 The ATT analogue (without the QTT) for staggered adoption under
 lagged-outcome unconfoundedness is developed in Callaway (2023).
 }
+\section{Discrete outcomes}{
+
+Quantile treatment effects usually require a continuous outcome. With
+mass points (e.g. many zeros) or few distinct values, quantiles jump and
+effects at quantiles inside a mass point are 0 by construction;
+identification based on ranks or quantile functions (change-in-changes,
+quantile DiD, the panel and distributional DiD copula arguments) only
+bounds the effects (Athey and Imbens 2006, Section 4); and bootstrap
+inference for quantiles can be unreliable. The estimators warn (once per
+call, class \code{qte_discrete_outcome}) when more than 10\\% of the
+outcome's observations share one value or it takes at most 20 distinct
+values, across all groups and periods; the thresholds are the options
+\code{qte.mass_point_tol} and \code{qte.discrete_n_unique}. The
+diagnostics are returned as \code{outcome_discreteness}.
+\code{\link{cdf_did}} is identified for discrete outcomes.
+}
+
 \examples{
 \donttest{
 data(mpdta, package = "did")

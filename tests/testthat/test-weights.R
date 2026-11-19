@@ -91,7 +91,10 @@ estimators <- list(
   cic = list(f = cic, dr = TRUE), qdid = list(f = qdid, dr = TRUE),
   mdid = list(f = mdid, dr = FALSE), ddid = list(f = ddid, dr = TRUE),
   panel_qtt = list(f = panel_qtt, dr = TRUE),
-  lou_qtt = list(f = lou_qtt, dr = TRUE)
+  lou_qtt = list(f = lou_qtt, dr = TRUE),
+  # cdf_did has no cond_dist; with covariates its default (aipw) uses
+  # distribution regression, which matches replication exactly
+  cdf_did = list(f = cdf_did, dr = FALSE)
 )
 
 test_that("integer weights equal row replication: ATT and event study", {
@@ -126,7 +129,7 @@ test_that("integer weights equal row replication: QTT", {
   for (nm in setdiff(names(estimators), "mdid")) {
     e <- estimators[[nm]]
     for (xf in list(~1, ~x)) {
-      extra <- if (length(all.vars(xf)) > 0) list(cond_dist = "dr")
+      extra <- if (e$dr && length(all.vars(xf)) > 0) list(cond_dist = "dr")
       args <- c(list(xformula = xf, gt_type = "qtt",
                      probs = c(0.25, 0.5, 0.75)), extra)
       a <- do.call(fit_panel, c(list(e$f, d, weightsname = "w"), args))

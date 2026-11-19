@@ -32,9 +32,10 @@
 #' @param lagged_outcome_cov Logical; if \code{TRUE} (default), the pre-period
 #'   outcome is appended to \code{xformula} as an additional covariate. Requires
 #'   panel data (unit ids present in both periods).
-#' @param est_method One of \code{"ipw"}, \code{"or"}, or \code{"aipw"}.
+#' @param est_method One of \code{"ipw"}, \code{"reg"}, or \code{"aipw"}
+#'   (\code{"or"} is a deprecated alias for \code{"reg"}).
 #'   Default \code{"ipw"}.
-#' @param cond_dist For \code{est_method = "or"} or \code{"aipw"}, how the
+#' @param cond_dist For \code{est_method = "reg"} or \code{"aipw"}, how the
 #'   conditional distribution of the untreated outcome is estimated:
 #'   \code{"qr"} (default) for quantile regression or \code{"dr"} for
 #'   distribution regression. See \code{\link{cic_gt}}. Ignored for
@@ -49,6 +50,8 @@
 lou_gt <- function(gt_data, xformula = ~1, lagged_outcome_cov = TRUE,
                    est_method = "ipw", cond_dist = c("qr", "dr"), ...) {
   cond_dist <- match.arg(cond_dist)
+  # "or" is the pre-2.1.0 name of "reg"; lou_qtt() already warned about it
+  if (identical(est_method, "or")) est_method <- "reg"
   gt_data <- droplevels(gt_data)
 
   pre_data  <- gt_data[gt_data$name == "pre",  ]
@@ -119,7 +122,7 @@ lou_gt <- function(gt_data, xformula = ~1, lagged_outcome_cov = TRUE,
            weighted.mean(Y_post_ctrl, u_wts)
 
   # --- OR --------------------------------------------------------------------
-  } else if (est_method == "or") {
+  } else if (est_method == "reg") {
     yformla <- BMisc::toformula("Y", BMisc::rhs_vars(xformula_use))
     # conditional distribution of the control post-period outcome (quantile
     # or distribution regression, weighted by .w; see cond_fit())
@@ -209,7 +212,7 @@ lou_gt <- function(gt_data, xformula = ~1, lagged_outcome_cov = TRUE,
 #'     \item{\code{"ipw"}}{Propensity-score reweighting. Control units are
 #'       reweighted by \eqn{\hat p(X,Y_{\text{pre}})/(1-\hat p(X,Y_{\text{pre}}))}
 #'       to approximate the covariate distribution of the treated group.}
-#'     \item{\code{"or"}}{Outcome regression. A quantile regression model is
+#'     \item{\code{"reg"}}{Outcome regression. A quantile regression model is
 #'       fit on control units' post-period outcomes as a function of
 #'       \eqn{(X, Y_{\text{pre}})}, then predicted at treated units to
 #'       construct the counterfactual distribution (Melly 2006;
@@ -241,8 +244,9 @@ lou_gt <- function(gt_data, xformula = ~1, lagged_outcome_cov = TRUE,
 #'   pre-treatment outcome is added as a covariate in both the propensity
 #'   score and outcome models. Requires \code{panel = TRUE}.
 #' @param est_method Estimation method: \code{"ipw"} (default),
-#'   \code{"or"}, or \code{"aipw"}. See Details.
-#' @param cond_dist For \code{est_method = "or"} or \code{"aipw"}, how the
+#'   \code{"reg"} (\code{"or"} is a deprecated alias), or \code{"aipw"}.
+#'   See Details.
+#' @param cond_dist For \code{est_method = "reg"} or \code{"aipw"}, how the
 #'   conditional distribution of the untreated outcome is estimated:
 #'   \code{"qr"} (default) for quantile regression or \code{"dr"} for
 #'   distribution regression. See \code{\link{cic_gt}}. Ignored for
@@ -315,11 +319,12 @@ lou_gt <- function(gt_data, xformula = ~1, lagged_outcome_cov = TRUE,
 #' summary(res_qtt)
 #' }
 #'
+#' @inheritSection cic Discrete outcomes
 #' @export
 lou_qtt <- function(yname, gname, tname, idname = NULL, data,
                     xformula          = ~1,
                     lagged_outcome_cov = TRUE,
-                    est_method        = c("ipw", "or", "aipw"),
+                    est_method        = c("ipw", "reg", "aipw"),
                     cond_dist         = c("qr", "dr"),
                     panel             = TRUE,
                     weightsname       = NULL,
@@ -332,7 +337,8 @@ lou_qtt <- function(yname, gname, tname, idname = NULL, data,
                     cl                = 1,
                     gt_type           = c("att", "qtt"),
                     probs             = NULL) {
-  est_method <- match.arg(est_method)
+  est_method <- match.arg(resolve_est_method_or(est_method),
+                          c("ipw", "reg", "aipw"))
   cond_dist  <- match.arg(cond_dist)
   gt_type    <- match.arg(gt_type)
 
@@ -356,7 +362,13 @@ lou_qtt <- function(yname, gname, tname, idname = NULL, data,
     function(al, p, eg) ptetools::attgt_pte_aggregations(al, p)
   }
 
-  ptetools::pte(
+  # warn once if the outcome looks discrete (#17), for quantile results
+  # only: the ATT doesn't depend on the outcome being continuous.
+  # Never per (g,t) cell or bootstrap draw.
+  disc <- check_discrete_outcome(data, yname, weightsname,
+                                 warn = gt_type != "att")
+
+  res <- ptetools::pte(
     yname              = yname,
     gname              = gname,
     tname              = tname,
@@ -385,4 +397,6 @@ lou_qtt <- function(yname, gname, tname, idname = NULL, data,
     gt_type            = gt_type,
     probs              = probs
   )
+  res$outcome_discreteness <- disc
+  res
 }

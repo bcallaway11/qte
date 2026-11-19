@@ -143,13 +143,6 @@ cic_gt <- function(gt_data, xformula = ~1, cond_dist = c("qr", "dr"), ...) {
     # see qr_sorted_quantiles() and dr_cdf_matrix()
     F0tmin1 <- cond_cdf(fit0tmin1, pre_trt, pre_trt$Y) # nolint: object_name_linter
 
-    if (mean(F0tmin1 >= 0.99) + mean(F0tmin1 <= 0.01) > 0.1) {
-      warning(paste0(
-        "many treated units have extreme ranks in the control pre-period ",
-        "distribution; CiC support conditions may be violated"
-      ))
-    }
-
     y0t <- cond_quantile(fit0t, pre_trt, F0tmin1)
 
     # weights from pre_trt itself, so they follow its id order (as y0t does);
@@ -241,6 +234,20 @@ cic_gt <- function(gt_data, xformula = ~1, cond_dist = c("qr", "dr"), ...) {
 #' summary(res_qtt)
 #' }
 #'
+#' @section Discrete outcomes:
+#'   Quantile treatment effects usually require a continuous outcome. With
+#'   mass points (e.g. many zeros) or few distinct values, quantiles jump and
+#'   effects at quantiles inside a mass point are 0 by construction;
+#'   identification based on ranks or quantile functions (change-in-changes,
+#'   quantile DiD, the panel and distributional DiD copula arguments) only
+#'   bounds the effects (Athey and Imbens 2006, Section 4); and bootstrap
+#'   inference for quantiles can be unreliable. The estimators warn (once per
+#'   call, class \code{qte_discrete_outcome}) when more than 10\% of the
+#'   outcome's observations share one value or it takes at most 20 distinct
+#'   values, across all groups and periods; the thresholds are the options
+#'   \code{qte.mass_point_tol} and \code{qte.discrete_n_unique}. The
+#'   diagnostics are returned as \code{outcome_discreteness}.
+#'   \code{\link{cdf_did}} is identified for discrete outcomes.
 #' @export
 cic <- function(yname,
                 gname,
@@ -286,7 +293,13 @@ cic <- function(yname,
     function(al, p, eg) ptetools::attgt_pte_aggregations(al, p)
   }
 
-  ptetools::pte(
+  # warn once if the outcome looks discrete (#17): this estimator's ATT
+  # and QTT both come from a counterfactual distribution built from
+  # ranks or quantiles. Never per (g,t) cell or bootstrap draw.
+  disc <- check_discrete_outcome(data, yname, weightsname,
+                                 warn = TRUE)
+
+  res <- ptetools::pte(
     yname           = yname,
     gname           = gname,
     tname           = tname,
@@ -314,4 +327,6 @@ cic <- function(yname,
     gt_type         = gt_type,
     probs           = probs
   )
+  res$outcome_discreteness <- disc
+  res
 }

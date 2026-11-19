@@ -23,16 +23,20 @@ All estimators use `did`/`ptetools`-style named args (`yname`, `tname`,
 - `unc_qte` — cross-sectional QTE/QTT under unconfoundedness (`dname` = 0/1
   treatment). Standalone code, no ptetools (below); the staggered analogue
   is `lou_qtt(lagged_outcome_cov = FALSE)`.
-- Six panel estimators on `ptetools::pte()` (canonical order): `cic`, `qdid`,
-  `panel_qtt`, `ddid`, `mdid`, `lou_qtt` (lagged-outcome unconfoundedness;
-  the others are DiD-type), with `gname`, `gt_type`, staggered adoption.
+- Seven panel estimators on `ptetools::pte()` (canonical order): `cic`,
+  `qdid`, `panel_qtt`, `ddid`, `mdid`, `cdf_did`, `lou_qtt`
+  (lagged-outcome unconfoundedness; the others are DiD-type), with `gname`,
+  `gt_type`, staggered adoption. `cdf_did` (parallel trends in CDFs) takes
+  `est_method = c("aipw", "ipw", "reg")` for covariates.
+- Every estimator calls `check_discrete_outcome()` (R/discreteness.R) once
+  per call, never inside `*_gt()` functions (#17).
 
 All estimators take `xformula` (`unc_qte`'s old `xformla` is a deprecated
 alias since 2.1.0) and `clustervars`.
 
 ## Key Architecture
 
-### Current pipeline — ptetools-based (the six panel estimators)
+### Current pipeline — ptetools-based (the seven panel estimators)
 ```
 User call (e.g. cic()) → attgt_fun (e.g. cic_gt) + subset_fun + aggte_fun
   → ptetools::pte() → pte_results (ATT) / pte_qtt (QTT curve)
@@ -85,7 +89,7 @@ unc_qte() → unc_qte_data() → unc_qte_est() (full sample)
 ### Key S3 classes
 - `QTE` — `unc_qte` output (constructor still exported).
 - `pte_results`, `pte_qtt`, `pte_emp_boot` — defined in `ptetools`; returned
-  by the six panel estimators.
+  by the seven panel estimators.
 
 ## File Map
 
@@ -97,6 +101,8 @@ unc_qte() → unc_qte_data() → unc_qte_est() (full sample)
 | `R/panel_qtt.R` | `panel_qtt_gt`, `panel_qtt`, `panel_qtt_long_agg` (custom `aggte_fun` for `pre_copula = "long"`), `three_period_subset` |
 | `R/ddid.R` | `ddid_gt`, `ddid` (covariates: controls reweighted by p(X)/(1 − p(X))) |
 | `R/mdid.R` | `mdid_gt`, `mdid` |
+| `R/cdf_did.R` | `cdf_did_gt`, `cdf_did`, `cdf_did_delta` (covariate methods) |
+| `R/discreteness.R` | `outcome_discreteness`, `check_discrete_outcome` (#17) |
 | `R/lou_qtt.R` | `lou_gt`, `lou_qtt` |
 | `R/distreg-helpers.R` | distribution regression (`dr_*`) and the `cond_*` QR/DR dispatch layer |
 | `R/quantile-helpers.R` | `wquant`, `wcdf_at`, cached/rearranged QR helpers (`cached_rq`, `qr_cdf`, `qr_quantile`, ...) |
@@ -213,7 +219,7 @@ against this; add it to any vignette that plots or summarizes those classes.
 
 ## Related Packages
 
-- **ptetools** — multi-period/staggered treatment framework all six DiD
+- **ptetools** — multi-period/staggered treatment framework all seven panel
   estimators hook into via `pte()`.
 - **BMisc** — utility functions (Brant's own package), heavily used.
 - **did** — Callaway-Sant'Anna DiD; `mpdta` dataset useful for testing

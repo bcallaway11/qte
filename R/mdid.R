@@ -244,6 +244,7 @@ mdid_gt <- function(gt_data, xformula = ~1, ...) {
 #' summary(res_qtt)
 #' }
 #'
+#' @inheritSection cic Discrete outcomes
 #' @export
 mdid <- function(yname,
                  gname,
@@ -287,7 +288,13 @@ mdid <- function(yname,
     function(al, p, eg) ptetools::attgt_pte_aggregations(al, p)
   }
 
-  ptetools::pte(
+  # warn once if the outcome looks discrete (#17), for quantile results
+  # only: the ATT doesn't depend on the outcome being continuous.
+  # Never per (g,t) cell or bootstrap draw.
+  disc <- check_discrete_outcome(data, yname, weightsname,
+                                 warn = gt_type != "att")
+
+  res <- ptetools::pte(
     yname           = yname,
     gname           = gname,
     tname           = tname,
@@ -314,4 +321,6 @@ mdid <- function(yname,
     gt_type         = gt_type,
     probs           = probs
   )
+  res$outcome_discreteness <- disc
+  res
 }
