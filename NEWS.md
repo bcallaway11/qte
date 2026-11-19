@@ -43,6 +43,13 @@
   estimates now equal those from the unweighted fit on row-replicated data.
   Results without weights are unchanged.
 
+* With groups and time periods coded as calendar years, naming the group
+  column `G` or the time column `period` gave `NaN` estimates (ptetools
+  #13). Fixed in ptetools, which now keeps its internal columns separate
+  from the user's; `panel_qtt()`'s subset function uses those internal
+  columns. Requires `ptetools (>= 1.0.2)`. Results for other column names
+  are unchanged.
+
 ## Minor improvements
 
 * `unc_qte()` now checks up front that `dname` is a column of `data` coded

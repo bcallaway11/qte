@@ -10,7 +10,7 @@
 #   All three attgt_fun/subset_fun functions follow the ptetools patterns used
 #   by cic_gt, qdid_gt, mdid_gt, and ddid_gt.
 # Author: Brant Callaway
-# Last update: 2026-11-15
+# Last update: 2026-11-19
 # Date created: 2026-05-20
 # =============================================================================
 
@@ -74,21 +74,25 @@ three_period_subset <- function(data,
     pre2 <- tp - 2L
   }
 
-  if (control_group == "notyettreated") {
-    this.data <- subset(data, G == g | G > tp | G == 0)
+  # select rows using ptetools' internal (dot-prefixed) columns, never the
+  # user's own columns (ptetools #13)
+  grp <- data$.G
+  in_group <- if (control_group == "notyettreated") {
+    grp == g | grp > tp | grp == 0
   } else {
-    this.data <- subset(data, G == g | G == 0)
+    grp == g | grp == 0
   }
+  in_period <- data$.period %in% c(pre2, pre1, tp)
+  this.data <- data[which(in_group & in_period), , drop = FALSE]
 
-  this.data <- subset(this.data, period %in% c(pre2, pre1, tp))
-
-  this.data$name <- ifelse(this.data$period == tp,  "post",
-                    ifelse(this.data$period == pre1, "pre1", "pre2"))
-  this.data$D    <- 1L * (this.data$G == g)
+  this.data$name <- ifelse(this.data$.period == tp,  "post",
+                    ifelse(this.data$.period == pre1, "pre1", "pre2"))
+  this.data$D    <- 1L * (this.data$.G == g)
+  # gt_data_frame() adds the plain cell columns G, id, period and Y
   this.data      <- ptetools::gt_data_frame(this.data)
 
-  n1     <- length(unique(this.data$id))
-  disidx <- unique(data$id) %in% unique(this.data$id)
+  n1     <- length(unique(this.data$.id))
+  disidx <- unique(data$.id) %in% unique(this.data$.id)
 
   list(gt_data = this.data, n1 = n1, disidx = disidx)
 }

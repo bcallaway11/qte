@@ -24,7 +24,7 @@ Imports: parallel,
     rlang,
     pbapply,
     data.table,
-    ptetools (>= 1.0.1)
+    ptetools (>= 1.0.2)
 URL: https://bcallaway11.github.io/qte/, https://github.com/bcallaway11/qte
 BugReports: https://github.com/bcallaway11/qte/issues
 License: GPL-3
