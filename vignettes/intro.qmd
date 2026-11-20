@@ -232,9 +232,9 @@ autoplot(res_qtt, ylab = "QTT (earnings, 1978)")
 
 The QTT only needs a counterfactual for the participants, so it is much
 smaller in magnitude than the QTE, but it is still negative and grows with
-$\tau$, and the band excludes zero at the median. It remains well below the
-experimental estimates, a reminder that unconfoundedness given these
-covariates is a strong assumption for this comparison group.
+$\tau$, and the band excludes zero from the 40th percentile up. It remains
+well below the experimental estimates, a reminder that unconfoundedness
+given these covariates is a strong assumption for this comparison group.
 
 ## Reading the output
 

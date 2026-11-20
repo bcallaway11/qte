@@ -75,13 +75,12 @@
 * `unc_qte()`'s uniform confidence band could be absurdly wide (by orders
   of magnitude) when a requested quantile fell inside a mass point of the
   outcome, such as zero earnings. The critical value standardized each
-  quantile's bootstrap draws by an IQR-based scale, which is nearly 0 there,
-  but multiplied it by the standard deviation. Now, as in `did::att_gt()`,
-  the same IQR-based scale is used for both the critical value and the
-  reported standard errors (`qte.se`), with the standard deviation used
-  instead at quantiles where the IQR scale is negligible, and quantiles
-  whose draws never vary are left out of the critical value. Standard
-  errors therefore change slightly for every `unc_qte()` call.
+  quantile's bootstrap draws by an IQR-based scale, which is nearly 0
+  there, while the band used the standard deviation. The draws are now
+  standardized by the same standard deviation the band uses, and quantiles
+  whose draws never vary are left out of the critical value, as the panel
+  estimators do (ptetools 1.1.0, ptetools #33). Standard errors are
+  unchanged; uniform bands change.
 
 * With more than one treated cohort, the aggregated QTTs (overall, event
   study and group) mixed the wrong group-time cells, including

@@ -55,8 +55,9 @@ confidence bands. Default 100.}
 \item{cband}{logical; if \code{TRUE} (default), \code{qte.lower} and
 \code{qte.upper} form a uniform confidence band, simultaneous over all
 quantiles in \code{probs}: \code{qte} \eqn{\pm} \code{c} \eqn{\times}
-\code{qte.se}, with the bootstrap critical value \code{c} computed on
-the same scale as \code{qte.se}. If \code{FALSE},
+\code{qte.se}, with the bootstrap critical value \code{c} computed from
+draws standardized by \code{qte.se} (as the panel estimators' uniform
+bands are). If \code{FALSE},
 they are pointwise intervals, \code{qte} \eqn{\pm z_{1-\alpha/2}}
 \code{qte.se}.}
 
@@ -99,11 +100,8 @@ An object of class \code{QTE} containing:
 \item{\code{qte}}{numeric vector of estimated QTE (or QTT) at each
 element of \code{probs}.}
 \item{\code{ate}}{estimated ATE (or ATT when \code{target = "qtt"}).}
-\item{\code{qte.se}}{bootstrap standard errors for \code{qte}: the
-interquartile range of the bootstrap draws divided by that of a
-standard normal, as in \code{did::att_gt()}, or the standard
-deviation of the draws where that is negligible (quantiles inside a
-mass point of the outcome).}
+\item{\code{qte.se}}{bootstrap standard errors for \code{qte} (the
+standard deviation of the bootstrap draws).}
 \item{\code{qte.lower}, \code{qte.upper}}{confidence bounds for
 \code{qte}: a uniform band if \code{cband = TRUE}, pointwise
 intervals otherwise (see \code{cband}).}

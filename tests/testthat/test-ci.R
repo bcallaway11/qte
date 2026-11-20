@@ -7,8 +7,8 @@
 #   causal claim. Also checks that the AIPW ATT is doubly robust (issue #11)
 #   that a non-0/1 treatment errors clearly (issue #1), the uniform vs
 #   pointwise bands (cband), that rows with missing values are dropped,
-#   clustervars, the deprecated xformla alias, the slim pscore.reg, and the
-#   bootstrap scale at quantiles inside a mass point.
+#   clustervars, the deprecated xformla alias, the slim pscore.reg, and a
+#   finite uniform band when quantiles fall inside a mass point.
 # Author: Brant Callaway
 # Last update: 2026-11-19
 # Date created: 2026-05-18
@@ -233,25 +233,22 @@ test_that("unc_qte's deprecated est_method = \"or\" still works, as \"reg\"", {
   expect_equal(old$qte, new$qte)
 })
 
-test_that("bootstrap scale: IQR-based, SD inside a mass point, 0 if constant", {
-  set.seed(1)
-  B <- 100
-  normal <- rnorm(B, sd = 2)
-  # inside a mass point: nearly constant, a few draws jump
-  mass <- c(rep(6e-5, 92), rnorm(B - 92, -170, 10)) + rnorm(B, sd = 1e-6)
-  constant <- rep(0, B)
-  draws <- cbind(normal, mass, constant)
-  sc <- unname(boot_curve_scale(draws))
-
-  iqr <- unname(diff(quantile(normal, c(0.25, 0.75), type = 1))) /
-    (qnorm(0.75) - qnorm(0.25))
-  expect_equal(sc[1], iqr)
-  expect_equal(sc[2], sd(mass))
-  expect_equal(sc[3], 0)
-
-  # the sup-t critical value stays moderate: with the IQR scale at the
-  # mass-point quantile it was about 1e8
-  est <- c(0, 6e-5)
-  cb <- apply(draws[, 1:2], 1, function(q) max(abs((q - est) / sc[1:2])))
-  expect_lt(quantile(cb, 0.95, type = 1), sqrt(B))
+test_that("unc_qte's uniform band stays finite with a mass point (ptetools #33)", {
+  # 40% of the outcome is (numerically) 0, so the lowest quantiles are
+  # inside the mass point: QTEs there are nearly constant across draws, with
+  # occasional jumps. The 1e-6 noise mimics AIPW's numerical noise there:
+  # it makes the IQR-based scale tiny but not exactly 0, which escaped the
+  # old fallback to the SD and inflated c (9.85 here, against 3.01).
+  set.seed(4)
+  n <- 400
+  d <- data.frame(treat = rbinom(n, 1, 0.5))
+  d$y <- ifelse(runif(n) < 0.4, 1e-6 * rnorm(n), rexp(n) + d$treat)
+  set.seed(4)
+  res <- unc_qte(yname = "y", dname = "treat", data = d,
+                 probs = seq(0.1, 0.9, 0.1), biters = 50)
+  expect_lt(res$c, 5)
+  expect_true(all(is.finite(res$qte.lower)))
+  # band is qte +/- c * se, with se the bootstrap SD (0 where draws never
+  # vary, so the band there is the point estimate)
+  expect_equal(res$qte.upper - res$qte, res$c * res$qte.se)
 })

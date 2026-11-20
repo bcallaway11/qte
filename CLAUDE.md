@@ -133,13 +133,13 @@ rationale are in `dev/NOTES.md`. Highlights:
 - `QTE()` (the constructor) is exported though users shouldn't need it.
 - **qte `master` needs unreleased dependencies:** ptetools 1.1.0 and
   BMisc 1.4.11 from GitHub (installed locally as of 2026-11-19). The
-  vignette caches were built against these versions; if either changes
-  before CRAN (e.g. ptetools #33), regenerate them.
-- **Uniform bands at mass points:** `unc_qte()` uses `boot_curve_scale()`
-  (IQR-based scale as in `did::mboot()`, SD where the IQR scale is below
-  0.1 × SD, degenerate quantiles left out of the critical value) for both
-  `qte.se` and the critical value. ptetools' `boot_curves()` still has the
-  old code, which can blow up at quantiles inside a mass point (#33).
+  vignette caches were built against these versions (ptetools 0695e03,
+  2026-11-19); if either changes before CRAN, regenerate them.
+- **Uniform bands:** the critical value standardizes the bootstrap draws
+  by the bootstrap SD, the same scale the band uses, leaving out quantiles
+  whose draws never vary (ptetools `boot_sup_t()`, #33; `unc_qte_boot()`
+  mirrors it). An IQR-based scale blew up at quantiles inside a mass point,
+  and an IQR-with-SD-fallback rule was tried and rejected as fragile.
 - **Sampling weights** (audit 2026-11-19, `dev/weights_audit.md`,
   ptetools#21): cohort shares are now weighted (ptetools#23, qte#13) and
   weights validated (ptetools#24), both needing ptetools GitHub.
