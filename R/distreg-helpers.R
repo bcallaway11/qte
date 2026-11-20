@@ -8,7 +8,7 @@
 #   at a value (dr_cdf, cf. qr_cdf) and a per-unit conditional quantile at a
 #   probability (dr_quantile, cf. qr_quantile).
 # Author: Brant Callaway
-# Last update: 2026-11-19
+# Last update: 2026-11-20
 # Date created: 2026-11-15
 # =============================================================================
 
@@ -85,12 +85,15 @@ dr_logit <- function(xs, z, w, b, lambda, maxit = 50L, tol = 1e-10) {
 # sampling weights from the `.w` column when `weighted` (as the QR fits use).
 # One penalized logit per threshold, warm-started from the previous one.
 #
+# `xlev`: factor levels for the covariates (see cond_xlevels()), so that the
+# design has the same columns as for the units the fit is evaluated at.
+#
 # Returns an object of class "qte_dr": coef (n_thr x p, original covariate
-# scale), grid, support, discrete flag, sample range, and the terms needed to
-# predict.
+# scale), grid, support, discrete flag, sample range, and the terms and
+# factor levels needed to predict.
 dr_fit <- function(formula, data, weighted = TRUE,
-                   lambda = getOption("qte.dr_lambda", 1e-4)) {
-  mf <- stats::model.frame(formula, data)
+                   lambda = getOption("qte.dr_lambda", 1e-4), xlev = NULL) {
+  mf <- stats::model.frame(formula, data, xlev = xlev)
   y <- stats::model.response(mf)
   tt <- stats::delete.response(stats::terms(mf))
   xmat <- stats::model.matrix(tt, mf)
@@ -98,12 +101,14 @@ dr_fit <- function(formula, data, weighted = TRUE,
   w <- w / sum(w)
   g <- dr_grid(y, w)
 
-  # Standardize covariates (column 1 is the intercept). Columns with no
-  # variation in this sample (e.g. a dummy for a group with no comparison
-  # units) carry no information and get a zero coefficient.
+  # Standardize covariates (column 1 is the intercept). Columns that are
+  # collinear in this sample (constant, e.g. a dummy for a group with no
+  # comparison units, or a combination of other columns) are not identified
+  # and get a zero coefficient; check_cond_support() warns when that matters
+  # for the units the fit is evaluated at.
   m <- colSums(xmat * w)
   s <- sqrt(colSums(w * sweep(xmat, 2, m)^2))
-  keep <- c(TRUE, s[-1] > 1e-12)
+  keep <- seq_len(ncol(xmat)) %in% cond_keep(xmat)
   xs <- sweep(sweep(xmat[, keep, drop = FALSE], 2, c(0, m[keep][-1])), 2,
               c(1, s[keep][-1]), "/")
 
@@ -119,7 +124,7 @@ dr_fit <- function(formula, data, weighted = TRUE,
     coef_mat[j, keep] <- beta
   }
   structure(list(coef = coef_mat, grid = g$grid, support = g$support,
-                 discrete = g$discrete, terms = tt,
+                 discrete = g$discrete, terms = tt, xlev = xlev,
                  range = range(y)),
             class = "qte_dr")
 }
@@ -129,16 +134,16 @@ dr_fit <- function(formula, data, weighted = TRUE,
 # options(qte.disable_qr_cache = TRUE) turns it off too.
 .dr_cache <- new.env(parent = emptyenv())
 
-cached_dr <- function(formula, data) {
+cached_dr <- function(formula, data, xlev = NULL) {
   key_data <- data[, c(all.vars(formula), ".w"), drop = FALSE]
   rownames(key_data) <- NULL
-  key <- list(paste(deparse(formula), collapse = " "), key_data,
+  key <- list(paste(deparse(formula), collapse = " "), key_data, xlev,
               getOption("qte.dr_n_grid", 99L), getOption("qte.dr_lambda", 1e-4))
   use_cache <- !isTRUE(getOption("qte.disable_qr_cache"))
   if (use_cache && !is.null(.dr_cache$fit) && identical(.dr_cache$key, key)) {
     return(.dr_cache$fit)
   }
-  fit <- dr_fit(formula, data)
+  fit <- dr_fit(formula, data, xlev = xlev)
   if (use_cache) {
     .dr_cache$key <- key
     .dr_cache$fit <- fit
@@ -152,8 +157,7 @@ cached_dr <- function(formula, data) {
 # with each row sorted: the rearrangement of Chernozhukov, Fernandez-Val and
 # Galichon (2010), which makes each CDF monotone when the logits cross.
 dr_cdf_matrix <- function(fit, newdata) {
-  xmat <- stats::model.matrix(fit$terms,
-                              stats::model.frame(fit$terms, newdata))
+  xmat <- cond_design(fit$terms, newdata, fit$xlev)
   cdf_mat <- stats::plogis(xmat %*% t(fit$coef))
   if (ncol(cdf_mat) > 1) cdf_mat <- matrix(t(apply(cdf_mat, 1, sort)), nrow = nrow(cdf_mat))
   cdf_mat
@@ -295,40 +299,163 @@ dr_quantile_matrix <- function(fit, newdata, taus) {
 # paths reproduce the previous code exactly (same rq() calls, rearrangement
 # and interpolation).
 
+# --- Design matrices and covariate support ----------------------------------
+#
+# A conditional model fit on one sample (say comparison units) and
+# evaluated at another (treated units) is only identified at covariate
+# values the fitting sample spans. Columns that are collinear in the
+# fitting sample are dropped (a zero coefficient); that is harmless when the
+# evaluation units satisfy the same linear relation (a duplicate column, a
+# factor level no unit has) and an extrapolation otherwise (a dummy for a
+# region with treated units only). check_cond_support() reports the second
+# case, with ptetools::unsupported_covariates() (qte#16, ptetools#34).
+
+# Factor levels of the covariates in `formula` over all rows of `data`
+# (typically a whole (g,t) cell). Design matrices built for subsets with
+# these levels all have the same columns, even when a subset lacks a level:
+# that column is then 0 there, and dropped as collinear.
+cond_xlevels <- function(formula, data) {
+  tt <- stats::delete.response(stats::terms(formula))
+  mf <- stats::model.frame(tt, data, na.action = stats::na.pass)
+  stats::.getXlevels(tt, mf)
+}
+
+# Design matrix of terms `tt` (no response) at the rows of `data`.
+cond_design <- function(tt, data, xlev = NULL) {
+  mf <- stats::model.frame(tt, data, xlev = xlev, na.action = stats::na.pass)
+  stats::model.matrix(tt, mf)
+}
+
+# Columns of a design matrix kept for a fit: those that are not collinear,
+# by the pivoted QR rule of ptetools::pte_attgt() (and of
+# ptetools::unsupported_covariates() with keep_covs = NULL), so the fit and
+# the support check drop the same columns. With full rank, all columns.
+cond_keep <- function(xmat) {
+  qr0 <- qr(t(xmat) %*% xmat / nrow(xmat))
+  sort(qr0$pivot[seq_len(qr0$rank)])
+}
+
+# Warn (once, for this (g,t) cell) when a conditional model fit on the
+# samples in `fits` is evaluated at units of `target` that the fitting
+# samples do not span: the dropped-column case described above.
+#
+# Args: formula (outcome model formula; its covariates are checked); fits
+#   (list of data frames the models are fit on; with several, a unit is
+#   flagged if any of them fails); target (data frame of the units the
+#   models are evaluated at; shares are weighted by its .w column);
+#   fitted_on, predicted_for (who these are, for the message).
+# Returns: NULL invisibly; signals ptetools::pte_cell_warning(), which
+#   ptetools::pte() reports once per call, listing the cells.
+check_cond_support <- function(formula, fits, target,
+                               fitted_on = "comparison units",
+                               predicted_for = "treated units") {
+  if (length(BMisc::rhs_vars(formula)) == 0L || nrow(target) == 0L) {
+    return(invisible(NULL))
+  }
+  tt <- stats::delete.response(stats::terms(formula))
+  # one set of factor levels for all the samples, so the columns line up
+  xlev <- cond_xlevels(formula, do.call(rbind, c(fits, list(target))))
+  x1 <- cond_design(tt, target, xlev)
+
+  flagged <- list()
+  for (f in fits) {
+    x0 <- cond_design(tt, f, xlev)
+    x0 <- x0[stats::complete.cases(x0), , drop = FALSE]
+    if (nrow(x0) == 0L) next
+    fl <- ptetools::unsupported_covariates(
+      rbind(x0, x1), rep(c(0, 1), c(nrow(x0), nrow(x1)))
+    )
+    fl[is.na(fl)] <- FALSE
+    for (nm in colnames(fl)) {
+      flagged[[nm]] <- if (is.null(flagged[[nm]])) fl[, nm] else
+        flagged[[nm]] | fl[, nm]
+    }
+  }
+  if (length(flagged) == 0L) return(invisible(NULL))
+
+  w <- if (is.null(target$.w)) rep(1, nrow(target)) else target$.w
+  share <- vapply(flagged, function(f) sum(w[f]) / sum(w), numeric(1))
+  ptetools::pte_cell_warning(
+    paste0("Covariates dropped from the conditional outcome models because ",
+           "they do not vary among ", fitted_on, " (given the other ",
+           "covariates) but do among ", predicted_for, "; the estimates ",
+           "extrapolate for those units (see ptetools::check_overlap())"),
+    paste0(names(share), " (", round(100 * share, 1), "% of ",
+           predicted_for, ")", collapse = ", ")
+  )
+}
+
+# --- Conditional distributions -----------------------------------------------
+
 # Fit a conditional distribution model of `formula` on `data`.
 #   cond_dist "qr" (quantile regression at `taus`) or "dr".
 #   cache     reuse the last identical fit (cached_rq() / cached_dr()); for
 #             the post-period control fit shared across cohorts.
 #   weighted  use the `.w` column as sampling weights.
+#   xlev      factor levels (cond_xlevels() of the whole cell), so the fit
+#             can be evaluated at units with levels this sample lacks.
+# Collinear columns are dropped (cond_keep()); QR is fit on the kept
+# columns, so a dummy with no variation no longer stops rq() with
+# "Singular design matrix". With full rank the fit is unchanged.
 cond_fit <- function(formula, data, cond_dist = c("qr", "dr"),
                      taus = seq(0.01, 0.99, 0.01), cache = FALSE,
-                     weighted = TRUE) {
+                     weighted = TRUE, xlev = NULL) {
   cond_dist <- match.arg(cond_dist)
   if (cond_dist == "dr") {
-    if (cache && weighted) return(cached_dr(formula, data))
-    return(dr_fit(formula, data, weighted = weighted))
+    if (cache && weighted) return(cached_dr(formula, data, xlev))
+    return(dr_fit(formula, data, weighted = weighted, xlev = xlev))
   }
-  fit <- if (cache && weighted) {
-    cached_rq(formula, data, taus)
-  } else if (weighted) {
-    suppressWarnings(quantreg::rq(formula, data = data, tau = taus,
-                                  weights = .w))
+  mf <- if (weighted) {
+    stats::model.frame(formula, data, weights = .w, xlev = xlev)
   } else {
-    suppressWarnings(quantreg::rq(formula, tau = taus, data = data))
+    stats::model.frame(formula, data, xlev = xlev)
   }
-  structure(list(fit = fit, taus = taus), class = "qte_qr")
+  y <- stats::model.response(mf)
+  tt <- stats::delete.response(stats::terms(mf))
+  xmat <- stats::model.matrix(tt, mf)
+  keep <- cond_keep(xmat)
+  xk <- xmat[, keep, drop = FALSE]
+  w <- if (weighted) stats::model.weights(mf) else NULL
+  coef <- if (cache && weighted) cached_rq(y, xk, w, taus) else
+    rq_coef(y, xk, w, taus)
+  structure(list(coef = coef, keep = keep, terms = tt, xlev = xlev,
+                 taus = taus),
+            class = "qte_qr")
+}
+
+# Coefficients (p x length(taus)) of a quantile regression of y on the
+# design xk (which includes the intercept column), weighted by w unless
+# NULL. The same rq() fit as on the formula, so the estimates are identical.
+rq_coef <- function(y, xk, w, taus) {
+  fit <- if (is.null(w)) {
+    suppressWarnings(quantreg::rq(y ~ xk - 1, tau = taus))
+  } else {
+    suppressWarnings(quantreg::rq(y ~ xk - 1, tau = taus, weights = w))
+  }
+  cf <- as.matrix(stats::coef(fit))
+  if (length(taus) == 1L) cf <- matrix(cf, ncol = 1L)
+  cf
+}
+
+# n x K matrix of predicted conditional quantiles at the rows of `newdata`,
+# each row sorted (the rearrangement in qr_sorted_quantiles()).
+qr_model_quantiles <- function(model, newdata) {
+  x <- cond_design(model$terms, newdata, model$xlev)[, model$keep,
+                                                     drop = FALSE]
+  q <- x %*% model$coef
+  matrix(t(apply(q, 1, sort)), ncol = ncol(q))
 }
 
 # Conditional CDF of unit i (row i of `newdata`) at y[i].
 cond_cdf <- function(model, newdata, y) {
   if (inherits(model, "qte_dr")) return(dr_cdf(model, newdata, y))
-  qr_cdf(qr_sorted_quantiles(model$fit, newdata), model$taus, y)
+  qr_cdf(qr_model_quantiles(model, newdata), model$taus, y)
 }
 
 # Conditional quantile of unit i (row i of `newdata`) at p[i].
 cond_quantile <- function(model, newdata, p) {
   if (inherits(model, "qte_dr")) return(dr_quantile(model, newdata, p))
-  qr_quantile(qr_sorted_quantiles(model$fit, newdata), model$taus, p)
+  qr_quantile(qr_model_quantiles(model, newdata), model$taus, p)
 }
 
 # n x K matrix of conditional quantiles at `taus` (rows sorted), for the
@@ -337,5 +464,27 @@ cond_quantile_matrix <- function(model, newdata, taus = model$taus) {
   if (inherits(model, "qte_dr")) {
     return(dr_quantile_matrix(model, newdata, taus))
   }
-  t(apply(as.matrix(stats::predict(model$fit, newdata = newdata)), 1, sort))
+  qr_model_quantiles(model, newdata)
+}
+
+# --- Conditional means (mdid) ------------------------------------------------
+
+# Weighted least squares of `formula` on `data` with collinear columns
+# dropped by the same rule (lm() would give them NA coefficients and
+# predict() a rank-deficiency warning). Returns the coefficients and what
+# cond_mean_predict() needs. With full rank, the same fit as lm().
+cond_mean_fit <- function(formula, data, xlev = NULL) {
+  mf <- stats::model.frame(formula, data, weights = .w, xlev = xlev)
+  tt <- stats::delete.response(stats::terms(mf))
+  xmat <- stats::model.matrix(tt, mf)
+  keep <- cond_keep(xmat)
+  fit <- stats::lm.wfit(xmat[, keep, drop = FALSE], stats::model.response(mf),
+                        stats::model.weights(mf))
+  list(coef = fit$coefficients, keep = keep, terms = tt, xlev = xlev)
+}
+
+cond_mean_predict <- function(model, newdata) {
+  x <- cond_design(model$terms, newdata, model$xlev)[, model$keep,
+                                                     drop = FALSE]
+  drop(x %*% model$coef)
 }

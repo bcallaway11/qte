@@ -9,7 +9,7 @@
 #   through ptetools (the staggered analogue is lou_qtt()). As of v2.1.0 it no
 #   longer uses the legacy QTEparams/setupData/bootstrap machinery.
 # Author: Brant Callaway
-# Last update: 2026-11-19
+# Last update: 2026-11-20
 # Date created: 2026-05-18
 # =============================================================================
 
@@ -91,6 +91,23 @@ unc_qte_est <- function(dat, xformula, probs, method, est_method, target,
   ps_formla <- stats::as.formula(paste(".d ~", xrhs))
   or_formla <- stats::as.formula(paste(".y ~", xrhs))
 
+  # Outcome models: factor levels of the whole sample, so every fit has the
+  # same columns, and (for the full sample, not again in each bootstrap
+  # draw) a warning when a fit is evaluated at covariates its sample doesn't
+  # span (#16). The untreated fit is evaluated at treated units and, for the
+  # QTE, the treated fit at untreated units.
+  xlev <- cond_xlevels(or_formla, dat)
+  if (full && est_method %in% c("reg", "aipw")) {
+    check_cond_support(or_formla, list(untreated), treated,
+                       fitted_on = "untreated units",
+                       predicted_for = "treated units")
+    if (target == "qte") {
+      check_cond_support(or_formla, list(treated), untreated,
+                         fitted_on = "treated units",
+                         predicted_for = "untreated units")
+    }
+  }
+
   # Dense tau grid for the OR / AIPW outcome models
   tau_grid <- seq(0.01, 0.99, 0.01)
   K        <- length(tau_grid)
@@ -137,7 +154,7 @@ unc_qte_est <- function(dat, xformula, probs, method, est_method, target,
   # ---------------------------------------------------------------------------
   } else if (est_method == "reg") {
     # conditional outcome model on the untreated (counterfactual) arm
-    M0 <- cond_fit(or_formla, untreated, cond_dist, tau_grid)
+    M0 <- cond_fit(or_formla, untreated, cond_dist, tau_grid, xlev = xlev)
 
     if (target == "qte") {
       # predict at all n units; integrating out X gives the marginal
@@ -145,7 +162,7 @@ unc_qte_est <- function(dat, xformula, probs, method, est_method, target,
       w_rep <- rep(w, each = K)
       q0    <- weighted_quantile(probs, c(t(pred0)), w_rep, norm = TRUE)
 
-      M1    <- cond_fit(or_formla, treated, cond_dist, tau_grid)
+      M1    <- cond_fit(or_formla, treated, cond_dist, tau_grid, xlev = xlev)
       pred1 <- cond_quantile_matrix(M1, dat, tau_grid)
       q1    <- weighted_quantile(probs, c(t(pred1)), w_rep, norm = TRUE)
 
@@ -171,7 +188,8 @@ unc_qte_est <- function(dat, xformula, probs, method, est_method, target,
     pscore     <- pmax(1e-6, pmin(1 - 1e-6, stats::fitted(pscore.reg)))
 
     # outcome model for the counterfactual arm, predicted at all units
-    M0        <- cond_fit(or_formla, untreated, cond_dist, tau_grid)
+    M0        <- cond_fit(or_formla, untreated, cond_dist, tau_grid,
+                            xlev = xlev)
     pred0_all <- cond_quantile_matrix(M0, dat, tau_grid)
 
     # evaluate the CDFs at each observed outcome value; approx() inverts
@@ -195,7 +213,8 @@ unc_qte_est <- function(dat, xformula, probs, method, est_method, target,
       q0 <- invert_cdf(F0)
 
       # AIPW CDF for Y(1)
-      M1        <- cond_fit(or_formla, treated, cond_dist, tau_grid)
+      M1        <- cond_fit(or_formla, treated, cond_dist, tau_grid,
+                              xlev = xlev)
       pred1_all <- cond_quantile_matrix(M1, dat, tau_grid)
       F1 <- vapply(y_grid, function(yy) {
         F_cond <- rowMeans(pred1_all <= yy)

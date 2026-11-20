@@ -128,7 +128,11 @@ lou_gt <- function(gt_data, xformula = ~1, lagged_outcome_cov = TRUE,
     yformla <- BMisc::toformula("Y", BMisc::rhs_vars(xformula_use))
     # conditional distribution of the control post-period outcome (quantile
     # or distribution regression, weighted by .w; see cond_fit())
-    M0 <- cond_fit(yformla, post_ctrl, cond_dist, tau_grid)
+    # factor levels of the whole cell; warn when the comparison fit is
+    # evaluated at treated covariates it doesn't span (#16)
+    xlev <- cond_xlevels(yformla, post_data)
+    check_cond_support(yformla, list(post_ctrl), post_trt)
+    M0 <- cond_fit(yformla, post_ctrl, cond_dist, tau_grid, xlev = xlev)
     # counterfactual conditional quantiles at treated units, rows monotone
     pred0  <- cond_quantile_matrix(M0, post_trt, tau_grid)
     wt_rep <- rep(post_trt$.w, each = K)
@@ -147,7 +151,11 @@ lou_gt <- function(gt_data, xformula = ~1, lagged_outcome_cov = TRUE,
     pscore     <- pmax(1e-6, pmin(1 - 1e-6, fitted(pscore_reg)))
 
     yformla <- BMisc::toformula("Y", BMisc::rhs_vars(xformula_use))
-    M0 <- cond_fit(yformla, post_ctrl, cond_dist, tau_grid)
+    # factor levels of the whole cell; warn when the comparison fit is
+    # evaluated at treated covariates it doesn't span (#16)
+    xlev <- cond_xlevels(yformla, post_data)
+    check_cond_support(yformla, list(post_ctrl), post_trt)
+    M0 <- cond_fit(yformla, post_ctrl, cond_dist, tau_grid, xlev = xlev)
     # Predict at all post-period units for the augmentation term
     pred0_all <- cond_quantile_matrix(M0, post_data, tau_grid)
 

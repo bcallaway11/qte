@@ -127,13 +127,18 @@ qdid_gt <- function(gt_data, xformula = ~1, cond_dist = c("qr", "dr"), ...) {
     }
 
     yformla <- BMisc::toformula("Y", BMisc::rhs_vars(xformula)) # nolint: object_name_linter
+    # factor levels of the whole cell, so every fit has the same columns;
+    # warn when a fit is evaluated at covariates it doesn't span (#16)
+    xlev <- cond_xlevels(yformla, gt_data)
+    check_cond_support(yformla, list(pre_ctrl, post_ctrl), pre_trt)
 
     # conditional rank in the treated pre-period distribution
-    fit1tmin1 <- cond_fit(yformla, pre_trt, cond_dist, u_seq)
+    fit1tmin1 <- cond_fit(yformla, pre_trt, cond_dist, u_seq, xlev = xlev)
     # post-period control fit: the same for all cohorts treated by this
     # period, so reused across those cells (cache = TRUE)
-    fit0t     <- cond_fit(yformla, post_ctrl, cond_dist, u_seq, cache = TRUE)
-    fit0tmin1 <- cond_fit(yformla, pre_ctrl, cond_dist, u_seq)
+    fit0t     <- cond_fit(yformla, post_ctrl, cond_dist, u_seq, cache = TRUE,
+                          xlev = xlev)
+    fit0tmin1 <- cond_fit(yformla, pre_ctrl, cond_dist, u_seq, xlev = xlev)
 
     # rearranged (monotone) conditional distributions; see
     # qr_sorted_quantiles() and dr_cdf_matrix()

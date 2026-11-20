@@ -137,8 +137,16 @@ ddid_gt <- function(gt_data, xformula = ~1, cond_dist = c("qr", "dr"), ...) {
     u_seq    <- seq(0.01, 0.99, 0.01)
     yformla  <- BMisc::toformula("Y", BMisc::rhs_vars(xformula)) # nolint: object_name_linter
 
-    fit0tmin1 <- cond_fit(yformla, ctrl_pre, cond_dist, u_seq)
-    fit1tmin1 <- cond_fit(yformla, trt_pre,  cond_dist, u_seq)
+    # factor levels of the whole cell, so every fit has the same columns.
+    # The comparison units are reweighted to the treated covariate
+    # distribution below, which needs comparison units at every treated
+    # unit's covariates: warn when they don't span them (#16). (The treated
+    # fit is also evaluated at comparison units, but comparison units
+    # outside the treated support get a propensity score weight near 0.)
+    xlev <- cond_xlevels(yformla, gt_data)
+    check_cond_support(yformla, list(ctrl_pre), trt_pre)
+    fit0tmin1 <- cond_fit(yformla, ctrl_pre, cond_dist, u_seq, xlev = xlev)
+    fit1tmin1 <- cond_fit(yformla, trt_pre,  cond_dist, u_seq, xlev = xlev)
 
     # conditional rank of each control unit in the control pre-period
     # distribution (rearranged; see qr_sorted_quantiles(), dr_cdf_matrix())

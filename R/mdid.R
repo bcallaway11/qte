@@ -112,14 +112,17 @@ mdid_gt <- function(gt_data, xformula = ~1, ...) {
     pre_trt   <- gt_data[gt_data$name == "pre"  & gt_data$D == 1, ]
 
     yformla      <- BMisc::toformula("Y", BMisc::rhs_vars(xformula)) # nolint: object_name_linter
-    # weights = .w is looked up in `data`; pre_ctrl$.w failed because lm()
-    # evaluates weights in the formula's environment, where pre_ctrl isn't
-    # visible, so mdid() with covariates always errored before 2.1.0
-    lm_pre_ctrl  <- lm(yformla, data = pre_ctrl,  weights = .w) # nolint: object_name_linter
-    lm_post_ctrl <- lm(yformla, data = post_ctrl, weights = .w) # nolint: object_name_linter
+    # weighted least squares on each control cell (cond_mean_fit(): the lm()
+    # fit, with collinear columns dropped); factor levels of the whole cell,
+    # and a warning when the fits are evaluated at treated covariates they
+    # don't span (#16)
+    xlev <- cond_xlevels(yformla, gt_data)
+    check_cond_support(yformla, list(pre_ctrl, post_ctrl), pre_trt)
+    lm_pre_ctrl  <- cond_mean_fit(yformla, pre_ctrl,  xlev)
+    lm_post_ctrl <- cond_mean_fit(yformla, post_ctrl, xlev)
 
-    delta <- predict(lm_post_ctrl, newdata = pre_trt) - # nolint: object_name_linter
-               predict(lm_pre_ctrl,  newdata = pre_trt)
+    delta <- cond_mean_predict(lm_post_ctrl, pre_trt) -
+               cond_mean_predict(lm_pre_ctrl,  pre_trt)
   }
 
   kcf <- Y_pre_trt + delta
@@ -139,8 +142,8 @@ mdid_gt <- function(gt_data, xformula = ~1, ...) {
 
     if (!is.null(lm_pre_ctrl)) {
       # recompute delta on id-sorted pre_s so unit i's shift aligns with post_s[i]
-      delta_s <- predict(lm_post_ctrl, newdata = pre_s) - # nolint: object_name_linter
-                   predict(lm_pre_ctrl,  newdata = pre_s)
+      delta_s <- cond_mean_predict(lm_post_ctrl, pre_s) -
+                   cond_mean_predict(lm_pre_ctrl,  pre_s)
     } else {
       delta_s <- delta  # scalar; same shift for all units
     }

@@ -350,7 +350,10 @@ estimator:
 With panel data, covariates that change over time are taken from each
 group-time cell's base period (for `panel_qtt()`, the earliest period the
 cell uses), so the estimators never condition on covariates measured after
-treatment.
+treatment. If treated units in some cell have covariate values the
+comparison group doesn't span (say, a region with treated units only), the
+estimators warn, listing the cells; `ptetools::check_overlap()` reports
+overlap diagnostics for every cell.
 
 Here we condition on log county population, `lpop`:
 

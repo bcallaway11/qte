@@ -56,13 +56,23 @@ cdf_did_delta <- function(trt_pre, ctrl_pre, ctrl_post, xformula, est_method,
     }
   }
 
+  # outcome models (reg, aipw): factor levels of all three samples, and a
+  # warning when the comparison fits are evaluated at treated covariates
+  # they don't span (#16)
+  yformla <- BMisc::toformula("Y", xvars)
+  xlev <- NULL
+  if (est_method != "ipw") {
+    xlev <- cond_xlevels(yformla, rbind(trt_pre, ctrl_pre, ctrl_post))
+    check_cond_support(yformla, list(ctrl_pre, ctrl_post), trt_pre)
+  }
+
   # E[F_t(y | X) | D = 1] for one comparison-group period
   period_term <- function(ctrl) {
     if (est_method == "ipw") {
       r <- ctrl$.w * odds(ctrl)
       return(wcdf_at(ctrl$Y, r / sum(r), s))
     }
-    fit <- dr_fit(BMisc::toformula("Y", xvars), ctrl)
+    fit <- dr_fit(yformla, ctrl, xlev = xlev)
     out <- dr_avg_cdf(fit, trt_pre, w_trt, s)
     if (est_method == "aipw") {
       r <- ctrl$.w * odds(ctrl)

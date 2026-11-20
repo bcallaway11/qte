@@ -248,8 +248,11 @@ panel_qtt_gt <- function(gt_data, xformula = ~1, cond_dist = c("qr", "dr"), ...)
     # L_i = Q(Y^pre1 | u_i, X_pre2_i, D=1) via QR on pre1 treated,
     #        predicted at pre2 covariates (copula transfers conditional rank
     #        across pre2 → pre1 marginals holding X fixed)
-    fit_pre2_trt <- cond_fit(yformla, pre2_trt, cond_dist, u_seq)
-    fit_pre1_trt <- cond_fit(yformla, pre1_trt, cond_dist, u_seq)
+    # factor levels of the whole cell, so every fit has the same columns;
+    # warn when a fit is evaluated at covariates it doesn't span (#16)
+    xlev <- cond_xlevels(yformla, gt_data)
+    fit_pre2_trt <- cond_fit(yformla, pre2_trt, cond_dist, u_seq, xlev = xlev)
+    fit_pre1_trt <- cond_fit(yformla, pre1_trt, cond_dist, u_seq, xlev = xlev)
 
     # rearranged (monotone) conditional distributions throughout; see
     # qr_sorted_quantiles() and dr_cdf_matrix()
@@ -266,8 +269,11 @@ panel_qtt_gt <- function(gt_data, xformula = ~1, cond_dist = c("qr", "dr"), ...)
     dY_ctrl_data   <- pre1_ctrl  # nolint: object_name_linter
     dY_ctrl_data$Y <- dY_ctrl
 
-    fit_dy_trt  <- cond_fit(yformla, dY_trt_data,  cond_dist, u_seq)
-    fit_dy_ctrl <- cond_fit(yformla, dY_ctrl_data, cond_dist, u_seq)
+    check_cond_support(yformla, list(dY_ctrl_data), pre1_trt)
+    fit_dy_trt  <- cond_fit(yformla, dY_trt_data,  cond_dist, u_seq,
+                            xlev = xlev)
+    fit_dy_ctrl <- cond_fit(yformla, dY_ctrl_data, cond_dist, u_seq,
+                            xlev = xlev)
 
     v <- cond_cdf(fit_dy_trt, dY_trt_data, dY_trt)
 

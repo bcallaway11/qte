@@ -7,7 +7,7 @@
 #   rearrangement (used by the covariate-adjusted CiC, DDID and panel QTT
 #   estimators).
 # Author: Brant Callaway
-# Last update: 2026-11-14
+# Last update: 2026-11-20
 # Date created: 2026-07-21
 # =============================================================================
 
@@ -76,30 +76,26 @@ wcdf_at <- function(y, w, x) {
 # G > t) does not depend on the treated cohort g, so the quantile regression
 # of control outcomes in period t is identical for every cohort already
 # treated by t. ptetools loops over t and then g, so those cells come one
-# after another. cached_rq() keeps the most recent fit and returns it when
-# the formula, quantiles and data (variables used and weights, in the same
-# row order) are identical; otherwise it fits and stores the new model. A
-# reused fit is identical to refitting. options(qte.disable_qr_cache = TRUE)
-# turns this off.
+# after another. cached_rq() keeps the most recent coefficients and returns
+# them when the outcome, design matrix (kept columns, see cond_fit()),
+# weights and quantiles are identical; otherwise it fits and stores the new
+# ones. A reused fit is identical to refitting.
+# options(qte.disable_qr_cache = TRUE) turns this off.
 .qr_cache <- new.env(parent = emptyenv())
 
-cached_rq <- function(formula, data, tau) {
-  key_data <- data[, c(all.vars(formula), ".w"), drop = FALSE]
-  rownames(key_data) <- NULL
-  key_formula <- paste(deparse(formula), collapse = " ")
+cached_rq <- function(y, xk, w, tau) {
+  # row names differ between cells with the same data; drop them from the key
+  rownames(xk) <- NULL
+  y <- unname(y)
+  w <- unname(w)
   use_cache <- !isTRUE(getOption("qte.disable_qr_cache"))
-  same_inputs <- !is.null(.qr_cache$fit) &&
-    identical(.qr_cache$formula, key_formula) &&
-    identical(.qr_cache$tau, tau) &&
-    identical(.qr_cache$data, key_data)
-  if (use_cache && same_inputs) {
+  key <- list(y = y, xk = xk, w = w, tau = tau)
+  if (use_cache && !is.null(.qr_cache$fit) && identical(.qr_cache$key, key)) {
     return(.qr_cache$fit)
   }
-  fit <- suppressWarnings(quantreg::rq(formula, data = data, tau = tau, weights = .w))
+  fit <- rq_coef(y, xk, w, tau)
   if (use_cache) {
-    .qr_cache$formula <- key_formula
-    .qr_cache$tau <- tau
-    .qr_cache$data <- key_data
+    .qr_cache$key <- key
     .qr_cache$fit <- fit
   }
   fit

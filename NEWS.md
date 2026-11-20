@@ -72,6 +72,23 @@
 
 ## Bug fixes (these change results)
 
+* When a treated unit's covariates aren't spanned by the comparison group
+  (e.g. a dummy for a region with treated units only), the conditional
+  outcome models extrapolate. With `cond_dist = "dr"` this happened
+  silently: the dummy got a zero coefficient, so those treated units got the
+  reference category's conditional distribution. With `cond_dist = "qr"`
+  the estimators stopped with an uninformative `Singular design matrix`.
+  Both now drop such columns and warn once per call, naming the covariates,
+  the group-time cells and the (weighted) share of treated units affected
+  (#16). This applies to every estimator with covariates, including
+  `mdid()`, `cdf_did()` and `unc_qte()`. Dropped columns that don't matter
+  (a factor level no unit in the cell has, a duplicated covariate) give no
+  warning, and covariates with full support give the same results as
+  before. Use `ptetools::check_overlap()` for overlap diagnostics by cell.
+* Factor covariates (and `factor()` or character terms in `xformula`) with
+  a level that the comparison group lacks in some cell no longer stop the
+  covariate-adjusted estimators with a "new levels" error.
+
 * With panel data and covariates that change over time, the estimators now
   condition on each unit's covariates from the base period of each
   group-time cell, as `ptetools` and `did` do. Before, `cic()`, `qdid()`,
