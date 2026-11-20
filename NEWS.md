@@ -64,6 +64,17 @@
 
 ## Bug fixes (these change results)
 
+* With more than one treated cohort, the aggregated QTTs (overall, event
+  study and group) mixed the wrong group-time cells, including
+  pre-treatment ones. The aggregation weights were in a different order
+  from the cells they were applied to. Fixed in ptetools 1.1.0, which qte
+  now requires. This affected `cic()`, `qdid()`, `ddid()`, `mdid()`,
+  `lou_qtt()` and `panel_qtt(pre_copula = "short")` with
+  `gt_type = "qtt"` or `"qott"`; ATTs were not affected, and neither was
+  `panel_qtt()`'s default `pre_copula = "long"`, whose aggregation is in
+  qte. On the package's test data the median QTT moves by up to 0.13,
+  toward the true effect.
+
 * Fixed covariate-adjusted `cic()`, `qdid()`, `ddid()` and `panel_qtt()`
   (and their `*_gt()` workhorses) (#9):
   * They no longer fail when a group has a single treated unit.
