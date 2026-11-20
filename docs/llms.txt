@@ -31,6 +31,9 @@ adoption supported for all):
   2019. 
 - [`mdid()`](https://bcallaway11.github.io/qte/reference/mdid.md) — Mean
   Difference-in-Differences (Thuysbaert 2007)
+- [`cdf_did()`](https://bcallaway11.github.io/qte/reference/cdf_did.md)
+  — Difference-in-Differences in distribution functions (Roth and
+  Sant’Anna 2023)
 - [`lou_qtt()`](https://bcallaway11.github.io/qte/reference/lou_qtt.md)
   — Lagged-outcome unconfoundedness QTT
 
@@ -63,7 +66,7 @@ res_cs <- unc_qte(
   yname      = "re78",
   dname      = "treat",
   data       = lalonde.psid,
-  xformla    = xf,
+  xformula   = xf,
   est_method = "aipw",
   target     = "qtt",
   probs      = seq(0.1, 0.9, 0.1),
@@ -168,18 +171,27 @@ autoplot(res_qtt)
 
 ## Available estimators
 
-| Function                                                                  | Method                             | Target     | Panel required |
-|---------------------------------------------------------------------------|------------------------------------|------------|----------------|
-| [`unc_qte()`](https://bcallaway11.github.io/qte/reference/unc_qte.md)     | Unconfoundedness (IPW / OR / AIPW) | QTE or QTT | No             |
-| [`cic()`](https://bcallaway11.github.io/qte/reference/cic.md)             | Change in Changes                  | ATT or QTT | Optional       |
-| [`qdid()`](https://bcallaway11.github.io/qte/reference/qdid.md)           | Quantile DiD                       | ATT or QTT | Optional       |
-| [`panel_qtt()`](https://bcallaway11.github.io/qte/reference/panel_qtt.md) | Panel QTT (copula stability)       | QTT        | Yes            |
-| [`ddid()`](https://bcallaway11.github.io/qte/reference/ddid.md)           | Distributional DiD                 | ATT or QTT | Yes            |
-| [`mdid()`](https://bcallaway11.github.io/qte/reference/mdid.md)           | Mean DiD                           | ATT or QTT | Optional       |
-| [`lou_qtt()`](https://bcallaway11.github.io/qte/reference/lou_qtt.md)     | Lagged-outcome unconfoundedness    | ATT or QTT | Yes            |
+| Function | Method | Target | Panel required |
+|----|----|----|----|
+| [`unc_qte()`](https://bcallaway11.github.io/qte/reference/unc_qte.md) | Unconfoundedness (IPW / OR / AIPW) | QTE or QTT | No |
+| [`cic()`](https://bcallaway11.github.io/qte/reference/cic.md) | Change in Changes | ATT or QTT | Optional |
+| [`qdid()`](https://bcallaway11.github.io/qte/reference/qdid.md) | Quantile DiD | ATT or QTT | Optional |
+| [`panel_qtt()`](https://bcallaway11.github.io/qte/reference/panel_qtt.md) | Panel QTT (copula stability) | ATT or QTT | Yes |
+| [`ddid()`](https://bcallaway11.github.io/qte/reference/ddid.md) | Distributional DiD | ATT or QTT | Yes |
+| [`mdid()`](https://bcallaway11.github.io/qte/reference/mdid.md) | Mean DiD | ATT or QTT | Optional |
+| [`cdf_did()`](https://bcallaway11.github.io/qte/reference/cdf_did.md) | DiD in distribution functions | ATT or QTT | Optional |
+| [`lou_qtt()`](https://bcallaway11.github.io/qte/reference/lou_qtt.md) | Lagged-outcome unconfoundedness | ATT or QTT | Optional\* |
 
 All panel estimators support staggered treatment adoption and return
-group-specific, event-study, and overall aggregations.
+group-specific, event-study, and overall aggregations. “Optional” means
+the estimator also works with repeated cross sections (`panel = FALSE`).
+[`ddid()`](https://bcallaway11.github.io/qte/reference/ddid.md) and
+[`panel_qtt()`](https://bcallaway11.github.io/qte/reference/panel_qtt.md)
+need the same units over time (a comparison unit’s change, or the copula
+between periods).
+\*[`lou_qtt()`](https://bcallaway11.github.io/qte/reference/lou_qtt.md)
+needs panel data for its default lagged-outcome covariate; with
+`lagged_outcome_cov = FALSE` it works with repeated cross sections.
 
 ## Documentation and vignettes
 
@@ -190,7 +202,7 @@ site](https://bcallaway11.github.io/qte/):
   [`unc_qte()`](https://bcallaway11.github.io/qte/reference/unc_qte.md)
   under random assignment and selection on observables
 - **Panel Data Estimators for Quantile Treatment Effects** —
-  identification assumptions and usage for all six panel estimators
+  identification assumptions and usage for the panel estimators
 - **Staggered Treatment Adoption** — applied workflow with `mpdta`: QTT
   curves, event-study plots, and cross-estimator comparison
 
@@ -229,6 +241,10 @@ support staggered treatment adoption via ptetools.
   Difference-in-Differences
 - [`mdid_gt()`](https://bcallaway11.github.io/qte/reference/mdid_gt.md)
   : Mean Difference-in-Differences: group-time estimator
+- [`cdf_did()`](https://bcallaway11.github.io/qte/reference/cdf_did.md)
+  : Difference-in-Differences in Distribution Functions
+- [`cdf_did_gt()`](https://bcallaway11.github.io/qte/reference/cdf_did_gt.md)
+  : CDF Difference-in-Differences for a Single 2x2 Cell
 - [`lou_qtt()`](https://bcallaway11.github.io/qte/reference/lou_qtt.md)
   : Lagged Outcome Unconfoundedness QTT
 
@@ -252,8 +268,6 @@ summarising, and plotting.
   : plot.QTE
 - [`autoplot(`*`<QTE>`*`)`](https://bcallaway11.github.io/qte/reference/autoplot.QTE.md)
   : autoplot.QTE
-- [`ggqte()`](https://bcallaway11.github.io/qte/reference/ggqte.md) :
-  ggqte
 
 ## Data
 

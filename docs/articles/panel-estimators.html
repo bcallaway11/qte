@@ -28,7 +28,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">qte</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">2.0.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">2.1.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -57,7 +57,7 @@
       <img src="../logo.png" class="logo" alt=""><h1>Panel Data Estimators for Quantile Treatment Effects</h1>
 
       <p class="author">Brantly Callaway</p>
-      <p class="date">2026-07-22</p>
+      <p class="date">2026-11-20</p>
 
       <small class="dont-index">Source: <a href="https://github.com/bcallaway11/qte/blob/HEAD/vignettes/panel-estimators.qmd" class="external-link"><code>vignettes/panel-estimators.qmd</code></a></small>
       <div class="d-none name"><code></code></div>
@@ -70,17 +70,18 @@
 
     <section class="level2"><h2 id="overview">Overview<a class="anchor" aria-label="anchor" href="#overview"></a>
 </h2>
-<p>The <code>qte</code> package provides six DiD-based estimators for the QTT. All share the same <code>yname</code>/<code>gname</code>/<code>tname</code>/<code>idname</code> interface and support staggered treatment adoption natively. They differ in their identification assumptions and the restrictions those assumptions impose on the data-generating process.</p>
-<p>This vignette describes each estimator conceptually and shows the minimal call. For a full applied workflow with aggregations and event-study plots, see <code><a href="../articles/staggered-adoption.html">vignette("staggered-adoption")</a></code>.</p>
+<p>The <code>qte</code> package provides seven estimators of the quantile treatment effect on the treated (QTT) for settings where units are observed before and after treatment. All share the same <code>yname</code>/<code>gname</code>/<code>tname</code>/<code>idname</code> interface and support staggered treatment adoption. They differ in their identifying assumptions. Six are difference-in-differences-type assumptions, which restrict how untreated outcomes change over time; one, <code><a href="../reference/lou_qtt.html">lou_qtt()</a></code>, is a selection-on-observables assumption that conditions on the lagged outcome.</p>
+<p>This vignette states each assumption and shows the minimal call. For the full applied workflow (aggregations, event studies, testing whether the effect is more than a location shift, covariates), see <code><a href="../articles/staggered-adoption.html">vignette("staggered-adoption")</a></code>.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://bcallaway11.github.io/qte/">qte</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/bcallaway11/ptetools" class="external-link">ptetools</a></span><span class="op">)</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://ggplot2.tidyverse.org" class="external-link">ggplot2</a></span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">42</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="va">mpdta</span>, package <span class="op">=</span> <span class="st">"did"</span><span class="op">)</span></span></code></pre></div>
 </div>
 <p>We use <code>mpdta</code> throughout: a balanced panel of 500 US counties observed annually from 2003–2007, with <code>lemp</code> (log employment) as the outcome and <code>first.treat</code> as the cohort variable (year of first minimum wage increase; 0 = never treated).</p>
-<p>The common call structure for all six estimators is:</p>
+<p>The common call structure for all seven estimators is:</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu">estimator</span><span class="op">(</span></span>
 <span>  yname  <span class="op">=</span> <span class="st">"lemp"</span>,        <span class="co"># outcome</span></span>
@@ -88,209 +89,180 @@
 <span>  tname  <span class="op">=</span> <span class="st">"year"</span>,        <span class="co"># calendar time</span></span>
 <span>  idname <span class="op">=</span> <span class="st">"countyreal"</span>,  <span class="co"># unit id</span></span>
 <span>  data   <span class="op">=</span> <span class="va">mpdta</span>,</span>
-<span>  gt_type <span class="op">=</span> <span class="st">"att"</span>,        <span class="co"># "att" or "qtt"</span></span>
+<span>  gt_type <span class="op">=</span> <span class="st">"qtt"</span>,        <span class="co"># "qtt" (QTT curve) or "att"</span></span>
+<span>  probs   <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="fl">0.1</span>, <span class="fl">0.9</span>, <span class="fl">0.1</span><span class="op">)</span>,</span>
 <span>  biters  <span class="op">=</span> <span class="fl">100</span></span>
 <span><span class="op">)</span></span></code></pre></div>
+<p>With <code>gt_type = "qtt"</code>, each estimator returns the QTT curve together with the ATT implied by the same assumption, both from the same bootstrap draws. Each plot below shows the overall QTT curve with a uniform confidence band and the overall ATT as a horizontal line.</p>
+<p>All of these estimators except <code><a href="../reference/cdf_did.html">cdf_did()</a></code> are built on quantiles or ranks and are designed for continuous outcomes. With a discrete outcome, or one with a large mass point (such as many zeros), quantile treatment effects are usually not point identified, and the estimators warn.</p>
 <hr></section><section class="level2"><h2 id="change-in-changes-cic">Change in Changes — <code>cic()</code>
 <a class="anchor" aria-label="anchor" href="#change-in-changes-cic"></a>
 </h2>
 <p><strong>Reference:</strong> <span class="citation" data-cites="athey-imbens-2006">Athey and Imbens (<a href="#ref-athey-imbens-2006" role="doc-biblioref">2006</a>)</span></p>
-<p><strong>Identifying assumption:</strong> The distributional time-change is the same for both groups: <math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>Q</mi><mrow><msub><mi>Y</mi><mi>t</mi></msub><mo stretchy="false" form="prefix">(</mo><mn>0</mn><mo stretchy="false" form="postfix">)</mo><mo stretchy="false" form="prefix">|</mo><mi>D</mi><mo>=</mo><mn>1</mn></mrow></msub><mspace width="-0.167em"></mspace><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>F</mi><mrow><msub><mi>Y</mi><mrow><mi>t</mi><mo>−</mo><mn>1</mn></mrow></msub><mo stretchy="false" form="prefix">(</mo><mn>0</mn><mo stretchy="false" form="postfix">)</mo><mo stretchy="false" form="prefix">|</mo><mi>D</mi><mo>=</mo><mn>1</mn></mrow></msub><mo stretchy="false" form="prefix">(</mo><mi>y</mi><mo stretchy="false" form="postfix">)</mo><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><msub><mi>Q</mi><mrow><msub><mi>Y</mi><mi>t</mi></msub><mo stretchy="false" form="prefix">(</mo><mn>0</mn><mo stretchy="false" form="postfix">)</mo><mo stretchy="false" form="prefix">|</mo><mi>D</mi><mo>=</mo><mn>0</mn></mrow></msub><mspace width="-0.167em"></mspace><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>F</mi><mrow><msub><mi>Y</mi><mrow><mi>t</mi><mo>−</mo><mn>1</mn></mrow></msub><mo stretchy="false" form="prefix">(</mo><mn>0</mn><mo stretchy="false" form="postfix">)</mo><mo stretchy="false" form="prefix">|</mo><mi>D</mi><mo>=</mo><mn>0</mn></mrow></msub><mo stretchy="false" form="prefix">(</mo><mi>y</mi><mo stretchy="false" form="postfix">)</mo><mo stretchy="true" form="postfix">)</mo></mrow><mspace width="1.0em"></mspace><mrow><mtext mathvariant="normal">for all </mtext><mspace width="0.333em"></mspace></mrow><mi>y</mi><mo>,</mo></mrow><annotation encoding="application/x-tex">Q_{Y_t(0)|D=1}\!\left(F_{Y_{t-1}(0)|D=1}(y)\right) = Q_{Y_t(0)|D=0}\!\left(F_{Y_{t-1}(0)|D=0}(y)\right) \quad \text{for all } y,</annotation></semantics></math> along with a support condition: <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mtext mathvariant="normal">supp</mtext><mo stretchy="false" form="prefix">(</mo><msub><mi>Y</mi><mrow><mi>t</mi><mo>−</mo><mn>1</mn></mrow></msub><mo stretchy="false" form="prefix">(</mo><mn>0</mn><mo stretchy="false" form="postfix">)</mo><mo stretchy="false" form="prefix">|</mo><mi>D</mi><mo>=</mo><mn>1</mn><mo stretchy="false" form="postfix">)</mo><mo>⊆</mo><mtext mathvariant="normal">supp</mtext><mo stretchy="false" form="prefix">(</mo><msub><mi>Y</mi><mrow><mi>t</mi><mo>−</mo><mn>1</mn></mrow></msub><mo stretchy="false" form="prefix">(</mo><mn>0</mn><mo stretchy="false" form="postfix">)</mo><mo stretchy="false" form="prefix">|</mo><mi>D</mi><mo>=</mo><mn>0</mn><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\text{supp}(Y_{t-1}(0)|D=1) \subseteq \text{supp}(Y_{t-1}(0)|D=0)</annotation></semantics></math>.</p>
-<p><strong>Intuition:</strong> The expression <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>Q</mi><mrow><msub><mi>Y</mi><mi>t</mi></msub><mo stretchy="false" form="prefix">(</mo><mn>0</mn><mo stretchy="false" form="postfix">)</mo><mo stretchy="false" form="prefix">|</mo><mi>D</mi><mo>=</mo><mi>g</mi></mrow></msub><mo stretchy="false" form="prefix">(</mo><msub><mi>F</mi><mrow><msub><mi>Y</mi><mrow><mi>t</mi><mo>−</mo><mn>1</mn></mrow></msub><mo stretchy="false" form="prefix">(</mo><mn>0</mn><mo stretchy="false" form="postfix">)</mo><mo stretchy="false" form="prefix">|</mo><mi>D</mi><mo>=</mo><mi>g</mi></mrow></msub><mo stretchy="false" form="prefix">(</mo><mi>y</mi><mo stretchy="false" form="postfix">)</mo><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">Q_{Y_t(0)|D=g}(F_{Y_{t-1}(0)|D=g}(y))</annotation></semantics></math> takes a pre-period value <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>y</mi><annotation encoding="application/x-tex">y</annotation></semantics></math>, finds its quantile rank in group <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>g</mi><annotation encoding="application/x-tex">g</annotation></semantics></math>’s pre-period distribution, and returns the post-period value at that same rank within group <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>g</mi><annotation encoding="application/x-tex">g</annotation></semantics></math>’s distribution. The assumption requires this operation to give the same result for both groups at every <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>y</mi><annotation encoding="application/x-tex">y</annotation></semantics></math>. It can be thought of as a nonlinear version of parallel trends: where parallel trends requires the <em>mean</em> of <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>Y</mi><mo stretchy="false" form="prefix">(</mo><mn>0</mn><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">Y(0)</annotation></semantics></math> to shift equally across groups, CiC requires the <em>entire distributional time-change</em> to be the same.</p>
-<p><strong>Identification:</strong> Under this assumption the counterfactual quantile function is <math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>Q</mi><mrow><msub><mi>Y</mi><mi>t</mi></msub><mo stretchy="false" form="prefix">(</mo><mn>0</mn><mo stretchy="false" form="postfix">)</mo><mo stretchy="false" form="prefix">|</mo><mi>D</mi><mo>=</mo><mn>1</mn></mrow></msub><mo stretchy="false" form="prefix">(</mo><mi>τ</mi><mo stretchy="false" form="postfix">)</mo><mo>=</mo><msub><mi>Q</mi><mrow><msub><mi>Y</mi><mi>t</mi></msub><mo stretchy="false" form="prefix">|</mo><mi>D</mi><mo>=</mo><mn>0</mn></mrow></msub><mspace width="-0.167em"></mspace><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>F</mi><mrow><msub><mi>Y</mi><mrow><mi>t</mi><mo>−</mo><mn>1</mn></mrow></msub><mo stretchy="false" form="prefix">|</mo><mi>D</mi><mo>=</mo><mn>0</mn></mrow></msub><mspace width="-0.167em"></mspace><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>Q</mi><mrow><msub><mi>Y</mi><mrow><mi>t</mi><mo>−</mo><mn>1</mn></mrow></msub><mo stretchy="false" form="prefix">|</mo><mi>D</mi><mo>=</mo><mn>1</mn></mrow></msub><mo stretchy="false" form="prefix">(</mo><mi>τ</mi><mo stretchy="false" form="postfix">)</mo><mo stretchy="true" form="postfix">)</mo></mrow><mo stretchy="true" form="postfix">)</mo></mrow><mi>.</mi></mrow><annotation encoding="application/x-tex">Q_{Y_t(0)|D=1}(\tau) = Q_{Y_t|D=0}\!\left(F_{Y_{t-1}|D=0}\!\left(Q_{Y_{t-1}|D=1}(\tau)\right)\right).</annotation></semantics></math></p>
-<p><strong>When to use:</strong> Works with panel or repeated cross sections.</p>
+<p><strong>Identifying assumption:</strong> The distributional time-change is the same for both groups: <math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>Q</mi><mrow><msub><mi>Y</mi><mi>t</mi></msub><mrow><mo stretchy="true" form="prefix">(</mo><mn>0</mn><mo stretchy="true" form="postfix">)</mo></mrow><mo stretchy="false" form="prefix">|</mo><mi>D</mi><mo>=</mo><mn>1</mn></mrow></msub><mspace width="-0.167em"></mspace><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>F</mi><mrow><msub><mi>Y</mi><mrow><mi>t</mi><mo>−</mo><mn>1</mn></mrow></msub><mrow><mo stretchy="true" form="prefix">(</mo><mn>0</mn><mo stretchy="true" form="postfix">)</mo></mrow><mo stretchy="false" form="prefix">|</mo><mi>D</mi><mo>=</mo><mn>1</mn></mrow></msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>y</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><msub><mi>Q</mi><mrow><msub><mi>Y</mi><mi>t</mi></msub><mrow><mo stretchy="true" form="prefix">(</mo><mn>0</mn><mo stretchy="true" form="postfix">)</mo></mrow><mo stretchy="false" form="prefix">|</mo><mi>D</mi><mo>=</mo><mn>0</mn></mrow></msub><mspace width="-0.167em"></mspace><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>F</mi><mrow><msub><mi>Y</mi><mrow><mi>t</mi><mo>−</mo><mn>1</mn></mrow></msub><mrow><mo stretchy="true" form="prefix">(</mo><mn>0</mn><mo stretchy="true" form="postfix">)</mo></mrow><mo stretchy="false" form="prefix">|</mo><mi>D</mi><mo>=</mo><mn>0</mn></mrow></msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>y</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo stretchy="true" form="postfix">)</mo></mrow><mspace width="1.0em"></mspace><mrow><mtext mathvariant="normal">for all </mtext><mspace width="0.333em"></mspace></mrow><mi>y</mi><mo>,</mo></mrow><annotation encoding="application/x-tex">Q_{Y_t(0)|D=1}\!\left(F_{Y_{t-1}(0)|D=1}(y)\right) = Q_{Y_t(0)|D=0}\!\left(F_{Y_{t-1}(0)|D=0}(y)\right) \quad \text{for all } y,</annotation></semantics></math> along with a support condition: <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mtext mathvariant="normal">supp</mtext><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>Y</mi><mrow><mi>t</mi><mo>−</mo><mn>1</mn></mrow></msub><mrow><mo stretchy="true" form="prefix">(</mo><mn>0</mn><mo stretchy="true" form="postfix">)</mo></mrow><mo stretchy="false" form="prefix">|</mo><mi>D</mi><mo>=</mo><mn>1</mn><mo stretchy="true" form="postfix">)</mo></mrow><mo>⊆</mo><mtext mathvariant="normal">supp</mtext><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>Y</mi><mrow><mi>t</mi><mo>−</mo><mn>1</mn></mrow></msub><mrow><mo stretchy="true" form="prefix">(</mo><mn>0</mn><mo stretchy="true" form="postfix">)</mo></mrow><mo stretchy="false" form="prefix">|</mo><mi>D</mi><mo>=</mo><mn>0</mn><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">\text{supp}(Y_{t-1}(0)|D=1) \subseteq \text{supp}(Y_{t-1}(0)|D=0)</annotation></semantics></math>.</p>
+<p><strong>Intuition:</strong> The expression <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>Q</mi><mrow><msub><mi>Y</mi><mi>t</mi></msub><mrow><mo stretchy="true" form="prefix">(</mo><mn>0</mn><mo stretchy="true" form="postfix">)</mo></mrow><mo stretchy="false" form="prefix">|</mo><mi>D</mi><mo>=</mo><mi>g</mi></mrow></msub><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>F</mi><mrow><msub><mi>Y</mi><mrow><mi>t</mi><mo>−</mo><mn>1</mn></mrow></msub><mrow><mo stretchy="true" form="prefix">(</mo><mn>0</mn><mo stretchy="true" form="postfix">)</mo></mrow><mo stretchy="false" form="prefix">|</mo><mi>D</mi><mo>=</mo><mi>g</mi></mrow></msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>y</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">Q_{Y_t(0)|D=g}(F_{Y_{t-1}(0)|D=g}(y))</annotation></semantics></math> takes a pre-period value <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>y</mi><annotation encoding="application/x-tex">y</annotation></semantics></math>, finds its quantile rank in group <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>g</mi><annotation encoding="application/x-tex">g</annotation></semantics></math>’s pre-period distribution, and returns the post-period value at that same rank within group <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>g</mi><annotation encoding="application/x-tex">g</annotation></semantics></math>’s distribution. The assumption requires this operation to give the same result for both groups at every <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>y</mi><annotation encoding="application/x-tex">y</annotation></semantics></math>. It can be thought of as a nonlinear version of parallel trends: where parallel trends requires the <em>mean</em> of <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>Y</mi><mrow><mo stretchy="true" form="prefix">(</mo><mn>0</mn><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">Y(0)</annotation></semantics></math> to shift equally across groups, CiC requires the <em>entire distributional time-change</em> to be the same. <span class="citation" data-cites="athey-imbens-2006">Athey and Imbens (<a href="#ref-athey-imbens-2006" role="doc-biblioref">2006</a>)</span> derive it from a model <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>Y</mi><mrow><mo stretchy="true" form="prefix">(</mo><mn>0</mn><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><mi>h</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>U</mi><mo>,</mo><mi>t</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">Y(0) = h(U, t)</annotation></semantics></math> with <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>h</mi><annotation encoding="application/x-tex">h</annotation></semantics></math> increasing in unobservables <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>U</mi><annotation encoding="application/x-tex">U</annotation></semantics></math> whose distribution does not change over time within a group.</p>
+<p><strong>Identification:</strong> Under this assumption the counterfactual quantile function is <math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>Q</mi><mrow><msub><mi>Y</mi><mi>t</mi></msub><mrow><mo stretchy="true" form="prefix">(</mo><mn>0</mn><mo stretchy="true" form="postfix">)</mo></mrow><mo stretchy="false" form="prefix">|</mo><mi>D</mi><mo>=</mo><mn>1</mn></mrow></msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>τ</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><msub><mi>Q</mi><mrow><msub><mi>Y</mi><mi>t</mi></msub><mo stretchy="false" form="prefix">|</mo><mi>D</mi><mo>=</mo><mn>0</mn></mrow></msub><mspace width="-0.167em"></mspace><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>F</mi><mrow><msub><mi>Y</mi><mrow><mi>t</mi><mo>−</mo><mn>1</mn></mrow></msub><mo stretchy="false" form="prefix">|</mo><mi>D</mi><mo>=</mo><mn>0</mn></mrow></msub><mspace width="-0.167em"></mspace><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>Q</mi><mrow><msub><mi>Y</mi><mrow><mi>t</mi><mo>−</mo><mn>1</mn></mrow></msub><mo stretchy="false" form="prefix">|</mo><mi>D</mi><mo>=</mo><mn>1</mn></mrow></msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>τ</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo stretchy="true" form="postfix">)</mo></mrow><mo stretchy="true" form="postfix">)</mo></mrow><mi>.</mi></mrow><annotation encoding="application/x-tex">Q_{Y_t(0)|D=1}(\tau) = Q_{Y_t|D=0}\!\left(F_{Y_{t-1}|D=0}\!\left(Q_{Y_{t-1}|D=1}(\tau)\right)\right).</annotation></semantics></math></p>
+<p><strong>Data:</strong> Panel data or repeated cross sections (<code>panel = FALSE</code>).</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">res_cic</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/cic.html">cic</a></span><span class="op">(</span></span>
 <span>  yname  <span class="op">=</span> <span class="st">"lemp"</span>, gname <span class="op">=</span> <span class="st">"first.treat"</span>, tname <span class="op">=</span> <span class="st">"year"</span>,</span>
 <span>  idname <span class="op">=</span> <span class="st">"countyreal"</span>, data <span class="op">=</span> <span class="va">mpdta</span>,</span>
-<span>  gt_type <span class="op">=</span> <span class="st">"att"</span>, biters <span class="op">=</span> <span class="fl">100</span></span>
+<span>  gt_type <span class="op">=</span> <span class="st">"qtt"</span>, probs <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="fl">0.1</span>, <span class="fl">0.9</span>, <span class="fl">0.1</span><span class="op">)</span>, biters <span class="op">=</span> <span class="fl">100</span></span>
 <span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">res_cic</span><span class="op">)</span></span></code></pre></div>
+<span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/autoplot.html" class="external-link">autoplot</a></span><span class="op">(</span><span class="va">res_cic</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="cell">
-<pre><code><span><span class="co">#&gt;</span></span>
-<span><span class="co">#&gt; Overall ATT:</span></span>
-<span><span class="co">#&gt;      ATT    Std. Error     [ 95%  Conf. Int.]</span></span>
-<span><span class="co">#&gt;  -0.0197        0.0157    -0.0541      0.0147</span></span>
-<span><span class="co">#&gt;</span></span>
-<span><span class="co">#&gt;</span></span>
-<span><span class="co">#&gt; Dynamic Effects:</span></span>
-<span><span class="co">#&gt;  Event Time Estimate Std. Error [95% Simult.  Conf. Band]</span></span>
-<span><span class="co">#&gt;          -3   0.0508     0.0214        0.0090      0.0927 *</span></span>
-<span><span class="co">#&gt;          -2   0.0158     0.0169       -0.0174      0.0491</span></span>
-<span><span class="co">#&gt;          -1  -0.0128     0.0179       -0.0478      0.0222</span></span>
-<span><span class="co">#&gt;           0  -0.0081     0.0154       -0.0383      0.0221</span></span>
-<span><span class="co">#&gt;           1  -0.0364     0.0233       -0.0820      0.0092</span></span>
-<span><span class="co">#&gt;           2  -0.1226     0.0500       -0.2206     -0.0245 *</span></span>
-<span><span class="co">#&gt;           3  -0.0930     0.0502       -0.1914      0.0055</span></span>
-<span><span class="co">#&gt; ---</span></span>
-<span><span class="co">#&gt; Signif. codes: `*' confidence band does not cover 0</span></span></code></pre>
+<div class="cell-output-display">
+<div>
+<figure><p><img src="panel-estimators_files/figure-html/cic-plot-1.png" alt="Overall QTT curve from cic()" width="576"></p>
+</figure>
+</div>
+</div>
 </div>
 <hr></section><section class="level2"><h2 id="quantile-difference-in-differences-qdid">Quantile Difference-in-Differences — <code>qdid()</code>
 <a class="anchor" aria-label="anchor" href="#quantile-difference-in-differences-qdid"></a>
 </h2>
-<p><strong>References:</strong> <span class="citation" data-cites="athey-imbens-2006">Athey and Imbens (<a href="#ref-athey-imbens-2006" role="doc-biblioref">2006</a>)</span>; <span class="citation" data-cites="meyer-viscusi-durbin-1995">Meyer et al. (<a href="#ref-meyer-viscusi-durbin-1995" role="doc-biblioref">1995</a>)</span></p>
-<p><strong>Identifying assumption:</strong> The change in quantiles over time is the same for both groups: <math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>Q</mi><mrow><msub><mi>Y</mi><mi>t</mi></msub><mo stretchy="false" form="prefix">(</mo><mn>0</mn><mo stretchy="false" form="postfix">)</mo><mo stretchy="false" form="prefix">|</mo><mi>D</mi><mo>=</mo><mn>1</mn></mrow></msub><mo stretchy="false" form="prefix">(</mo><mi>τ</mi><mo stretchy="false" form="postfix">)</mo><mo>−</mo><msub><mi>Q</mi><mrow><msub><mi>Y</mi><mrow><mi>t</mi><mo>−</mo><mn>1</mn></mrow></msub><mo stretchy="false" form="prefix">(</mo><mn>0</mn><mo stretchy="false" form="postfix">)</mo><mo stretchy="false" form="prefix">|</mo><mi>D</mi><mo>=</mo><mn>1</mn></mrow></msub><mo stretchy="false" form="prefix">(</mo><mi>τ</mi><mo stretchy="false" form="postfix">)</mo><mo>=</mo><msub><mi>Q</mi><mrow><msub><mi>Y</mi><mi>t</mi></msub><mo stretchy="false" form="prefix">(</mo><mn>0</mn><mo stretchy="false" form="postfix">)</mo><mo stretchy="false" form="prefix">|</mo><mi>D</mi><mo>=</mo><mn>0</mn></mrow></msub><mo stretchy="false" form="prefix">(</mo><mi>τ</mi><mo stretchy="false" form="postfix">)</mo><mo>−</mo><msub><mi>Q</mi><mrow><msub><mi>Y</mi><mrow><mi>t</mi><mo>−</mo><mn>1</mn></mrow></msub><mo stretchy="false" form="prefix">(</mo><mn>0</mn><mo stretchy="false" form="postfix">)</mo><mo stretchy="false" form="prefix">|</mo><mi>D</mi><mo>=</mo><mn>0</mn></mrow></msub><mo stretchy="false" form="prefix">(</mo><mi>τ</mi><mo stretchy="false" form="postfix">)</mo><mspace width="1.0em"></mspace><mrow><mtext mathvariant="normal">for all </mtext><mspace width="0.333em"></mspace></mrow><mi>τ</mi><mo>∈</mo><mo stretchy="false" form="prefix">(</mo><mn>0</mn><mo>,</mo><mn>1</mn><mo stretchy="false" form="postfix">)</mo><mi>.</mi></mrow><annotation encoding="application/x-tex">Q_{Y_t(0)|D=1}(\tau) - Q_{Y_{t-1}(0)|D=1}(\tau) = Q_{Y_t(0)|D=0}(\tau) - Q_{Y_{t-1}(0)|D=0}(\tau) \quad \text{for all } \tau \in (0,1).</annotation></semantics></math></p>
-<p><strong>Intuition:</strong> This requires parallel trends to hold at every quantile level <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>τ</mi><annotation encoding="application/x-tex">\tau</annotation></semantics></math>, not just in the mean. It directly identifies the counterfactual: <math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>Q</mi><mrow><msub><mi>Y</mi><mi>t</mi></msub><mo stretchy="false" form="prefix">(</mo><mn>0</mn><mo stretchy="false" form="postfix">)</mo><mo stretchy="false" form="prefix">|</mo><mi>D</mi><mo>=</mo><mn>1</mn></mrow></msub><mo stretchy="false" form="prefix">(</mo><mi>τ</mi><mo stretchy="false" form="postfix">)</mo><mo>=</mo><msub><mi>Q</mi><mrow><msub><mi>Y</mi><mrow><mi>t</mi><mo>−</mo><mn>1</mn></mrow></msub><mo stretchy="false" form="prefix">|</mo><mi>D</mi><mo>=</mo><mn>1</mn></mrow></msub><mo stretchy="false" form="prefix">(</mo><mi>τ</mi><mo stretchy="false" form="postfix">)</mo><mo>+</mo><msub><mi>Q</mi><mrow><msub><mi>Y</mi><mi>t</mi></msub><mo stretchy="false" form="prefix">|</mo><mi>D</mi><mo>=</mo><mn>0</mn></mrow></msub><mo stretchy="false" form="prefix">(</mo><mi>τ</mi><mo stretchy="false" form="postfix">)</mo><mo>−</mo><msub><mi>Q</mi><mrow><msub><mi>Y</mi><mrow><mi>t</mi><mo>−</mo><mn>1</mn></mrow></msub><mo stretchy="false" form="prefix">|</mo><mi>D</mi><mo>=</mo><mn>0</mn></mrow></msub><mo stretchy="false" form="prefix">(</mo><mi>τ</mi><mo stretchy="false" form="postfix">)</mo><mi>.</mi></mrow><annotation encoding="application/x-tex">Q_{Y_t(0)|D=1}(\tau) = Q_{Y_{t-1}|D=1}(\tau) + Q_{Y_t|D=0}(\tau) - Q_{Y_{t-1}|D=0}(\tau).</annotation></semantics></math></p>
-<p><strong>When to use:</strong> Works with panel or repeated cross sections.</p>
+<p><strong>References:</strong> <span class="citation" data-cites="athey-imbens-2006">Athey and Imbens (<a href="#ref-athey-imbens-2006" role="doc-biblioref">2006</a>)</span>; <span class="citation" data-cites="meyer-viscusi-durbin-1995">Meyer, Viscusi, and Durbin (<a href="#ref-meyer-viscusi-durbin-1995" role="doc-biblioref">1995</a>)</span></p>
+<p><strong>Identifying assumption:</strong> The change in quantiles over time is the same for both groups: <math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>Q</mi><mrow><msub><mi>Y</mi><mi>t</mi></msub><mrow><mo stretchy="true" form="prefix">(</mo><mn>0</mn><mo stretchy="true" form="postfix">)</mo></mrow><mo stretchy="false" form="prefix">|</mo><mi>D</mi><mo>=</mo><mn>1</mn></mrow></msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>τ</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>−</mo><msub><mi>Q</mi><mrow><msub><mi>Y</mi><mrow><mi>t</mi><mo>−</mo><mn>1</mn></mrow></msub><mrow><mo stretchy="true" form="prefix">(</mo><mn>0</mn><mo stretchy="true" form="postfix">)</mo></mrow><mo stretchy="false" form="prefix">|</mo><mi>D</mi><mo>=</mo><mn>1</mn></mrow></msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>τ</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><msub><mi>Q</mi><mrow><msub><mi>Y</mi><mi>t</mi></msub><mrow><mo stretchy="true" form="prefix">(</mo><mn>0</mn><mo stretchy="true" form="postfix">)</mo></mrow><mo stretchy="false" form="prefix">|</mo><mi>D</mi><mo>=</mo><mn>0</mn></mrow></msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>τ</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>−</mo><msub><mi>Q</mi><mrow><msub><mi>Y</mi><mrow><mi>t</mi><mo>−</mo><mn>1</mn></mrow></msub><mrow><mo stretchy="true" form="prefix">(</mo><mn>0</mn><mo stretchy="true" form="postfix">)</mo></mrow><mo stretchy="false" form="prefix">|</mo><mi>D</mi><mo>=</mo><mn>0</mn></mrow></msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>τ</mi><mo stretchy="true" form="postfix">)</mo></mrow><mspace width="1.0em"></mspace><mrow><mtext mathvariant="normal">for all </mtext><mspace width="0.333em"></mspace></mrow><mi>τ</mi><mo>∈</mo><mrow><mo stretchy="true" form="prefix">(</mo><mn>0</mn><mo>,</mo><mn>1</mn><mo stretchy="true" form="postfix">)</mo></mrow><mi>.</mi></mrow><annotation encoding="application/x-tex">Q_{Y_t(0)|D=1}(\tau) - Q_{Y_{t-1}(0)|D=1}(\tau) = Q_{Y_t(0)|D=0}(\tau) - Q_{Y_{t-1}(0)|D=0}(\tau) \quad \text{for all } \tau \in (0,1).</annotation></semantics></math></p>
+<p><strong>Intuition:</strong> This requires parallel trends to hold at every quantile level <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>τ</mi><annotation encoding="application/x-tex">\tau</annotation></semantics></math>, not just in the mean. It directly identifies the counterfactual: <math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>Q</mi><mrow><msub><mi>Y</mi><mi>t</mi></msub><mrow><mo stretchy="true" form="prefix">(</mo><mn>0</mn><mo stretchy="true" form="postfix">)</mo></mrow><mo stretchy="false" form="prefix">|</mo><mi>D</mi><mo>=</mo><mn>1</mn></mrow></msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>τ</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><msub><mi>Q</mi><mrow><msub><mi>Y</mi><mrow><mi>t</mi><mo>−</mo><mn>1</mn></mrow></msub><mo stretchy="false" form="prefix">|</mo><mi>D</mi><mo>=</mo><mn>1</mn></mrow></msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>τ</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>+</mo><msub><mi>Q</mi><mrow><msub><mi>Y</mi><mi>t</mi></msub><mo stretchy="false" form="prefix">|</mo><mi>D</mi><mo>=</mo><mn>0</mn></mrow></msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>τ</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>−</mo><msub><mi>Q</mi><mrow><msub><mi>Y</mi><mrow><mi>t</mi><mo>−</mo><mn>1</mn></mrow></msub><mo stretchy="false" form="prefix">|</mo><mi>D</mi><mo>=</mo><mn>0</mn></mrow></msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>τ</mi><mo stretchy="true" form="postfix">)</mo></mrow><mi>.</mi></mrow><annotation encoding="application/x-tex">Q_{Y_t(0)|D=1}(\tau) = Q_{Y_{t-1}|D=1}(\tau) + Q_{Y_t|D=0}(\tau) - Q_{Y_{t-1}|D=0}(\tau).</annotation></semantics></math></p>
+<p><strong>Data:</strong> Panel data or repeated cross sections (<code>panel = FALSE</code>).</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb5"><pre class="downlit sourceCode r">
+<div class="sourceCode cell-code" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">res_qdid</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/qdid.html">qdid</a></span><span class="op">(</span></span>
 <span>  yname  <span class="op">=</span> <span class="st">"lemp"</span>, gname <span class="op">=</span> <span class="st">"first.treat"</span>, tname <span class="op">=</span> <span class="st">"year"</span>,</span>
 <span>  idname <span class="op">=</span> <span class="st">"countyreal"</span>, data <span class="op">=</span> <span class="va">mpdta</span>,</span>
-<span>  gt_type <span class="op">=</span> <span class="st">"att"</span>, biters <span class="op">=</span> <span class="fl">100</span></span>
+<span>  gt_type <span class="op">=</span> <span class="st">"qtt"</span>, probs <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="fl">0.1</span>, <span class="fl">0.9</span>, <span class="fl">0.1</span><span class="op">)</span>, biters <span class="op">=</span> <span class="fl">100</span></span>
 <span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">res_qdid</span><span class="op">)</span></span></code></pre></div>
+<span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/autoplot.html" class="external-link">autoplot</a></span><span class="op">(</span><span class="va">res_qdid</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="cell">
-<pre><code><span><span class="co">#&gt;</span></span>
-<span><span class="co">#&gt; Overall ATT:</span></span>
-<span><span class="co">#&gt;      ATT    Std. Error     [ 95%  Conf. Int.]</span></span>
-<span><span class="co">#&gt;  -0.0282        0.0125    -0.0506     -0.0058 *</span></span>
-<span><span class="co">#&gt;</span></span>
-<span><span class="co">#&gt;</span></span>
-<span><span class="co">#&gt; Dynamic Effects:</span></span>
-<span><span class="co">#&gt;  Event Time Estimate Std. Error [95% Simult.  Conf. Band]</span></span>
-<span><span class="co">#&gt;          -3   0.0266     0.0172       -0.0070      0.0602</span></span>
-<span><span class="co">#&gt;          -2  -0.0040     0.0133       -0.0301      0.0221</span></span>
-<span><span class="co">#&gt;          -1  -0.0247     0.0126       -0.0493     -0.0001 *</span></span>
-<span><span class="co">#&gt;           0  -0.0164     0.0128       -0.0415      0.0086</span></span>
-<span><span class="co">#&gt;           1  -0.0584     0.0189       -0.0953     -0.0214 *</span></span>
-<span><span class="co">#&gt;           2  -0.1470     0.0408       -0.2269     -0.0671 *</span></span>
-<span><span class="co">#&gt;           3  -0.1111     0.0404       -0.1904     -0.0319 *</span></span>
-<span><span class="co">#&gt; ---</span></span>
-<span><span class="co">#&gt; Signif. codes: `*' confidence band does not cover 0</span></span></code></pre>
+<div class="cell-output-display">
+<div>
+<figure><p><img src="panel-estimators_files/figure-html/qdid-plot-1.png" alt="Overall QTT curve from qdid()" width="576"></p>
+</figure>
+</div>
+</div>
 </div>
 <hr></section><section class="level2"><h2 id="panel-qtt-panel_qtt">Panel QTT — <code>panel_qtt()</code>
 <a class="anchor" aria-label="anchor" href="#panel-qtt-panel_qtt"></a>
 </h2>
 <p><strong>Reference:</strong> <span class="citation" data-cites="callaway-li-2019">Callaway and Li (<a href="#ref-callaway-li-2019" role="doc-biblioref">2019</a>)</span></p>
-<p><strong>Identifying assumptions:</strong> The first assumption is <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="normal">Δ</mi><msub><mi>Y</mi><mi>t</mi></msub><mo stretchy="false" form="prefix">(</mo><mn>0</mn><mo stretchy="false" form="postfix">)</mo><mo>⟂</mo><mi>D</mi></mrow><annotation encoding="application/x-tex">\Delta Y_t(0) \perp D</annotation></semantics></math> — the distribution of the change in untreated potential outcomes is the same for both groups: <math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>F</mi><mrow><mi mathvariant="normal">Δ</mi><msub><mi>Y</mi><mi>t</mi></msub><mo stretchy="false" form="prefix">(</mo><mn>0</mn><mo stretchy="false" form="postfix">)</mo><mo stretchy="false" form="prefix">|</mo><mi>D</mi><mo>=</mo><mn>1</mn></mrow></msub><mo>=</mo><msub><mi>F</mi><mrow><mi mathvariant="normal">Δ</mi><msub><mi>Y</mi><mi>t</mi></msub><mo stretchy="false" form="prefix">(</mo><mn>0</mn><mo stretchy="false" form="postfix">)</mo><mo stretchy="false" form="prefix">|</mo><mi>D</mi><mo>=</mo><mn>0</mn></mrow></msub><mi>.</mi></mrow><annotation encoding="application/x-tex">F_{\Delta Y_t(0)|D=1} = F_{\Delta Y_t(0)|D=0}.</annotation></semantics></math> This identifies the marginal distribution of <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="normal">Δ</mi><msub><mi>Y</mi><mi>t</mi></msub><mo stretchy="false" form="prefix">(</mo><mn>0</mn><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\Delta Y_t(0)</annotation></semantics></math> for the treated group. As shown in <span class="citation" data-cites="fan-yu-2012">Fan and Yu (<a href="#ref-fan-yu-2012" role="doc-biblioref">2012</a>)</span>, this is not sufficient on its own to identify the QTT. Identification is completed by a copula stability assumption: the copula linking <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="normal">Δ</mi><msub><mi>Y</mi><mi>t</mi></msub><mo stretchy="false" form="prefix">(</mo><mn>0</mn><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\Delta Y_t(0)</annotation></semantics></math> to the lagged outcome <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>Y</mi><mrow><mi>t</mi><mo>−</mo><mn>1</mn></mrow></msub><mo stretchy="false" form="prefix">(</mo><mn>0</mn><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">Y_{t-1}(0)</annotation></semantics></math> is stable over time within the treated group, <math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>C</mi><mrow><mi mathvariant="normal">Δ</mi><msub><mi>Y</mi><mi>t</mi></msub><mo stretchy="false" form="prefix">(</mo><mn>0</mn><mo stretchy="false" form="postfix">)</mo><mo>,</mo><mspace width="0.167em"></mspace><msub><mi>Y</mi><mrow><mi>t</mi><mo>−</mo><mn>1</mn></mrow></msub><mo stretchy="false" form="prefix">(</mo><mn>0</mn><mo stretchy="false" form="postfix">)</mo><mo stretchy="false" form="prefix">|</mo><mi>D</mi><mo>=</mo><mn>1</mn></mrow></msub><mo>=</mo><msub><mi>C</mi><mrow><mi mathvariant="normal">Δ</mi><msub><mi>Y</mi><mrow><mi>t</mi><mo>−</mo><mn>1</mn></mrow></msub><mo stretchy="false" form="prefix">(</mo><mn>0</mn><mo stretchy="false" form="postfix">)</mo><mo>,</mo><mspace width="0.167em"></mspace><msub><mi>Y</mi><mrow><mi>t</mi><mo>−</mo><mn>2</mn></mrow></msub><mo stretchy="false" form="prefix">(</mo><mn>0</mn><mo stretchy="false" form="postfix">)</mo><mo stretchy="false" form="prefix">|</mo><mi>D</mi><mo>=</mo><mn>1</mn></mrow></msub><mi>.</mi></mrow><annotation encoding="application/x-tex">C_{\Delta Y_t(0),\, Y_{t-1}(0)|D=1} = C_{\Delta Y_{t-1}(0),\, Y_{t-2}(0)|D=1}.</annotation></semantics></math></p>
-<p><strong>Intuition:</strong> For treated units, <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>Y</mi><mrow><mi>t</mi><mo>−</mo><mn>1</mn></mrow></msub><annotation encoding="application/x-tex">Y_{t-1}</annotation></semantics></math> and <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>Y</mi><mrow><mi>t</mi><mo>−</mo><mn>2</mn></mrow></msub><annotation encoding="application/x-tex">Y_{t-2}</annotation></semantics></math> are observed pre-treatment, so the right-hand copula can be estimated directly from the data. Copula stability says this same dependence structure governs <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false" form="prefix">(</mo><mi mathvariant="normal">Δ</mi><msub><mi>Y</mi><mi>t</mi></msub><mo stretchy="false" form="prefix">(</mo><mn>0</mn><mo stretchy="false" form="postfix">)</mo><mo>,</mo><msub><mi>Y</mi><mrow><mi>t</mi><mo>−</mo><mn>1</mn></mrow></msub><mo stretchy="false" form="prefix">(</mo><mn>0</mn><mo stretchy="false" form="postfix">)</mo><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">(\Delta Y_t(0), Y_{t-1}(0))</annotation></semantics></math> in the post-period. Combined with the identified marginals, this pins down the conditional distribution of <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="normal">Δ</mi><msub><mi>Y</mi><mi>t</mi></msub><mo stretchy="false" form="prefix">(</mo><mn>0</mn><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\Delta Y_t(0)</annotation></semantics></math> given <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>Y</mi><mrow><mi>t</mi><mo>−</mo><mn>1</mn></mrow></msub><mo stretchy="false" form="prefix">(</mo><mn>0</mn><mo stretchy="false" form="postfix">)</mo><mo>=</mo><mi>y</mi></mrow><annotation encoding="application/x-tex">Y_{t-1}(0) = y</annotation></semantics></math> for treated units. Since <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>Y</mi><mi>t</mi></msub><mo stretchy="false" form="prefix">(</mo><mn>0</mn><mo stretchy="false" form="postfix">)</mo><mo>=</mo><msub><mi>Y</mi><mrow><mi>t</mi><mo>−</mo><mn>1</mn></mrow></msub><mo>+</mo><mi mathvariant="normal">Δ</mi><msub><mi>Y</mi><mi>t</mi></msub><mo stretchy="false" form="prefix">(</mo><mn>0</mn><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">Y_t(0) = Y_{t-1} + \Delta Y_t(0)</annotation></semantics></math> and <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>Y</mi><mrow><mi>t</mi><mo>−</mo><mn>1</mn></mrow></msub><annotation encoding="application/x-tex">Y_{t-1}</annotation></semantics></math> is observed, the QTT is identified. Requires panel data with at least two pre-treatment periods per cohort.</p>
+<p><strong>Identifying assumptions:</strong> The first assumption is <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>Δ</mi><msub><mi>Y</mi><mi>t</mi></msub><mrow><mo stretchy="true" form="prefix">(</mo><mn>0</mn><mo stretchy="true" form="postfix">)</mo></mrow><mo>⊥</mo><mi>D</mi></mrow><annotation encoding="application/x-tex">\Delta Y_t(0) \perp D</annotation></semantics></math> — the distribution of the change in untreated potential outcomes is the same for both groups: <math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>F</mi><mrow><mi>Δ</mi><msub><mi>Y</mi><mi>t</mi></msub><mrow><mo stretchy="true" form="prefix">(</mo><mn>0</mn><mo stretchy="true" form="postfix">)</mo></mrow><mo stretchy="false" form="prefix">|</mo><mi>D</mi><mo>=</mo><mn>1</mn></mrow></msub><mo>=</mo><msub><mi>F</mi><mrow><mi>Δ</mi><msub><mi>Y</mi><mi>t</mi></msub><mrow><mo stretchy="true" form="prefix">(</mo><mn>0</mn><mo stretchy="true" form="postfix">)</mo></mrow><mo stretchy="false" form="prefix">|</mo><mi>D</mi><mo>=</mo><mn>0</mn></mrow></msub><mi>.</mi></mrow><annotation encoding="application/x-tex">F_{\Delta Y_t(0)|D=1} = F_{\Delta Y_t(0)|D=0}.</annotation></semantics></math> This identifies the marginal distribution of <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>Δ</mi><msub><mi>Y</mi><mi>t</mi></msub><mrow><mo stretchy="true" form="prefix">(</mo><mn>0</mn><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">\Delta Y_t(0)</annotation></semantics></math> for the treated group. As shown in <span class="citation" data-cites="fan-yu-2012">Fan and Yu (<a href="#ref-fan-yu-2012" role="doc-biblioref">2012</a>)</span>, this is not sufficient on its own to identify the QTT. Identification is completed by a copula stability assumption: the copula linking <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>Δ</mi><msub><mi>Y</mi><mi>t</mi></msub><mrow><mo stretchy="true" form="prefix">(</mo><mn>0</mn><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">\Delta Y_t(0)</annotation></semantics></math> to the lagged outcome <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>Y</mi><mrow><mi>t</mi><mo>−</mo><mn>1</mn></mrow></msub><mrow><mo stretchy="true" form="prefix">(</mo><mn>0</mn><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">Y_{t-1}(0)</annotation></semantics></math> is stable over time within the treated group, <math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>C</mi><mrow><mi>Δ</mi><msub><mi>Y</mi><mi>t</mi></msub><mrow><mo stretchy="true" form="prefix">(</mo><mn>0</mn><mo stretchy="true" form="postfix">)</mo></mrow><mo>,</mo><mspace width="0.167em"></mspace><msub><mi>Y</mi><mrow><mi>t</mi><mo>−</mo><mn>1</mn></mrow></msub><mrow><mo stretchy="true" form="prefix">(</mo><mn>0</mn><mo stretchy="true" form="postfix">)</mo></mrow><mo stretchy="false" form="prefix">|</mo><mi>D</mi><mo>=</mo><mn>1</mn></mrow></msub><mo>=</mo><msub><mi>C</mi><mrow><mi>Δ</mi><msub><mi>Y</mi><mrow><mi>t</mi><mo>−</mo><mn>1</mn></mrow></msub><mrow><mo stretchy="true" form="prefix">(</mo><mn>0</mn><mo stretchy="true" form="postfix">)</mo></mrow><mo>,</mo><mspace width="0.167em"></mspace><msub><mi>Y</mi><mrow><mi>t</mi><mo>−</mo><mn>2</mn></mrow></msub><mrow><mo stretchy="true" form="prefix">(</mo><mn>0</mn><mo stretchy="true" form="postfix">)</mo></mrow><mo stretchy="false" form="prefix">|</mo><mi>D</mi><mo>=</mo><mn>1</mn></mrow></msub><mi>.</mi></mrow><annotation encoding="application/x-tex">C_{\Delta Y_t(0),\, Y_{t-1}(0)|D=1} = C_{\Delta Y_{t-1}(0),\, Y_{t-2}(0)|D=1}.</annotation></semantics></math></p>
+<p><strong>Intuition:</strong> For treated units, <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>Y</mi><mrow><mi>t</mi><mo>−</mo><mn>1</mn></mrow></msub><annotation encoding="application/x-tex">Y_{t-1}</annotation></semantics></math> and <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>Y</mi><mrow><mi>t</mi><mo>−</mo><mn>2</mn></mrow></msub><annotation encoding="application/x-tex">Y_{t-2}</annotation></semantics></math> are observed pre-treatment, so the right-hand copula can be estimated directly from the data. Copula stability says this same dependence structure governs <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="true" form="prefix">(</mo><mi>Δ</mi><msub><mi>Y</mi><mi>t</mi></msub><mrow><mo stretchy="true" form="prefix">(</mo><mn>0</mn><mo stretchy="true" form="postfix">)</mo></mrow><mo>,</mo><msub><mi>Y</mi><mrow><mi>t</mi><mo>−</mo><mn>1</mn></mrow></msub><mrow><mo stretchy="true" form="prefix">(</mo><mn>0</mn><mo stretchy="true" form="postfix">)</mo></mrow><mo stretchy="true" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">(\Delta Y_t(0), Y_{t-1}(0))</annotation></semantics></math> in the post-period. Combined with the identified marginals, this pins down the conditional distribution of <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>Δ</mi><msub><mi>Y</mi><mi>t</mi></msub><mrow><mo stretchy="true" form="prefix">(</mo><mn>0</mn><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">\Delta Y_t(0)</annotation></semantics></math> given <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>Y</mi><mrow><mi>t</mi><mo>−</mo><mn>1</mn></mrow></msub><mrow><mo stretchy="true" form="prefix">(</mo><mn>0</mn><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><mi>y</mi></mrow><annotation encoding="application/x-tex">Y_{t-1}(0) = y</annotation></semantics></math> for treated units. Since <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>Y</mi><mi>t</mi></msub><mrow><mo stretchy="true" form="prefix">(</mo><mn>0</mn><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><msub><mi>Y</mi><mrow><mi>t</mi><mo>−</mo><mn>1</mn></mrow></msub><mo>+</mo><mi>Δ</mi><msub><mi>Y</mi><mi>t</mi></msub><mrow><mo stretchy="true" form="prefix">(</mo><mn>0</mn><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">Y_t(0) = Y_{t-1} + \Delta Y_t(0)</annotation></semantics></math> and <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>Y</mi><mrow><mi>t</mi><mo>−</mo><mn>1</mn></mrow></msub><annotation encoding="application/x-tex">Y_{t-1}</annotation></semantics></math> is observed, the QTT is identified.</p>
+<p><strong>Data:</strong> Panel data, with at least two pre-treatment periods per cohort. With staggered adoption, the default <code>pre_copula = "long"</code> uses a pre-treatment window as long as the post-treatment horizon, so longer event times need more pre-treatment periods; <code>pre_copula = "short"</code> always uses the two periods just before treatment.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb7"><pre class="downlit sourceCode r">
+<div class="sourceCode cell-code" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">res_pqtt</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/panel_qtt.html">panel_qtt</a></span><span class="op">(</span></span>
 <span>  yname  <span class="op">=</span> <span class="st">"lemp"</span>, gname <span class="op">=</span> <span class="st">"first.treat"</span>, tname <span class="op">=</span> <span class="st">"year"</span>,</span>
 <span>  idname <span class="op">=</span> <span class="st">"countyreal"</span>, data <span class="op">=</span> <span class="va">mpdta</span>,</span>
 <span>  gt_type <span class="op">=</span> <span class="st">"qtt"</span>, probs <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="fl">0.1</span>, <span class="fl">0.9</span>, <span class="fl">0.1</span><span class="op">)</span>, biters <span class="op">=</span> <span class="fl">100</span></span>
 <span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">res_pqtt</span><span class="op">)</span></span></code></pre></div>
+<span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/autoplot.html" class="external-link">autoplot</a></span><span class="op">(</span><span class="va">res_pqtt</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="cell">
-<pre><code><span><span class="co">#&gt;</span></span>
-<span><span class="co">#&gt; Overall QTT Curve:</span></span>
-<span><span class="co">#&gt;  Quantile     QTT Std. Error 95% CB Lower 95% CB Upper</span></span>
-<span><span class="co">#&gt;       0.1 -0.0270     0.1625      -0.6175       0.5634</span></span>
-<span><span class="co">#&gt;       0.2 -0.0852     0.0833      -0.3879       0.2176</span></span>
-<span><span class="co">#&gt;       0.3 -0.0250     0.0523      -0.2149       0.1650</span></span>
-<span><span class="co">#&gt;       0.4 -0.0680     0.0612      -0.2905       0.1546</span></span>
-<span><span class="co">#&gt;       0.5 -0.0965     0.0545      -0.2944       0.1014</span></span>
-<span><span class="co">#&gt;       0.6  0.0070     0.0375      -0.1294       0.1433</span></span>
-<span><span class="co">#&gt;       0.7  0.0409     0.0567      -0.1652       0.2470</span></span>
-<span><span class="co">#&gt;       0.8 -0.0201     0.0581      -0.2312       0.1910</span></span>
-<span><span class="co">#&gt;       0.9 -0.0832     0.0632      -0.3130       0.1466</span></span></code></pre>
+<div class="cell-output-display">
+<div>
+<figure><p><img src="panel-estimators_files/figure-html/panel-qtt-plot-1.png" alt="Overall QTT curve from panel_qtt()" width="576"></p>
+</figure>
+</div>
+</div>
 </div>
 <hr></section><section class="level2"><h2 id="distributional-did-ddid">Distributional DiD — <code>ddid()</code>
 <a class="anchor" aria-label="anchor" href="#distributional-did-ddid"></a>
 </h2>
 <p><strong>Reference:</strong> <span class="citation" data-cites="callaway-li-2019">Callaway and Li (<a href="#ref-callaway-li-2019" role="doc-biblioref">2019</a>)</span></p>
-<p><strong>Identifying assumptions:</strong> The first is <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="normal">Δ</mi><msub><mi>Y</mi><mi>t</mi></msub><mo stretchy="false" form="prefix">(</mo><mn>0</mn><mo stretchy="false" form="postfix">)</mo><mo>⟂</mo><mi>D</mi></mrow><annotation encoding="application/x-tex">\Delta Y_t(0) \perp D</annotation></semantics></math> — the same as in <code><a href="../reference/panel_qtt.html">panel_qtt()</a></code>. The copula assumption differs: rather than stability over time, <code><a href="../reference/ddid.html">ddid()</a></code> assumes the copula of <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false" form="prefix">(</mo><mi mathvariant="normal">Δ</mi><msub><mi>Y</mi><mi>t</mi></msub><mo stretchy="false" form="prefix">(</mo><mn>0</mn><mo stretchy="false" form="postfix">)</mo><mo>,</mo><msub><mi>Y</mi><mrow><mi>t</mi><mo>−</mo><mn>1</mn></mrow></msub><mo stretchy="false" form="prefix">(</mo><mn>0</mn><mo stretchy="false" form="postfix">)</mo><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">(\Delta Y_t(0), Y_{t-1}(0))</annotation></semantics></math> is the same for treated and untreated groups, <math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>C</mi><mrow><mi mathvariant="normal">Δ</mi><msub><mi>Y</mi><mi>t</mi></msub><mo stretchy="false" form="prefix">(</mo><mn>0</mn><mo stretchy="false" form="postfix">)</mo><mo>,</mo><mspace width="0.167em"></mspace><msub><mi>Y</mi><mrow><mi>t</mi><mo>−</mo><mn>1</mn></mrow></msub><mo stretchy="false" form="prefix">(</mo><mn>0</mn><mo stretchy="false" form="postfix">)</mo><mo stretchy="false" form="prefix">|</mo><mi>D</mi><mo>=</mo><mn>1</mn></mrow></msub><mo>=</mo><msub><mi>C</mi><mrow><mi mathvariant="normal">Δ</mi><msub><mi>Y</mi><mi>t</mi></msub><mo stretchy="false" form="prefix">(</mo><mn>0</mn><mo stretchy="false" form="postfix">)</mo><mo>,</mo><mspace width="0.167em"></mspace><msub><mi>Y</mi><mrow><mi>t</mi><mo>−</mo><mn>1</mn></mrow></msub><mo stretchy="false" form="prefix">(</mo><mn>0</mn><mo stretchy="false" form="postfix">)</mo><mo stretchy="false" form="prefix">|</mo><mi>D</mi><mo>=</mo><mn>0</mn></mrow></msub><mi>.</mi></mrow><annotation encoding="application/x-tex">C_{\Delta Y_t(0),\, Y_{t-1}(0)|D=1} = C_{\Delta Y_t(0),\, Y_{t-1}(0)|D=0}.</annotation></semantics></math></p>
-<p><strong>Intuition:</strong> For the untreated group, <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi mathvariant="normal">Δ</mi><msub><mi>Y</mi><mi>t</mi></msub><mo stretchy="false" form="prefix">(</mo><mn>0</mn><mo stretchy="false" form="postfix">)</mo><mo>=</mo><mi mathvariant="normal">Δ</mi><msub><mi>Y</mi><mi>t</mi></msub></mrow><annotation encoding="application/x-tex">\Delta Y_t(0) = \Delta Y_t</annotation></semantics></math> is observed, so the right-hand copula can be estimated directly. The assumption transfers it to the treated group. Combined with the identified marginals, this pins down the joint distribution of <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="false" form="prefix">(</mo><mi mathvariant="normal">Δ</mi><msub><mi>Y</mi><mi>t</mi></msub><mo stretchy="false" form="prefix">(</mo><mn>0</mn><mo stretchy="false" form="postfix">)</mo><mo>,</mo><msub><mi>Y</mi><mrow><mi>t</mi><mo>−</mo><mn>1</mn></mrow></msub><mo stretchy="false" form="prefix">(</mo><mn>0</mn><mo stretchy="false" form="postfix">)</mo><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">(\Delta Y_t(0), Y_{t-1}(0))</annotation></semantics></math> for treated units and identifies the QTT — in exactly the same way as <code><a href="../reference/panel_qtt.html">panel_qtt()</a></code>. The key contrast is the source of the copula: <code><a href="../reference/ddid.html">ddid()</a></code> borrows it from the untreated group at the same point in time, while <code><a href="../reference/panel_qtt.html">panel_qtt()</a></code> borrows it from the treated group’s own pre-treatment history.</p>
+<p><strong>Identifying assumptions:</strong> The first is <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>Δ</mi><msub><mi>Y</mi><mi>t</mi></msub><mrow><mo stretchy="true" form="prefix">(</mo><mn>0</mn><mo stretchy="true" form="postfix">)</mo></mrow><mo>⊥</mo><mi>D</mi></mrow><annotation encoding="application/x-tex">\Delta Y_t(0) \perp D</annotation></semantics></math> — the same as in <code><a href="../reference/panel_qtt.html">panel_qtt()</a></code>. The copula assumption differs: rather than stability over time, <code><a href="../reference/ddid.html">ddid()</a></code> assumes the copula of <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="true" form="prefix">(</mo><mi>Δ</mi><msub><mi>Y</mi><mi>t</mi></msub><mrow><mo stretchy="true" form="prefix">(</mo><mn>0</mn><mo stretchy="true" form="postfix">)</mo></mrow><mo>,</mo><msub><mi>Y</mi><mrow><mi>t</mi><mo>−</mo><mn>1</mn></mrow></msub><mrow><mo stretchy="true" form="prefix">(</mo><mn>0</mn><mo stretchy="true" form="postfix">)</mo></mrow><mo stretchy="true" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">(\Delta Y_t(0), Y_{t-1}(0))</annotation></semantics></math> is the same for treated and untreated groups, <math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>C</mi><mrow><mi>Δ</mi><msub><mi>Y</mi><mi>t</mi></msub><mrow><mo stretchy="true" form="prefix">(</mo><mn>0</mn><mo stretchy="true" form="postfix">)</mo></mrow><mo>,</mo><mspace width="0.167em"></mspace><msub><mi>Y</mi><mrow><mi>t</mi><mo>−</mo><mn>1</mn></mrow></msub><mrow><mo stretchy="true" form="prefix">(</mo><mn>0</mn><mo stretchy="true" form="postfix">)</mo></mrow><mo stretchy="false" form="prefix">|</mo><mi>D</mi><mo>=</mo><mn>1</mn></mrow></msub><mo>=</mo><msub><mi>C</mi><mrow><mi>Δ</mi><msub><mi>Y</mi><mi>t</mi></msub><mrow><mo stretchy="true" form="prefix">(</mo><mn>0</mn><mo stretchy="true" form="postfix">)</mo></mrow><mo>,</mo><mspace width="0.167em"></mspace><msub><mi>Y</mi><mrow><mi>t</mi><mo>−</mo><mn>1</mn></mrow></msub><mrow><mo stretchy="true" form="prefix">(</mo><mn>0</mn><mo stretchy="true" form="postfix">)</mo></mrow><mo stretchy="false" form="prefix">|</mo><mi>D</mi><mo>=</mo><mn>0</mn></mrow></msub><mi>.</mi></mrow><annotation encoding="application/x-tex">C_{\Delta Y_t(0),\, Y_{t-1}(0)|D=1} = C_{\Delta Y_t(0),\, Y_{t-1}(0)|D=0}.</annotation></semantics></math></p>
+<p><strong>Intuition:</strong> For the untreated group, <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>Δ</mi><msub><mi>Y</mi><mi>t</mi></msub><mrow><mo stretchy="true" form="prefix">(</mo><mn>0</mn><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><mi>Δ</mi><msub><mi>Y</mi><mi>t</mi></msub></mrow><annotation encoding="application/x-tex">\Delta Y_t(0) = \Delta Y_t</annotation></semantics></math> is observed, so the right-hand copula can be estimated directly. The assumption transfers it to the treated group. Combined with the identified marginals, this pins down the joint distribution of <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo stretchy="true" form="prefix">(</mo><mi>Δ</mi><msub><mi>Y</mi><mi>t</mi></msub><mrow><mo stretchy="true" form="prefix">(</mo><mn>0</mn><mo stretchy="true" form="postfix">)</mo></mrow><mo>,</mo><msub><mi>Y</mi><mrow><mi>t</mi><mo>−</mo><mn>1</mn></mrow></msub><mrow><mo stretchy="true" form="prefix">(</mo><mn>0</mn><mo stretchy="true" form="postfix">)</mo></mrow><mo stretchy="true" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">(\Delta Y_t(0), Y_{t-1}(0))</annotation></semantics></math> for treated units and identifies the QTT — in exactly the same way as <code><a href="../reference/panel_qtt.html">panel_qtt()</a></code>. The key contrast is the source of the copula: <code><a href="../reference/ddid.html">ddid()</a></code> borrows it from the untreated group at the same point in time, while <code><a href="../reference/panel_qtt.html">panel_qtt()</a></code> borrows it from the treated group’s own pre-treatment history.</p>
+<p><strong>Data:</strong> Panel data, with one pre-treatment period per cohort.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb9"><pre class="downlit sourceCode r">
+<div class="sourceCode cell-code" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">res_ddid</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/ddid.html">ddid</a></span><span class="op">(</span></span>
 <span>  yname  <span class="op">=</span> <span class="st">"lemp"</span>, gname <span class="op">=</span> <span class="st">"first.treat"</span>, tname <span class="op">=</span> <span class="st">"year"</span>,</span>
 <span>  idname <span class="op">=</span> <span class="st">"countyreal"</span>, data <span class="op">=</span> <span class="va">mpdta</span>,</span>
-<span>  gt_type <span class="op">=</span> <span class="st">"att"</span>, biters <span class="op">=</span> <span class="fl">100</span></span>
+<span>  gt_type <span class="op">=</span> <span class="st">"qtt"</span>, probs <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="fl">0.1</span>, <span class="fl">0.9</span>, <span class="fl">0.1</span><span class="op">)</span>, biters <span class="op">=</span> <span class="fl">100</span></span>
 <span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">res_ddid</span><span class="op">)</span></span></code></pre></div>
+<span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/autoplot.html" class="external-link">autoplot</a></span><span class="op">(</span><span class="va">res_ddid</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="cell">
-<pre><code><span><span class="co">#&gt;</span></span>
-<span><span class="co">#&gt; Overall ATT:</span></span>
-<span><span class="co">#&gt;      ATT    Std. Error     [ 95%  Conf. Int.]</span></span>
-<span><span class="co">#&gt;  -0.0453        0.0143    -0.0785      -0.012 *</span></span>
-<span><span class="co">#&gt;</span></span>
-<span><span class="co">#&gt;</span></span>
-<span><span class="co">#&gt; Dynamic Effects:</span></span>
-<span><span class="co">#&gt;  Event Time Estimate Std. Error [95% Simult.  Conf. Band]</span></span>
-<span><span class="co">#&gt;          -3   0.0134     0.0159       -0.0178      0.0446</span></span>
-<span><span class="co">#&gt;          -2  -0.0146     0.0151       -0.0442      0.0150</span></span>
-<span><span class="co">#&gt;          -1  -0.0403     0.0154       -0.0704     -0.0102 *</span></span>
-<span><span class="co">#&gt;           0  -0.0324     0.0132       -0.0583     -0.0065 *</span></span>
-<span><span class="co">#&gt;           1  -0.0637     0.0182       -0.0994     -0.0281 *</span></span>
-<span><span class="co">#&gt;           2  -0.1377     0.0352       -0.2068     -0.0686 *</span></span>
-<span><span class="co">#&gt;           3  -0.1087     0.0367       -0.1806     -0.0368 *</span></span>
-<span><span class="co">#&gt; ---</span></span>
-<span><span class="co">#&gt; Signif. codes: `*' confidence band does not cover 0</span></span></code></pre>
+<div class="cell-output-display">
+<div>
+<figure><p><img src="panel-estimators_files/figure-html/ddid-plot-1.png" alt="Overall QTT curve from ddid()" width="576"></p>
+</figure>
+</div>
+</div>
 </div>
 <hr></section><section class="level2"><h2 id="mean-difference-in-differences-mdid">Mean Difference-in-Differences — <code>mdid()</code>
 <a class="anchor" aria-label="anchor" href="#mean-difference-in-differences-mdid"></a>
 </h2>
 <p><strong>Reference:</strong> <span class="citation" data-cites="thuysbaert-2007">Thuysbaert (<a href="#ref-thuysbaert-2007" role="doc-biblioref">2007</a>)</span></p>
-<p><strong>Identifying assumption:</strong> The counterfactual quantile for the treated group in the post-period is the pre-period quantile shifted by the mean change in outcomes for the untreated group: <math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>Q</mi><mrow><msub><mi>Y</mi><mi>t</mi></msub><mo stretchy="false" form="prefix">(</mo><mn>0</mn><mo stretchy="false" form="postfix">)</mo><mo stretchy="false" form="prefix">|</mo><mi>D</mi><mo>=</mo><mn>1</mn></mrow></msub><mo stretchy="false" form="prefix">(</mo><mi>τ</mi><mo stretchy="false" form="postfix">)</mo><mo>=</mo><msub><mi>Q</mi><mrow><msub><mi>Y</mi><mrow><mi>t</mi><mo>−</mo><mn>1</mn></mrow></msub><mo stretchy="false" form="prefix">|</mo><mi>D</mi><mo>=</mo><mn>1</mn></mrow></msub><mo stretchy="false" form="prefix">(</mo><mi>τ</mi><mo stretchy="false" form="postfix">)</mo><mo>+</mo><mi>E</mi><mo stretchy="false" form="prefix">[</mo><msub><mi>Y</mi><mi>t</mi></msub><mo stretchy="false" form="prefix">|</mo><mi>D</mi><mo>=</mo><mn>0</mn><mo stretchy="false" form="postfix">]</mo><mo>−</mo><mi>E</mi><mo stretchy="false" form="prefix">[</mo><msub><mi>Y</mi><mrow><mi>t</mi><mo>−</mo><mn>1</mn></mrow></msub><mo stretchy="false" form="prefix">|</mo><mi>D</mi><mo>=</mo><mn>0</mn><mo stretchy="false" form="postfix">]</mo><mi>.</mi></mrow><annotation encoding="application/x-tex">Q_{Y_t(0)|D=1}(\tau) = Q_{Y_{t-1}|D=1}(\tau) + E[Y_t|D=0] - E[Y_{t-1}|D=0].</annotation></semantics></math></p>
-<p><strong>Intuition:</strong> The assumption says the shape of the treated group’s outcome distribution is unchanged in the counterfactual — the entire distribution simply shifts by the amount the untreated group’s mean changed. This implies mean parallel trends (so the ATT is identified), but is stronger: it additionally requires that only the location of the distribution shifts, not its shape. Works with panel or repeated cross sections.</p>
+<p><strong>Identifying assumption:</strong> The counterfactual quantile for the treated group in the post-period is the pre-period quantile shifted by the mean change in outcomes for the untreated group: <math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>Q</mi><mrow><msub><mi>Y</mi><mi>t</mi></msub><mrow><mo stretchy="true" form="prefix">(</mo><mn>0</mn><mo stretchy="true" form="postfix">)</mo></mrow><mo stretchy="false" form="prefix">|</mo><mi>D</mi><mo>=</mo><mn>1</mn></mrow></msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>τ</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><msub><mi>Q</mi><mrow><msub><mi>Y</mi><mrow><mi>t</mi><mo>−</mo><mn>1</mn></mrow></msub><mo stretchy="false" form="prefix">|</mo><mi>D</mi><mo>=</mo><mn>1</mn></mrow></msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>τ</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>+</mo><mi>E</mi><mrow><mo stretchy="true" form="prefix">[</mo><msub><mi>Y</mi><mi>t</mi></msub><mo stretchy="false" form="prefix">|</mo><mi>D</mi><mo>=</mo><mn>0</mn><mo stretchy="true" form="postfix">]</mo></mrow><mo>−</mo><mi>E</mi><mrow><mo stretchy="true" form="prefix">[</mo><msub><mi>Y</mi><mrow><mi>t</mi><mo>−</mo><mn>1</mn></mrow></msub><mo stretchy="false" form="prefix">|</mo><mi>D</mi><mo>=</mo><mn>0</mn><mo stretchy="true" form="postfix">]</mo></mrow><mi>.</mi></mrow><annotation encoding="application/x-tex">Q_{Y_t(0)|D=1}(\tau) = Q_{Y_{t-1}|D=1}(\tau) + E[Y_t|D=0] - E[Y_{t-1}|D=0].</annotation></semantics></math></p>
+<p><strong>Intuition:</strong> The assumption says the shape of the treated group’s outcome distribution is unchanged in the counterfactual — the entire distribution simply shifts by the amount the untreated group’s mean changed. This implies mean parallel trends, so the ATT is the usual DiD estimate, but it is stronger: it additionally requires that only the location of the untreated distribution changes over time, not its shape.</p>
+<p><strong>Data:</strong> Panel data or repeated cross sections (<code>panel = FALSE</code>).</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb11"><pre class="downlit sourceCode r">
+<div class="sourceCode cell-code" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">res_mdid</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/mdid.html">mdid</a></span><span class="op">(</span></span>
 <span>  yname  <span class="op">=</span> <span class="st">"lemp"</span>, gname <span class="op">=</span> <span class="st">"first.treat"</span>, tname <span class="op">=</span> <span class="st">"year"</span>,</span>
 <span>  idname <span class="op">=</span> <span class="st">"countyreal"</span>, data <span class="op">=</span> <span class="va">mpdta</span>,</span>
-<span>  gt_type <span class="op">=</span> <span class="st">"att"</span>, biters <span class="op">=</span> <span class="fl">100</span></span>
+<span>  gt_type <span class="op">=</span> <span class="st">"qtt"</span>, probs <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="fl">0.1</span>, <span class="fl">0.9</span>, <span class="fl">0.1</span><span class="op">)</span>, biters <span class="op">=</span> <span class="fl">100</span></span>
 <span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">res_mdid</span><span class="op">)</span></span></code></pre></div>
+<span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/autoplot.html" class="external-link">autoplot</a></span><span class="op">(</span><span class="va">res_mdid</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="cell">
-<pre><code><span><span class="co">#&gt;</span></span>
-<span><span class="co">#&gt; Overall ATT:</span></span>
-<span><span class="co">#&gt;      ATT    Std. Error     [ 95%  Conf. Int.]</span></span>
-<span><span class="co">#&gt;  -0.0305        0.0114    -0.0496     -0.0113 *</span></span>
-<span><span class="co">#&gt;</span></span>
-<span><span class="co">#&gt;</span></span>
-<span><span class="co">#&gt; Dynamic Effects:</span></span>
-<span><span class="co">#&gt;  Event Time Estimate Std. Error [95% Simult.  Conf. Band]</span></span>
-<span><span class="co">#&gt;          -3   0.0298     0.0127        0.0048      0.0547 *</span></span>
-<span><span class="co">#&gt;          -2  -0.0024     0.0158       -0.0334      0.0285</span></span>
-<span><span class="co">#&gt;          -1  -0.0243     0.0131       -0.0500      0.0014</span></span>
-<span><span class="co">#&gt;           0  -0.0189     0.0106       -0.0397      0.0018</span></span>
-<span><span class="co">#&gt;           1  -0.0536     0.0173       -0.0875     -0.0197 *</span></span>
-<span><span class="co">#&gt;           2  -0.1363     0.0393       -0.2133     -0.0593 *</span></span>
-<span><span class="co">#&gt;           3  -0.1008     0.0378       -0.1748     -0.0268 *</span></span>
-<span><span class="co">#&gt; ---</span></span>
-<span><span class="co">#&gt; Signif. codes: `*' confidence band does not cover 0</span></span></code></pre>
+<div class="cell-output-display">
+<div>
+<figure><p><img src="panel-estimators_files/figure-html/mdid-plot-1.png" alt="Overall QTT curve from mdid()" width="576"></p>
+</figure>
+</div>
+</div>
+</div>
+<hr></section><section class="level2"><h2 id="parallel-trends-in-distribution-functions-cdf_did">Parallel Trends in Distribution Functions — <code>cdf_did()</code>
+<a class="anchor" aria-label="anchor" href="#parallel-trends-in-distribution-functions-cdf_did"></a>
+</h2>
+<p><strong>Reference:</strong> <span class="citation" data-cites="roth-santanna-2021">Roth and Sant’Anna (<a href="#ref-roth-santanna-2021" role="doc-biblioref">2023</a>)</span></p>
+<p><strong>Identifying assumption:</strong> The change over time in the distribution function of untreated potential outcomes is the same for both groups, at every value <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>y</mi><annotation encoding="application/x-tex">y</annotation></semantics></math>: <math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>F</mi><mrow><msub><mi>Y</mi><mi>t</mi></msub><mrow><mo stretchy="true" form="prefix">(</mo><mn>0</mn><mo stretchy="true" form="postfix">)</mo></mrow><mo stretchy="false" form="prefix">|</mo><mi>D</mi><mo>=</mo><mn>1</mn></mrow></msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>y</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>−</mo><msub><mi>F</mi><mrow><msub><mi>Y</mi><mrow><mi>t</mi><mo>−</mo><mn>1</mn></mrow></msub><mrow><mo stretchy="true" form="prefix">(</mo><mn>0</mn><mo stretchy="true" form="postfix">)</mo></mrow><mo stretchy="false" form="prefix">|</mo><mi>D</mi><mo>=</mo><mn>1</mn></mrow></msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>y</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><msub><mi>F</mi><mrow><msub><mi>Y</mi><mi>t</mi></msub><mrow><mo stretchy="true" form="prefix">(</mo><mn>0</mn><mo stretchy="true" form="postfix">)</mo></mrow><mo stretchy="false" form="prefix">|</mo><mi>D</mi><mo>=</mo><mn>0</mn></mrow></msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>y</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>−</mo><msub><mi>F</mi><mrow><msub><mi>Y</mi><mrow><mi>t</mi><mo>−</mo><mn>1</mn></mrow></msub><mrow><mo stretchy="true" form="prefix">(</mo><mn>0</mn><mo stretchy="true" form="postfix">)</mo></mrow><mo stretchy="false" form="prefix">|</mo><mi>D</mi><mo>=</mo><mn>0</mn></mrow></msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>y</mi><mo stretchy="true" form="postfix">)</mo></mrow><mspace width="1.0em"></mspace><mrow><mtext mathvariant="normal">for all </mtext><mspace width="0.333em"></mspace></mrow><mi>y</mi><mi>.</mi></mrow><annotation encoding="application/x-tex">F_{Y_t(0)|D=1}(y) - F_{Y_{t-1}(0)|D=1}(y) = F_{Y_t(0)|D=0}(y) - F_{Y_{t-1}(0)|D=0}(y) \quad \text{for all } y.</annotation></semantics></math></p>
+<p><strong>Intuition:</strong> This is parallel trends for every indicator <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>1</mn><mo stretchy="false" form="prefix">{</mo><mi>Y</mi><mo>≤</mo><mi>y</mi><mo stretchy="false" form="postfix">}</mo></mrow><annotation encoding="application/x-tex">1\{Y \le y\}</annotation></semantics></math> instead of for <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>Y</mi><annotation encoding="application/x-tex">Y</annotation></semantics></math> itself. <span class="citation" data-cites="roth-santanna-2021">Roth and Sant’Anna (<a href="#ref-roth-santanna-2021" role="doc-biblioref">2023</a>)</span> show that it is essentially the condition under which parallel trends holds for every strictly monotone transformation of the outcome (logs, levels, …), so it is the natural assumption when the choice of units is arbitrary. It implies mean parallel trends, so the ATT is the usual DiD estimate. The counterfactual distribution is <math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>F</mi><mrow><msub><mi>Y</mi><mi>t</mi></msub><mrow><mo stretchy="true" form="prefix">(</mo><mn>0</mn><mo stretchy="true" form="postfix">)</mo></mrow><mo stretchy="false" form="prefix">|</mo><mi>D</mi><mo>=</mo><mn>1</mn></mrow></msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>y</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><msub><mi>F</mi><mrow><msub><mi>Y</mi><mrow><mi>t</mi><mo>−</mo><mn>1</mn></mrow></msub><mo stretchy="false" form="prefix">|</mo><mi>D</mi><mo>=</mo><mn>1</mn></mrow></msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>y</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>+</mo><msub><mi>F</mi><mrow><msub><mi>Y</mi><mi>t</mi></msub><mo stretchy="false" form="prefix">|</mo><mi>D</mi><mo>=</mo><mn>0</mn></mrow></msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>y</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>−</mo><msub><mi>F</mi><mrow><msub><mi>Y</mi><mrow><mi>t</mi><mo>−</mo><mn>1</mn></mrow></msub><mo stretchy="false" form="prefix">|</mo><mi>D</mi><mo>=</mo><mn>0</mn></mrow></msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>y</mi><mo stretchy="true" form="postfix">)</mo></mrow><mi>.</mi></mrow><annotation encoding="application/x-tex">F_{Y_t(0)|D=1}(y) = F_{Y_{t-1}|D=1}(y) + F_{Y_t|D=0}(y) - F_{Y_{t-1}|D=0}(y).</annotation></semantics></math> In finite samples the right-hand side need not be a valid distribution function; <code><a href="../reference/cdf_did.html">cdf_did()</a></code> rearranges it into one <span class="citation" data-cites="chernozhukov-val-galichon-2010">(<a href="#ref-chernozhukov-val-galichon-2010" role="doc-biblioref">Chernozhukov, Fernandez-Val, and Galichon 2010</a>)</span> and reports how much that changed it.</p>
+<p>Unlike the rank- and quantile-based estimators above, this assumption identifies the counterfactual distribution for discrete outcomes too. With covariates, <code>est_method = c("aipw", "ipw", "reg")</code> gives doubly robust, inverse-probability-weighted and outcome-regression versions of the conditional assumption <span class="citation" data-cites="santanna-zhao-2020">(<a href="#ref-santanna-zhao-2020" role="doc-biblioref">Sant’Anna and Zhao 2020</a>)</span>, applied at each threshold <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>y</mi><annotation encoding="application/x-tex">y</annotation></semantics></math>.</p>
+<p><strong>Data:</strong> Panel data or repeated cross sections (<code>panel = FALSE</code>).</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb8"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">res_cdf</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/cdf_did.html">cdf_did</a></span><span class="op">(</span></span>
+<span>  yname  <span class="op">=</span> <span class="st">"lemp"</span>, gname <span class="op">=</span> <span class="st">"first.treat"</span>, tname <span class="op">=</span> <span class="st">"year"</span>,</span>
+<span>  idname <span class="op">=</span> <span class="st">"countyreal"</span>, data <span class="op">=</span> <span class="va">mpdta</span>,</span>
+<span>  gt_type <span class="op">=</span> <span class="st">"qtt"</span>, probs <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="fl">0.1</span>, <span class="fl">0.9</span>, <span class="fl">0.1</span><span class="op">)</span>, biters <span class="op">=</span> <span class="fl">100</span></span>
+<span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/autoplot.html" class="external-link">autoplot</a></span><span class="op">(</span><span class="va">res_cdf</span><span class="op">)</span></span></code></pre></div>
+</div>
+<div class="cell">
+<div class="cell-output-display">
+<div>
+<figure><p><img src="panel-estimators_files/figure-html/cdf-did-plot-1.png" alt="Overall QTT curve from cdf_did()" width="576"></p>
+</figure>
+</div>
+</div>
 </div>
 <hr></section><section class="level2"><h2 id="lagged-outcome-unconfoundedness-lou_qtt">Lagged-Outcome Unconfoundedness — <code>lou_qtt()</code>
 <a class="anchor" aria-label="anchor" href="#lagged-outcome-unconfoundedness-lou_qtt"></a>
 </h2>
-<p><strong>Identification assumption:</strong> Unconfoundedness conditional on the lagged outcome — treatment is as good as randomly assigned after conditioning on the pre-treatment value of the outcome.</p>
-<p><strong>When to use:</strong> When selection into treatment may depend on lagged outcomes but not on unobserved heterogeneity — i.e., once you condition on the pre-treatment outcome, treatment assignment is as good as random. Requires panel data.</p>
+<p><strong>Identifying assumption:</strong> Conditional on the pre-treatment outcome (and any covariates <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>X</mi><annotation encoding="application/x-tex">X</annotation></semantics></math>), untreated potential outcomes are independent of treatment: <math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>Y</mi><mi>t</mi></msub><mrow><mo stretchy="true" form="prefix">(</mo><mn>0</mn><mo stretchy="true" form="postfix">)</mo></mrow><mo>⊥</mo><mi>D</mi><mo>∣</mo><msub><mi>Y</mi><mrow><mi>t</mi><mo>−</mo><mn>1</mn></mrow></msub><mo>,</mo><mi>X</mi><mi>.</mi></mrow><annotation encoding="application/x-tex">Y_t(0) \perp D \mid Y_{t-1}, X.</annotation></semantics></math></p>
+<p><strong>Intuition:</strong> Treatment is as good as randomly assigned among units with the same pre-treatment outcome. This is not a parallel trends assumption: selection may depend on the level of the lagged outcome but, given it, not on unobserved unit-specific heterogeneity. DiD-type assumptions instead allow selection on time-invariant unobservables. The two are not nested, and when they disagree it is informative to report both. The counterfactual distribution is estimated by inverse probability weighting, outcome (quantile) regression, or a doubly robust combination (<code>est_method = c("aipw", "ipw", "reg")</code>).</p>
+<p><strong>Data:</strong> Panel data. With <code>lagged_outcome_cov = FALSE</code> the lagged outcome is dropped from the conditioning set, leaving unconfoundedness given <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>X</mi><annotation encoding="application/x-tex">X</annotation></semantics></math>, which also works with repeated cross sections.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb13"><pre class="downlit sourceCode r">
+<div class="sourceCode cell-code" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">res_lou</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/lou_qtt.html">lou_qtt</a></span><span class="op">(</span></span>
 <span>  yname  <span class="op">=</span> <span class="st">"lemp"</span>, gname <span class="op">=</span> <span class="st">"first.treat"</span>, tname <span class="op">=</span> <span class="st">"year"</span>,</span>
 <span>  idname <span class="op">=</span> <span class="st">"countyreal"</span>, data <span class="op">=</span> <span class="va">mpdta</span>,</span>
-<span>  gt_type <span class="op">=</span> <span class="st">"att"</span>, biters <span class="op">=</span> <span class="fl">100</span></span>
+<span>  gt_type <span class="op">=</span> <span class="st">"qtt"</span>, probs <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="fl">0.1</span>, <span class="fl">0.9</span>, <span class="fl">0.1</span><span class="op">)</span>, biters <span class="op">=</span> <span class="fl">100</span></span>
 <span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">res_lou</span><span class="op">)</span></span></code></pre></div>
+<span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/autoplot.html" class="external-link">autoplot</a></span><span class="op">(</span><span class="va">res_lou</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="cell">
-<pre><code><span><span class="co">#&gt;</span></span>
-<span><span class="co">#&gt; Overall ATT:</span></span>
-<span><span class="co">#&gt;      ATT    Std. Error     [ 95%  Conf. Int.]</span></span>
-<span><span class="co">#&gt;  -0.0384        0.0166    -0.0725     -0.0043 *</span></span>
-<span><span class="co">#&gt;</span></span>
-<span><span class="co">#&gt;</span></span>
-<span><span class="co">#&gt; Dynamic Effects:</span></span>
-<span><span class="co">#&gt;  Event Time Estimate Std. Error [95% Simult.  Conf. Band]</span></span>
-<span><span class="co">#&gt;          -3   0.0294     0.0144        0.0012      0.0577 *</span></span>
-<span><span class="co">#&gt;          -2  -0.0124     0.0161       -0.0441      0.0192</span></span>
-<span><span class="co">#&gt;          -1  -0.0310     0.0199       -0.0701      0.0081</span></span>
-<span><span class="co">#&gt;           0  -0.0243     0.0157       -0.0551      0.0065</span></span>
-<span><span class="co">#&gt;           1  -0.0869     0.0306       -0.1470     -0.0269 *</span></span>
-<span><span class="co">#&gt;           2  -0.1394     0.0356       -0.2092     -0.0696 *</span></span>
-<span><span class="co">#&gt;           3  -0.1093     0.0378       -0.1834     -0.0352 *</span></span>
-<span><span class="co">#&gt; ---</span></span>
-<span><span class="co">#&gt; Signif. codes: `*' confidence band does not cover 0</span></span></code></pre>
+<div class="cell-output-display">
+<div>
+<figure><p><img src="panel-estimators_files/figure-html/lou-plot-1.png" alt="Overall QTT curve from lou_qtt()" width="576"></p>
+</figure>
+</div>
+</div>
 </div>
 <hr></section><section class="level2"><h2 id="summary">Summary<a class="anchor" aria-label="anchor" href="#summary"></a>
 </h2>
@@ -303,58 +275,68 @@
 </colgroup>
 <thead><tr class="header">
 <th>Function</th>
-<th>Assumption</th>
-<th>Panel required</th>
+<th>Identifying assumption</th>
+<th>Repeated cross sections</th>
 <th>Notes</th>
 </tr></thead>
 <tbody>
 <tr class="odd">
 <td><code><a href="../reference/cic.html">cic()</a></code></td>
-<td>Rank invariance + support</td>
-<td>Optional</td>
-<td>Nonparametric; strongest assumption</td>
+<td>Same distributional time-change for both groups (changes-in-changes)</td>
+<td>Yes</td>
+<td>Needs a support condition; continuous outcomes</td>
 </tr>
 <tr class="even">
 <td><code><a href="../reference/qdid.html">qdid()</a></code></td>
-<td>Distributional parallel trends</td>
-<td>Optional</td>
-<td>DiD analog for distributions</td>
+<td>Parallel trends in every quantile</td>
+<td>Yes</td>
+<td>Continuous outcomes</td>
 </tr>
 <tr class="odd">
 <td><code><a href="../reference/panel_qtt.html">panel_qtt()</a></code></td>
-<td>Copula stability</td>
-<td>Yes</td>
-<td>Requires ≥ 2 pre-periods per cohort</td>
+<td>Parallel trends in the distribution of changes + copula stable over time</td>
+<td>No</td>
+<td>Needs ≥ 2 pre-treatment periods</td>
 </tr>
 <tr class="even">
 <td><code><a href="../reference/ddid.html">ddid()</a></code></td>
-<td>Conditional distributional PT</td>
-<td>Yes</td>
-<td>Adds covariate adjustment to QDiD</td>
+<td>Parallel trends in the distribution of changes + same copula for both groups</td>
+<td>No</td>
+<td></td>
 </tr>
 <tr class="odd">
 <td><code><a href="../reference/mdid.html">mdid()</a></code></td>
-<td>Mean parallel trends</td>
-<td>Optional</td>
-<td>Weakest DiD assumption</td>
+<td>Treated distribution shifts by the comparison group’s mean change</td>
+<td>Yes</td>
+<td>Implies mean parallel trends, and is stronger</td>
 </tr>
 <tr class="even">
-<td><code><a href="../reference/lou_qtt.html">lou_qtt()</a></code></td>
-<td>Lagged-outcome unconfoundedness</td>
+<td><code><a href="../reference/cdf_did.html">cdf_did()</a></code></td>
+<td>Parallel trends in distribution functions</td>
 <td>Yes</td>
+<td>Also identified for discrete outcomes</td>
+</tr>
+<tr class="odd">
+<td><code><a href="../reference/lou_qtt.html">lou_qtt()</a></code></td>
+<td>Unconfoundedness given the lagged outcome</td>
+<td>With <code>lagged_outcome_cov = FALSE</code>
+</td>
 <td>Not a parallel trends assumption</td>
 </tr>
 </tbody>
 </table>
-<p>All estimators return either a <code>pte_results</code> object (<code>gt_type = "att"</code>) or a <code>pte_qtt</code> object (<code>gt_type = "qtt"</code>), and support <code><a href="https://ggplot2.tidyverse.org/reference/autoplot.html" class="external-link">autoplot()</a></code> for plotting overall curves and event-study summaries. See <code><a href="../articles/staggered-adoption.html">vignette("staggered-adoption")</a></code> for the full applied workflow.</p>
+<p>All seven take covariates through <code>xformula</code>. All return a <code>pte_qtt</code> object for <code>gt_type = "qtt"</code>, or a <code>pte_emp_boot</code> object for <code>gt_type = "att"</code>, with <code><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary()</a></code> and <code><a href="https://ggplot2.tidyverse.org/reference/autoplot.html" class="external-link">autoplot()</a></code> methods. See <code><a href="../articles/staggered-adoption.html">vignette("staggered-adoption")</a></code> for the full applied workflow.</p>
 </section><section class="level2 unnumbered"><h2 class="unnumbered" id="references">References<a class="anchor" aria-label="anchor" href="#references"></a>
 </h2>
-<div id="refs" class="references csl-bib-body hanging-indent" role="list">
+<div id="refs" class="references csl-bib-body hanging-indent" data-entry-spacing="0" role="list">
 <div id="ref-athey-imbens-2006" class="csl-entry" role="listitem">
 Athey, Susan, and Guido Imbens. 2006. <span>“Identification and Inference in Nonlinear Difference-in-Differences Models.”</span> <em>Econometrica</em> 74 (2): 431–97.
 </div>
 <div id="ref-callaway-li-2019" class="csl-entry" role="listitem">
-Callaway, Brantly, and Tong Li. 2019. <span>“Quantile Treatment Effects in Difference in Differences Models with Panel Data.”</span> <em>Quantitative Economics</em> 10 (4): 1579–618.
+Callaway, Brantly, and Tong Li. 2019. <span>“Quantile Treatment Effects in Difference in Differences Models with Panel Data.”</span> <em>Quantitative Economics</em> 10 (4): 1579–1618.
+</div>
+<div id="ref-chernozhukov-val-galichon-2010" class="csl-entry" role="listitem">
+Chernozhukov, Victor, Ivan Fernandez-Val, and Alfred Galichon. 2010. <span>“Quantile and Probability Curves Without Crossing.”</span> <em>Econometrica</em> 78 (3): 1093–1125.
 </div>
 <div id="ref-fan-yu-2012" class="csl-entry" role="listitem">
 Fan, Yanqin, and Zhengfei Yu. 2012. <span>“Partial Identification of Distributional and Quantile Treatment Effects in Difference-in-Differences Models.”</span> <em>Economics Letters</em> 115 (3): 511–15.
@@ -362,94 +344,118 @@ Fan, Yanqin, and Zhengfei Yu. 2012. <span>“Partial Identification of Distribut
 <div id="ref-meyer-viscusi-durbin-1995" class="csl-entry" role="listitem">
 Meyer, Bruce, Kip Viscusi, and David Durbin. 1995. <span>“Workers’ Compensation and Injury Duration: <span>Evidence</span> from a Natural Experiment.”</span> <em>American Economic Review</em>, 322–40.
 </div>
+<div id="ref-roth-santanna-2021" class="csl-entry" role="listitem">
+Roth, Jonathan, and Pedro HC Sant’Anna. 2023. <span>“When Is Parallel Trends Sensitive to Functional Form?”</span> <em>Econometrica</em> 91 (2): 737–47.
+</div>
+<div id="ref-santanna-zhao-2020" class="csl-entry" role="listitem">
+Sant’Anna, Pedro HC, and Jun Zhao. 2020. <span>“Doubly Robust Difference-in-Differences Estimators.”</span> <em>Journal of Econometrics</em> 219 (1): 101–22.
+</div>
 <div id="ref-thuysbaert-2007" class="csl-entry" role="listitem">
-Thuysbaert, Bram. 2007. <span>“Distributional Comparisons in Difference in Differences Models.”</span> Unpublished manuscript.
+Thuysbaert, Bram. 2007. <span>“Distributional Comparisons in Difference in Differences Models.”</span>
 </div>
 </div>
 </section><script id="quarto-html-after-body" type="application/javascript">
-  window.document.addEventListener("DOMContentLoaded", function (event) {
-      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
-      var mailtoRegex = new RegExp(/^mailto:/);
-        var filterRegex = new RegExp('/' + window.location.host + '/');
-      var isInternal = (href) => {
-          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
-      }
-      // Inspect non-navigation links and adorn them if external
-     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
-      for (var i=0; i<links.length; i++) {
-        const link = links[i];
-        if (!isInternal(link.href)) {
-          // undo the damage that might have been done by quarto-nav.js in the case of
-          // links that we want to consider external
-          if (link.dataset.originalHref !== undefined) {
-            link.href = link.dataset.originalHref;
-          }
-        }
-      }
-    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
-      const config = {
-        allowHTML: true,
-        maxWidth: 500,
-        delay: 100,
-        arrow: false,
-        appendTo: function(el) {
-            return el.parentElement;
-        },
-        interactive: true,
-        interactiveBorder: 10,
-        theme: 'light-border',
-        placement: 'bottom-start',
-      };
-      if (contentFn) {
-        config.content = contentFn;
-      }
-      if (onTriggerFn) {
-        config.onTrigger = onTriggerFn;
-      }
-      if (onUntriggerFn) {
-        config.onUntrigger = onUntriggerFn;
-      }
-      window.tippy(el, config);
+window.document.addEventListener("DOMContentLoaded", function (event) {
+  const toggleBodyColorMode = (bsSheetEl) => {
+    const mode = bsSheetEl.getAttribute("data-mode");
+    const bodyEl = window.document.querySelector("body");
+    if (mode === "dark") {
+      bodyEl.classList.add("quarto-dark");
+      bodyEl.classList.remove("quarto-light");
+    } else {
+      bodyEl.classList.add("quarto-light");
+      bodyEl.classList.remove("quarto-dark");
     }
-    const findCites = (el) => {
-      const parentEl = el.parentElement;
-      if (parentEl) {
-        const cites = parentEl.dataset.cites;
-        if (cites) {
-          return {
-            el,
-            cites: cites.split(' ')
-          };
-        } else {
-          return findCites(el.parentElement)
+  }
+  const toggleBodyColorPrimary = () => {
+    const bsSheetEl = window.document.querySelector("link#quarto-bootstrap");
+    if (bsSheetEl) {
+      toggleBodyColorMode(bsSheetEl);
+    }
+  }
+  toggleBodyColorPrimary();
+    var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+    var mailtoRegex = new RegExp(/^mailto:/);
+      var filterRegex = new RegExp('/' + window.location.host + '/');
+    var isInternal = (href) => {
+        return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+    }
+    // Inspect non-navigation links and adorn them if external
+ 	var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+    for (var i=0; i<links.length; i++) {
+      const link = links[i];
+      if (!isInternal(link.href)) {
+        // undo the damage that might have been done by quarto-nav.js in the case of
+        // links that we want to consider external
+        if (link.dataset.originalHref !== undefined) {
+          link.href = link.dataset.originalHref;
         }
-      } else {
-        return undefined;
       }
+    }
+  function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+    const config = {
+      allowHTML: true,
+      maxWidth: 500,
+      delay: 100,
+      arrow: false,
+      appendTo: function(el) {
+          return el.parentElement;
+      },
+      interactive: true,
+      interactiveBorder: 10,
+      theme: 'light-border',
+      placement: 'bottom-start',
     };
-    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
-    for (var i=0; i<bibliorefs.length; i++) {
-      const ref = bibliorefs[i];
-      const citeInfo = findCites(ref);
-      if (citeInfo) {
-        tippyHover(citeInfo.el, function() {
-          var popup = window.document.createElement('div');
-          citeInfo.cites.forEach(function(cite) {
-            var citeDiv = window.document.createElement('div');
-            citeDiv.classList.add('hanging-indent');
-            citeDiv.classList.add('csl-entry');
-            var biblioDiv = window.document.getElementById('ref-' + cite);
-            if (biblioDiv) {
-              citeDiv.innerHTML = biblioDiv.innerHTML;
-            }
-            popup.appendChild(citeDiv);
-          });
-          return popup.innerHTML;
-        });
-      }
+    if (contentFn) {
+      config.content = contentFn;
     }
-  });
-  </script></main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
+    if (onTriggerFn) {
+      config.onTrigger = onTriggerFn;
+    }
+    if (onUntriggerFn) {
+      config.onUntrigger = onUntriggerFn;
+    }
+    window.tippy(el, config);
+  }
+  const findCites = (el) => {
+    const parentEl = el.parentElement;
+    if (parentEl) {
+      const cites = parentEl.dataset.cites;
+      if (cites) {
+        return {
+          el,
+          cites: cites.split(' ')
+        };
+      } else {
+        return findCites(el.parentElement)
+      }
+    } else {
+      return undefined;
+    }
+  };
+  var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+  for (var i=0; i<bibliorefs.length; i++) {
+    const ref = bibliorefs[i];
+    const citeInfo = findCites(ref);
+    if (citeInfo) {
+      tippyHover(citeInfo.el, function() {
+        var popup = window.document.createElement('div');
+        citeInfo.cites.forEach(function(cite) {
+          var citeDiv = window.document.createElement('div');
+          citeDiv.classList.add('hanging-indent');
+          citeDiv.classList.add('csl-entry');
+          var biblioDiv = window.document.getElementById('ref-' + cite);
+          if (biblioDiv) {
+            citeDiv.innerHTML = biblioDiv.innerHTML;
+          }
+          popup.appendChild(citeDiv);
+        });
+        return popup.innerHTML;
+      });
+    }
+  }
+});
+</script></main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside>
 </div>
 

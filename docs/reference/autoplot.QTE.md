@@ -19,9 +19,11 @@ autoplot(object, cband = TRUE, ylab = "QTE", ...)
 
 - cband:
 
-  logical; if `TRUE` (default), show the uniform confidence band stored
-  in `object$qte.upper` / `object$qte.lower`. If `FALSE`, show pointwise
-  intervals computed from `object$qte.se`.
+  logical; if `TRUE` (default), show the uniform confidence band, `qte`
+  \\\pm\\ `c` \\\times\\ `qte.se` (as stored by
+  [`unc_qte`](https://bcallaway11.github.io/qte/reference/unc_qte.md)
+  with `cband = TRUE`). If `FALSE`, show pointwise intervals computed
+  from `object$qte.se`.
 
 - ylab:
 

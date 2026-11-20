@@ -203,6 +203,7 @@
 
 ## Minor improvements
 
+* `msm` is no longer a suggested package; nothing used it.
 * Aggregated QTTs are now computed exactly: the group-time cells' CDFs are
   mixed from every support point and the mixture inverted exactly, instead of
   on a 1,000-point grid of the pooled outcome (#19; ptetools #25 for the

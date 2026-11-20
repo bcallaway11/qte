@@ -33,7 +33,6 @@ VignetteBuilder: knitr, quarto
 Suggests:
     rmarkdown,
     knitr,
-    msm,
     testthat (>= 3.0.0),
     did,
     quarto

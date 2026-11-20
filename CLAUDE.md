@@ -172,8 +172,14 @@ After `pkgdown::build_site()`, delete the auto-published internal-notes
 pages it regenerates every time:
 ```r
 file.remove(file.path("docs", c("AGENTS.md", "AGENTS.html",
-                                  "CLAUDE.md", "CLAUDE.html")))
+                                  "CLAUDE.md", "CLAUDE.html",
+                                  "reference/qte (Case Conflict).html")))
 ```
+`reference/qte (Case Conflict).html` is pkgdown's `qte.html` redirect (to
+`qte-package.html`), which Dropbox renames because it differs from
+`QTE.html` only in case; the redirect is dropped. pkgdown also never
+removes pages for deleted topics: after removing exported functions, run
+`pkgdown::clean_site(force = TRUE)` before `build_site()`.
 
 Always run `devtools::document()` after editing roxygen2 tags.
 

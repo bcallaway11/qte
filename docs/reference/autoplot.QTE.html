@@ -9,7 +9,7 @@ with optional confidence bands."><meta property="og:image" content="https://bcal
 
     <a class="navbar-brand me-2" href="../index.html">qte</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">2.0.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">2.1.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -56,8 +56,9 @@ with optional confidence bands.</p>
 
 <dt id="arg-cband">cband<a class="anchor" aria-label="anchor" href="#arg-cband"></a></dt>
 <dd><p>logical; if <code>TRUE</code> (default), show the uniform confidence
-band stored in <code>object$qte.upper</code> / <code>object$qte.lower</code>.
-If <code>FALSE</code>, show pointwise intervals computed from <code>object$qte.se</code>.</p></dd>
+band, <code>qte</code> \(\pm\) <code>c</code> \(\times\) <code>qte.se</code> (as
+stored by <code><a href="unc_qte.html">unc_qte</a></code> with <code>cband = TRUE</code>). If
+<code>FALSE</code>, show pointwise intervals computed from <code>object$qte.se</code>.</p></dd>
 
 
 <dt id="arg-ylab">ylab<a class="anchor" aria-label="anchor" href="#arg-ylab"></a></dt>

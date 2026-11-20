@@ -47,7 +47,7 @@ observing the same units in both periods."><meta property="og:image" content="ht
 
     <a class="navbar-brand me-2" href="../index.html">qte</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">2.0.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">2.1.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -99,7 +99,7 @@ observing the same units in both periods.</p>
 
     <div class="section level2">
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">ddid_gt</span><span class="op">(</span><span class="va">gt_data</span>, xformula <span class="op">=</span> <span class="op">~</span><span class="fl">1</span>, <span class="va">...</span><span class="op">)</span></span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">ddid_gt</span><span class="op">(</span><span class="va">gt_data</span>, xformula <span class="op">=</span> <span class="op">~</span><span class="fl">1</span>, cond_dist <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"qr"</span>, <span class="st">"dr"</span><span class="op">)</span>, <span class="va">...</span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div class="section level2">
@@ -122,6 +122,13 @@ by a conditional rank estimated via quantile regression on the control
 pre-period (<code>QR0tmin1</code>), and the treated pre-period quantile is
 replaced by a conditional quantile (<code>QR1tmin1</code>) evaluated at that
 rank and the control unit's own covariate values.</p></dd>
+
+
+<dt id="arg-cond-dist">cond_dist<a class="anchor" aria-label="anchor" href="#arg-cond-dist"></a></dt>
+<dd><p>How the conditional distributions are estimated when
+<code>xformula</code> has covariates: <code>"qr"</code> (default) for quantile
+regression or <code>"dr"</code> for distribution regression. See
+<code><a href="cic_gt.html">cic_gt</a></code>. Ignored without covariates.</p></dd>
 
 
 <dt id="arg--">...<a class="anchor" aria-label="anchor" href="#arg--"></a></dt>

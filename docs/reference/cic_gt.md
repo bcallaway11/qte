@@ -10,7 +10,7 @@ unit ids appear in both periods.
 ## Usage
 
 ``` r
-cic_gt(gt_data, xformula = ~1, ...)
+cic_gt(gt_data, xformula = ~1, cond_dist = c("qr", "dr"), ...)
 ```
 
 ## Arguments
@@ -25,8 +25,19 @@ cic_gt(gt_data, xformula = ~1, ...)
 - xformula:
 
   One-sided formula for covariates. Default `~1` uses no covariates.
-  With covariates, covariate-conditioned quantile regressions are used
-  following Athey and Imbens (2006).
+  With covariates, the control group's conditional outcome distributions
+  are estimated by the method in `cond_dist`, following Athey and Imbens
+  (2006).
+
+- cond_dist:
+
+  How the conditional distributions are estimated when `xformula` has
+  covariates: `"qr"` (default) for quantile regression at the
+  percentiles 0.01, ..., 0.99, or `"dr"` for distribution regression (a
+  logit of \\1\\Y \le y\\\\ on the covariates at a grid of thresholds;
+  Chernozhukov, Fernandez-Val and Melly 2013). Distribution regression
+  handles outcomes with mass points (e.g. many zeros) naturally. Ignored
+  without covariates.
 
 - ...:
 
@@ -47,3 +58,6 @@ repeated cross sections).
 Athey, Susan and Guido Imbens. “Identification and Inference in
 Nonlinear Difference-in-Differences Models.” Econometrica 74(2), pp.
 431-497, 2006.
+
+Chernozhukov, Victor, Ivan Fernandez-Val and Blaise Melly. “Inference on
+Counterfactual Distributions.” Econometrica 81(6), pp. 2205-2268, 2013.

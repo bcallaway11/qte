@@ -11,12 +11,13 @@ at the bottom of the distribution while having little effect at the top,
 the ATE obscures this. If a minimum wage increase compresses the wage
 distribution, an average effect conceals the compression.
 
-The Quantile Treatment Effect at level $\tau$ is
-$QTE(\tau) = Q_{Y(1)}(\tau) - Q_{Y(0)}(\tau)$, where $Q_{Y(d)}(\tau)$ is
-the $\tau$-th quantile of the potential outcome distribution under
-treatment status $d$. Mapping $QTE(\tau)$ across $\tau \in (0,1)$ traces
-how the treatment shifts the entire outcome distribution. The Quantile
-Treatment Effect on the Treated ($QTT$) conditions on the treated group.
+The Quantile Treatment Effect at level $`\tau`$ is
+$`QTE(\tau) = Q_{Y(1)}(\tau) -
+Q_{Y(0)}(\tau)`$, where $`Q_{Y(d)}(\tau)`$ is the $`\tau`$-th quantile
+of the potential outcome distribution under treatment status $`d`$.
+Mapping $`QTE(\tau)`$ across $`\tau \in (0,1)`$ traces how the treatment
+shifts the entire outcome distribution. The Quantile Treatment Effect on
+the Treated ($`QTT`$) conditions on the treated group.
 
 This vignette demonstrates
 [`unc_qte()`](https://bcallaway11.github.io/qte/reference/unc_qte.md),
@@ -60,22 +61,30 @@ summary(res_exp)
     #>
     #> Overall ATE:
     #>       ATE    Std. Error     [ 95%  Conf. Int.]
-    #>  1794.343      614.3984   590.1444    2998.542 *
+    #>  1794.343        653.17   514.1535    3074.533 *
     #>
     #>
     #> QTE:
     #>  Tau      QTE Std. Error [ 95% Simult.  Conf. Band]
     #>  0.1    0.000     0.0000         0.0000      0.0000
-    #>  0.2    0.000   158.4803      -310.6157    310.6157
-    #>  0.3  929.884   400.0082       145.8823   1713.8856 *
-    #>  0.4 1176.944   943.3150      -671.9198   3025.8070
-    #>  0.5 1091.468   831.0748      -537.4088   2720.3446
-    #>  0.6 1466.690   842.6293      -184.8326   3118.2136
-    #>  0.7 1810.696  1032.9801      -213.9081   3835.2995
-    #>  0.8 2300.454  1054.5595       233.5552   4367.3524 *
-    #>  0.9 2856.068  1795.8551      -663.7429   6375.8796
+    #>  0.2    0.000   127.4163      -347.6936    347.6936
+    #>  0.3  929.884   373.4064       -89.0671   1948.8350
+    #>  0.4 1176.944   971.9214     -1475.2345   3829.1217
+    #>  0.5 1091.468   870.9200     -1285.0976   3468.0334
+    #>  0.6 1466.690   906.4408     -1006.8042   3940.1852
+    #>  0.7 1810.696  1022.2255      -978.7522   4600.1437
+    #>  0.8 2300.454  1165.8815      -881.0025   5481.9100
+    #>  0.9 2856.068  1882.8732     -2281.9142   7994.0509
     #> ---
     #> Signif. codes: `*' confidence band does not cover 0
+    #> Note: the outcome looks discrete (308 distinct values; 31% at 0); quantile effects may be unreliable.
+
+Earnings are zero for 31% of this sample, so
+[`unc_qte()`](https://bcallaway11.github.io/qte/reference/unc_qte.md)
+warns that the outcome looks discrete, and
+[`summary()`](https://rdrr.io/r/base/summary.html) repeats the note.
+Quantiles in the mass point are zero in both groups, so the QTE there is
+zero by construction; interpret the low quantiles with care.
 
 ``` r
 autoplot(res_exp, ylab = "QTE (earnings, 1978)")
@@ -84,9 +93,12 @@ autoplot(res_exp, ylab = "QTE (earnings, 1978)")
 ![QTE curve under random
 assignment](intro_files/figure-html/random-qte-plot-1.png)
 
-The confidence band indicates that the QTE is positive across much of
-the distribution, with the effect somewhat larger in the lower
-quantiles.
+The point estimates are zero at the lowest quantiles, inside the mass
+point, and then increase with $`\tau`$, from about \$900 at the 30th
+percentile to about \$2,900 at the 90th. With 445 participants, though,
+the uniform band covers zero at every quantile, even though the ATE of
+about \$1,800 is statistically significant: a band that holds
+simultaneously over nine quantiles is much wider than a single interval.
 
 ## Unconfoundedness
 
@@ -101,7 +113,7 @@ supports three estimation methods:
 
 - `"ipw"` — inverse probability weighting (propensity score
   re-weighting)
-- `"or"` — outcome regression (conditional quantile regression)
+- `"reg"` — outcome regression (conditional quantile regression)
 - `"aipw"` — augmented IPW (doubly robust; recommended)
 
 ``` r
@@ -111,7 +123,7 @@ res_psid <- unc_qte(
   yname      = "re78",
   dname      = "treat",
   data       = lalonde.psid,
-  xformla    = xf,
+  xformula   = xf,
   est_method = "aipw",
   target     = "qte",
   probs      = seq(0.1, 0.9, 0.1),
@@ -123,22 +135,23 @@ summary(res_psid)
     #>
     #> Overall ATE:
     #>        ATE    Std. Error     [ 95%  Conf. Int.]
-    #>  -13194.78       1669.31  -16466.57   -9922.995 *
+    #>  -12537.37      1966.364  -16391.37   -8683.368 *
     #>
     #>
     #> QTE:
     #>  Tau        QTE Std. Error [ 95% Simult.  Conf. Band]
-    #>  0.1      0.000   636.5657      -1247.646    1247.646
-    #>  0.2  -6404.679  1637.5230      -9614.165   -3195.193 *
-    #>  0.3  -8523.773  2123.4289     -12685.617   -4361.929 *
-    #>  0.4 -11114.085  2398.9413     -15815.924   -6412.247 *
-    #>  0.5 -12684.516  2756.7181     -18087.584   -7281.448 *
-    #>  0.6 -13532.837  2739.1129     -18901.399   -8164.274 *
-    #>  0.7 -14181.889  2214.9031     -18523.019   -9840.759 *
-    #>  0.8 -18285.313  2239.9340     -22675.503  -13895.123 *
-    #>  0.9 -22580.785  3682.3739     -29798.105  -15363.464 *
+    #>  0.1      0.000   703.0556      -2398.343   2398.3433
+    #>  0.2  -6404.679  1833.9759     -12660.946   -148.4118 *
+    #>  0.3  -8523.773  2256.9373     -16222.894   -824.6517 *
+    #>  0.4 -11114.085  2678.9947     -20252.977  -1975.1939 *
+    #>  0.5 -12684.516  2911.2438     -22615.681  -2753.3497 *
+    #>  0.6 -13532.837  2715.4178     -22795.979  -4269.6946 *
+    #>  0.7 -14181.889  2066.6976     -21232.043  -7131.7352 *
+    #>  0.8 -18285.313  2180.2109     -25722.696 -10847.9295 *
+    #>  0.9 -22580.785  3887.0913     -35840.872  -9320.6968 *
     #> ---
     #> Signif. codes: `*' confidence band does not cover 0
+    #> Note: the outcome looks discrete (740 distinct values; 12% at 0); quantile effects may be unreliable.
 
 ``` r
 autoplot(res_psid, ylab = "QTE (earnings, 1978)")
@@ -146,6 +159,14 @@ autoplot(res_psid, ylab = "QTE (earnings, 1978)")
 
 ![QTE curve under
 unconfoundedness](intro_files/figure-html/obs-qte-plot-1.png)
+
+These estimates are large and negative, far from the experimental
+benchmark above. The QTE is about the whole population, which here is
+mostly PSID households with much higher earnings than the program’s
+participants, and these covariates (which leave out earnings before the
+program) do not make the two groups comparable ([LaLonde
+1986](#ref-lalonde-1986); [Dehejia and Wahba
+1999](#ref-dehejia-wahba-1999)).
 
 ## QTT under unconfoundedness
 
@@ -158,7 +179,7 @@ res_qtt <- unc_qte(
   yname      = "re78",
   dname      = "treat",
   data       = lalonde.psid,
-  xformla    = xf,
+  xformula   = xf,
   est_method = "aipw",
   target     = "qtt",
   probs      = seq(0.1, 0.9, 0.1),
@@ -170,22 +191,23 @@ summary(res_qtt)
     #>
     #> Overall ATT:
     #>        ATT    Std. Error     [ 95%  Conf. Int.]
-    #>  -4685.583      835.1563  -6322.459   -3048.707 *
+    #>  -4543.922        853.17  -6216.105    -2871.74 *
     #>
     #>
     #> QTT:
     #>  Tau         QTT Std. Error [ 95% Simult.  Conf. Band]
-    #>  0.1      0.0001     9.4440       -18.5099     18.5100
-    #>  0.2  -1002.7420   705.1096     -2384.7314    379.2474
-    #>  0.3  -3400.5673  1505.4521     -6351.1992   -449.9354 *
-    #>  0.4  -5009.2491  1072.6921     -7111.6870  -2906.8111 *
-    #>  0.5  -4602.4652   936.3507     -6437.6789  -2767.2516 *
-    #>  0.6  -5229.1454  1282.4542     -7742.7095  -2715.5814 *
-    #>  0.7  -5507.4720  1268.5601     -7993.8040  -3021.1399 *
-    #>  0.8  -6885.7529  1501.3663     -9828.3768  -3943.1290 *
-    #>  0.9 -10517.0625  2368.3837    -15159.0092  -5875.1159 *
+    #>  0.1      0.0001   128.0586      -343.4861    343.4862
+    #>  0.2  -1002.7420   820.4547     -3203.4130   1197.9290
+    #>  0.3  -3400.5673  1572.4851     -7618.3778    817.2432
+    #>  0.4  -5009.2491  1223.5366     -8291.0895  -1727.4086 *
+    #>  0.5  -4602.4652  1115.6798     -7595.0062  -1609.9243 *
+    #>  0.6  -5229.1454  1269.7220     -8634.8672  -1823.4237 *
+    #>  0.7  -5507.4720  1415.9424     -9305.3946  -1709.5493 *
+    #>  0.8  -6885.7529  1466.8178    -10820.1365  -2951.3693 *
+    #>  0.9 -10517.0625  2503.9534    -17233.3109  -3800.8141 *
     #> ---
     #> Signif. codes: `*' confidence band does not cover 0
+    #> Note: the outcome looks discrete (740 distinct values; 12% at 0); quantile effects may be unreliable.
 
 ``` r
 autoplot(res_qtt, ylab = "QTT (earnings, 1978)")
@@ -193,6 +215,13 @@ autoplot(res_qtt, ylab = "QTT (earnings, 1978)")
 
 ![QTT curve under
 unconfoundedness](intro_files/figure-html/qtt-plot-1.png)
+
+The QTT only needs a counterfactual for the participants, so it is much
+smaller in magnitude than the QTE, but it is still negative and grows
+with $`\tau`$, and the band excludes zero from the 40th percentile up.
+It remains well below the experimental estimates, a reminder that
+unconfoundedness given these covariates is a strong assumption for this
+comparison group.
 
 ## Reading the output
 
@@ -221,5 +250,14 @@ computation is available via the `cl` argument.
 
 ## References
 
+Dehejia, Rajeev, and Sadek Wahba. 1999. “Causal Effects in
+Nonexperimental Studies: Reevaluating the Evaluation of Training
+Programs.” *Journal of the American Statistical Association* 94 (448):
+1053–62.
+
 Firpo, Sergio. 2007. “Efficient Semiparametric Estimation of Quantile
 Treatment Effects.” *Econometrica* 75 (1): 259–76.
+
+LaLonde, Robert. 1986. “Evaluating the Econometric Evaluations of
+Training Programs with Experimental Data.” *American Economic Review*,
+604–20.

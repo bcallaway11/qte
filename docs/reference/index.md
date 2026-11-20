@@ -33,6 +33,10 @@ support staggered treatment adoption via ptetools.
   Difference-in-Differences
 - [`mdid_gt()`](https://bcallaway11.github.io/qte/reference/mdid_gt.md)
   : Mean Difference-in-Differences: group-time estimator
+- [`cdf_did()`](https://bcallaway11.github.io/qte/reference/cdf_did.md)
+  : Difference-in-Differences in Distribution Functions
+- [`cdf_did_gt()`](https://bcallaway11.github.io/qte/reference/cdf_did_gt.md)
+  : CDF Difference-in-Differences for a Single 2x2 Cell
 - [`lou_qtt()`](https://bcallaway11.github.io/qte/reference/lou_qtt.md)
   : Lagged Outcome Unconfoundedness QTT
 
@@ -56,8 +60,6 @@ summarising, and plotting.
   : plot.QTE
 - [`autoplot(`*`<QTE>`*`)`](https://bcallaway11.github.io/qte/reference/autoplot.QTE.md)
   : autoplot.QTE
-- [`ggqte()`](https://bcallaway11.github.io/qte/reference/ggqte.md) :
-  ggqte
 
 ## Data
 

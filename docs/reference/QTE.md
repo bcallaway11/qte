@@ -34,7 +34,8 @@ QTE(
   condQ.treated.t.cf = NULL,
   eachIterList = NULL,
   inffunct = NULL,
-  inffuncu = NULL
+  inffuncu = NULL,
+  cband = NULL
 )
 ```
 
@@ -171,3 +172,9 @@ QTE(
 - inffuncu:
 
   The influence function for the untreated group
+
+- cband:
+
+  Whether `qte.lower`/`qte.upper` are a uniform confidence band (`TRUE`)
+  or pointwise intervals (`FALSE`). Default `NULL` (unknown, e.g.
+  objects from qte \< 2.1.0), treated as pointwise.

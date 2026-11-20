@@ -10,7 +10,7 @@ unit ids appear in both periods.
 ## Usage
 
 ``` r
-qdid_gt(gt_data, xformula = ~1, ...)
+qdid_gt(gt_data, xformula = ~1, cond_dist = c("qr", "dr"), ...)
 ```
 
 ## Arguments
@@ -27,6 +27,14 @@ qdid_gt(gt_data, xformula = ~1, ...)
   One-sided formula for covariates. Default `~1` uses no covariates.
   With covariates, conditional quantile regressions are used following
   Athey and Imbens (2006).
+
+- cond_dist:
+
+  How the conditional distributions are estimated when `xformula` has
+  covariates: `"qr"` (default) for quantile regression or `"dr"` for
+  distribution regression. See
+  [`cic_gt`](https://bcallaway11.github.io/qte/reference/cic_gt.md).
+  Ignored without covariates.
 
 - ...:
 

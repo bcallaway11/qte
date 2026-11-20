@@ -29,7 +29,7 @@ same units in both periods.
 ## Usage
 
 ``` r
-ddid_gt(gt_data, xformula = ~1, ...)
+ddid_gt(gt_data, xformula = ~1, cond_dist = c("qr", "dr"), ...)
 ```
 
 ## Arguments
@@ -50,6 +50,14 @@ ddid_gt(gt_data, xformula = ~1, ...)
   pre-period (`QR0tmin1`), and the treated pre-period quantile is
   replaced by a conditional quantile (`QR1tmin1`) evaluated at that rank
   and the control unit's own covariate values.
+
+- cond_dist:
+
+  How the conditional distributions are estimated when `xformula` has
+  covariates: `"qr"` (default) for quantile regression or `"dr"` for
+  distribution regression. See
+  [`cic_gt`](https://bcallaway11.github.io/qte/reference/cic_gt.md).
+  Ignored without covariates.
 
 - ...:
 

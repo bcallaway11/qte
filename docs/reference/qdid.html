@@ -15,7 +15,7 @@ uniformly. Supports both panel and repeated cross sections data."><meta property
 
     <a class="navbar-brand me-2" href="../index.html">qte</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">2.0.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">2.1.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -59,7 +59,9 @@ uniformly. Supports both panel and repeated cross sections data.</p>
 <span>  <span class="va">data</span>,</span>
 <span>  panel <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  xformula <span class="op">=</span> <span class="op">~</span><span class="fl">1</span>,</span>
+<span>  cond_dist <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"qr"</span>, <span class="st">"dr"</span><span class="op">)</span>,</span>
 <span>  weightsname <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  clustervars <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  control_group <span class="op">=</span> <span class="st">"notyettreated"</span>,</span>
 <span>  anticipation <span class="op">=</span> <span class="fl">0</span>,</span>
 <span>  alp <span class="op">=</span> <span class="fl">0.05</span>,</span>
@@ -100,17 +102,36 @@ uniformly. Supports both panel and repeated cross sections data.</p>
 
 <dt id="arg-panel">panel<a class="anchor" aria-label="anchor" href="#arg-panel"></a></dt>
 <dd><p>Logical; <code>TRUE</code> (default) for panel data,
-<code>FALSE</code> for repeated cross sections.</p></dd>
+<code>FALSE</code> for repeated cross sections (see the section on repeated
+cross sections).</p></dd>
 
 
 <dt id="arg-xformula">xformula<a class="anchor" aria-label="anchor" href="#arg-xformula"></a></dt>
 <dd><p>One-sided formula for covariates used in the covariate
-adjustment. Default <code>~1</code> uses no covariates.</p></dd>
+adjustment. Default <code>~1</code> uses no covariates.
+With panel data, each unit's covariates are taken from the base period
+of each group-time cell (never from a post-treatment period); with
+repeated cross sections, each observation's own values are used.</p></dd>
+
+
+<dt id="arg-cond-dist">cond_dist<a class="anchor" aria-label="anchor" href="#arg-cond-dist"></a></dt>
+<dd><p>How conditional distributions are estimated when
+<code>xformula</code> has covariates: <code>"qr"</code> (default) for quantile
+regression or <code>"dr"</code> for distribution regression. See
+<code><a href="cic_gt.html">cic_gt</a></code>. Ignored without covariates.</p></dd>
 
 
 <dt id="arg-weightsname">weightsname<a class="anchor" aria-label="anchor" href="#arg-weightsname"></a></dt>
 <dd><p>Name of the column in <code>data</code> containing sampling
 weights. Default <code>NULL</code> uses equal weights.</p></dd>
+
+
+<dt id="arg-clustervars">clustervars<a class="anchor" aria-label="anchor" href="#arg-clustervars"></a></dt>
+<dd><p>Name of a column in <code>data</code> to cluster standard
+errors on, in addition to <code>idname</code> (as in <code><a href="https://bcallaway11.github.io/did/reference/att_gt.html" class="external-link">did::att_gt()</a></code>):
+one variable, constant over time within each unit. Default <code>NULL</code>
+clusters at the unit level. With the empirical bootstrap, whole clusters
+are resampled.</p></dd>
 
 
 <dt id="arg-control-group">control_group<a class="anchor" aria-label="anchor" href="#arg-control-group"></a></dt>
@@ -163,6 +184,40 @@ evaluate the QTT curve. Default is <code>seq(0.05, 0.95, 0.05)</code>.</p></dd>
 with overall, group-specific, and dynamic QTT curves and bootstrap SEs.</p>
     </div>
     <div class="section level2">
+    <h2 id="discrete-outcomes">Discrete outcomes<a class="anchor" aria-label="anchor" href="#discrete-outcomes"></a></h2>
+
+
+<p>Quantile treatment effects usually require a continuous outcome. With
+mass points (e.g. many zeros) or few distinct values, quantiles jump and
+effects at quantiles inside a mass point are 0 by construction;
+identification based on ranks or quantile functions (change-in-changes,
+quantile DiD, the panel and distributional DiD copula arguments) only
+bounds the effects (Athey and Imbens 2006, Section 4); and bootstrap
+inference for quantiles can be unreliable. The estimators warn (once per
+call, class <code>qte_discrete_outcome</code>) when more than 10\<!-- % of the -->
+outcome's observations share one value or it takes at most 20 distinct
+values, across all groups and periods; the thresholds are the options
+<code>qte.mass_point_tol</code> and <code>qte.discrete_n_unique</code>. The
+diagnostics are returned as <code>outcome_discreteness</code>.
+<code><a href="cdf_did.html">cdf_did</a></code> is identified for discrete outcomes.</p>
+    </div>
+    <div class="section level2">
+    <h2 id="repeated-cross-sections">Repeated cross sections<a class="anchor" aria-label="anchor" href="#repeated-cross-sections"></a></h2>
+
+
+<p><code><a href="cic.html">cic()</a></code>, <code>qdid()</code>, <code><a href="mdid.html">mdid()</a></code>, <code><a href="cdf_did.html">cdf_did()</a></code> and
+<code>lou_qtt(lagged_outcome_cov = FALSE)</code> also work with repeated cross
+sections (<code>panel = FALSE</code>; <code>idname</code> not needed). Without
+covariates they use only each period's outcome distributions, so on
+panel data the estimates are the same either way; the standard errors
+differ, because the bootstrap then resamples observations rather than
+units. Some things need the same units in several periods and so
+require panel data: <code><a href="ddid.html">ddid()</a></code> (each comparison unit's change over
+time), <code><a href="panel_qtt.html">panel_qtt()</a></code> (the copula between periods), the lagged
+outcome in <code><a href="lou_qtt.html">lou_qtt()</a></code>, and <code>gt_type = "qott"</code> (the
+distribution of individual treatment effects).</p>
+    </div>
+    <div class="section level2">
     <h2 id="references">References<a class="anchor" aria-label="anchor" href="#references"></a></h2>
     <p>Athey, Susan and Guido Imbens. “Identification and Inference in Nonlinear
 Difference-in-Differences Models.” Econometrica 74(2), pp. 431-497, 2006.</p>
@@ -180,19 +235,19 @@ Difference-in-Differences Models.” Econometrica 74(2), pp. 431-497, 2006.</p>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">res_att</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Overall ATT:  </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>      ATT    Std. Error     [ 95%  Conf. Int.]  </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  -0.0282        0.0122    -0.0521     -0.0043 *</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>      ATT    Std. Error     [ 95%  Conf. Int.] </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  -0.0282        0.0137    -0.0567       3e-04 </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Dynamic Effects:</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  Event Time Estimate Std. Error [95% Simult.  Conf. Band]  </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>          -3   0.0266     0.0130        0.0012      0.0520 *</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>          -2  -0.0040     0.0122       -0.0279      0.0198  </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>          -1  -0.0247     0.0129       -0.0500      0.0007  </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>           0  -0.0164     0.0112       -0.0385      0.0056  </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>           1  -0.0584     0.0262       -0.1098     -0.0069 *</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>           2  -0.1470     0.0520       -0.2490     -0.0450 *</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>           3  -0.1111     0.0386       -0.1869     -0.0354 *</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>          -3   0.0266     0.0187       -0.0100      0.0631  </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>          -2  -0.0040     0.0126       -0.0286      0.0206  </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>          -1  -0.0247     0.0138       -0.0516      0.0023  </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>           0  -0.0164     0.0137       -0.0434      0.0105  </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>           1  -0.0584     0.0199       -0.0974     -0.0194 *</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>           2  -0.1470     0.0328       -0.2113     -0.0827 *</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>           3  -0.1111     0.0317       -0.1734     -0.0489 *</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> ---</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Signif. codes: `*' confidence band does not cover 0</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
@@ -203,18 +258,50 @@ Difference-in-Differences Models.” Econometrica 74(2), pp. 431-497, 2006.</p>
 <span class="r-in"><span>                gt_type <span class="op">=</span> <span class="st">"qtt"</span>, probs <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="fl">0.1</span>, <span class="fl">0.9</span>, <span class="fl">0.1</span><span class="op">)</span>, biters <span class="op">=</span> <span class="fl">20</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">res_qtt</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Overall QTT Curve:</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  Quantile     QTT Std. Error 95% CB Lower 95% CB Upper</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>       0.1  0.0286     0.1517      -0.6143       0.6715</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>       0.2 -0.0545     0.0573      -0.2974       0.1885</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>       0.3 -0.0912     0.0531      -0.3162       0.1337</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>       0.4 -0.0126     0.0438      -0.1983       0.1731</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>       0.5 -0.0561     0.0485      -0.2618       0.1496</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>       0.6 -0.0257     0.0448      -0.2158       0.1643</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>       0.7  0.0046     0.0423      -0.1746       0.1838</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>       0.8 -0.0435     0.0611      -0.3023       0.2153</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>       0.9  0.0000     0.0490      -0.2079       0.2079</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Overall QTT curve:</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  Quantile     QTT Std. Error [95% Simult. Conf. Band]        </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>       0.1  0.0227     0.0739                  -0.1957 0.2411 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>       0.2 -0.0348     0.0555                  -0.1989 0.1293 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>       0.3 -0.0150     0.0484                  -0.1583 0.1282 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>       0.4 -0.0807     0.0478                  -0.2221 0.0606 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>       0.5 -0.0406     0.0356                  -0.1459 0.0646 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>       0.6 -0.0080     0.0404                  -0.1273 0.1113 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>       0.7  0.0325     0.0439                  -0.0973 0.1622 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>       0.8  0.0010     0.0495                  -0.1453 0.1473 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>       0.9 -0.0368     0.0394                  -0.1534 0.0797 </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Dynamic effects (quantile 0.5):</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  Event Time     QTT Std. Error [95% Simult. Conf. Band]        </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>          -3  0.0347     0.0675                  -0.1774 0.2468 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>          -2  0.0523     0.0757                  -0.1962 0.3008 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>          -1 -0.0023     0.0366                  -0.1166 0.1120 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>           0 -0.0406     0.0581                  -0.2150 0.1337 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>           1 -0.0679     0.0505                  -0.2258 0.0900 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>           2 -0.0997     0.0918                  -0.4158 0.2164 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>           3 -0.1691     0.0874                  -0.4643 0.1262 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Group effects (quantile 0.5):</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  Group     QTT Std. Error [95% Simult. Conf. Band]        </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   2004 -0.1110     0.0622                  -0.3404 0.1185 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   2006 -0.0324     0.0497                  -0.1988 0.1340 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   2007 -0.1319     0.0766                  -0.3650 0.1012 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ATT, and test of QTT(tau) = ATT for all quantiles:</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>      Parameter     ATT Std. Error [95% Pointwise Conf. Int.] p (QTT = ATT)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>        Overall -0.0282     0.0097        -0.0472     -0.0093          0.95</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  Event time -3  0.0266     0.0117         0.0037      0.0494          0.85</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  Event time -2 -0.0040     0.0108        -0.0251      0.0171          0.80</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  Event time -1 -0.0247     0.0141        -0.0522      0.0029          0.95</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   Event time 0 -0.0164     0.0093        -0.0347      0.0019          0.70</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   Event time 1 -0.0584     0.0241        -0.1057     -0.0111          0.95</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   Event time 2 -0.1470     0.0440        -0.2333     -0.0607          0.20</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   Event time 3 -0.1111     0.0478        -0.2048     -0.0175          0.05</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> ---</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Signif. codes: `*' confidence band does not cover 0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Simultaneous bands are uniform over quantiles, for each QTT curve.</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> p (QTT = ATT): bootstrap sup-t test, from the same draws, that QTT(tau) - ATT = 0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> at every estimated quantile.</span>
 <span class="r-in"><span><span class="co"># }</span></span></span>
 <span class="r-in"><span></span></span>
 </code></pre></div>

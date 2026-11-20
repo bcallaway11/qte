@@ -26,7 +26,7 @@ counterfactuals.
 ## Usage
 
 ``` r
-panel_qtt_gt(gt_data, xformula = ~1, ...)
+panel_qtt_gt(gt_data, xformula = ~1, cond_dist = c("qr", "dr"), ...)
 ```
 
 ## Arguments
@@ -39,6 +39,14 @@ panel_qtt_gt(gt_data, xformula = ~1, ...)
 - xformula:
 
   One-sided formula for covariates. Default `~1`.
+
+- cond_dist:
+
+  How the conditional distributions are estimated when `xformula` has
+  covariates: `"qr"` (default) for quantile regression or `"dr"` for
+  distribution regression. See
+  [`cic_gt`](https://bcallaway11.github.io/qte/reference/cic_gt.md).
+  Ignored without covariates.
 
 - ...:
 

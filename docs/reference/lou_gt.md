@@ -14,6 +14,7 @@ lou_gt(
   xformula = ~1,
   lagged_outcome_cov = TRUE,
   est_method = "ipw",
+  cond_dist = c("qr", "dr"),
   ...
 )
 ```
@@ -40,7 +41,16 @@ lou_gt(
 
 - est_method:
 
-  One of `"ipw"`, `"or"`, or `"aipw"`. Default `"ipw"`.
+  One of `"ipw"`, `"reg"`, or `"aipw"` (`"or"` is a deprecated alias for
+  `"reg"`). Default `"ipw"`.
+
+- cond_dist:
+
+  For `est_method = "reg"` or `"aipw"`, how the conditional distribution
+  of the untreated outcome is estimated: `"qr"` (default) for quantile
+  regression or `"dr"` for distribution regression. See
+  [`cic_gt`](https://bcallaway11.github.io/qte/reference/cic_gt.md).
+  Ignored for `"ipw"`.
 
 - ...:
 

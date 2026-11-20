@@ -45,6 +45,7 @@ panel_qtt_long_agg(attgt.list, ptep, extra_gt_returns)
 ## Value
 
 A list with `overall_results`, `dyn_results`, `group_results`,
-`attgt_results`, `F0_overall`, `F1_overall` — matching the structure
-returned by
+`attgt_results`, `att_results` (ATTs aggregated with the same weights as
+the QTTs), `qtt_minus_att_results`, `F0_overall`, `F1_overall` —
+matching the structure returned by
 [`ptetools::qtt_pte_aggregations`](https://rdrr.io/pkg/ptetools/man/qtt_pte_aggregations.html).

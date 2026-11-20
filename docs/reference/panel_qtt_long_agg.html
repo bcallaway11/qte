@@ -41,7 +41,7 @@ panel_qtt_gt, not a structural limitation.'><meta property="og:image" content="h
 
     <a class="navbar-brand me-2" href="../index.html">qte</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">2.0.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">2.1.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -109,8 +109,10 @@ att, the function errors immediately — such NAs indicate a bug in
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
     <p>A list with <code>overall_results</code>, <code>dyn_results</code>,
-<code>group_results</code>, <code>attgt_results</code>, <code>F0_overall</code>,
-<code>F1_overall</code> — matching the structure returned by
+<code>group_results</code>, <code>attgt_results</code>, <code>att_results</code> (ATTs
+aggregated with the same weights as the QTTs),
+<code>qtt_minus_att_results</code>, <code>F0_overall</code>, <code>F1_overall</code> —
+matching the structure returned by
 <code><a href="https://rdrr.io/pkg/ptetools/man/qtt_pte_aggregations.html" class="external-link">ptetools::qtt_pte_aggregations</a></code>.</p>
     </div>
 

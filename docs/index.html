@@ -28,7 +28,7 @@
 
     <a class="navbar-brand me-2" href="index.html">qte</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">2.0.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">2.1.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -85,6 +85,8 @@
 <li>
 <code><a href="reference/mdid.html">mdid()</a></code> — Mean Difference-in-Differences (Thuysbaert 2007)</li>
 <li>
+<code><a href="reference/cdf_did.html">cdf_did()</a></code> — Difference-in-Differences in distribution functions (Roth and Sant’Anna 2023)</li>
+<li>
 <code><a href="reference/lou_qtt.html">lou_qtt()</a></code> — Lagged-outcome unconfoundedness QTT</li>
 </ul>
 </div>
@@ -112,7 +114,7 @@
 <span>  yname      <span class="op">=</span> <span class="st">"re78"</span>,</span>
 <span>  dname      <span class="op">=</span> <span class="st">"treat"</span>,</span>
 <span>  data       <span class="op">=</span> <span class="va">lalonde.psid</span>,</span>
-<span>  xformla    <span class="op">=</span> <span class="va">xf</span>,</span>
+<span>  xformula   <span class="op">=</span> <span class="va">xf</span>,</span>
 <span>  est_method <span class="op">=</span> <span class="st">"aipw"</span>,</span>
 <span>  target     <span class="op">=</span> <span class="st">"qtt"</span>,</span>
 <span>  probs      <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq</a></span><span class="op">(</span><span class="fl">0.1</span>, <span class="fl">0.9</span>, <span class="fl">0.1</span><span class="op">)</span>,</span>
@@ -206,58 +208,64 @@
 <col width="15%">
 <col width="20%">
 </colgroup>
-<thead><tr class="header">
+<thead><tr>
 <th>Function</th>
 <th>Method</th>
 <th>Target</th>
 <th>Panel required</th>
 </tr></thead>
 <tbody>
-<tr class="odd">
+<tr>
 <td><code><a href="reference/unc_qte.html">unc_qte()</a></code></td>
 <td>Unconfoundedness (IPW / OR / AIPW)</td>
 <td>QTE or QTT</td>
 <td>No</td>
 </tr>
-<tr class="even">
+<tr>
 <td><code><a href="reference/cic.html">cic()</a></code></td>
 <td>Change in Changes</td>
 <td>ATT or QTT</td>
 <td>Optional</td>
 </tr>
-<tr class="odd">
+<tr>
 <td><code><a href="reference/qdid.html">qdid()</a></code></td>
 <td>Quantile DiD</td>
 <td>ATT or QTT</td>
 <td>Optional</td>
 </tr>
-<tr class="even">
+<tr>
 <td><code><a href="reference/panel_qtt.html">panel_qtt()</a></code></td>
 <td>Panel QTT (copula stability)</td>
-<td>QTT</td>
+<td>ATT or QTT</td>
 <td>Yes</td>
 </tr>
-<tr class="odd">
+<tr>
 <td><code><a href="reference/ddid.html">ddid()</a></code></td>
 <td>Distributional DiD</td>
 <td>ATT or QTT</td>
 <td>Yes</td>
 </tr>
-<tr class="even">
+<tr>
 <td><code><a href="reference/mdid.html">mdid()</a></code></td>
 <td>Mean DiD</td>
 <td>ATT or QTT</td>
 <td>Optional</td>
 </tr>
-<tr class="odd">
+<tr>
+<td><code><a href="reference/cdf_did.html">cdf_did()</a></code></td>
+<td>DiD in distribution functions</td>
+<td>ATT or QTT</td>
+<td>Optional</td>
+</tr>
+<tr>
 <td><code><a href="reference/lou_qtt.html">lou_qtt()</a></code></td>
 <td>Lagged-outcome unconfoundedness</td>
 <td>ATT or QTT</td>
-<td>Yes</td>
+<td>Optional*</td>
 </tr>
 </tbody>
 </table>
-<p>All panel estimators support staggered treatment adoption and return group-specific, event-study, and overall aggregations.</p>
+<p>All panel estimators support staggered treatment adoption and return group-specific, event-study, and overall aggregations. “Optional” means the estimator also works with repeated cross sections (<code>panel = FALSE</code>). <code><a href="reference/ddid.html">ddid()</a></code> and <code><a href="reference/panel_qtt.html">panel_qtt()</a></code> need the same units over time (a comparison unit’s change, or the copula between periods). *<code><a href="reference/lou_qtt.html">lou_qtt()</a></code> needs panel data for its default lagged-outcome covariate; with <code>lagged_outcome_cov = FALSE</code> it works with repeated cross sections.</p>
 </div>
 <div class="section level2">
 <h2 id="documentation-and-vignettes">Documentation and vignettes<a class="anchor" aria-label="anchor" href="#documentation-and-vignettes"></a>
@@ -267,7 +275,7 @@
 <li>
 <strong>Quantile Treatment Effects in R</strong> — <code><a href="reference/unc_qte.html">unc_qte()</a></code> under random assignment and selection on observables</li>
 <li>
-<strong>Panel Data Estimators for Quantile Treatment Effects</strong> — identification assumptions and usage for all six panel estimators</li>
+<strong>Panel Data Estimators for Quantile Treatment Effects</strong> — identification assumptions and usage for the panel estimators</li>
 <li>
 <strong>Staggered Treatment Adoption</strong> — applied workflow with <code>mpdta</code>: QTT curves, event-study plots, and cross-estimator comparison</li>
 </ul>

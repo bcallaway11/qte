@@ -9,7 +9,7 @@ all of the methods that compute the QTE or QTET."><meta property="og:image" cont
 
     <a class="navbar-brand me-2" href="../index.html">qte</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">2.0.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">2.1.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -70,7 +70,8 @@ all of the methods that compute the QTE or QTET.</p>
 <span>  condQ.treated.t.cf <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  eachIterList <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  inffunct <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  inffuncu <span class="op">=</span> <span class="cn">NULL</span></span>
+<span>  inffuncu <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  cband <span class="op">=</span> <span class="cn">NULL</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -216,6 +217,13 @@ terms in the variance-covariance matrix.</p></dd>
 
 <dt id="arg-inffuncu">inffuncu<a class="anchor" aria-label="anchor" href="#arg-inffuncu"></a></dt>
 <dd><p>The influence function for the untreated group</p></dd>
+
+
+<dt id="arg-cband">cband<a class="anchor" aria-label="anchor" href="#arg-cband"></a></dt>
+<dd><p>Whether <code>qte.lower</code>/<code>qte.upper</code> are a uniform
+confidence band (<code>TRUE</code>) or pointwise intervals (<code>FALSE</code>).
+Default <code>NULL</code> (unknown, e.g. objects from qte &lt; 2.1.0), treated as
+pointwise.</p></dd>
 
 </dl></div>
 

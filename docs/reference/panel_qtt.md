@@ -16,13 +16,16 @@ copula-transfer base for post-treatment cells (g, g+e):
 
 - `"long"` (default):
 
-  pre2 = 2\*(g - anticipation) - (g+e) - 2, matching the copula window
-  to the event horizon e. Cells where pre2 does not exist in the data
-  are excluded from aggregation with two-step weight renormalization.
+  pre2 is as many periods before pre1 as the post period is after it,
+  matching the copula window to the event horizon. pre1 is the last
+  period at least `anticipation` before g (in units of the time
+  variable). Cells where pre2 does not exist in the data are excluded
+  from aggregation with two-step weight renormalization.
 
 - `"short"`:
 
-  pre2 = g - anticipation - 2, always anchored at treatment onset.
+  pre2 is the period just before pre1, always anchored at treatment
+  onset.
 
 Pre-test placebo cells always use the sliding base regardless of
 `pre_copula`.
@@ -37,7 +40,9 @@ panel_qtt(
   idname,
   data,
   xformula = ~1,
+  cond_dist = c("qr", "dr"),
   weightsname = NULL,
+  clustervars = NULL,
   control_group = "notyettreated",
   anticipation = 0,
   alp = 0.05,
@@ -75,11 +80,31 @@ panel_qtt(
 
 - xformula:
 
-  One-sided formula for covariates. Default `~1`.
+  One-sided formula for covariates. Default `~1`. Each unit's covariates
+  are taken from the earliest period the group-time cell uses (the
+  second pre-treatment period), so they are fixed across all three
+  periods.
+
+- cond_dist:
+
+  How conditional distributions are estimated when `xformula` has
+  covariates: `"qr"` (default) for quantile regression or `"dr"` for
+  distribution regression. See
+  [`cic_gt`](https://bcallaway11.github.io/qte/reference/cic_gt.md).
+  Ignored without covariates.
 
 - weightsname:
 
   Name of the sampling weights column. Default `NULL`.
+
+- clustervars:
+
+  Name of a column in `data` to cluster standard errors on, in addition
+  to `idname` (as in
+  [`did::att_gt()`](https://bcallaway11.github.io/did/reference/att_gt.html)):
+  one variable, constant over time within each unit. Default `NULL`
+  clusters at the unit level. With the empirical bootstrap, whole
+  clusters are resampled.
 
 - control_group:
 
@@ -87,7 +112,7 @@ panel_qtt(
 
 - anticipation:
 
-  Number of periods of anticipation. Default `0`.
+  Anticipation, in units of the time variable. Default `0`.
 
 - alp:
 
@@ -122,6 +147,42 @@ panel_qtt(
 For `gt_type = "att"`, a `pte_emp_boot` object. For `gt_type = "qtt"`, a
 `pte_qtt` object.
 
+## Discrete outcomes
+
+Quantile treatment effects usually require a continuous outcome. With
+mass points (e.g. many zeros) or few distinct values, quantiles jump and
+effects at quantiles inside a mass point are 0 by construction;
+identification based on ranks or quantile functions (change-in-changes,
+quantile DiD, the panel and distributional DiD copula arguments) only
+bounds the effects (Athey and Imbens 2006, Section 4); and bootstrap
+inference for quantiles can be unreliable. The estimators warn (once per
+call, class `qte_discrete_outcome`) when more than 10\\ outcome's
+observations share one value or it takes at most 20 distinct values,
+across all groups and periods; the thresholds are the options
+`qte.mass_point_tol` and `qte.discrete_n_unique`. The diagnostics are
+returned as `outcome_discreteness`.
+[`cdf_did`](https://bcallaway11.github.io/qte/reference/cdf_did.md) is
+identified for discrete outcomes.
+
+## Repeated cross sections
+
+[`cic()`](https://bcallaway11.github.io/qte/reference/cic.md),
+[`qdid()`](https://bcallaway11.github.io/qte/reference/qdid.md),
+[`mdid()`](https://bcallaway11.github.io/qte/reference/mdid.md),
+[`cdf_did()`](https://bcallaway11.github.io/qte/reference/cdf_did.md)
+and `lou_qtt(lagged_outcome_cov = FALSE)` also work with repeated cross
+sections (`panel = FALSE`; `idname` not needed). Without covariates they
+use only each period's outcome distributions, so on panel data the
+estimates are the same either way; the standard errors differ, because
+the bootstrap then resamples observations rather than units. Some things
+need the same units in several periods and so require panel data:
+[`ddid()`](https://bcallaway11.github.io/qte/reference/ddid.md) (each
+comparison unit's change over time), `panel_qtt()` (the copula between
+periods), the lagged outcome in
+[`lou_qtt()`](https://bcallaway11.github.io/qte/reference/lou_qtt.md),
+and `gt_type = "qott"` (the distribution of individual treatment
+effects).
+
 ## References
 
 Callaway, Brantly and Tong Li. “Quantile Treatment Effects in
@@ -147,17 +208,42 @@ res <- panel_qtt(yname = "lemp", gname = "first.treat", tname = "year",
                  gt_type = "qtt", probs = seq(0.1, 0.9, 0.1), biters = 20)
 summary(res)
 #> 
-#> Overall QTT Curve:
-#>  Quantile     QTT Std. Error 95% CB Lower 95% CB Upper
-#>       0.1 -0.0270     0.1148      -0.4780       0.4239
-#>       0.2 -0.0852     0.0813      -0.4042       0.2339
-#>       0.3 -0.0250     0.0630      -0.2722       0.2223
-#>       0.4 -0.0680     0.0676      -0.3335       0.1976
-#>       0.5 -0.0965     0.0562      -0.3172       0.1242
-#>       0.6  0.0070     0.0574      -0.2186       0.2325
-#>       0.7  0.0409     0.0386      -0.1106       0.1924
-#>       0.8 -0.0201     0.0379      -0.1687       0.1286
-#>       0.9 -0.0832     0.1037      -0.4902       0.3238
+#> Overall QTT curve:
+#>  Quantile     QTT Std. Error [95% Simult. Conf. Band]        
+#>       0.1 -0.0245     0.1423                  -0.4830 0.4341 
+#>       0.2 -0.0808     0.0616                  -0.2794 0.1178 
+#>       0.3 -0.0187     0.0639                  -0.2248 0.1874 
+#>       0.4 -0.0649     0.0618                  -0.2642 0.1344 
+#>       0.5 -0.0917     0.0480                  -0.2464 0.0631 
+#>       0.6  0.0124     0.0372                  -0.1075 0.1324 
+#>       0.7  0.0512     0.0511                  -0.1136 0.2161 
+#>       0.8 -0.0065     0.0389                  -0.1319 0.1189 
+#>       0.9 -0.0661     0.0317                  -0.1681 0.0360 
 #> 
+#> Dynamic effects (quantile 0.5):
+#>  Event Time     QTT Std. Error [95% Simult. Conf. Band]        
+#>          -2  0.0118     0.0771                  -0.2144 0.2379 
+#>          -1 -0.0523     0.0531                  -0.2137 0.1091 
+#>           0 -0.0443     0.0532                  -0.1927 0.1040 
+#>           1 -0.1751     0.0856                  -0.4512 0.1009 
+#> 
+#> Group effects (quantile 0.5):
+#>  Group     QTT Std. Error [95% Simult. Conf. Band]        
+#>   2006 -0.1022     0.0621                  -0.2934 0.0890 
+#>   2007 -0.1191     0.0585                  -0.3565 0.1182 
+#> 
+#> ATT, and test of QTT(tau) = ATT for all quantiles:
+#>      Parameter     ATT Std. Error [95% Pointwise Conf. Int.] p (QTT = ATT)
+#>        Overall -0.0358     0.0120        -0.0593     -0.0123          0.80
+#>  Event time -2 -0.0095     0.0218        -0.0521      0.0332          0.75
+#>  Event time -1 -0.0418     0.0110        -0.0634     -0.0202          0.30
+#>   Event time 0 -0.0306     0.0115        -0.0531     -0.0081          1.00
+#>   Event time 1 -0.0612     0.0189        -0.0981     -0.0242          1.00
+#> 
+#> ---
+#> Signif. codes: `*' confidence band does not cover 0
+#> Simultaneous bands are uniform over quantiles, for each QTT curve.
+#> p (QTT = ATT): bootstrap sup-t test, from the same draws, that QTT(tau) - ATT = 0
+#> at every estimated quantile.
 # }
 ```

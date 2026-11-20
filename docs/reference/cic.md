@@ -18,7 +18,9 @@ cic(
   data,
   panel = TRUE,
   xformula = ~1,
+  cond_dist = c("qr", "dr"),
   weightsname = NULL,
+  clustervars = NULL,
   control_group = "notyettreated",
   anticipation = 0,
   alp = 0.05,
@@ -57,17 +59,39 @@ cic(
 - panel:
 
   Logical; `TRUE` (default) for panel data, `FALSE` for repeated cross
-  sections.
+  sections (see the section on repeated cross sections).
 
 - xformula:
 
   One-sided formula for covariates used in the covariate adjustment.
-  Default `~1` uses no covariates.
+  Default `~1` uses no covariates. With panel data, each unit's
+  covariates are taken from the base period of each group-time cell
+  (never from a post-treatment period); with repeated cross sections,
+  each observation's own values are used.
+
+- cond_dist:
+
+  How the conditional distributions are estimated when `xformula` has
+  covariates: `"qr"` (default) for quantile regression at the
+  percentiles 0.01, ..., 0.99, or `"dr"` for distribution regression (a
+  logit of \\1\\Y \le y\\\\ on the covariates at a grid of thresholds;
+  Chernozhukov, Fernandez-Val and Melly 2013). Distribution regression
+  handles outcomes with mass points (e.g. many zeros) naturally. Ignored
+  without covariates.
 
 - weightsname:
 
   Name of the column in `data` containing sampling weights. Default
   `NULL` uses equal weights.
+
+- clustervars:
+
+  Name of a column in `data` to cluster standard errors on, in addition
+  to `idname` (as in
+  [`did::att_gt()`](https://bcallaway11.github.io/did/reference/att_gt.html)):
+  one variable, constant over time within each unit. Default `NULL`
+  clusters at the unit level. With the empirical bootstrap, whole
+  clusters are resampled.
 
 - control_group:
 
@@ -119,6 +143,43 @@ For `gt_type = "att"`, a `pte_results` object from `ptetools`. For
 `gt_type = "qtt"`, a `pte_qtt` object with overall, group-specific, and
 dynamic QTT curves and bootstrap SEs.
 
+## Discrete outcomes
+
+Quantile treatment effects usually require a continuous outcome. With
+mass points (e.g. many zeros) or few distinct values, quantiles jump and
+effects at quantiles inside a mass point are 0 by construction;
+identification based on ranks or quantile functions (change-in-changes,
+quantile DiD, the panel and distributional DiD copula arguments) only
+bounds the effects (Athey and Imbens 2006, Section 4); and bootstrap
+inference for quantiles can be unreliable. The estimators warn (once per
+call, class `qte_discrete_outcome`) when more than 10\\ outcome's
+observations share one value or it takes at most 20 distinct values,
+across all groups and periods; the thresholds are the options
+`qte.mass_point_tol` and `qte.discrete_n_unique`. The diagnostics are
+returned as `outcome_discreteness`.
+[`cdf_did`](https://bcallaway11.github.io/qte/reference/cdf_did.md) is
+identified for discrete outcomes.
+
+## Repeated cross sections
+
+`cic()`,
+[`qdid()`](https://bcallaway11.github.io/qte/reference/qdid.md),
+[`mdid()`](https://bcallaway11.github.io/qte/reference/mdid.md),
+[`cdf_did()`](https://bcallaway11.github.io/qte/reference/cdf_did.md)
+and `lou_qtt(lagged_outcome_cov = FALSE)` also work with repeated cross
+sections (`panel = FALSE`; `idname` not needed). Without covariates they
+use only each period's outcome distributions, so on panel data the
+estimates are the same either way; the standard errors differ, because
+the bootstrap then resamples observations rather than units. Some things
+need the same units in several periods and so require panel data:
+[`ddid()`](https://bcallaway11.github.io/qte/reference/ddid.md) (each
+comparison unit's change over time),
+[`panel_qtt()`](https://bcallaway11.github.io/qte/reference/panel_qtt.md)
+(the copula between periods), the lagged outcome in
+[`lou_qtt()`](https://bcallaway11.github.io/qte/reference/lou_qtt.md),
+and `gt_type = "qott"` (the distribution of individual treatment
+effects).
+
 ## References
 
 Athey, Susan and Guido Imbens. “Identification and Inference in
@@ -139,18 +200,18 @@ summary(res_att)
 #> 
 #> Overall ATT:  
 #>      ATT    Std. Error     [ 95%  Conf. Int.] 
-#>  -0.0197        0.0112    -0.0462      0.0069 
+#>  -0.0197        0.0204    -0.0565      0.0172 
 #> 
 #> 
 #> Dynamic Effects:
 #>  Event Time Estimate Std. Error [95% Simult.  Conf. Band]  
-#>          -3   0.0508     0.0253        0.0012      0.1005 *
-#>          -2   0.0158     0.0115       -0.0066      0.0383  
-#>          -1  -0.0128     0.0172       -0.0466      0.0209  
-#>           0  -0.0081     0.0104       -0.0285      0.0124  
-#>           1  -0.0364     0.0214       -0.0784      0.0056  
-#>           2  -0.1226     0.0436       -0.2080     -0.0371 *
-#>           3  -0.0930     0.0412       -0.1736     -0.0123 *
+#>          -3   0.0508     0.0189        0.0137      0.0880 *
+#>          -2   0.0158     0.0153       -0.0142      0.0459  
+#>          -1  -0.0128     0.0188       -0.0497      0.0240  
+#>           0  -0.0081     0.0197       -0.0467      0.0306  
+#>           1  -0.0364     0.0234       -0.0823      0.0095  
+#>           2  -0.1226     0.0419       -0.2047     -0.0404 *
+#>           3  -0.0930     0.0377       -0.1669     -0.0190 *
 #> ---
 #> Signif. codes: `*' confidence band does not cover 0
 #> 
@@ -161,17 +222,49 @@ res_qtt <- cic(yname = "lemp", gname = "first.treat", tname = "year",
                gt_type = "qtt", probs = seq(0.1, 0.9, 0.1), biters = 20)
 summary(res_qtt)
 #> 
-#> Overall QTT Curve:
-#>  Quantile     QTT Std. Error 95% CB Lower 95% CB Upper
-#>       0.1  0.0286     0.1817      -0.5410       0.5982
-#>       0.2 -0.0469     0.0660      -0.2536       0.1599
-#>       0.3 -0.0518     0.0641      -0.2527       0.1490
-#>       0.4  0.0127     0.0498      -0.1434       0.1688
-#>       0.5 -0.0455     0.0541      -0.2149       0.1240
-#>       0.6 -0.0445     0.0398      -0.1692       0.0802
-#>       0.7  0.0046     0.0497      -0.1512       0.1604
-#>       0.8 -0.0187     0.0537      -0.1871       0.1497
-#>       0.9  0.0166     0.0681      -0.1968       0.2300
+#> Overall QTT curve:
+#>  Quantile     QTT Std. Error [95% Simult. Conf. Band]        
+#>       0.1  0.0278     0.1125                  -0.2834 0.3389 
+#>       0.2 -0.0230     0.0871                  -0.2638 0.2178 
+#>       0.3 -0.0103     0.0630                  -0.1845 0.1639 
+#>       0.4 -0.0690     0.0553                  -0.2218 0.0838 
+#>       0.5 -0.0185     0.0653                  -0.1990 0.1620 
+#>       0.6 -0.0149     0.0373                  -0.1180 0.0882 
+#>       0.7  0.0389     0.0486                  -0.0955 0.1732 
+#>       0.8 -0.0387     0.0476                  -0.1702 0.0929 
+#>       0.9  0.0135     0.0736                  -0.1901 0.2170 
 #> 
+#> Dynamic effects (quantile 0.5):
+#>  Event Time     QTT Std. Error [95% Simult. Conf. Band]        
+#>          -3  0.0159     0.0528                  -0.1506 0.1825 
+#>          -2  0.0868     0.0774                  -0.1847 0.3582 
+#>          -1 -0.0683     0.0762                  -0.2474 0.1109 
+#>           0 -0.0237     0.0577                  -0.2029 0.1555 
+#>           1 -0.0429     0.0512                  -0.1774 0.0915 
+#>           2 -0.0960     0.1165                  -0.4172 0.2251 
+#>           3 -0.1972     0.1554                  -0.6255 0.2312 
+#> 
+#> Group effects (quantile 0.5):
+#>  Group     QTT Std. Error [95% Simult. Conf. Band]        
+#>   2004 -0.1391     0.1101                  -0.4999 0.2218 
+#>   2006  0.0149     0.0673                  -0.1872 0.2170 
+#>   2007 -0.1181     0.0557                  -0.2993 0.0630 
+#> 
+#> ATT, and test of QTT(tau) = ATT for all quantiles:
+#>      Parameter     ATT Std. Error [95% Pointwise Conf. Int.] p (QTT = ATT)
+#>        Overall -0.0197     0.0164        -0.0518      0.0124          0.95
+#>  Event time -3  0.0508     0.0229         0.0059      0.0957          0.95
+#>  Event time -2  0.0158     0.0138        -0.0112      0.0429          0.90
+#>  Event time -1 -0.0128     0.0166        -0.0454      0.0198          0.95
+#>   Event time 0 -0.0081     0.0175        -0.0423      0.0262          0.85
+#>   Event time 1 -0.0364     0.0226        -0.0807      0.0079          0.90
+#>   Event time 2 -0.1226     0.0482        -0.2169     -0.0282          0.85
+#>   Event time 3 -0.0930     0.0469        -0.1849     -0.0010          0.95
+#> 
+#> ---
+#> Signif. codes: `*' confidence band does not cover 0
+#> Simultaneous bands are uniform over quantiles, for each QTT curve.
+#> p (QTT = ATT): bootstrap sup-t test, from the same draws, that QTT(tau) - ATT = 0
+#> at every estimated quantile.
 # }
 ```
