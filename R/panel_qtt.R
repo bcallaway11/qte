@@ -314,8 +314,10 @@ panel_qtt_gt <- function(gt_data, xformula = ~1, cond_dist = c("qr", "dr"), ...)
 #' @param extra_gt_returns List of per-cell extra returns (F0, F1, Fte ECDFs).
 #'
 #' @return A list with \code{overall_results}, \code{dyn_results},
-#'   \code{group_results}, \code{attgt_results}, \code{F0_overall},
-#'   \code{F1_overall} — matching the structure returned by
+#'   \code{group_results}, \code{attgt_results}, \code{att_results} (ATTs
+#'   aggregated with the same weights as the QTTs),
+#'   \code{qtt_minus_att_results}, \code{F0_overall}, \code{F1_overall} —
+#'   matching the structure returned by
 #'   \code{ptetools::qtt_pte_aggregations}.
 #'
 #' @keywords internal
@@ -446,9 +448,12 @@ panel_qtt_long_agg <- function(attgt.list, ptep, extra_gt_returns) {
     F1_e <- BMisc::combine_ecdfs(ecdflist = F1_gt[e_idx], weights = pg_e) # nolint: object_name_linter
     qtt_e <- quantile(F1_e, probs = probs, type = 1) -
               quantile(F0_e, probs = probs, type = 1)
-    data.frame(e = this_e, probs = probs, qtt = qtt_e)
+    list(qtt = data.frame(e = this_e, probs = probs, qtt = qtt_e),
+         att = data.frame(e = this_e, att = sum(pg_e * cell_att[e_idx])))
   })
-  dyn_results <- do.call(rbind, Filter(Negate(is.null), dyn_results_list))
+  dyn_results_list <- Filter(Negate(is.null), dyn_results_list)
+  dyn_results <- do.call(rbind, lapply(dyn_results_list, `[[`, "qtt"))
+  dyn_att     <- do.call(rbind, lapply(dyn_results_list, `[[`, "att"))
 
   # --- group QTT (uniform weight over valid post-treatment cells per group) ---
   group_results_list <- lapply(surviving_g, function(g) {
@@ -459,9 +464,12 @@ panel_qtt_long_agg <- function(attgt.list, ptep, extra_gt_returns) {
     F1_g <- BMisc::combine_ecdfs(ecdflist = F1_gt[g_idx], weights = w_g) # nolint: object_name_linter
     qtt_g <- quantile(F1_g, probs = probs, type = 1) -
               quantile(F0_g, probs = probs, type = 1)
-    data.frame(group = g, probs = probs, qtt = qtt_g)
+    list(qtt = data.frame(group = g, probs = probs, qtt = qtt_g),
+         att = data.frame(group = g, att = sum(w_g * cell_att[g_idx])))
   })
-  group_results <- do.call(rbind, Filter(Negate(is.null), group_results_list))
+  group_results_list <- Filter(Negate(is.null), group_results_list)
+  group_results <- do.call(rbind, lapply(group_results_list, `[[`, "qtt"))
+  group_att     <- do.call(rbind, lapply(group_results_list, `[[`, "att"))
 
   # --- attgt_results (scalar ATTs for valid cells; for SE tables) ---
   valid_idx <- which(is_valid)
@@ -471,13 +479,40 @@ panel_qtt_long_agg <- function(attgt.list, ptep, extra_gt_returns) {
     att         = cell_att[valid_idx]
   )
 
+  # --- ATT, and QTT minus ATT (ptetools #27) ---
+  # The cells' ATTs are aggregated with the same weights as the QTTs at each
+  # level, so ptetools' bootstrap gives the ATT and QTT(tau) - ATT from the
+  # same draws: a test of QTT(tau) = ATT at every tau. Same structure as
+  # ptetools::qtt_pte_aggregations().
+  att_results <- list(
+    overall = data.frame(att = sum(overall_w[nonzero] * cell_att[nonzero])),
+    dynamic = data.frame(e = dyn_att$e, att = dyn_att$att),
+    group   = data.frame(group = group_att$group, att = group_att$att)
+  )
+  minus_att <- function(qtt_df, att_df, key) {
+    m <- merge(qtt_df, att_df, by = key)
+    m <- m[order(m[[key]], m$probs), , drop = FALSE]
+    out <- m[c(key, "probs")]
+    out$qtt_minus_att <- m$qtt - m$att
+    rownames(out) <- NULL
+    out
+  }
+  qtt_minus_att_results <- list(
+    overall = data.frame(probs = probs,
+                         qtt_minus_att = overall_qtt - att_results$overall$att),
+    dynamic = minus_att(dyn_results, att_results$dynamic, "e"),
+    group   = minus_att(group_results, att_results$group, "group")
+  )
+
   list(
-    overall_results = overall_results,
-    dyn_results     = dyn_results,
-    group_results   = group_results,
-    attgt_results   = attgt_results,
-    F0_overall      = F0_overall, # nolint: object_name_linter
-    F1_overall      = F1_overall  # nolint: object_name_linter
+    overall_results       = overall_results,
+    dyn_results           = dyn_results,
+    group_results         = group_results,
+    attgt_results         = attgt_results,
+    att_results           = att_results,
+    qtt_minus_att_results = qtt_minus_att_results,
+    F0_overall            = F0_overall, # nolint: object_name_linter
+    F1_overall            = F1_overall  # nolint: object_name_linter
   )
 }
 

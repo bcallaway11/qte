@@ -30,6 +30,14 @@
 * `unc_qte()` also gains `clustervars`: its bootstrap then resamples whole
   clusters instead of rows.
 
+* QTT results (`gt_type = "qtt"`) from the panel estimators now also carry
+  the ATT, aggregated with the same weights as the QTT, and the curve
+  QTT(tau) - ATT with standard errors and a uniform band, from the same
+  bootstrap draws (ptetools 1.1.0, ptetools #27). Its p-value tests
+  QTT(tau) = ATT at every tau: whether the effect is more than a location
+  shift. See `autoplot(res, type = "qtt_minus_att")`. This includes
+  `panel_qtt()`'s default long copula, which has its own aggregation.
+
 * New `cdf_did()` (and its workhorse `cdf_did_gt()`): the QTT and ATT under
   parallel trends in the *distribution functions* of untreated potential
   outcomes (Roth and Sant'Anna 2023), with staggered adoption, for panel

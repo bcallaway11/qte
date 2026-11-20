@@ -15,8 +15,10 @@ panel_qtt_long_agg(attgt.list, ptep, extra_gt_returns)
 }
 \value{
 A list with \code{overall_results}, \code{dyn_results},
-\code{group_results}, \code{attgt_results}, \code{F0_overall},
-\code{F1_overall} — matching the structure returned by
+\code{group_results}, \code{attgt_results}, \code{att_results} (ATTs
+aggregated with the same weights as the QTTs),
+\code{qtt_minus_att_results}, \code{F0_overall}, \code{F1_overall} —
+matching the structure returned by
 \code{ptetools::qtt_pte_aggregations}.
 }
 \description{
