@@ -37,7 +37,9 @@ ddid(
 \item{data}{A data frame.}
 
 \item{xformula}{One-sided formula for covariates. Default \code{~1} uses no
-covariates.}
+covariates.
+Each unit's covariates are taken from the base period of each
+group-time cell.}
 
 \item{cond_dist}{How conditional distributions are estimated when
 \code{xformula} has covariates: \code{"qr"} (default) for quantile

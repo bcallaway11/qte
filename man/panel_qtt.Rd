@@ -37,7 +37,10 @@ panel_qtt(
 
 \item{data}{A data frame.}
 
-\item{xformula}{One-sided formula for covariates. Default \code{~1}.}
+\item{xformula}{One-sided formula for covariates. Default \code{~1}.
+Each unit's covariates are taken from the earliest period the
+group-time cell uses (the second pre-treatment period), so they are
+fixed across all three periods.}
 
 \item{cond_dist}{How conditional distributions are estimated when
 \code{xformula} has covariates: \code{"qr"} (default) for quantile

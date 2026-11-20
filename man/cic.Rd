@@ -44,7 +44,10 @@ cic(
 cross sections).}
 
 \item{xformula}{One-sided formula for covariates used in the covariate
-adjustment. Default \code{~1} uses no covariates.}
+adjustment. Default \code{~1} uses no covariates.
+With panel data, each unit's covariates are taken from the base period
+of each group-time cell (never from a post-treatment period); with
+repeated cross sections, each observation's own values are used.}
 
 \item{cond_dist}{How the conditional distributions are estimated when
 \code{xformula} has covariates: \code{"qr"} (default) for quantile

@@ -10,7 +10,7 @@
 #   All three attgt_fun/subset_fun functions follow the ptetools patterns used
 #   by cic_gt, qdid_gt, mdid_gt, and ddid_gt.
 # Author: Brant Callaway
-# Last update: 2026-11-19
+# Last update: 2026-11-20
 # Date created: 2026-05-20
 # =============================================================================
 
@@ -164,6 +164,8 @@ three_period_subset <- function(data,
 #' @export
 panel_qtt_gt <- function(gt_data, xformula = ~1, cond_dist = c("qr", "dr"), ...) {
   cond_dist <- match.arg(cond_dist)
+  # covariates fixed at their values in pre2, the earliest period used
+  gt_data <- base_period_covariates(gt_data, xformula, ref = "pre2")
   gt_data <- droplevels(gt_data)
 
   # extract the five cells; pre2_ctrl is not needed for identification
@@ -554,6 +556,9 @@ panel_qtt_long_agg <- function(attgt.list, ptep, extra_gt_returns) {
 #' @param idname Name of the unit id variable (required).
 #' @param data A data frame.
 #' @param xformula One-sided formula for covariates. Default \code{~1}.
+#'   Each unit's covariates are taken from the earliest period the
+#'   group-time cell uses (the second pre-treatment period), so they are
+#'   fixed across all three periods.
 #' @param cond_dist How conditional distributions are estimated when
 #'   \code{xformula} has covariates: \code{"qr"} (default) for quantile
 #'   regression or \code{"dr"} for distribution regression. See

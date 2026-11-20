@@ -347,6 +347,11 @@ estimator:
 - `mdid()` adjusts the comparison group's mean change by a linear
   regression on the covariates.
 
+With panel data, covariates that change over time are taken from each
+group-time cell's base period (for `panel_qtt()`, the earliest period the
+cell uses), so the estimators never condition on covariates measured after
+treatment.
+
 Here we condition on log county population, `lpop`:
 
 ```{r}

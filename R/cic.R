@@ -6,7 +6,7 @@
 #   treatment adoption for both panel and repeated cross sections data.
 #   (The deprecated two-period CiC() was removed in v2.1.0.)
 # Author: Brant Callaway
-# Last update: 2026-11-19
+# Last update: 2026-11-20
 # Date created: 2026-05-18
 # =============================================================================
 
@@ -56,6 +56,8 @@
 #' @export
 cic_gt <- function(gt_data, xformula = ~1, cond_dist = c("qr", "dr"), ...) {
   cond_dist <- match.arg(cond_dist)
+  # covariates fixed at their base-period values (panel data)
+  gt_data <- base_period_covariates(gt_data, xformula)
   gt_data <- droplevels(gt_data)
 
   # extract the four (period x treatment-status) groups
@@ -185,6 +187,9 @@ cic_gt <- function(gt_data, xformula = ~1, cond_dist = c("qr", "dr"), ...) {
 #'   cross sections).
 #' @param xformula One-sided formula for covariates used in the covariate
 #'   adjustment. Default \code{~1} uses no covariates.
+#'   With panel data, each unit's covariates are taken from the base period
+#'   of each group-time cell (never from a post-treatment period); with
+#'   repeated cross sections, each observation's own values are used.
 #' @inheritParams cic_gt
 #' @param weightsname Name of the column in \code{data} containing sampling
 #'   weights. Default \code{NULL} uses equal weights.

@@ -43,7 +43,10 @@ mdid(
 cross sections).}
 
 \item{xformula}{One-sided formula for covariates. Default \code{~1} uses no
-covariates.}
+covariates.
+With panel data, each unit's covariates are taken from the base period
+of each group-time cell (never from a post-treatment period); with
+repeated cross sections, each observation's own values are used.}
 
 \item{weightsname}{Name of the column in \code{data} containing sampling
 weights. Default \code{NULL} uses equal weights.}

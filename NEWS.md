@@ -72,6 +72,16 @@
 
 ## Bug fixes (these change results)
 
+* With panel data and covariates that change over time, the estimators now
+  condition on each unit's covariates from the base period of each
+  group-time cell, as `ptetools` and `did` do. Before, `cic()`, `qdid()`,
+  `mdid()` and `cdf_did()` fit the comparison group's post-period
+  distribution on post-period covariates, and `lou_qtt()` conditioned on
+  covariates measured after treatment. `panel_qtt()` now fixes covariates
+  at the earliest period each cell uses; it previously mixed two
+  pre-treatment periods. Results with time-invariant covariates, and with
+  repeated cross sections, are unchanged.
+
 * `unc_qte()`'s uniform confidence band could be absurdly wide (by orders
   of magnitude) when a requested quantile fell inside a mass point of the
   outcome, such as zero earnings. The critical value standardized each

@@ -42,7 +42,10 @@ cdf_did(
 for repeated cross sections (see the section on repeated cross
 sections).}
 
-\item{xformula}{One-sided formula of covariates. Default \code{~1}.}
+\item{xformula}{One-sided formula of covariates. Default \code{~1}.
+With panel data, each unit's covariates are taken from the base period
+of each group-time cell (never from a post-treatment period); with
+repeated cross sections, each observation's own values are used.}
 
 \item{est_method}{With covariates: \code{"aipw"} (default; doubly
 robust), \code{"ipw"} or \code{"reg"} (outcome regression, as in

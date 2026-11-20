@@ -12,7 +12,7 @@
 #   Callaway, Brantly. "Policy Evaluation during a Pandemic."
 #   Journal of Econometrics 236(2), 2023.
 # Author: Brant Callaway
-# Last update: 2026-11-19
+# Last update: 2026-11-20
 # Date created: 2026-05-22
 # =============================================================================
 
@@ -52,6 +52,8 @@ lou_gt <- function(gt_data, xformula = ~1, lagged_outcome_cov = TRUE,
   cond_dist <- match.arg(cond_dist)
   # "or" is the pre-2.1.0 name of "reg"; lou_qtt() already warned about it
   if (identical(est_method, "or")) est_method <- "reg"
+  # covariates fixed at their base-period values (panel data)
+  gt_data <- base_period_covariates(gt_data, xformula)
   gt_data <- droplevels(gt_data)
 
   pre_data  <- gt_data[gt_data$name == "pre",  ]
@@ -240,6 +242,9 @@ lou_gt <- function(gt_data, xformula = ~1, lagged_outcome_cov = TRUE,
 #'   propensity score and/or outcome model. Default \code{~1} uses no
 #'   additional covariates beyond the lagged outcome (when
 #'   \code{lagged_outcome_cov = TRUE}).
+#'   With panel data, each unit's covariates are taken from the base period
+#'   of each group-time cell (never from a post-treatment period); with
+#'   repeated cross sections, each observation's own values are used.
 #' @param lagged_outcome_cov Logical; if \code{TRUE} (default), the
 #'   pre-treatment outcome is added as a covariate in both the propensity
 #'   score and outcome models. Requires \code{panel = TRUE}.

@@ -5,7 +5,7 @@
 #   attgt_fun. ddid is the unified user-facing function for staggered adoption.
 #   (The deprecated two-period ddid2() was removed in v2.1.0.)
 # Author: Brant Callaway
-# Last update: 2026-11-19
+# Last update: 2026-11-20
 # Date created: 2026-05-18
 # =============================================================================
 
@@ -73,6 +73,8 @@
 #' @export
 ddid_gt <- function(gt_data, xformula = ~1, cond_dist = c("qr", "dr"), ...) {
   cond_dist <- match.arg(cond_dist)
+  # covariates fixed at their base-period values (panel data)
+  gt_data <- base_period_covariates(gt_data, xformula)
   gt_data <- droplevels(gt_data)
 
   # extract and sort all four cells by id (panel structure enforced by ddid())
@@ -200,6 +202,8 @@ ddid_gt <- function(gt_data, xformula = ~1, cond_dist = c("qr", "dr"), ...) {
 #' @param data A data frame.
 #' @param xformula One-sided formula for covariates. Default \code{~1} uses no
 #'   covariates.
+#'   Each unit's covariates are taken from the base period of each
+#'   group-time cell.
 #' @param cond_dist How conditional distributions are estimated when
 #'   \code{xformula} has covariates: \code{"qr"} (default) for quantile
 #'   regression or \code{"dr"} for distribution regression. See

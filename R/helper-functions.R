@@ -5,7 +5,7 @@
 #   ggqte() was removed in v2.1.0). Also keep_used_columns(),
 #   used by the staggered estimators before calling ptetools::pte().
 # Author: Brant Callaway
-# Last update: 2026-11-19
+# Last update: 2026-11-20
 # Date created: 2026-05-18
 # =============================================================================
 
@@ -22,6 +22,35 @@ keep_used_columns <- function(data, yname, gname, tname, idname = NULL,
   used <- unique(c(yname, gname, tname, idname, weightsname, clustervars,
                    all.vars(xformula)))
   data[, intersect(used, names(data)), drop = FALSE]
+}
+
+
+# --- base_period_covariates --------------------------------------------------
+# Give every row of a (g,t) cell its unit's covariate values from one
+# reference period: the base period ("pre") for the two-period cells, the
+# earliest period used ("pre2") for panel_qtt's three-period cells.
+# Conditioning on covariates from a single pre-treatment period is the
+# convention throughout (as in ptetools::pte_attgt() and did): the
+# comparison group's post-period distribution is conditioned on the same
+# covariate values that are plugged in for the treated, and the treated are
+# never conditioned on covariates measured after treatment. Each *_gt
+# function calls this itself, so a custom attgt_fun can choose differently.
+#
+# Repeated cross sections are untouched: a row matches a reference-period
+# row only if the same id appears there, which happens only for panel data.
+# Panel units with no reference-period row keep their own values.
+#
+# Args: gt_data (gt_data_frame for one cell); xformula; ref (value of
+#   gt_data$name for the reference period).
+# Returns: gt_data with the covariate columns replaced.
+base_period_covariates <- function(gt_data, xformula, ref = "pre") {
+  xvars <- intersect(all.vars(xformula), names(gt_data))
+  if (length(xvars) == 0L) return(gt_data)
+  ref_rows <- gt_data[gt_data$name == ref, , drop = FALSE]
+  idx <- match(gt_data$id, ref_rows$id)
+  has_ref <- !is.na(idx)
+  for (v in xvars) gt_data[[v]][has_ref] <- ref_rows[[v]][idx[has_ref]]
+  gt_data
 }
 
 

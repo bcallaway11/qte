@@ -11,7 +11,7 @@
 #   user-facing wrapper (panel or repeated cross sections, staggered
 #   adoption).
 # Author: Brant Callaway
-# Last update: 2026-11-19
+# Last update: 2026-11-20
 # Date created: 2026-11-19
 # =============================================================================
 
@@ -148,6 +148,8 @@ cdf_did_delta <- function(trt_pre, ctrl_pre, ctrl_post, xformula, est_method,
 cdf_did_gt <- function(gt_data, xformula = ~1,
                        est_method = c("aipw", "ipw", "reg"), ...) {
   est_method <- match.arg(est_method)
+  # covariates fixed at their base-period values (panel data)
+  gt_data <- base_period_covariates(gt_data, xformula)
   gt_data <- droplevels(gt_data)
   cell <- function(nm, d) {
     gt_data[gt_data$name == nm & gt_data$D == d, , drop = FALSE]
@@ -237,6 +239,9 @@ cdf_did_gt <- function(gt_data, xformula = ~1,
 #'   for repeated cross sections (see the section on repeated cross
 #'   sections).
 #' @param xformula One-sided formula of covariates. Default \code{~1}.
+#'   With panel data, each unit's covariates are taken from the base period
+#'   of each group-time cell (never from a post-treatment period); with
+#'   repeated cross sections, each observation's own values are used.
 #' @param est_method With covariates: \code{"aipw"} (default; doubly
 #'   robust), \code{"ipw"} or \code{"reg"} (outcome regression, as in
 #'   \code{did}).

@@ -43,7 +43,10 @@ lou_qtt(
 \item{xformula}{One-sided formula for additional covariates used in the
 propensity score and/or outcome model. Default \code{~1} uses no
 additional covariates beyond the lagged outcome (when
-\code{lagged_outcome_cov = TRUE}).}
+\code{lagged_outcome_cov = TRUE}).
+With panel data, each unit's covariates are taken from the base period
+of each group-time cell (never from a post-treatment period); with
+repeated cross sections, each observation's own values are used.}
 
 \item{lagged_outcome_cov}{Logical; if \code{TRUE} (default), the
 pre-treatment outcome is added as a covariate in both the propensity
