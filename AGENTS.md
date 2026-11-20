@@ -10,8 +10,9 @@
 Quantile Treatment Effects on the Treated (QTT). Version 2.0.0 (2026-07) was
 a major rewrite that added a unified staggered-treatment-adoption API (built
 on `ptetools`). Version 2.1.0 (in development, on `master`) removed the
-deprecated two-period wrappers and added distribution regression
-(`cond_dist = "dr"`) plus several result-changing bug fixes (see NEWS.md).
+deprecated two-period wrappers and added `cdf_did()`, distribution
+regression (`cond_dist = "dr"`), `clustervars`, the ATT and QTT − ATT test
+in QTT runs, plus several result-changing bug fixes (see NEWS.md).
 
 **Version:** 2.1.0 (dev); 2.0.0 on CRAN. **GitHub:** https://github.com/bcallaway11/qte.
 **pkgdown site:** generated in `docs/` from `_pkgdown.yml` — do not add
@@ -19,8 +20,10 @@ top-level `*.md` files casually; pkgdown auto-publishes any top-level `.md`
 file except `README.md`/`NEWS.md`/`LICENSE.md`/a few GitHub templates, with
 no config override. `CLAUDE.md`/`AGENTS.md` are excluded from `docs/` via a
 manual post-build cleanup step (see Development Workflow below).
-**CRAN status:** qte 2.0.0 and `ptetools` 1.0.1 are on CRAN. The 2.1.0
-release checklist is `dev/TODO.md`.
+**CRAN status:** qte 2.0.0 and `ptetools` 1.0.1 are on CRAN. qte 2.1.0
+requires BMisc >= 1.4.11 and ptetools >= 1.1.0 (both on GitHub, not yet
+CRAN); release order BMisc → ptetools → qte. The 2.1.0 release checklist is
+`dev/TODO.md`.
 
 All estimators use `did`/`ptetools`-style named args (`yname`, `tname`,
 `idname`, `biters`, `weightsname`, `cl`, ...):
@@ -52,6 +55,15 @@ User call (e.g. cic()) → attgt_fun (e.g. cic_gt) + subset_fun + aggte_fun
   chosen based on `gt_type` (`"att"` → `ptetools::attgt_pte_aggregations`;
   `"qtt"` → `ptetools::qtt_pte_aggregations`, or `panel_qtt_long_agg` for
   `panel_qtt(pre_copula = "long")`).
+- QTT aggregation mixes the cells' distribution functions exactly
+  (`BMisc::combine_ecdfs()` without `y.seq`, inverted by
+  `quantile.BMisc_dist`), with the ATT weights. A QTT `aggte_fun` also
+  returns `att_results` and `qtt_minus_att_results` (ptetools #27), so the
+  bootstrap gives the ATT and the QTT(τ) = ATT test from the same draws;
+  `panel_qtt_long_agg()` returns both too, aggregating cell ATTs with the
+  same weights as the QTTs. It builds its weights in cell order itself, so
+  it was not affected by ptetools' weight-misordering bug (8ede89a);
+  `tests/testthat/test-multicohort.R` would catch that kind of bug.
 - `aggte_fun` was renamed from `aggregation_fun` on 2026-07-19 (ptetools
   commit) to avoid a parameter-name collision with `contdid`. Must be passed
   explicitly by every caller — `ptetools::pte()`'s `...` silently swallows a
@@ -123,29 +135,30 @@ The working list for the next release is `dev/TODO.md`; design history and
 rationale are in `dev/NOTES.md`. Highlights:
 
 - `QTE()` (the constructor) is exported though users shouldn't need it.
-- **qte `master` needs unreleased ptetools** (GitHub, post-1.0.2:
-  `pte_calendar_time()`, `clustervars`, #13 internal columns, #22). The
-  installed library and `DESCRIPTION` (`>= 1.0.2`) lag; until ptetools is
-  bumped (1.0.3) and reinstalled, test against the GitHub version and expect
-  `rcmdcheck()` (installed ptetools) to fail the `panel_qtt` tests.
+- **qte `master` needs unreleased dependencies:** ptetools 1.1.0 and
+  BMisc 1.4.11 from GitHub (installed locally as of 2026-11-19). The
+  vignette caches were built against these versions; if either changes
+  before CRAN (e.g. ptetools #33), regenerate them.
+- **Uniform bands at mass points:** `unc_qte()` uses `boot_curve_scale()`
+  (IQR-based scale as in `did::mboot()`, SD where the IQR scale is below
+  0.1 × SD, degenerate quantiles left out of the critical value) for both
+  `qte.se` and the critical value. ptetools' `boot_curves()` still has the
+  old code, which can blow up at quantiles inside a mass point (#33).
 - **Sampling weights** (audit 2026-11-19, `dev/weights_audit.md`,
   ptetools#21): cohort shares are now weighted (ptetools#23, qte#13) and
   weights validated (ptetools#24), both needing ptetools GitHub.
   `tests/testthat/test-weights.R` checks row replication for every panel
   estimator (#15). Exact replication needs `cond_dist = "dr"` with
-  covariates (weighted QR's LP solution isn't unique) and outcomes on the
-  QTT grid: ptetools evaluates QTTs on a 1000-point grid of unweighted
-  pooled-outcome quantiles, so off-grid counterfactuals (e.g. `mdid`) move
-  with the grid.
-- Parallel bootstrap: a numeric `cl` ran serially on Windows; fixed on
-  ptetools GitHub (#11), shipping with the next ptetools release.
+  covariates (weighted QR's LP solution isn't unique).
+- Parallel bootstrap: a numeric `cl` ran serially on Windows; fixed in
+  ptetools 1.1.0 (#11).
 
 ## Development Workflow
 
 ```r
 devtools::load_all()    # reload after edits
 devtools::document()    # rebuild man/ and NAMESPACE
-devtools::test()        # run testthat (~120 expectations; 3 slow bootstrap
+devtools::test()        # run testthat (~340 expectations; 3 slow bootstrap
                          # tests skipped unless R_SLOW_TESTS=true)
 lintr::lint("R/foo.R")  # lint before committing (lint_file() is gone in current lintr)
 rcmdcheck::rcmdcheck(args = "--as-cran")  # full CRAN check
@@ -212,7 +225,11 @@ stale:
 4. The full `biters=100` bootstrap can be slow to regenerate. To speed it
    up, temporarily add `cl = 10` (or similar) to the estimator calls, then
    remove it before committing — every estimator function uses `cl` for
-   parallel bootstrap iterations.
+   parallel bootstrap iterations. Alternative that leaves the `.qmd`
+   untouched: `knitr::purl()` the vignette into a scratch `.R` file, `sed`
+   `biters = 100` → `biters = 100, cl = 10` there, and run it with `Rscript`
+   from `vignettes/` (writes the cache; delete the stray `Rplots.pdf`), then
+   `quarto render` to check the vignette builds from the cache.
 
 **Gotcha:** `ptetools` is a hard dependency but isn't loaded by `library(qte)`
 alone — only when code actually calls into it (e.g. `cic()`). Loading a
