@@ -7,7 +7,8 @@
 #   causal claim. Also checks that the AIPW ATT is doubly robust (issue #11)
 #   that a non-0/1 treatment errors clearly (issue #1), the uniform vs
 #   pointwise bands (cband), that rows with missing values are dropped,
-#   clustervars, the deprecated xformla alias, and the slim pscore.reg.
+#   clustervars, the deprecated xformla alias, the slim pscore.reg, and the
+#   bootstrap scale at quantiles inside a mass point.
 # Author: Brant Callaway
 # Last update: 2026-11-19
 # Date created: 2026-05-18
@@ -230,4 +231,27 @@ test_that("unc_qte's deprecated est_method = \"or\" still works, as \"reg\"", {
     "deprecated"
   )
   expect_equal(old$qte, new$qte)
+})
+
+test_that("bootstrap scale: IQR-based, SD inside a mass point, 0 if constant", {
+  set.seed(1)
+  B <- 100
+  normal <- rnorm(B, sd = 2)
+  # inside a mass point: nearly constant, a few draws jump
+  mass <- c(rep(6e-5, 92), rnorm(B - 92, -170, 10)) + rnorm(B, sd = 1e-6)
+  constant <- rep(0, B)
+  draws <- cbind(normal, mass, constant)
+  sc <- unname(boot_curve_scale(draws))
+
+  iqr <- unname(diff(quantile(normal, c(0.25, 0.75), type = 1))) /
+    (qnorm(0.75) - qnorm(0.25))
+  expect_equal(sc[1], iqr)
+  expect_equal(sc[2], sd(mass))
+  expect_equal(sc[3], 0)
+
+  # the sup-t critical value stays moderate: with the IQR scale at the
+  # mass-point quantile it was about 1e8
+  est <- c(0, 6e-5)
+  cb <- apply(draws[, 1:2], 1, function(q) max(abs((q - est) / sc[1:2])))
+  expect_lt(quantile(cb, 0.95, type = 1), sqrt(B))
 })

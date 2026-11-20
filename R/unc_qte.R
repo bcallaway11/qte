@@ -327,24 +327,27 @@ unc_qte_boot <- function(dat, est_args, est, biters, alp, cband, cl) {
   # ATE/ATT: bootstrap SE, normal-approximation interval
   ate.se <- stats::sd(ate_b)
 
-  # QTE: bootstrap SE per quantile, normal-approximation pointwise interval
-  qte.se <- apply(qte_mat, 2, stats::sd)
+  # QTE: bootstrap scale per quantile, used both for the reported SE and for
+  # the uniform band's critical value, as in did::mboot()
+  qte.se <- boot_curve_scale(qte_mat)
 
-  # Critical value for a uniform band: the (1 - alp) quantile of the sup over
-  # probs of |boot - est| / sigma, with sigma a robust (IQR-based) scale; fall
-  # back to the bootstrap SE when the IQR is 0 (e.g. QTEs that are exactly 0)
-  sigmahalf <- (apply(qte_mat, 2, function(b) stats::quantile(b, .75, type = 1)) -
-                  apply(qte_mat, 2, function(b) stats::quantile(b, .25, type = 1))) /
-    (stats::qnorm(.75) - stats::qnorm(.25))
-  if (any(sigmahalf == 0)) {
-    sigmahalf <- pmax(apply(qte_mat, 2, stats::sd), 1e-9)
+  # Critical value for a uniform band: the (1 - alp) quantile over draws of
+  # the sup over probs of |boot - est| / se. Quantiles whose draws never
+  # vary (se = 0, e.g. QTEs exactly 0 inside a mass point) are left out of
+  # the sup, as did::mboot() drops degenerate columns; their band is the
+  # point estimate.
+  keep <- qte.se > 0
+  c_val <- if (any(keep)) {
+    cb <- apply(qte_mat[, keep, drop = FALSE], 1, function(q) {
+      max(abs((q - est$qte[keep]) / qte.se[keep]))
+    })
+    as.numeric(stats::quantile(cb, 1 - alp, type = 1))
+  } else {
+    z
   }
-  cb <- apply(qte_mat, 1, function(q) max(abs((q - est$qte) / sigmahalf)))
-  c_val <- as.numeric(stats::quantile(cb, 1 - alp, type = 1))
 
-  # Uniform band qte +/- c * se, exactly as ptetools builds lower_ub/upper_ub
-  # for the panel estimators (same c, scaled by the bootstrap SE); pointwise
-  # band qte +/- z * se otherwise
+  # Uniform band qte +/- c * se, with c computed on the same scale as se;
+  # pointwise band qte +/- z * se otherwise
   band_cval <- if (cband) c_val else z
 
   list(
@@ -355,6 +358,35 @@ unc_qte_boot <- function(dat, est_args, est, biters, alp, cband, cl) {
     ate.lower = est$ate - z * ate.se, ate.upper = est$ate + z * ate.se,
     c = c_val
   )
+}
+
+
+# --- Bootstrap scale for a curve ----------------------------------------------
+
+# Per-column bootstrap scale for a matrix of draws (rows = draws, columns =
+# quantiles): the interquartile range divided by that of a standard normal,
+# as in did::mboot(), which is robust to a few outlying draws. Where it is
+# negligible next to the standard deviation, the standard deviation is used
+# instead. That happens at quantiles inside a mass point of the outcome:
+# nearly every draw gives the same value, but a few jump, so the IQR scale
+# is close to 0 without being 0, and standardizing by it made the uniform
+# band's critical value explode (and the band with it).
+#
+# Arguments:
+#   draws  numeric matrix of bootstrap draws
+#   tol    use the SD where the IQR scale is below tol * SD. For roughly
+#          normal draws the two scales agree (ratio about 1), so 0.1 only
+#          catches degenerate columns.
+#
+# Returns a numeric vector with one scale per column (0 if the draws never
+# vary).
+boot_curve_scale <- function(draws, tol = 0.1) {
+  iqr_scale <- apply(draws, 2, function(b) {
+    stats::quantile(b, 0.75, type = 1, names = FALSE) -
+      stats::quantile(b, 0.25, type = 1, names = FALSE)
+  }) / (stats::qnorm(0.75) - stats::qnorm(0.25))
+  sd_scale <- apply(draws, 2, stats::sd)
+  ifelse(iqr_scale < tol * sd_scale, sd_scale, iqr_scale)
 }
 
 
@@ -427,8 +459,8 @@ unc_qte_boot <- function(dat, est_args, est, biters, alp, cband, cl) {
 #' @param cband logical; if \code{TRUE} (default), \code{qte.lower} and
 #'   \code{qte.upper} form a uniform confidence band, simultaneous over all
 #'   quantiles in \code{probs}: \code{qte} \eqn{\pm} \code{c} \eqn{\times}
-#'   \code{qte.se}, with the bootstrap critical value \code{c} (the same
-#'   construction as the panel estimators' uniform bands). If \code{FALSE},
+#'   \code{qte.se}, with the bootstrap critical value \code{c} computed on
+#'   the same scale as \code{qte.se}. If \code{FALSE},
 #'   they are pointwise intervals, \code{qte} \eqn{\pm z_{1-\alpha/2}}
 #'   \code{qte.se}.
 #' @param boot_type bootstrap variant. Currently only \code{"empirical"} is
@@ -474,7 +506,11 @@ unc_qte_boot <- function(dat, est_args, est, biters, alp, cband, cl) {
 #'     \item{\code{qte}}{numeric vector of estimated QTE (or QTT) at each
 #'       element of \code{probs}.}
 #'     \item{\code{ate}}{estimated ATE (or ATT when \code{target = "qtt"}).}
-#'     \item{\code{qte.se}}{bootstrap standard errors for \code{qte}.}
+#'     \item{\code{qte.se}}{bootstrap standard errors for \code{qte}: the
+#'       interquartile range of the bootstrap draws divided by that of a
+#'       standard normal, as in \code{did::att_gt()}, or the standard
+#'       deviation of the draws where that is negligible (quantiles inside a
+#'       mass point of the outcome).}
 #'     \item{\code{qte.lower}, \code{qte.upper}}{confidence bounds for
 #'       \code{qte}: a uniform band if \code{cband = TRUE}, pointwise
 #'       intervals otherwise (see \code{cband}).}

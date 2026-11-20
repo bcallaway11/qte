@@ -23,17 +23,18 @@ In many empirical settings, units adopt treatment at different points in time
 adopt a policy in different years, or firms may receive an intervention at
 different times during a study period.
 
-All estimators in `qte` support staggered adoption via the same interface:
-specify the outcome (`yname`), the first-treatment-period cohort variable
-(`gname`, with 0 for never-treated units), calendar time (`tname`), and a unit
-identifier (`idname`). The package follows the approach of
+All seven panel estimators in `qte` support staggered adoption via the same
+interface: specify the outcome (`yname`), the first-treatment-period cohort
+variable (`gname`, with 0 for never-treated units), calendar time (`tname`),
+and a unit identifier (`idname`). The package follows the approach of
 @callaway-santanna-2021, computing group-time effects $QTT(g, t)$ for every
 cohort $g$ and period $t$, then aggregating these into overall, group-specific,
 and event-study (dynamic) summaries.
 
-The primary output of interest is the **QTT curve** — the full distribution of
-treatment effects across quantile levels $\tau$. Each estimator can also be run
-with `gt_type = "att"` to recover the scalar ATT.
+The primary output of interest is the **QTT curve** — the treatment effect at
+each quantile $\tau$ of the treated group's outcome distribution. Each QTT
+run also reports the ATT implied by the same assumption, and tests whether
+the QTT curve is flat at the ATT.
 
 This vignette demonstrates the full applied workflow using the `mpdta` dataset.
 For conceptual background on the identification assumptions behind each
@@ -59,18 +60,19 @@ data(mpdta, package = "did")
 cache_file <- "precomputed/staggered-adoption-results.rds"
 use_cache <- file.exists(cache_file)
 
+median_fit <- function(estimator) {
+  estimator(
+    yname = "lemp", gname = "first.treat", tname = "year",
+    idname = "countyreal", data = mpdta,
+    gt_type = "qtt", probs = 0.5, biters = 100
+  )
+}
+
 if (use_cache) {
-  cached   <- readRDS(cache_file)
-  res_qtt  <- cached$res_qtt
-  res_att  <- cached$res_att
-  res_cic  <- cached$res_cic
-  res_qdid <- cached$res_qdid
-  res_pqtt <- cached$res_pqtt
-  res_ddid <- cached$res_ddid
-  res_mdid <- cached$res_mdid
-  res_lou  <- cached$res_lou
+  cached <- readRDS(cache_file)
 } else {
-  res_qtt <- cic(
+  cached <- list()
+  cached$res_qtt <- cic(
     yname   = "lemp",
     gname   = "first.treat",
     tname   = "year",
@@ -80,8 +82,7 @@ if (use_cache) {
     gt_type = "qtt",
     probs   = seq(0.1, 0.9, by = 0.1)
   )
-
-  res_att <- cic(
+  cached$res_att <- cic(
     yname   = "lemp",
     gname   = "first.treat",
     tname   = "year",
@@ -90,50 +91,40 @@ if (use_cache) {
     biters  = 100,
     gt_type = "att"
   )
-
-  res_cic <- cic(
-    yname = "lemp", gname = "first.treat", tname = "year",
-    idname = "countyreal", data = mpdta,
-    gt_type = "qtt", probs = 0.5, biters = 100
+  cached$res_cic  <- median_fit(cic)
+  cached$res_qdid <- median_fit(qdid)
+  cached$res_pqtt <- median_fit(panel_qtt)
+  cached$res_ddid <- median_fit(ddid)
+  cached$res_mdid <- median_fit(mdid)
+  cached$res_cdf  <- median_fit(cdf_did)
+  cached$res_lou  <- median_fit(lou_qtt)
+  cached$res_cdf_x <- cdf_did(
+    yname      = "lemp",
+    gname      = "first.treat",
+    tname      = "year",
+    idname     = "countyreal",
+    data       = mpdta,
+    xformula   = ~lpop,
+    est_method = "aipw",
+    biters     = 100,
+    gt_type    = "qtt",
+    probs      = seq(0.1, 0.9, by = 0.1)
   )
-
-  res_qdid <- qdid(
-    yname = "lemp", gname = "first.treat", tname = "year",
-    idname = "countyreal", data = mpdta,
-    gt_type = "qtt", probs = 0.5, biters = 100
+  cached$res_cic_x <- cic(
+    yname     = "lemp",
+    gname     = "first.treat",
+    tname     = "year",
+    idname    = "countyreal",
+    data      = mpdta,
+    xformula  = ~lpop,
+    cond_dist = "dr",
+    biters    = 100,
+    gt_type   = "qtt",
+    probs     = seq(0.1, 0.9, by = 0.1)
   )
-
-  res_pqtt <- panel_qtt(
-    yname = "lemp", gname = "first.treat", tname = "year",
-    idname = "countyreal", data = mpdta,
-    gt_type = "qtt", probs = 0.5, biters = 100
-  )
-
-  res_ddid <- ddid(
-    yname = "lemp", gname = "first.treat", tname = "year",
-    idname = "countyreal", data = mpdta,
-    gt_type = "qtt", probs = 0.5, biters = 100
-  )
-
-  res_mdid <- mdid(
-    yname = "lemp", gname = "first.treat", tname = "year",
-    idname = "countyreal", data = mpdta,
-    gt_type = "qtt", probs = 0.5, biters = 100
-  )
-
-  res_lou <- lou_qtt(
-    yname = "lemp", gname = "first.treat", tname = "year",
-    idname = "countyreal", data = mpdta,
-    gt_type = "qtt", probs = 0.5, biters = 100
-  )
-
-  saveRDS(
-    list(res_qtt = res_qtt, res_att = res_att, res_cic = res_cic,
-         res_qdid = res_qdid, res_pqtt = res_pqtt, res_ddid = res_ddid,
-         res_mdid = res_mdid, res_lou = res_lou),
-    cache_file
-  )
+  saveRDS(cached, cache_file)
 }
+list2env(cached, envir = environment())
 ```
 
 `mpdta` is a balanced panel of 500 US counties observed annually from 2003 to
@@ -151,9 +142,10 @@ table(mpdta$first.treat)
 ## QTT curve estimation
 
 We begin with `cic()` using `gt_type = "qtt"` to estimate the full QTT curve.
-CDFs are mixed across group-time cells first (using overall-ATT weights), then
-inverted at the requested `probs` grid — this avoids the bias that would arise
-from averaging scalar quantiles across cells.
+For each aggregation, the group-time cells' distribution functions are mixed
+first (with the same weights as the corresponding ATT aggregation) and the
+mixture is then inverted at each requested quantile. This gives the QTT for
+the treated population as a whole, which averaging cell-level QTTs would not.
 
 ```{r}
 #| label: qtt-estimate
@@ -170,27 +162,29 @@ res_qtt <- cic(
 )
 ```
 
-### Overall QTT curve
-
-`summary()` prints the overall QTT curve and confidence bands.
+`summary()` prints the overall QTT curve, the event-study and cohort QTTs at
+the median (change this with `probs`), and the ATTs:
 
 ```{r}
 #| label: qtt-summary
 summary(res_qtt)
 ```
 
-`autoplot()` plots the overall curve with uniform confidence bands:
+### Overall QTT curve
+
+`autoplot()` plots the overall curve with a uniform confidence band, and the
+overall ATT as a horizontal line:
 
 ```{r}
 #| label: qtt-plot
-#| fig-alt: "Overall QTT curve from cic()"
+#| fig-alt: "Overall QTT curve from cic(), with the overall ATT"
 autoplot(res_qtt)
 ```
 
-### Dynamic QTT — event-study by quantile
+### Dynamic QTT — event study by quantile
 
-`autoplot()` with `type = "dynamic"` plots the QTT at selected quantile(s)
-across event times. The `plot_probs` argument selects which quantiles to show.
+`type = "dynamic"` plots the QTT at selected quantile(s) across event times.
+The `plot_probs` argument selects which quantiles to show.
 
 ```{r}
 #| label: qtt-dynamic-single
@@ -199,7 +193,8 @@ autoplot(res_qtt, type = "dynamic", plot_probs = 0.5)
 ```
 
 Multiple quantiles can be overlaid by passing a vector to `plot_probs` (values
-must be in the estimated `probs` grid):
+must be in the estimated `probs` grid). Confidence intervals are then hidden
+by default (`plot_ci = TRUE` shows them):
 
 ```{r}
 #| label: qtt-dynamic-multi
@@ -210,13 +205,52 @@ autoplot(res_qtt, type = "dynamic", plot_probs = c(0.1, 0.5, 0.9))
 Pre-treatment estimates near zero support the identifying assumption. The
 post-treatment pattern shows the estimated QTT in each period after adoption.
 
+### QTT by cohort
+
+`type = "group"` shows each cohort's QTT, averaged over its post-treatment
+periods:
+
+```{r}
+#| label: qtt-group
+#| fig-alt: "Median QTT by treatment cohort"
+autoplot(res_qtt, type = "group", plot_probs = 0.5)
+```
+
+---
+
+## Is the effect more than a location shift?
+
+If treatment shifts the whole distribution by the same amount, the QTT equals
+the ATT at every quantile. Because the QTT run also computes the ATT from the
+same bootstrap draws, the difference $QTT(\tau) - ATT$ has its own uniform
+confidence band, and the last column of the ATT table in `summary()` above is
+the p-value of the test that $QTT(\tau) = ATT$ at every estimated quantile.
+This is a valid test, unlike checking whether the ATT lies inside the QTT
+band, which ignores that the two estimates are correlated.
+
+```{r}
+#| label: qtt-minus-att
+#| fig-alt: "QTT minus ATT across quantiles, with a uniform confidence band"
+autoplot(res_qtt, type = "qtt_minus_att")
+```
+
+Here the band covers zero at every quantile (p-value
+`r res_qtt$qtt_minus_att$overall$pval[1]`), so there is no evidence that the
+minimum wage changed the shape of the employment distribution beyond
+shifting it. In general, a band that excludes zero at some quantile rejects
+a pure location shift:
+the treatment changes the shape of the outcome distribution, which the ATT
+alone would miss. Note that this compares distributions. Even a location
+shift of the distribution is consistent with individual effects that vary
+across units.
+
 ---
 
 ## ATT and event-study summary
 
-Setting `gt_type = "att"` recovers the scalar ATT at each group-time cell,
-which aggregates into an overall ATT and an event-study (dynamic) table.
-Event times $e < 0$ are pre-treatment periods; $e \geq 0$ are post-treatment.
+When only the ATT is needed, `gt_type = "att"` is faster: it skips the
+distribution functions. Event times $e < 0$ are pre-treatment periods;
+$e \geq 0$ are post-treatment.
 
 ```{r}
 #| label: att-estimate
@@ -245,15 +279,11 @@ summary(res_att)
 autoplot(res_att, type = "dynamic")
 ```
 
-If the QTT curve from `res_qtt` is roughly flat, treatment shifts the
-distribution uniformly and the ATT captures the full story. Deviations across
-quantiles indicate distributional heterogeneity that the ATT misses.
-
 ---
 
 ## Comparing estimators
 
-All six estimators share the same interface. Here we run each with
+All seven estimators share the same interface. Here we run each with
 `gt_type = "qtt"` and `probs = 0.5` to compare median QTT estimates. The
 estimators are listed in the same order as in `vignette("panel-estimators")`.
 
@@ -265,43 +295,17 @@ res_cic <- cic(
   idname = "countyreal", data = mpdta,
   gt_type = "qtt", probs = 0.5, biters = 100
 )
-
-res_qdid <- qdid(
-  yname = "lemp", gname = "first.treat", tname = "year",
-  idname = "countyreal", data = mpdta,
-  gt_type = "qtt", probs = 0.5, biters = 100
-)
-
-res_pqtt <- panel_qtt(
-  yname = "lemp", gname = "first.treat", tname = "year",
-  idname = "countyreal", data = mpdta,
-  gt_type = "qtt", probs = 0.5, biters = 100
-)
-
-res_ddid <- ddid(
-  yname = "lemp", gname = "first.treat", tname = "year",
-  idname = "countyreal", data = mpdta,
-  gt_type = "qtt", probs = 0.5, biters = 100
-)
-
-res_mdid <- mdid(
-  yname = "lemp", gname = "first.treat", tname = "year",
-  idname = "countyreal", data = mpdta,
-  gt_type = "qtt", probs = 0.5, biters = 100
-)
-
-res_lou <- lou_qtt(
-  yname = "lemp", gname = "first.treat", tname = "year",
-  idname = "countyreal", data = mpdta,
-  gt_type = "qtt", probs = 0.5, biters = 100
-)
+# ... and the same call for qdid(), panel_qtt(), ddid(), mdid(), cdf_did()
+# and lou_qtt(), saved as res_qdid, res_pqtt, res_ddid, res_mdid, res_cdf
+# and res_lou
 ```
 
 ```{r}
 #| label: compare-table
 median_qtt <- function(res, label) {
   row <- res$overall[res$overall$probs == 0.5, ]
-  data.frame(estimator = label, qtt = round(row$qtt, 4), se = round(row$se, 4))
+  data.frame(estimator = label, qtt = round(row$qtt, 4), se = round(row$se, 4),
+             att = round(res$att$overall$att, 4))
 }
 
 do.call(rbind, list(
@@ -310,6 +314,7 @@ do.call(rbind, list(
   median_qtt(res_pqtt, "panel_qtt()"),
   median_qtt(res_ddid, "ddid()"),
   median_qtt(res_mdid, "mdid()"),
+  median_qtt(res_cdf,  "cdf_did()"),
   median_qtt(res_lou,  "lou_qtt()")
 ))
 ```
@@ -317,26 +322,96 @@ do.call(rbind, list(
 Estimates will generally differ because each estimator relies on a different
 identifying assumption. Similarity across methods strengthens confidence in
 the findings; divergence warrants investigation of which assumption is more
-plausible for the application.
+plausible for the application. The ATTs differ too, since each assumption
+implies its own counterfactual mean. `mdid()` and `cdf_did()` both imply
+mean parallel trends, so their ATT is the usual DiD estimate. `panel_qtt()`'s
+default long copula also drops group-time cells without enough
+pre-treatment periods, so it averages over fewer cells.
+
+---
+
+## Covariates
+
+Each estimator's assumption can be made conditional on covariates through
+`xformula`, as with `did::att_gt()`. How they enter depends on the
+estimator:
+
+- `cic()`, `qdid()`, `panel_qtt()` and `ddid()` estimate conditional
+  outcome distributions, by quantile regression (`cond_dist = "qr"`, the
+  default) or distribution regression (`cond_dist = "dr"`, a logit of
+  $1\{Y \le y\}$ on the covariates at a grid of thresholds). Distribution
+  regression also handles outcomes with mass points.
+- `cdf_did()` and `lou_qtt()` take `est_method = c("aipw", "ipw", "reg")`:
+  doubly robust, inverse probability weighting, or outcome regression
+  (`lou_qtt()`'s outcome regression also takes `cond_dist`).
+- `mdid()` adjusts the comparison group's mean change by a linear
+  regression on the covariates.
+
+Here we condition on log county population, `lpop`:
+
+```{r}
+#| label: covariates
+#| eval: false
+res_cdf_x <- cdf_did(
+  yname      = "lemp",
+  gname      = "first.treat",
+  tname      = "year",
+  idname     = "countyreal",
+  data       = mpdta,
+  xformula   = ~lpop,
+  est_method = "aipw",
+  biters     = 100,
+  gt_type    = "qtt",
+  probs      = seq(0.1, 0.9, by = 0.1)
+)
+
+res_cic_x <- cic(
+  yname     = "lemp",
+  gname     = "first.treat",
+  tname     = "year",
+  idname    = "countyreal",
+  data      = mpdta,
+  xformula  = ~lpop,
+  cond_dist = "dr",
+  biters    = 100,
+  gt_type   = "qtt",
+  probs     = seq(0.1, 0.9, by = 0.1)
+)
+```
+
+```{r}
+#| label: covariates-plot-cdf
+#| fig-alt: "Overall QTT curve from cdf_did() with covariates"
+autoplot(res_cdf_x)
+```
+
+```{r}
+#| label: covariates-plot-cic
+#| fig-alt: "Overall QTT curve from cic() with covariates"
+autoplot(res_cic_x)
+```
 
 ---
 
 ## Repeated cross sections
 
-If the data are repeated cross sections rather than a panel, set `panel = FALSE`
-and omit `idname`. `cic()`, `qdid()`, and `mdid()` support repeated cross
-sections; `ddid()`, `panel_qtt()`, and `lou_qtt()` require panel data.
+If the data are repeated cross sections rather than a panel, set
+`panel = FALSE` and omit `idname`. `cic()`, `qdid()`, `mdid()` and
+`cdf_did()` support repeated cross sections, as does `lou_qtt()` with
+`lagged_outcome_cov = FALSE`. `ddid()` and `panel_qtt()` need panel data,
+as does the distribution of individual effects (`gt_type = "qott"`).
 
 ```{r}
 #| label: rcs-example
 #| eval: false
 res_rcs <- cic(
-  yname  = "lemp",
-  gname  = "first.treat",
-  tname  = "year",
-  data   = mpdta,   # no idname
-  panel  = FALSE,
-  biters = 100
+  yname   = "lemp",
+  gname   = "first.treat",
+  tname   = "year",
+  data    = mpdta,   # no idname
+  panel   = FALSE,
+  gt_type = "qtt",
+  biters  = 100
 )
 ```
 
@@ -344,13 +419,23 @@ res_rcs <- cic(
 
 ## Inference notes
 
-Standard errors are computed via the empirical bootstrap, resampling units
+Standard errors are computed with the empirical bootstrap, resampling units
 (panel) or observations (repeated cross sections) with replacement. The
 `biters` argument controls the number of iterations (default 100). Parallel
 computation is available via the `cl` argument (`cl = 4` uses 4 cores).
 
-The `cband = TRUE` default in `summary()` and `autoplot()` produces uniform
-confidence bands (simultaneous coverage over all quantiles or event times).
-Set `cband = FALSE` for pointwise intervals.
+- **Clustering.** `clustervars` resamples whole clusters at a level above
+  the unit (for example, states), as in `did::att_gt()`.
+- **Sampling weights.** `weightsname` names a column of sampling weights,
+  used in every estimation step and in the aggregation across cohorts.
+- **Confidence bands.** With `cband = TRUE` (the default) each QTT curve
+  and event study gets a uniform band, with simultaneous coverage over
+  all quantiles or event times. Set `cband = FALSE` for pointwise
+  intervals; `autoplot()` also takes `cband` to choose which to draw.
+- **Discrete outcomes.** The estimators warn when the outcome looks
+  discrete (a large mass point, or few distinct values). Quantile
+  treatment effects are then usually not point identified, and bootstrap
+  inference can be unreliable; `cdf_did()` is the exception for
+  identification.
 
 ## References

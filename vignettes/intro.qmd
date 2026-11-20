@@ -92,8 +92,8 @@ if (use_cache) {
     probs      = seq(0.1, 0.9, 0.1),
     biters     = 100
   )
-  # pscore.reg (fitted glm) carries a full copy of the training data and is
-  # never read by summary()/autoplot(); dropping it keeps the cache small.
+  # pscore.reg (the fitted propensity score model) is never read by
+  # summary()/autoplot(); dropping it keeps the cache small.
   save_psid <- res_psid; save_psid$pscore.reg <- NULL
   save_qtt  <- res_qtt;  save_qtt$pscore.reg  <- NULL
   saveRDS(list(res_exp = res_exp, res_psid = save_psid, res_qtt = save_qtt), cache_file)
@@ -128,14 +128,23 @@ summary(res_exp)
 summary(res_exp)
 ```
 
+Earnings are zero for 31% of this sample, so `unc_qte()` warns that the
+outcome looks discrete, and `summary()` repeats the note. Quantiles in the
+mass point are zero in both groups, so the QTE there is zero by
+construction; interpret the low quantiles with care.
+
 ```{r}
 #| label: random-qte-plot
 #| fig-alt: "QTE curve under random assignment"
 autoplot(res_exp, ylab = "QTE (earnings, 1978)")
 ```
 
-The confidence band indicates that the QTE is positive across much of the
-distribution, with the effect somewhat larger in the lower quantiles.
+The point estimates are zero at the lowest quantiles, inside the mass point,
+and then increase with $\tau$, from about \$900 at the 30th percentile to
+about \$2,900 at the 90th. With 445 participants, though, the uniform band
+covers zero at every quantile, even though the ATE of about \$1,800 is
+statistically significant: a band that holds simultaneously over nine
+quantiles is much wider than a single interval.
 
 ## Unconfoundedness
 
@@ -181,6 +190,12 @@ summary(res_psid)
 autoplot(res_psid, ylab = "QTE (earnings, 1978)")
 ```
 
+These estimates are large and negative, far from the experimental benchmark
+above. The QTE is about the whole population, which here is mostly
+PSID households with much higher earnings than the program's participants,
+and these covariates (which leave out earnings before the program) do not
+make the two groups comparable [@lalonde-1986; @dehejia-wahba-1999].
+
 ## QTT under unconfoundedness
 
 Setting `target = "qtt"` estimates the Quantile Treatment Effect on the
@@ -214,6 +229,12 @@ summary(res_qtt)
 #| fig-alt: "QTT curve under unconfoundedness"
 autoplot(res_qtt, ylab = "QTT (earnings, 1978)")
 ```
+
+The QTT only needs a counterfactual for the participants, so it is much
+smaller in magnitude than the QTE, but it is still negative and grows with
+$\tau$, and the band excludes zero at the median. It remains well below the
+experimental estimates, a reminder that unconfoundedness given these
+covariates is a strong assumption for this comparison group.
 
 ## Reading the output
 
