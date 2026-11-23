@@ -133,8 +133,8 @@ rationale are in `dev/NOTES.md`. Highlights:
 - `QTE()` (the constructor) is exported though users shouldn't need it.
 - **qte `master` needs unreleased dependencies:** ptetools 1.1.0 and
   BMisc 1.4.11 from GitHub (installed locally as of 2026-11-19). The
-  vignette caches were built against these versions (ptetools 0695e03,
-  2026-11-19); if either changes before CRAN, regenerate them.
+  vignette caches were built against these versions (ptetools d0aa8d0,
+  2026-11-22); if either changes before CRAN, regenerate them.
 - **Uniform bands:** the critical value standardizes the bootstrap draws
   by the bootstrap SD, the same scale the band uses, leaving out quantiles
   whose draws never vary (ptetools `boot_sup_t()`, #33; `unc_qte_boot()`
@@ -168,16 +168,18 @@ installed library version, which may lag:
 devtools::load_all("/home/bmc43193/Dropbox/ptetools")
 devtools::load_all(".")
 ```
-After `pkgdown::build_site()`, delete the auto-published internal-notes
-pages it regenerates every time:
-```r
-file.remove(file.path("docs", c("AGENTS.md", "AGENTS.html",
-                                  "CLAUDE.md", "CLAUDE.html",
-                                  "reference/qte (Case Conflict).html")))
-```
-`reference/qte (Case Conflict).html` is pkgdown's `qte.html` redirect (to
-`qte-package.html`), which Dropbox renames because it differs from
-`QTE.html` only in case; the redirect is dropped. pkgdown also never
+Build the site with `Rscript pkgdown/build_site.R`, not
+`pkgdown::build_site()` directly. pkgdown publishes every top-level `*.md`
+file (and indexes its full text in `search.json` and `sitemap.xml`); the
+wrapper moves `AGENTS.md`/`CLAUDE.md` aside during the build so they never
+reach the site. It also removes `reference/qte (Case Conflict).html`,
+pkgdown's `qte.html` redirect (to `qte-package.html`), which Dropbox
+renames because it differs from `QTE.html` only in case; the redirect is
+dropped.
+
+`README.qmd` runs the Quarto filter `pkgdown/fig-alt.lua`: Quarto's gfm
+output writes `fig-alt` as `data-fig-alt`, which GitHub and pkgdown ignore,
+so keep `fig-alt` on every README figure and the filter turns it into `alt`. pkgdown also never
 removes pages for deleted topics: after removing exported functions, run
 `pkgdown::clean_site(force = TRUE)` before `build_site()`.
 

@@ -8,7 +8,7 @@
 #   at a value (dr_cdf, cf. qr_cdf) and a per-unit conditional quantile at a
 #   probability (dr_quantile, cf. qr_quantile).
 # Author: Brant Callaway
-# Last update: 2026-11-20
+# Last update: 2026-11-22
 # Date created: 2026-11-15
 # =============================================================================
 
@@ -425,12 +425,24 @@ cond_fit <- function(formula, data, cond_dist = c("qr", "dr"),
 
 # Coefficients (p x length(taus)) of a quantile regression of y on the
 # design xk (which includes the intercept column), weighted by w unless
-# NULL. The same rq() fit as on the formula, so the estimates are identical.
+# NULL.
+#
+# Uses the Frisch-Newton interior point method (method = "fn"; Portnoy and
+# Koenker 1997), not rq()'s default Barrodale-Roberts simplex ("br"). With
+# a mass point in y (e.g. earnings with many zeros) and tau inside it, the
+# linear program is degenerate and "br" can cycle forever; the loop is in
+# Fortran, so it cannot be interrupted (this hung a bootstrap draw of
+# unc_qte() on lalonde.psid). "fn" does not pivot and cannot cycle, is as
+# fast or faster here, and qte uses none of the "br"-only features (rank-
+# inversion inference, the full quantile process): only coef() at a fixed
+# grid of taus, with bootstrap inference. Estimates agree with "br" up to
+# the solver tolerance when the solution is unique.
 rq_coef <- function(y, xk, w, taus) {
   fit <- if (is.null(w)) {
-    suppressWarnings(quantreg::rq(y ~ xk - 1, tau = taus))
+    suppressWarnings(quantreg::rq(y ~ xk - 1, tau = taus, method = "fn"))
   } else {
-    suppressWarnings(quantreg::rq(y ~ xk - 1, tau = taus, weights = w))
+    suppressWarnings(quantreg::rq(y ~ xk - 1, tau = taus, weights = w,
+                                  method = "fn"))
   }
   cf <- as.matrix(stats::coef(fit))
   if (length(taus) == 1L) cf <- matrix(cf, ncol = 1L)

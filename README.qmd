@@ -1,5 +1,8 @@
 ---
 format: gfm
+filters:
+  - quarto
+  - pkgdown/fig-alt.lua
 ---
 
 <!-- README.md is generated from README.qmd. Please edit that file. -->
@@ -69,6 +72,7 @@ via doubly robust estimation.
 
 ```{r}
 #| label: unc-qte
+#| warning: false
 data(lalonde)
 
 xf <- ~ age + I(age^2) + education + black + hispanic + married + nodegree

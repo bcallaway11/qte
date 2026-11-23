@@ -11,7 +11,7 @@
 #   user-facing wrapper (panel or repeated cross sections, staggered
 #   adoption).
 # Author: Brant Callaway
-# Last update: 2026-11-20
+# Last update: 2026-11-21
 # Date created: 2026-11-19
 # =============================================================================
 
@@ -101,9 +101,9 @@ cdf_did_delta <- function(trt_pre, ctrl_pre, ctrl_post, xformula, est_method,
 #'   F_{\text{pre},D=0}(y),}
 #'   evaluated exactly at every point of the pooled support of the three
 #'   distributions on the right. The raw \eqn{F_0} need not be a valid
-#'   distribution function (it can decrease, or leave [0, 1]); it is made one
+#'   distribution function (it can decrease, or leave \[0, 1\]); it is made one
 #'   by monotone rearrangement (sorting its values; Chernozhukov,
-#'   Fernandez-Val and Galichon 2010) and clipping to [0, 1]. The largest
+#'   Fernandez-Val and Galichon 2010) and clipping to \[0, 1\]. The largest
 #'   change this makes is returned as \code{cdf_violation}; large values are
 #'   evidence against the identifying assumption.
 #'
@@ -237,7 +237,6 @@ cdf_did_gt <- function(gt_data, xformula = ~1,
 #'   estimated (including the rearrangement into a valid distribution
 #'   function and the three covariate methods).
 #'
-#' @inheritParams cdf_did_gt
 #' @param yname Name of the outcome variable in \code{data}.
 #' @param gname Name of the treatment group variable (first treatment period;
 #'   0 for never-treated units).

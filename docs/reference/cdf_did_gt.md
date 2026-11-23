@@ -51,9 +51,9 @@ group in the post period is \$\$F\_{0}(y) = F\_{\text{pre},D=1}(y) +
 F\_{\text{post},D=0}(y) - F\_{\text{pre},D=0}(y),\$\$ evaluated exactly
 at every point of the pooled support of the three distributions on the
 right. The raw \\F_0\\ need not be a valid distribution function (it can
-decrease, or leave 0, 1); it is made one by monotone rearrangement
+decrease, or leave \[0, 1\]); it is made one by monotone rearrangement
 (sorting its values; Chernozhukov, Fernandez-Val and Galichon 2010) and
-clipping to 0, 1. The largest change this makes is returned as
+clipping to \[0, 1\]. The largest change this makes is returned as
 `cdf_violation`; large values are evidence against the identifying
 assumption.
 

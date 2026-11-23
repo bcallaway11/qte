@@ -5,7 +5,7 @@
 #   inverts CDF; discrete outcomes stay on the support; tail anchors), and
 #   that cic_gt(cond_dist = "dr") recovers a known ATT.
 # Author: Brant Callaway
-# Last update: 2026-11-15
+# Last update: 2026-11-22
 # Date created: 2026-11-15
 # =============================================================================
 
@@ -90,7 +90,8 @@ test_that("the cond_fit/cond_cdf/cond_quantile dispatch reproduces the QR helper
   d <- sim_cdf_data()
   taus <- seq(0.01, 0.99, 0.01)
   m <- cond_fit(Y ~ x, d, "qr", taus)
-  direct <- suppressWarnings(quantreg::rq(Y ~ x, data = d, tau = taus, weights = .w))
+  direct <- suppressWarnings(quantreg::rq(Y ~ x, data = d, tau = taus, weights = .w,
+                                         method = "fn"))
   q <- qr_sorted_quantiles(direct, d)
   expect_identical(cond_cdf(m, d, d$Y), qr_cdf(q, taus, d$Y))
   p <- runif(nrow(d))

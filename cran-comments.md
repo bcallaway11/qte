@@ -15,12 +15,23 @@ This is a minor release (2.0.0 -> 2.1.0). Main changes (see NEWS.md):
   sampling weights throughout (weighted cohort shares, a weighted bootstrap
   that kept weights in row order in `unc_qte()`). `mdid()` with covariates
   no longer errors.
-* Requires 'ptetools' (>= 1.0.3), released just before this submission.
+* Quantile regressions now use the Frisch-Newton interior point method
+  (`quantreg::rq(method = "fn")`). With a mass point in the outcome, the
+  default Barrodale-Roberts simplex could cycle forever and hang R.
+* Requires 'ptetools' (>= 1.1.0).
 * Drops the 'data.table', 'parallel' and 'formula.tools' dependencies.
+
+## Coordinated submission with 'ptetools'
+
+This release is submitted together with 'ptetools' 1.1.0 (same
+maintainer), which it requires. 'ptetools' 1.1.0 stores its internal
+columns under new names, which breaks the subset functions in the current
+CRAN version of 'qte' (2.0.0); this release reads the new names. Please
+check it against 'ptetools' 1.1.0.
 
 ## Test environments
 
-* Local: TODO (OS, R version)
+* Local: Ubuntu 26.04.1 LTS, R 4.5.2
 * GitHub Actions: TODO
     - windows-latest (R release)
     - windows-latest (R devel)
@@ -30,14 +41,18 @@ This is a minor release (2.0.0 -> 2.1.0). Main changes (see NEWS.md):
 
 ## R CMD check results
 
-`rcmdcheck::rcmdcheck(args = "--as-cran")`: TODO
+`rcmdcheck::rcmdcheck(args = "--as-cran")`:
+
+0 errors | 0 warnings | 0 notes
+
+(Locally, there is one NOTE that HTML validation and math rendering in the
+manual were skipped because HTML Tidy and V8 are not installed on the check
+machine; this is a property of the local setup, not the package.)
 
 ## Downstream dependencies
 
-TODO: run `.revdeplite/run_revdeplite.R`.
-
-* CRAN: `sccic` lists qte only in Suggests and does not call it; expected no
-  problems.
-* GitHub only (not on CRAN): `csabounds` uses `qte::CiC()` in its examples,
-  which this release removes after its 2.0.0 deprecation. Its maintainer is
-  the qte maintainer, so no notice is needed; it is not on CRAN.
+* CRAN: `sccic` 0.1.1 (lists qte in Suggests): OK.
+* GitHub only (not on CRAN): `csabounds` could not be checked because its
+  dependency `distreg` is not installable; it also uses `qte::CiC()` in its
+  examples, which this release removes after its 2.0.0 deprecation. Its
+  maintainer is the qte maintainer, and it is not on CRAN.

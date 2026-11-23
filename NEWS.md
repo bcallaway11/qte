@@ -72,6 +72,12 @@
 
 ## Bug fixes (these change results)
 
+* Quantile regressions (`cond_dist = "qr"`, the default) now use the
+  Frisch-Newton interior point method (`quantreg::rq(method = "fn")`)
+  instead of the Barrodale-Roberts simplex. With a mass point in the
+  outcome (e.g. earnings with many zeros), the simplex could cycle forever
+  and hang R, uninterruptibly. Estimates are unchanged up to solver
+  tolerance when the quantile regression solution is unique.
 * When a treated unit's covariates aren't spanned by the comparison group
   (e.g. a dummy for a region with treated units only), the conditional
   outcome models extrapolate. With `cond_dist = "dr"` this happened

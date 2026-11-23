@@ -41,9 +41,9 @@ treated group in the post period is
   F_{\text{pre},D=0}(y),}
 evaluated exactly at every point of the pooled support of the three
 distributions on the right. The raw \eqn{F_0} need not be a valid
-distribution function (it can decrease, or leave \link{0, 1}); it is made one
+distribution function (it can decrease, or leave [0, 1]); it is made one
 by monotone rearrangement (sorting its values; Chernozhukov,
-Fernandez-Val and Galichon 2010) and clipping to \link{0, 1}. The largest
+Fernandez-Val and Galichon 2010) and clipping to [0, 1]. The largest
 change this makes is returned as \code{cdf_violation}; large values are
 evidence against the identifying assumption.
 
