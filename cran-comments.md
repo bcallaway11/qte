@@ -18,16 +18,23 @@ This is a minor release (2.0.0 -> 2.1.0). Main changes (see NEWS.md):
 * Quantile regressions now use the Frisch-Newton interior point method
   (`quantreg::rq(method = "fn")`). With a mass point in the outcome, the
   default Barrodale-Roberts simplex could cycle forever and hang R.
+* Weighted quantiles in `cic()` and `panel_qtt()` no longer depend on
+  floating-point rounding, which made results differ across platforms.
 * Requires 'ptetools' (>= 1.1.0).
 * Drops the 'data.table', 'parallel' and 'formula.tools' dependencies.
 
-## Coordinated submission with 'ptetools'
+## Follow-up to 'ptetools' 1.1.0
 
-This release is submitted together with 'ptetools' 1.1.0 (same
-maintainer), which it requires. 'ptetools' 1.1.0 stores its internal
-columns under new names, which breaks the subset functions in the current
-CRAN version of 'qte' (2.0.0); this release reads the new names. Please
-check it against 'ptetools' 1.1.0.
+This release requires 'ptetools' (>= 1.1.0), now on CRAN (same
+maintainer). The 'ptetools' reverse-dependency check flagged 6 test
+failures in 'qte' 2.0.0, all fixed here:
+
+* 2 errors: 'ptetools' 1.1.0 stores its internal columns under new names,
+  which the subset functions in 'qte' 2.0.0 did not read; this release
+  reads the new names.
+* 4 changed values: tests hardcoding median quantile treatment effects,
+  which change because 'ptetools' 1.1.0 corrects how group-time QTTs are
+  aggregated. This release updates them to the corrected values.
 
 ## Test environments
 

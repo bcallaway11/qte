@@ -10,7 +10,7 @@
 #   All three attgt_fun/subset_fun functions follow the ptetools patterns used
 #   by cic_gt, qdid_gt, mdid_gt, and ddid_gt.
 # Author: Brant Callaway
-# Last update: 2026-11-20
+# Last update: 2026-11-24
 # Date created: 2026-05-20
 # =============================================================================
 
@@ -206,13 +206,8 @@ panel_qtt_gt <- function(gt_data, xformula = ~1, cond_dist = c("qr", "dr"), ...)
   dY_trt  <- Y_pre1_trt - Y_pre2_trt   # nolint: object_name_linter
   dY_ctrl <- Y_post_ctrl - Y_pre1_ctrl  # nolint: object_name_linter
 
-  # Helper: weighted type-1 quantile (smallest y with weighted CDF >= p).
-  wquant <- function(y_vec, w_vec, probs) {
-    ord <- order(y_vec)
-    y_s <- y_vec[ord]
-    cdf <- cumsum(w_vec[ord])
-    y_s[first_geq(cdf, probs)]
-  }
+  # weighted type-1 quantiles below use the package's wquant(), whose
+  # tolerance keeps the result the same across platforms
 
   # No-covariate path:
   #

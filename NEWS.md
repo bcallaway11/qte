@@ -78,6 +78,14 @@
   outcome (e.g. earnings with many zeros), the simplex could cycle forever
   and hang R, uninterruptibly. Estimates are unchanged up to solver
   tolerance when the quantile regression solution is unique.
+* `cic()` and `panel_qtt()` could pick the wrong order statistic for a
+  weighted quantile when a CDF value landed exactly on a probability
+  (e.g. 35 weights of 1/500 summing to 0.07) and summation rounding put it
+  a hair below. Which one was picked depended on the platform (results
+  differed between macOS on Apple Silicon and Linux) and, in `panel_qtt()`,
+  on rounding even within one platform. They now use the same small
+  tolerance as the package's other weighted quantiles. `panel_qtt()`
+  estimates can change slightly.
 * When a treated unit's covariates aren't spanned by the comparison group
   (e.g. a dummy for a region with treated units only), the conditional
   outcome models extrapolate. With `cond_dist = "dr"` this happened

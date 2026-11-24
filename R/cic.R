@@ -6,7 +6,7 @@
 #   treatment adoption for both panel and repeated cross sections data.
 #   (The deprecated two-period CiC() was removed in v2.1.0.)
 # Author: Brant Callaway
-# Last update: 2026-11-20
+# Last update: 2026-11-24
 # Date created: 2026-05-18
 # =============================================================================
 
@@ -92,7 +92,11 @@ cic_gt <- function(gt_data, xformula = ~1, cond_dist = c("qr", "dr"), ...) {
   ord_post_c <- order(Y_post_ctrl)
   y_post_c_s <- Y_post_ctrl[ord_post_c]
   cdf_post_c <- cumsum(w_post_ctrl[ord_post_c])
-  kcic <- y_post_c_s[first_geq(cdf_post_c, u)]
+  # u and cdf_post_c are both cumulative sums of weights; when they are
+  # equal in exact arithmetic, summation rounding (which differs across
+  # platforms) must not flip the order statistic: same tolerance as wquant()
+  tol <- sqrt(.Machine$double.eps)
+  kcic <- y_post_c_s[first_geq(cdf_post_c, u - tol)]
 
   att <- weighted.mean(Y_post_trt, w_post_trt) - weighted.mean(kcic, w_pre_trt)
   F0  <- BMisc::weighted_ecdf(kcic,       weights = w_pre_trt)  # nolint: object_name_linter
@@ -112,7 +116,7 @@ cic_gt <- function(gt_data, xformula = ~1, cond_dist = c("qr", "dr"), ...) {
     pre_s  <- pre_s[order(pre_s$id), ]
     post_s <- post_s[order(post_s$id), ]
     u_s    <- wcdf_at(Y_pre_ctrl, w_pre_ctrl, pre_s$Y)
-    kcic_s <- y_post_c_s[first_geq(cdf_post_c, u_s)]
+    kcic_s <- y_post_c_s[first_geq(cdf_post_c, u_s - tol)]
     w_post_trt_s <- post_s$.w / sum(post_s$.w)
     Fte    <- BMisc::weighted_ecdf(post_s$Y - kcic_s, weights = w_post_trt_s) # nolint: object_name_linter
   }
